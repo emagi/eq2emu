@@ -18,7 +18,7 @@
     along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "../common/Log.h"
-#include "../../common/MiscFunctions.h"
+#include "../common/MiscFunctions.h"
 #include <map>
 
 using namespace std;
