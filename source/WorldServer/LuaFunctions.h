@@ -20,7 +20,7 @@
 #ifndef LUA_FUNCTIONS_H
 #define LUA_FUNCTIONS_H
 
-#include "../LUA/lua.hpp"
+#include <LUA/lua.hpp>
 #include <vector>
 #include <string>
 #include <map>

@@ -30,7 +30,7 @@
 #include "zoneserver.h"
 #include "client.h"
 
-#include "../LUA/lua.hpp"
+#include <LUA/lua.hpp>
 
 using namespace std;
 
