@@ -22,7 +22,7 @@
     "LoginConfig": {
         "ServerMode": "StandAlone",
         "ServerPort": "9100",
-        "AccountCreation": "1"
+        "AccountCreation": "1",
         "webloginaddress": "",
         "webloginport": "",
         "webcertfile": "",
