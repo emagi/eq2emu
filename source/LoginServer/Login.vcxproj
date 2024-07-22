@@ -1,0 +1,154 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="EQ2Login|x64">
+      <Configuration>EQ2Login</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectName>EQ2Login</ProjectName>
+    <ProjectGuid>{BE2C1914-FCCC-4F65-A7DD-105142B36104}</ProjectGuid>
+    <RootNamespace>EQ2 Login</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='EQ2Login|x64'">
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='EQ2Login|x64'">
+    <IncludePath>$(SolutionDir)..\source\depends\mariadb-10.1.19\include;$(SolutionDir)..\source\depends\zlib\include;$(SolutionDir)..\source\depends\recastnavigation\Detour\Include;$(SolutionDir)..\source\depends\boost_1_72_0\;$(SolutionDir)..\source\depends\glm\;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+    <LibraryPath>$(SolutionDir)..\source\depends\recastnavigation\RecastDemo\Build\vs2019\lib\Debug;$(SolutionDir)..\source\depends\mariadb-10.1.19\lib\64-debug;$(SolutionDir)..\source\depends\zlib\lib;$(SolutionDir)..\source\depends\boost_1_72_0\lib64-msvc-14.2;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64</LibraryPath>
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>$(SolutionDir)loginserver\</OutDir>
+    <IntDir>.\$(ProjectName)__Debug64\</IntDir>
+    <TargetName>$(ProjectName)__Debug64</TargetName>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='EQ2Login|x64'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <PreprocessorDefinitions>_WIN32_WINNT=0x0400;WIN32;NDEBUG;_CONSOLE;LOGIN; EQ2; EQN_DEBUG;_CRT_SECURE_NO_DEPRECATE;_HAS_STD_BYTE=0
+;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <FunctionLevelLinking>false</FunctionLevelLinking>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <PrecompiledHeaderFile />
+      <PrecompiledHeaderOutputFile />
+      <ProgramDataBaseFileName>$(IntDir)</ProgramDataBaseFileName>
+      <BrowseInformation />
+      <BrowseInformationFile />
+      <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>odbc32.lib;odbccp32.lib;ws2_32.lib;zlib.lib;mysqlclient.lib;DebugUtils.lib;Detour.lib;DetourCrowd.lib;DetourTileCache.lib;Recast.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <IgnoreSpecificDefaultLibraries>LIBCMT;LIBC;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ProgramDatabaseFile>$(IntDir)$(TargetName).pdb</ProgramDatabaseFile>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention />
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\common\DatabaseNew.cpp" />
+    <ClCompile Include="..\common\DatabaseResult.cpp" />
+    <ClCompile Include="..\common\Log.cpp" />
+    <ClCompile Include="client.cpp" />
+    <ClCompile Include="LoginAccount.cpp" />
+    <ClCompile Include="LoginDatabase.cpp" />
+    <ClCompile Include="LWorld.cpp" />
+    <ClCompile Include="net.cpp" />
+    <ClCompile Include="PacketHeaders.cpp" />
+    <ClCompile Include="Character.cpp" />
+    <ClCompile Include="..\common\Condition.cpp" />
+    <ClCompile Include="..\common\ConfigReader.cpp" />
+    <ClCompile Include="..\common\CRC16.cpp" />
+    <ClCompile Include="..\common\Crypto.cpp" />
+    <ClCompile Include="..\common\database.cpp" />
+    <ClCompile Include="..\common\dbcore.cpp" />
+    <ClCompile Include="..\common\debug.cpp" />
+    <ClCompile Include="..\common\emu_opcodes.cpp" />
+    <ClCompile Include="..\common\EQEMuError.cpp" />
+    <ClCompile Include="..\common\EQPacket.cpp" />
+    <ClCompile Include="..\common\EQStream.cpp" />
+    <ClCompile Include="..\common\EQStreamFactory.cpp" />
+    <ClCompile Include="..\common\misc.cpp" />
+    <ClCompile Include="..\common\MiscFunctions.cpp" />
+    <ClCompile Include="..\common\Mutex.cpp" />
+    <ClCompile Include="..\common\opcodemgr.cpp" />
+    <ClCompile Include="..\common\packet_dump.cpp" />
+    <ClCompile Include="..\common\packet_functions.cpp" />
+    <ClCompile Include="..\common\PacketStruct.cpp" />
+    <ClCompile Include="..\common\RC4.cpp" />
+    <ClCompile Include="..\common\TCPConnection.cpp" />
+    <ClCompile Include="..\common\timer.cpp" />
+    <ClCompile Include="..\common\xmlParser.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\common\DatabaseNew.h" />
+    <ClInclude Include="..\common\DatabaseResult.h" />
+    <ClInclude Include="..\common\Log.h" />
+    <ClInclude Include="..\common\LogTypes.h" />
+    <ClInclude Include="client.h" />
+    <ClInclude Include="login_opcodes.h" />
+    <ClInclude Include="login_structs.h" />
+    <ClInclude Include="LoginAccount.h" />
+    <ClInclude Include="LoginDatabase.h" />
+    <ClInclude Include="LWorld.h" />
+    <ClInclude Include="net.h" />
+    <ClInclude Include="PacketHeaders.h" />
+    <ClInclude Include="Character.h" />
+    <ClInclude Include="..\common\Condition.h" />
+    <ClInclude Include="..\common\ConfigReader.h" />
+    <ClInclude Include="..\common\CRC16.h" />
+    <ClInclude Include="..\common\Crypto.h" />
+    <ClInclude Include="..\common\database.h" />
+    <ClInclude Include="..\common\DataBuffer.h" />
+    <ClInclude Include="..\common\dbcore.h" />
+    <ClInclude Include="..\common\debug.h" />
+    <ClInclude Include="..\common\emu_opcodes.h" />
+    <ClInclude Include="..\common\EQ2_Common_Structs.h" />
+    <ClInclude Include="..\common\EQEMuError.h" />
+    <ClInclude Include="..\common\EQPacket.h" />
+    <ClInclude Include="..\common\EQStream.h" />
+    <ClInclude Include="..\common\EQStreamFactory.h" />
+    <ClInclude Include="..\common\GlobalHeaders.h" />
+    <ClInclude Include="..\common\linked_list.h" />
+    <ClInclude Include="..\common\login_oplist.h" />
+    <ClInclude Include="..\common\misc.h" />
+    <ClInclude Include="..\common\MiscFunctions.h" />
+    <ClInclude Include="..\common\Mutex.h" />
+    <ClInclude Include="..\common\op_codes.h" />
+    <ClInclude Include="..\common\opcodemgr.h" />
+    <ClInclude Include="..\common\packet_dump.h" />
+    <ClInclude Include="..\common\packet_functions.h" />
+    <ClInclude Include="..\common\PacketStruct.h" />
+    <ClInclude Include="..\common\queue.h" />
+    <ClInclude Include="..\common\RC4.h" />
+    <ClInclude Include="..\common\seperator.h" />
+    <ClInclude Include="..\common\servertalk.h" />
+    <ClInclude Include="..\common\TCPConnection.h" />
+    <ClInclude Include="..\common\timer.h" />
+    <ClInclude Include="..\common\types.h" />
+    <ClInclude Include="..\common\version.h" />
+    <ClInclude Include="..\common\xmlParser.h" />
+    <ClInclude Include="..\World\MutexHelper.h" />
+    <ClInclude Include="..\World\MutexList.h" />
+    <ClInclude Include="..\World\MutexMap.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
