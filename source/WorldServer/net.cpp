@@ -148,8 +148,8 @@ int main(int argc, char** argv) {
 
 	//remove this when all database calls are using the new database class
 	if (!database.Init()) {
-		LogStop();
 		LogWrite(INIT__ERROR, 0, "Init", "Database init failed!");
+		LogStop();
 		return EXIT_FAILURE;
 	}
 
