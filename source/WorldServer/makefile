@@ -19,7 +19,7 @@ Lua_C_Flags	= -DLUA_COMPAT_ALL -DLUA_USE_LINUX
 Lua_W_Flags	= -Wall
 
 C_Flags		= -I/eq2emu/fmt/include -I/eq2emu/recastnavigation/Detour/Include -I/usr/include/mariadb -I/usr/local/include/boost -I/usr/include/glm -I/usr/include/lua5.3 -march=native -pipe -pthread -std=c++17
-LD_Flags	= -L/usr/lib/x86_64-linux-gnu -lmariadb -lz -lpthread -L/eq2emu/recastnavigation/RecastDemo/Build/gmake2/lib/Debug -lDebugUtils -lDetour -lDetourCrowd -lDetourTileCache -lRecast -L/usr/local/lib -rdynamic -lm -Wl,-E -ldl -lreadline -lssl -lcrypto -lboost_system -lboost_filesystem -lboost_iostreams -lboost_regex
+LD_Flags	= -L/usr/lib/x86_64-linux-gnu -lmariadb -lz -lpthread -L/eq2emu/recastnavigation/RecastDemo/Build/gmake2/lib/Debug -lDebugUtils -lDetour -lDetourCrowd -lDetourTileCache -lRecast -llua5.3-c++ -L/usr/local/lib -rdynamic -lm -Wl,-E -ldl -lreadline -lssl -lcrypto -lboost_system -lboost_filesystem -lboost_iostreams -lboost_regex
 
 # World flags
 W_Flags		= -Wall -Wno-reorder
