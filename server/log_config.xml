@@ -1,0 +1,363 @@
+<EQ2EmuLogConfigs>
+	<Help Text="Details on Log Config here: http://eq2emulator.net/wiki/index.php/Admins:LogSystem" />
+	<!-- SYSTEM Loggers -->
+	<LogConfig Category="WORLD">
+		<ConfigType Type="INFO" Level="9" Color="WhiteBold" Enabled="True" Logs="3" />
+		<ConfigType Type="WARNING" Level="9" Color="YellowBold" Enabled="False" Logs="3" />
+		<ConfigType Type="ERROR" Level="9" Color="RedBold" Enabled="True" Logs="3" />
+		<ConfigType Type="DEBUG" Level="3" Color="GreenBold" Enabled="True" Logs="3" />
+		<ConfigType Type="PACKET" Level="9" Color="Yellow" Enabled="True" Logs="3" />
+		<ConfigType Type="TRACE" Level="9" Color="Yellow" Enabled="True" Logs="1" />
+	</LogConfig>
+	<LogConfig Category="LOGIN">
+		<ConfigType Type="INFO" Level="9" Color="WhiteBold" Enabled="True" Logs="3" />
+		<ConfigType Type="WARNING" Level="9" Color="YellowBold" Enabled="True" Logs="3" />
+		<ConfigType Type="ERROR" Level="9" Color="RedBold" Enabled="True" Logs="3" />
+		<ConfigType Type="DEBUG" Level="9" Color="GreenBold" Enabled="False" Logs="3" />
+		<ConfigType Type="PACKET" Level="9" Color="Yellow" Enabled="False" Logs="3" />
+		<ConfigType Type="TRACE" Level="9" Color="Yellow" Enabled="False" Logs="1" />
+	</LogConfig>
+	<LogConfig Category="PATCHER">
+		<ConfigType Type="INFO" Level="9" Color="WhiteBold" Enabled="True" Logs="3" />
+		<ConfigType Type="WARNING" Level="9" Color="YellowBold" Enabled="True" Logs="3" />
+		<ConfigType Type="ERROR" Level="9" Color="RedBold" Enabled="True" Logs="3" />
+		<ConfigType Type="DEBUG" Level="9" Color="GreenBold" Enabled="False" Logs="3" />
+		<ConfigType Type="PACKET" Level="9" Color="Yellow" Enabled="False" Logs="3" />
+		<ConfigType Type="TRACE" Level="9" Color="Yellow" Enabled="False" Logs="1" />
+	</LogConfig>
+	<LogConfig Category="PARSER">
+		<ConfigType Type="INFO" Level="9" Color="WhiteBold" Enabled="True" Logs="3" />
+		<ConfigType Type="WARNING" Level="9" Color="YellowBold" Enabled="True" Logs="3" />
+		<ConfigType Type="ERROR" Level="9" Color="RedBold" Enabled="True" Logs="3" />
+		<ConfigType Type="DEBUG" Level="9" Color="GreenBold" Enabled="False" Logs="3" />
+		<ConfigType Type="PACKET" Level="9" Color="Yellow" Enabled="False" Logs="3" />
+		<ConfigType Type="TRACE" Level="9" Color="Yellow" Enabled="False" Logs="1" />
+	</LogConfig>
+	<LogConfig Category="INIT">
+		<ConfigType Type="INFO" Level="9" Color="WhiteBold" Enabled="True" Logs="3" />
+		<ConfigType Type="WARNING" Level="9" Color="YellowBold" Enabled="True" Logs="3" />
+		<ConfigType Type="ERROR" Level="9" Color="RedBold" Enabled="True" Logs="3" />
+		<ConfigType Type="DEBUG" Level="9" Color="GreenBold" Enabled="False" Logs="3" />
+		<ConfigType Type="LOGIN_INFO" Level="9" Color="WhiteBold" Enabled="True" Logs="3" />
+		<ConfigType Type="LOGIN_WARNING" Level="9" Color="YellowBold" Enabled="True" Logs="3" />
+		<ConfigType Type="LOGIN_ERROR" Level="9" Color="RedBold" Enabled="True" Logs="3" />
+		<ConfigType Type="LOGIN_DEBUG" Level="9" Color="GreenBold" Enabled="False" Logs="3" />
+		<ConfigType Type="PATCHER_INFO" Level="9" Color="WhiteBold" Enabled="True" Logs="3" />
+		<ConfigType Type="PATCHER_WARNING" Level="9" Color="YellowBold" Enabled="True" Logs="3" />
+		<ConfigType Type="PATCHER_ERROR" Level="9" Color="RedBold" Enabled="True" Logs="3" />
+		<ConfigType Type="PATCHER_DEBUG" Level="9" Color="GreenBold" Enabled="False" Logs="3" />
+	</LogConfig>
+	<LogConfig Category="DATABASE">
+		<ConfigType Type="INFO" Level="9" Color="WhiteBold" Enabled="True" Logs="3" />
+		<ConfigType Type="ERROR" Level="9" Color="RedBold" Enabled="True" Logs="3" />
+		<ConfigType Type="QUERY" Level="9" Color="Cyan" Enabled="False" Logs="1" />
+		<ConfigType Type="RESULT" Level="9" Color="CyanBold" Enabled="False" Logs="1" />
+		<ConfigType Type="DEBUG" Level="9" Color="GreenBold" Enabled="False" Logs="3" />
+		<ConfigType Type="PACKET" Level="9" Color="Yellow" Enabled="False" Logs="3" />
+		<ConfigType Type="TRACE" Level="9" Color="Yellow" Enabled="False" Logs="1" />
+	</LogConfig>
+	<LogConfig Category="MUTEX">
+		<ConfigType Type="INFO" Level="9" Color="WhiteBold" Enabled="True" Logs="3" />
+		<ConfigType Type="WARNING" Level="9" Color="YellowBold" Enabled="True" Logs="3" />
+		<ConfigType Type="ERROR" Level="9" Color="RedBold" Enabled="True" Logs="3" />
+		<ConfigType Type="DEBUG" Level="9" Color="GreenBold" Enabled="False" Logs="3" />
+		<ConfigType Type="PACKET" Level="9" Color="Yellow" Enabled="False" Logs="3" />
+		<ConfigType Type="TRACE" Level="9" Color="Yellow" Enabled="False" Logs="1" />
+	</LogConfig>
+	<LogConfig Category="MISC">
+		<ConfigType Type="INFO" Level="9" Color="WhiteBold" Enabled="True" Logs="3" />
+		<ConfigType Type="WARNING" Level="9" Color="YellowBold" Enabled="True" Logs="3" />
+		<ConfigType Type="ERROR" Level="9" Color="RedBold" Enabled="True" Logs="3" />
+		<ConfigType Type="DEBUG" Level="9" Color="GreenBold" Enabled="False" Logs="3" />
+		<ConfigType Type="PACKET" Level="9" Color="Yellow" Enabled="False" Logs="3" />
+		<ConfigType Type="TRACE" Level="9" Color="Yellow" Enabled="False" Logs="1" />
+		<ConfigType Type="TODO" Level="9" Color="YellowBold" Enabled="False" Logs="3" />
+	</LogConfig>
+	<!-- NETWORK Loggers -->
+	<LogConfig Category="CCLIENT">
+		<ConfigType Type="INFO" Level="9" Color="WhiteBold" Enabled="True" Logs="3" />
+		<ConfigType Type="WARNING" Level="9" Color="YellowBold" Enabled="True" Logs="3" />
+		<ConfigType Type="ERROR" Level="9" Color="RedBold" Enabled="True" Logs="3" />
+		<ConfigType Type="DEBUG" Level="9" Color="GreenBold" Enabled="False" Logs="3" />
+		<ConfigType Type="PACKET" Level="9" Color="Yellow" Enabled="False" Logs="3" />
+		<ConfigType Type="TRACE" Level="9" Color="Yellow" Enabled="False" Logs="1" />
+	</LogConfig>
+	<LogConfig Category="NET">
+		<ConfigType Type="INFO" Level="9" Color="WhiteBold" Enabled="True" Logs="3" />
+		<ConfigType Type="WARNING" Level="9" Color="YellowBold" Enabled="True" Logs="3" />
+		<ConfigType Type="ERROR" Level="9" Color="RedBold" Enabled="True" Logs="3" />
+		<ConfigType Type="DEBUG" Level="9" Color="GreenBold" Enabled="False" Logs="3" />
+		<ConfigType Type="PACKET" Level="9" Color="Yellow" Enabled="False" Logs="3" />
+		<ConfigType Type="TRACE" Level="9" Color="Yellow" Enabled="False" Logs="1" />
+	</LogConfig>
+	<LogConfig Category="OPCODE">
+		<ConfigType Type="INFO" Level="9" Color="WhiteBold" Enabled="True" Logs="3" />
+		<ConfigType Type="WARNING" Level="9" Color="YellowBold" Enabled="True" Logs="3" />
+		<ConfigType Type="ERROR" Level="9" Color="RedBold" Enabled="True" Logs="3" />
+		<ConfigType Type="DEBUG" Level="9" Color="MagentaBold" Enabled="False" Logs="3" />
+		<ConfigType Type="PACKET" Level="9" Color="Yellow" Enabled="False" Logs="3" />
+		<ConfigType Type="TRACE" Level="9" Color="Yellow" Enabled="False" Logs="1" />
+	</LogConfig>
+	<LogConfig Category="PACKET">
+		<ConfigType Type="INFO" Level="9" Color="WhiteBold" Enabled="True" Logs="3" />
+		<ConfigType Type="WARNING" Level="9" Color="YellowBold" Enabled="True" Logs="3" />
+		<ConfigType Type="ERROR" Level="9" Color="RedBold" Enabled="True" Logs="3" />
+		<ConfigType Type="DEBUG" Level="9" Color="GreenBold" Enabled="False" Logs="3" />
+		<ConfigType Type="PACKET" Level="9" Color="Yellow" Enabled="False" Logs="3" />
+		<ConfigType Type="TRACE" Level="9" Color="Yellow" Enabled="False" Logs="1" />
+	</LogConfig>
+	<!-- PLAYER Loggers -->
+	<LogConfig Category="PLAYER">
+		<ConfigType Type="INFO" Level="9" Color="WhiteBold" Enabled="True" Logs="3" />
+		<ConfigType Type="WARNING" Level="9" Color="YellowBold" Enabled="True" Logs="3" />
+		<ConfigType Type="ERROR" Level="9" Color="RedBold" Enabled="True" Logs="3" />
+		<ConfigType Type="DEBUG" Level="9" Color="GreenBold" Enabled="False" Logs="3" />
+		<ConfigType Type="PACKET" Level="9" Color="Yellow" Enabled="False" Logs="3" />
+		<ConfigType Type="TRACE" Level="9" Color="Yellow" Enabled="False" Logs="1" />
+	</LogConfig>
+	<!-- SUBSYSTEM Loggers -->
+	<LogConfig Category="ACHIEVEMENT">
+		<ConfigType Type="INFO" Level="9" Color="WhiteBold" Enabled="True" Logs="3" />
+		<ConfigType Type="WARNING" Level="9" Color="YellowBold" Enabled="True" Logs="3" />
+		<ConfigType Type="ERROR" Level="9" Color="RedBold" Enabled="True" Logs="3" />
+		<ConfigType Type="DEBUG" Level="9" Color="GreenBold" Enabled="False" Logs="3" />
+		<ConfigType Type="PACKET" Level="9" Color="Yellow" Enabled="False" Logs="3" />
+		<ConfigType Type="TRACE" Level="9" Color="Yellow" Enabled="False" Logs="1" />
+	</LogConfig>
+	<LogConfig Category="CHAT">
+		<ConfigType Type="INFO" Level="9" Color="WhiteBold" Enabled="True" Logs="3" />
+		<ConfigType Type="WARNING" Level="9" Color="YellowBold" Enabled="True" Logs="3" />
+		<ConfigType Type="ERROR" Level="9" Color="RedBold" Enabled="True" Logs="3" />
+		<ConfigType Type="DEBUG" Level="9" Color="GreenBold" Enabled="False" Logs="3" />
+		<ConfigType Type="PACKET" Level="9" Color="Yellow" Enabled="False" Logs="3" />
+		<ConfigType Type="TRACE" Level="9" Color="Yellow" Enabled="False" Logs="1" />
+	</LogConfig>
+	<LogConfig Category="COLLECTION">
+		<ConfigType Type="INFO" Level="9" Color="WhiteBold" Enabled="True" Logs="3" />
+		<ConfigType Type="WARNING" Level="9" Color="YellowBold" Enabled="True" Logs="3" />
+		<ConfigType Type="ERROR" Level="9" Color="RedBold" Enabled="True" Logs="3" />
+		<ConfigType Type="DEBUG" Level="9" Color="GreenBold" Enabled="False" Logs="3" />
+		<ConfigType Type="PACKET" Level="9" Color="Yellow" Enabled="False" Logs="3" />
+		<ConfigType Type="TRACE" Level="9" Color="Yellow" Enabled="False" Logs="1" />
+	</LogConfig>
+	<LogConfig Category="COMBAT">
+		<ConfigType Type="INFO" Level="9" Color="WhiteBold" Enabled="True" Logs="3" />
+		<ConfigType Type="WARNING" Level="9" Color="YellowBold" Enabled="True" Logs="3" />
+		<ConfigType Type="ERROR" Level="9" Color="RedBold" Enabled="True" Logs="3" />
+		<ConfigType Type="DEBUG" Level="9" Color="GreenBold" Enabled="False" Logs="3" />
+		<ConfigType Type="PACKET" Level="9" Color="Yellow" Enabled="False" Logs="3" />
+		<ConfigType Type="TRACE" Level="9" Color="Yellow" Enabled="False" Logs="1" />
+	</LogConfig>
+	<LogConfig Category="COMMAND">
+		<ConfigType Type="INFO" Level="9" Color="WhiteBold" Enabled="True" Logs="3" />
+		<ConfigType Type="WARNING" Level="9" Color="YellowBold" Enabled="True" Logs="3" />
+		<ConfigType Type="ERROR" Level="9" Color="RedBold" Enabled="True" Logs="3" />
+		<ConfigType Type="DEBUG" Level="9" Color="GreenBold" Enabled="False" Logs="3" />
+		<ConfigType Type="PACKET" Level="9" Color="Yellow" Enabled="False" Logs="3" />
+		<ConfigType Type="TRACE" Level="9" Color="Yellow" Enabled="False" Logs="1" />
+	</LogConfig>
+	<LogConfig Category="FACTION">
+		<ConfigType Type="INFO" Level="9" Color="WhiteBold" Enabled="True" Logs="3" />
+		<ConfigType Type="WARNING" Level="9" Color="YellowBold" Enabled="True" Logs="3" />
+		<ConfigType Type="ERROR" Level="9" Color="RedBold" Enabled="True" Logs="3" />
+		<ConfigType Type="DEBUG" Level="9" Color="GreenBold" Enabled="False" Logs="3" />
+		<ConfigType Type="PACKET" Level="9" Color="Yellow" Enabled="False" Logs="3" />
+		<ConfigType Type="TRACE" Level="9" Color="Yellow" Enabled="False" Logs="1" />
+	</LogConfig>
+	<LogConfig Category="GUILD">
+		<ConfigType Type="INFO" Level="9" Color="WhiteBold" Enabled="True" Logs="3" />
+		<ConfigType Type="WARNING" Level="9" Color="YellowBold" Enabled="True" Logs="3" />
+		<ConfigType Type="ERROR" Level="9" Color="RedBold" Enabled="True" Logs="3" />
+		<ConfigType Type="DEBUG" Level="9" Color="GreenBold" Enabled="False" Logs="3" />
+		<ConfigType Type="PACKET" Level="9" Color="Yellow" Enabled="False" Logs="3" />
+		<ConfigType Type="TRACE" Level="9" Color="Yellow" Enabled="False" Logs="1" />
+	</LogConfig>
+	<LogConfig Category="ITEM">
+		<ConfigType Type="INFO" Level="9" Color="WhiteBold" Enabled="True" Logs="3" />
+		<ConfigType Type="WARNING" Level="9" Color="YellowBold" Enabled="True" Logs="3" />
+		<ConfigType Type="ERROR" Level="9" Color="RedBold" Enabled="True" Logs="3" />
+		<ConfigType Type="DEBUG" Level="9" Color="GreenBold" Enabled="False" Logs="3" />
+		<ConfigType Type="PACKET" Level="9" Color="Yellow" Enabled="False" Logs="3" />
+		<ConfigType Type="TRACE" Level="9" Color="Yellow" Enabled="False" Logs="1" />
+	</LogConfig>
+	<LogConfig Category="LOOT">
+		<ConfigType Type="INFO" Level="9" Color="WhiteBold" Enabled="True" Logs="3" />
+		<ConfigType Type="WARNING" Level="9" Color="YellowBold" Enabled="True" Logs="3" />
+		<ConfigType Type="ERROR" Level="9" Color="RedBold" Enabled="True" Logs="3" />
+		<ConfigType Type="DEBUG" Level="9" Color="GreenBold" Enabled="False" Logs="3" />
+		<ConfigType Type="PACKET" Level="9" Color="Yellow" Enabled="False" Logs="3" />
+		<ConfigType Type="TRACE" Level="9" Color="Yellow" Enabled="False" Logs="1" />
+	</LogConfig>
+	<LogConfig Category="LUA">
+		<ConfigType Type="INFO" Level="9" Color="WhiteBold" Enabled="True" Logs="3" />
+		<ConfigType Type="WARNING" Level="9" Color="YellowBold" Enabled="True" Logs="3" />
+		<ConfigType Type="ERROR" Level="9" Color="RedBold" Enabled="True" Logs="3" />
+		<ConfigType Type="DEBUG" Level="9" Color="GreenBold" Enabled="False" Logs="3" />
+		<ConfigType Type="PACKET" Level="9" Color="Yellow" Enabled="False" Logs="3" />
+		<ConfigType Type="TRACE" Level="9" Color="Yellow" Enabled="False" Logs="1" />
+	</LogConfig>
+	<LogConfig Category="MERCHANT">
+		<ConfigType Type="INFO" Level="9" Color="WhiteBold" Enabled="True" Logs="3" />
+		<ConfigType Type="WARNING" Level="9" Color="YellowBold" Enabled="True" Logs="3" />
+		<ConfigType Type="ERROR" Level="9" Color="RedBold" Enabled="True" Logs="3" />
+		<ConfigType Type="DEBUG" Level="9" Color="GreenBold" Enabled="False" Logs="3" />
+		<ConfigType Type="PACKET" Level="9" Color="Yellow" Enabled="False" Logs="3" />
+		<ConfigType Type="TRACE" Level="9" Color="Yellow" Enabled="False" Logs="1" />
+	</LogConfig>
+	<LogConfig Category="NPC">
+		<ConfigType Type="INFO" Level="9" Color="WhiteBold" Enabled="True" Logs="3" />
+		<ConfigType Type="WARNING" Level="9" Color="YellowBold" Enabled="True" Logs="3" />
+		<ConfigType Type="ERROR" Level="9" Color="RedBold" Enabled="True" Logs="3" />
+		<ConfigType Type="DEBUG" Level="9" Color="GreenBold" Enabled="False" Logs="3" />
+		<ConfigType Type="COMBAT" Level="9" Color="GreenBold" Enabled="False" Logs="3" />
+		<ConfigType Type="SPELLS" Level="9" Color="GreenBold" Enabled="False" Logs="3" />
+		<ConfigType Type="AI" Level="9" Color="GreenBold" Enabled="False" Logs="3" />
+		<ConfigType Type="DAMAGE" Level="9" Color="GreenBold" Enabled="False" Logs="3" />
+		<ConfigType Type="PACKET" Level="9" Color="Yellow" Enabled="False" Logs="3" />
+		<ConfigType Type="TRACE" Level="9" Color="Yellow" Enabled="False" Logs="1" />
+	</LogConfig>
+	<LogConfig Category="NPC_AI">
+		<ConfigType Type="INFO" Level="9" Color="WhiteBold" Enabled="True" Logs="3" />
+		<ConfigType Type="WARNING" Level="9" Color="YellowBold" Enabled="True" Logs="3" />
+		<ConfigType Type="ERROR" Level="9" Color="RedBold" Enabled="True" Logs="3" />
+		<ConfigType Type="DEBUG" Level="9" Color="GreenBold" Enabled="False" Logs="3" />
+		<ConfigType Type="PACKET" Level="9" Color="Yellow" Enabled="False" Logs="3" />
+		<ConfigType Type="TRACE" Level="9" Color="Yellow" Enabled="False" Logs="1" />
+	</LogConfig>
+	<LogConfig Category="PET">
+		<ConfigType Type="INFO" Level="9" Color="WhiteBold" Enabled="True" Logs="3" />
+		<ConfigType Type="WARNING" Level="9" Color="YellowBold" Enabled="True" Logs="3" />
+		<ConfigType Type="ERROR" Level="9" Color="RedBold" Enabled="True" Logs="3" />
+		<ConfigType Type="DEBUG" Level="9" Color="GreenBold" Enabled="False" Logs="3" />
+		<ConfigType Type="COMBAT" Level="9" Color="GreenBold" Enabled="False" Logs="3" />
+		<ConfigType Type="SPELLS" Level="9" Color="GreenBold" Enabled="False" Logs="3" />
+		<ConfigType Type="AI" Level="9" Color="GreenBold" Enabled="False" Logs="3" />
+		<ConfigType Type="DAMAGE" Level="9" Color="GreenBold" Enabled="False" Logs="3" />
+		<ConfigType Type="PACKET" Level="9" Color="Yellow" Enabled="False" Logs="3" />
+		<ConfigType Type="TRACE" Level="9" Color="Yellow" Enabled="False" Logs="1" />
+	</LogConfig>
+	<LogConfig Category="QUEST">
+		<ConfigType Type="INFO" Level="9" Color="WhiteBold" Enabled="True" Logs="3" />
+		<ConfigType Type="WARNING" Level="9" Color="YellowBold" Enabled="True" Logs="3" />
+		<ConfigType Type="ERROR" Level="9" Color="RedBold" Enabled="True" Logs="3" />
+		<ConfigType Type="DEBUG" Level="9" Color="GreenBold" Enabled="False" Logs="3" />
+		<ConfigType Type="REWARD" Level="9" Color="GreenBold" Enabled="False" Logs="3" />
+		<ConfigType Type="STEP" Level="9" Color="GreenBold" Enabled="False" Logs="3" />
+		<ConfigType Type="PACKET" Level="9" Color="Yellow" Enabled="False" Logs="3" />
+		<ConfigType Type="TRACE" Level="9" Color="Yellow" Enabled="False" Logs="1" />
+	</LogConfig>
+	<LogConfig Category="RULESYS">
+		<ConfigType Type="INFO" Level="9" Color="WhiteBold" Enabled="True" Logs="3" />
+		<ConfigType Type="WARNING" Level="9" Color="YellowBold" Enabled="True" Logs="3" />
+		<ConfigType Type="ERROR" Level="9" Color="RedBold" Enabled="True" Logs="3" />
+		<ConfigType Type="DEBUG" Level="9" Color="GreenBold" Enabled="False" Logs="3" />
+		<ConfigType Type="PACKET" Level="9" Color="Yellow" Enabled="False" Logs="3" />
+		<ConfigType Type="TRACE" Level="9" Color="Yellow" Enabled="False" Logs="1" />
+	</LogConfig>
+	<LogConfig Category="SKILL">
+		<ConfigType Type="INFO" Level="9" Color="WhiteBold" Enabled="True" Logs="3" />
+		<ConfigType Type="WARNING" Level="9" Color="YellowBold" Enabled="True" Logs="3" />
+		<ConfigType Type="ERROR" Level="9" Color="RedBold" Enabled="True" Logs="3" />
+		<ConfigType Type="DEBUG" Level="9" Color="GreenBold" Enabled="False" Logs="3" />
+		<ConfigType Type="PACKET" Level="9" Color="Yellow" Enabled="False" Logs="3" />
+		<ConfigType Type="TRACE" Level="9" Color="Yellow" Enabled="False" Logs="1" />
+	</LogConfig>
+	<LogConfig Category="SPELL">
+		<ConfigType Type="INFO" Level="0" Color="WhiteBold" Enabled="True" Logs="3" />
+		<ConfigType Type="WARNING" Level="0" Color="YellowBold" Enabled="True" Logs="3" />
+		<ConfigType Type="ERROR" Level="0" Color="RedBold" Enabled="True" Logs="3" />
+		<ConfigType Type="DEBUG" Level="0" Color="GreenBold" Enabled="False" Logs="3" />
+		<ConfigType Type="PACKET" Level="0" Color="Yellow" Enabled="False" Logs="3" />
+		<ConfigType Type="TRACE" Level="0" Color="Yellow" Enabled="False" Logs="1" />
+	</LogConfig>
+	<LogConfig Category="TRADESKILL">
+		<ConfigType Type="INFO" Level="9" Color="WhiteBold" Enabled="True" Logs="3" />
+		<ConfigType Type="WARNING" Level="9" Color="YellowBold" Enabled="True" Logs="3" />
+		<ConfigType Type="ERROR" Level="9" Color="RedBold" Enabled="True" Logs="3" />
+		<ConfigType Type="DEBUG" Level="9" Color="GreenBold" Enabled="False" Logs="3" />
+		<ConfigType Type="PACKET" Level="9" Color="Yellow" Enabled="False" Logs="3" />
+		<ConfigType Type="TRACE" Level="9" Color="Yellow" Enabled="False" Logs="1" />
+	</LogConfig>
+	<LogConfig Category="TRANSPORT">
+		<ConfigType Type="INFO" Level="9" Color="WhiteBold" Enabled="True" Logs="3" />
+		<ConfigType Type="WARNING" Level="9" Color="YellowBold" Enabled="True" Logs="3" />
+		<ConfigType Type="ERROR" Level="9" Color="RedBold" Enabled="True" Logs="3" />
+		<ConfigType Type="DEBUG" Level="9" Color="GreenBold" Enabled="False" Logs="3" />
+		<ConfigType Type="PACKET" Level="9" Color="Yellow" Enabled="False" Logs="3" />
+		<ConfigType Type="TRACE" Level="9" Color="Yellow" Enabled="False" Logs="1" />
+	</LogConfig>
+	<!-- SPAWN Loggers -->
+	<LogConfig Category="SPAWN">
+		<ConfigType Type="INFO" Level="9" Color="WhiteBold" Enabled="True" Logs="3" />
+		<ConfigType Type="WARNING" Level="9" Color="YellowBold" Enabled="True" Logs="3" />
+		<ConfigType Type="ERROR" Level="9" Color="RedBold" Enabled="True" Logs="3" />
+		<ConfigType Type="DEBUG" Level="9" Color="GreenBold" Enabled="False" Logs="3" />
+		<ConfigType Type="PACKET" Level="9" Color="Yellow" Enabled="False" Logs="3" />
+		<ConfigType Type="TRACE" Level="9" Color="Yellow" Enabled="False" Logs="1" />
+	</LogConfig>
+	<LogConfig Category="OBJECT">
+		<ConfigType Type="INFO" Level="9" Color="WhiteBold" Enabled="True" Logs="3" />
+		<ConfigType Type="WARNING" Level="9" Color="YellowBold" Enabled="True" Logs="3" />
+		<ConfigType Type="ERROR" Level="9" Color="RedBold" Enabled="True" Logs="3" />
+		<ConfigType Type="DEBUG" Level="9" Color="GreenBold" Enabled="False" Logs="3" />
+		<ConfigType Type="PACKET" Level="9" Color="Yellow" Enabled="False" Logs="3" />
+		<ConfigType Type="TRACE" Level="9" Color="Yellow" Enabled="False" Logs="1" />
+	</LogConfig>
+	<LogConfig Category="SIGN">
+		<ConfigType Type="INFO" Level="9" Color="WhiteBold" Enabled="True" Logs="3" />
+		<ConfigType Type="WARNING" Level="9" Color="YellowBold" Enabled="True" Logs="3" />
+		<ConfigType Type="ERROR" Level="9" Color="RedBold" Enabled="True" Logs="3" />
+		<ConfigType Type="DEBUG" Level="9" Color="GreenBold" Enabled="False" Logs="3" />
+		<ConfigType Type="PACKET" Level="9" Color="Yellow" Enabled="False" Logs="3" />
+		<ConfigType Type="TRACE" Level="9" Color="Yellow" Enabled="False" Logs="1" />
+	</LogConfig>
+	<LogConfig Category="WIDGET">
+		<ConfigType Type="INFO" Level="9" Color="WhiteBold" Enabled="True" Logs="3" />
+		<ConfigType Type="WARNING" Level="9" Color="YellowBold" Enabled="True" Logs="3" />
+		<ConfigType Type="ERROR" Level="9" Color="RedBold" Enabled="True" Logs="3" />
+		<ConfigType Type="DEBUG" Level="9" Color="GreenBold" Enabled="False" Logs="3" />
+		<ConfigType Type="PACKET" Level="9" Color="Yellow" Enabled="False" Logs="3" />
+		<ConfigType Type="TRACE" Level="9" Color="Yellow" Enabled="False" Logs="1" />
+	</LogConfig>
+	<LogConfig Category="GROUNDSPAWN">
+		<ConfigType Type="INFO" Level="9" Color="WhiteBold" Enabled="True" Logs="3" />
+		<ConfigType Type="WARNING" Level="9" Color="YellowBold" Enabled="True" Logs="3" />
+		<ConfigType Type="ERROR" Level="9" Color="RedBold" Enabled="True" Logs="3" />
+		<ConfigType Type="DEBUG" Level="9" Color="GreenBold" Enabled="False" Logs="3" />
+		<ConfigType Type="PACKET" Level="9" Color="Yellow" Enabled="False" Logs="3" />
+		<ConfigType Type="TRACE" Level="9" Color="Yellow" Enabled="False" Logs="1" />
+	</LogConfig>
+	<!-- ZONE Loggers -->
+	<LogConfig Category="ZONE">
+		<ConfigType Type="INFO" Level="9" Color="WhiteBold" Enabled="True" Logs="3" />
+		<ConfigType Type="WARNING" Level="9" Color="YellowBold" Enabled="True" Logs="3" />
+		<ConfigType Type="ERROR" Level="9" Color="RedBold" Enabled="True" Logs="3" />
+		<ConfigType Type="DEBUG" Level="9" Color="GreenBold" Enabled="True" Logs="3" />
+		<ConfigType Type="PACKET" Level="9" Color="Yellow" Enabled="True" Logs="3" />
+		<ConfigType Type="TRACE" Level="9" Color="Yellow" Enabled="True" Logs="1" />
+	</LogConfig>
+	<LogConfig Category="INSTANCE">
+		<ConfigType Type="INFO" Level="9" Color="WhiteBold" Enabled="True" Logs="3" />
+		<ConfigType Type="WARNING" Level="9" Color="YellowBold" Enabled="True" Logs="3" />
+		<ConfigType Type="ERROR" Level="9" Color="RedBold" Enabled="True" Logs="3" />
+		<ConfigType Type="DEBUG" Level="9" Color="GreenBold" Enabled="False" Logs="3" />
+		<ConfigType Type="PACKET" Level="9" Color="Yellow" Enabled="False" Logs="3" />
+		<ConfigType Type="TRACE" Level="9" Color="Yellow" Enabled="False" Logs="1" />
+	</LogConfig>
+	<LogConfig Category="MAP">
+		<ConfigType Type="INFO" Level="9" Color="WhiteBold" Enabled="True" Logs="3" />
+		<ConfigType Type="WARNING" Level="9" Color="YellowBold" Enabled="True" Logs="3" />
+		<ConfigType Type="ERROR" Level="9" Color="RedBold" Enabled="True" Logs="3" />
+		<ConfigType Type="DEBUG" Level="9" Color="GreenBold" Enabled="False" Logs="3" />
+		<ConfigType Type="PACKET" Level="9" Color="Yellow" Enabled="False" Logs="3" />
+		<ConfigType Type="TRACE" Level="9" Color="Yellow" Enabled="False" Logs="1" />
+	</LogConfig>
+	<LogConfig Category="REGION">
+		<ConfigType Type="INFO" Level="9" Color="WhiteBold" Enabled="True" Logs="3" />
+		<ConfigType Type="WARNING" Level="9" Color="YellowBold" Enabled="True" Logs="3" />
+		<ConfigType Type="ERROR" Level="9" Color="RedBold" Enabled="True" Logs="3" />
+		<ConfigType Type="DEBUG" Level="9" Color="GreenBold" Enabled="False" Logs="3" />
+		<ConfigType Type="PACKET" Level="9" Color="Yellow" Enabled="False" Logs="3" />
+		<ConfigType Type="TRACE" Level="9" Color="Yellow" Enabled="False" Logs="1" />
+	</LogConfig>
+</EQ2EmuLogConfigs>

@@ -1,0 +1,10 @@
+<EQ2Emulator>
+<Comment Text="The Emu will get the latest version of the struct that is LESS than or equal to the client's version number.
+This allows multiple struct version to coexist on the same server.  Elements that arent used in the source code are set
+to zero and treated like placeholders." /> 
+<Struct Name="LS_CreateCharacterReply" Version="1.0" ClientVersion="1">
+<Data ElementName="account_id" Type="int32" Size="1" />
+<Data ElementName="response" Type="int8" Size="1" />
+<Data ElementName="name" Type="EQ2_16Bit_String" />
+</Struct>
+</EQ2Emulator>

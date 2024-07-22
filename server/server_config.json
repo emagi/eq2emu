@@ -1,0 +1,33 @@
+{
+    "LoginServer": {
+        "loginserver": "ENTERIP",
+        "loginport": "9100",
+        "worldname": "TestLabs",
+        "worldaddress": "ENTERIP",
+        "internalworldaddress": "ENTERIP",
+        "worldport": "9001",
+        "locked": "false",
+        "account": "testlabs",
+        "password": "testpass"
+    },
+    "WorldServer": {
+        "Defaultstatus": "0",
+        "webaddress": "",
+        "webport": "",
+        "webcertfile": "",
+        "webkeyfile": "",
+        "webhardcodeuser": "",
+        "webhardcodepassword": ""
+    },
+    "LoginConfig": {
+        "ServerMode": "StandAlone",
+        "ServerPort": "9100",
+        "AccountCreation": "1"
+        "webloginaddress": "",
+        "webloginport": "",
+        "webcertfile": "",
+        "webkeyfile": "",
+        "webhardcodeuser": "",
+        "webhardcodepassword": "" 
+   }
+}

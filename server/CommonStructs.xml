@@ -1,0 +1,759 @@
+<EQ2Emulator>
+<Comment Text="The Emu will get the latest version of the struct that is LESS than or equal to the client's version number.
+This allows multiple struct version to coexist on the same server.  Elements that arent used in the source code are set
+to zero and treated like placeholders." /> 
+<Struct Name="CreateCharacter" ClientVersion="1" OpcodeName="OP_CreateCharacterRequestMsg">
+<Data ElementName="account_id" Type="int32"  />
+<Data ElementName="server_id" Type="int32" />
+<Data ElementName="name" Type="EQ2_16Bit_String" />
+<Data ElementName="race" Type="int8" />
+<Data ElementName="gender" Type="int8" />
+<Data ElementName="deity" Type="int8" />
+<Data ElementName="class" Type="int8" />
+<Data ElementName="level" Type="int8" />
+<Data ElementName="starting_zone" Type="int8" />
+<Data ElementName="unknown1" Type="int8" Size="2" />
+<Data ElementName="race_file" Type="EQ2_16Bit_String" />
+<Data ElementName="skin_color" Type="float" Size="3" />
+<Data ElementName="eye_color" Type="float" Size="3" />
+<Data ElementName="hair_color1" Type="float" Size="3" />
+<Data ElementName="hair_color2" Type="float" Size="3" />
+<Data ElementName="hair_highlight" Type="float" Size="3" />
+<Data ElementName="unknown2" Type="int8" Size="26" />
+<Data ElementName="hair_file" Type="EQ2_16Bit_String" />
+<Data ElementName="hair_type_color" Type="float" Size="3" />
+<Data ElementName="hair_type_highlight_color" Type="float" Size="3" />
+<Data ElementName="face_file" Type="EQ2_16Bit_String" />
+<Data ElementName="hair_face_color" Type="float" Size="3" />
+<Data ElementName="hair_face_highlight_color" Type="float" Size="3" />
+<Data ElementName="chest_file" Type="EQ2_16Bit_String" />
+<Data ElementName="shirt_color" Type="float" Size="3" />
+<Data ElementName="unknown_chest_color" Type="float" Size="3" />
+<Data ElementName="legs_file" Type="EQ2_16Bit_String" />
+<Data ElementName="pants_color" Type="float" Size="3" />
+<Data ElementName="unknown_legs_color" Type="float" Size="3" />
+<Data ElementName="unknown9" Type="float" Size="3" />
+<Data ElementName="eyes2" Type="float" Size="3" />
+<Data ElementName="ears" Type="float" Size="3" />
+<Data ElementName="eye_brows" Type="float" Size="3" />
+<Data ElementName="cheeks" Type="float" Size="3" />
+<Data ElementName="lips" Type="float" Size="3" />
+<Data ElementName="chin" Type="float" Size="3" />
+<Data ElementName="nose" Type="float" Size="3" />
+<Data ElementName="body_size" Type="float" Size="1" />
+<Data ElementName="body_age" Type="float" Size="1" />
+</Struct>
+<Struct Name="CreateCharacter" ClientVersion="373" OpcodeName="OP_CreateCharacterRequestMsg">
+<Data ElementName="unknown0" Type="int32" />
+<Data ElementName="account_id" Type="int32"  />
+<Data ElementName="server_id" Type="int32" />
+<Data ElementName="name" Type="EQ2_16Bit_String" />
+<Data ElementName="race" Type="int8" />
+<Data ElementName="gender" Type="int8" />
+<Data ElementName="deity" Type="int8" />
+<Data ElementName="class" Type="int8" />
+<Data ElementName="level" Type="int8" />
+<Data ElementName="starting_zone" Type="int8" />
+<Data ElementName="unknown1" Type="int8" Size="2" />
+<Data ElementName="race_file" Type="EQ2_16Bit_String" />
+<Data ElementName="skin_color" Type="float" Size="3" />
+<Data ElementName="eye_color" Type="float" Size="3" />
+<Data ElementName="hair_color1" Type="float" Size="3" />
+<Data ElementName="hair_color2" Type="float" Size="3" />
+<Data ElementName="hair_highlight" Type="float" Size="3" />
+<Data ElementName="unknown2" Type="int8" Size="26" />
+<Data ElementName="hair_file" Type="EQ2_16Bit_String" />
+<Data ElementName="hair_type_color" Type="float" Size="3" />
+<Data ElementName="hair_type_highlight_color" Type="float" Size="3" />
+<Data ElementName="face_file" Type="EQ2_16Bit_String" />
+<Data ElementName="hair_face_color" Type="float" Size="3" />
+<Data ElementName="hair_face_highlight_color" Type="float" Size="3" />
+<Data ElementName="chest_file" Type="EQ2_16Bit_String" />
+<Data ElementName="shirt_color" Type="float" Size="3" />
+<Data ElementName="unknown_chest_color" Type="float" Size="3" />
+<Data ElementName="legs_file" Type="EQ2_16Bit_String" />
+<Data ElementName="pants_color" Type="float" Size="3" />
+<Data ElementName="unknown_legs_color" Type="float" Size="3" />
+<Data ElementName="unknown9" Type="float" Size="3" />
+<Data ElementName="eyes2" Type="float" Size="3" />
+<Data ElementName="ears" Type="float" Size="3" />
+<Data ElementName="eye_brows" Type="float" Size="3" />
+<Data ElementName="cheeks" Type="float" Size="3" />
+<Data ElementName="lips" Type="float" Size="3" />
+<Data ElementName="chin" Type="float" Size="3" />
+<Data ElementName="nose" Type="float" Size="3" />
+<Data ElementName="body_size" Type="float" Size="1" />
+<Data ElementName="body_age" Type="float" Size="1" />
+</Struct>
+<Struct Name="CreateCharacter" ClientVersion="546" OpcodeName="OP_CreateCharacterRequestMsg">
+<Data ElementName="unknown0" Type="int8" />
+<Data ElementName="unknown1" Type="int32" />
+<Data ElementName="account_id" Type="int32" />
+<Data ElementName="server_id" Type="int32" />
+<Data ElementName="name" Type="EQ2_16Bit_String" />
+<Data ElementName="race" Type="int8" />
+<Data ElementName="gender" Type="int8" />
+<Data ElementName="deity" Type="int8" />
+<Data ElementName="class" Type="int8" />
+<Data ElementName="level" Type="int8" />
+<Data ElementName="starting_zone" Type="int8" />
+<Data ElementName="cc_unknown_0" Type="int8" />
+<Data ElementName="version" Type="int8" />
+<Data ElementName="race_file" Type="EQ2_16Bit_String" />
+<Data ElementName="skin_color" Type="float" Size="3" />
+<Data ElementName="eye_color" Type="float" Size="3" />
+<Data ElementName="hair_color1" Type="float" Size="3" />
+<Data ElementName="hair_color2" Type="float" Size="3" />
+<Data ElementName="hair_highlight" Type="float" Size="3" />
+<Data ElementName="unknown2" Type="int8" Size="26" />
+<Data ElementName="hair_file" Type="EQ2_16Bit_String" />
+<Data ElementName="hair_type_color" Type="float" Size="3" />
+<Data ElementName="hair_type_highlight_color" Type="float" Size="3" />
+<Data ElementName="face_file" Type="EQ2_16Bit_String" />
+<Data ElementName="hair_face_color" Type="float" Size="3" />
+<Data ElementName="hair_face_highlight_color" Type="float" Size="3" />
+<Data ElementName="chest_file" Type="EQ2_16Bit_String" />
+<Data ElementName="shirt_color" Type="float" Size="3" />
+<Data ElementName="unknown_chest_color" Type="float" Size="3" />
+<Data ElementName="legs_file" Type="EQ2_16Bit_String" />
+<Data ElementName="pants_color" Type="float" Size="3" />
+<Data ElementName="unknown_legs_color" Type="float" Size="3" />
+<Data ElementName="unknown9" Type="float" Size="3" />
+<Data ElementName="eyes2" Type="float" Size="3" />
+<Data ElementName="ears" Type="float" Size="3" />
+<Data ElementName="eye_brows" Type="float" Size="3" />
+<Data ElementName="cheeks" Type="float" Size="3" />
+<Data ElementName="lips" Type="float" Size="3" />
+<Data ElementName="chin" Type="float" Size="3" />
+<Data ElementName="nose" Type="float" Size="3" />
+<Data ElementName="body_size" Type="float" Size="1" />
+<Data ElementName="body_age" Type="float" Size="1" />
+</Struct>
+<Struct Name="CreateCharacter" ClientVersion="561" OpcodeName="OP_CreateCharacterRequestMsg">
+<Data ElementName="unknown0" Type="int8" />
+<Data ElementName="unknown1" Type="int32" />
+<Data ElementName="account_id" Type="int32" />
+<Data ElementName="server_id" Type="int32" />
+<Data ElementName="name" Type="EQ2_16Bit_String" />
+<Data ElementName="race" Type="int8" />
+<Data ElementName="gender" Type="int8" />
+<Data ElementName="deity" Type="int8" />
+<Data ElementName="class" Type="int8" />
+<Data ElementName="level" Type="int8" />
+<Data ElementName="starting_zone" Type="int8" />
+<Data ElementName="version" Type="int8" />
+<Data ElementName="race_file" Type="EQ2_16Bit_String" />
+<Data ElementName="skin_color" Type="float" Size="3" />
+<Data ElementName="eye_color" Type="float" Size="3" />
+<Data ElementName="hair_color1" Type="float" Size="3" />
+<Data ElementName="hair_color2" Type="float" Size="3" />
+<Data ElementName="hair_highlight" Type="float" Size="3" />
+<Data ElementName="unknown2" Type="int8" Size="26" />
+<Data ElementName="hair_file" Type="EQ2_16Bit_String" />
+<Data ElementName="hair_type_color" Type="float" Size="3" />
+<Data ElementName="hair_type_highlight_color" Type="float" Size="3" />
+<Data ElementName="face_file" Type="EQ2_16Bit_String" />
+<Data ElementName="hair_face_color" Type="float" Size="3" />
+<Data ElementName="hair_face_highlight_color" Type="float" Size="3" />
+<Data ElementName="chest_file" Type="EQ2_16Bit_String" />
+<Data ElementName="shirt_color" Type="float" Size="3" />
+<Data ElementName="unknown_chest_color" Type="float" Size="3" />
+<Data ElementName="legs_file" Type="EQ2_16Bit_String" />
+<Data ElementName="pants_color" Type="float" Size="3" />
+<Data ElementName="unknown_legs_color" Type="float" Size="3" />
+<Data ElementName="unknown9" Type="float" Size="3" />
+<Data ElementName="eyes2" Type="float" Size="3" />
+<Data ElementName="ears" Type="float" Size="3" />
+<Data ElementName="eye_brows" Type="float" Size="3" />
+<Data ElementName="cheeks" Type="float" Size="3" />
+<Data ElementName="lips" Type="float" Size="3" />
+<Data ElementName="chin" Type="float" Size="3" />
+<Data ElementName="nose" Type="float" Size="3" />
+<Data ElementName="body_size" Type="float" Size="1" />
+<Data ElementName="body_age" Type="float" Size="1" />
+</Struct>
+<Struct Name="CreateCharacter" ClientVersion="562" OpcodeName="OP_CreateCharacterRequestMsg">
+<Data ElementName="unknown0" Type="int8" />
+<Data ElementName="unknown1" Type="int32" />
+<Data ElementName="account_id" Type="int32"  />
+<Data ElementName="unknown3" Type="int8" />
+<Data ElementName="server_id" Type="int32" />
+<Data ElementName="name" Type="EQ2_16Bit_String" />
+<Data ElementName="race" Type="int8" />
+<Data ElementName="gender" Type="int8" />
+<Data ElementName="deity" Type="int8" />
+<Data ElementName="class" Type="int8" />
+<Data ElementName="level" Type="int8" />
+<Data ElementName="starting_zone" Type="int8" />
+<Data ElementName="version" Type="int8" />
+<Data ElementName="race_file" Type="EQ2_16Bit_String" />
+<Data ElementName="skin_color" Type="EQ2_Color" />
+<Data ElementName="skin_color2" Type="EQ2_Color" />
+<Data ElementName="eye_color" Type="EQ2_Color" />
+<Data ElementName="hair_color1" Type="EQ2_Color" />
+<Data ElementName="hair_color2" Type="EQ2_Color" />
+<Data ElementName="unknown8" Type="int8" Size="26" />
+<Data ElementName="hair_file" Type="EQ2_16Bit_String" />
+<Data ElementName="hair_type_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="hair_type_highlight_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="face_file" Type="EQ2_16Bit_String" />
+<Data ElementName="hair_face_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="hair_face_highlight_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="wing_file" Type="EQ2_16Bit_String" />
+<Data ElementName="wing_color1" Type="EQ2_Color" Size="1" />
+<Data ElementName="wing_color2" Type="EQ2_Color" Size="1" />
+<Data ElementName="chest_file" Type="EQ2_16Bit_String" />
+<Data ElementName="shirt_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="unknown_chest_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="legs_file" Type="EQ2_16Bit_String" />
+<Data ElementName="pants_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="unknown_legs_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="unknown9" Type="EQ2_Color" Size="1" />
+<Data ElementName="eyes2" Type="float" Size="3" />
+<Data ElementName="ears" Type="float" Size="3" />
+<Data ElementName="eye_brows" Type="float" Size="3" />
+<Data ElementName="cheeks" Type="float" Size="3" />
+<Data ElementName="lips" Type="float" Size="3" />
+<Data ElementName="chin" Type="float" Size="3" />
+<Data ElementName="nose" Type="float" Size="3" />
+<Data ElementName="body_size" Type="float" Size="1" />
+<Data ElementName="body_age" Type="float" Size="1" />
+<Data ElementName="soga_version" Type="int8" />
+<Data ElementName="soga_race_file" Type="EQ2_16Bit_String" />
+<Data ElementName="soga_skin_color" Type="EQ2_Color" />
+<Data ElementName="soga_eye_color" Type="EQ2_Color" />
+<Data ElementName="soga_hair_color1" Type="EQ2_Color"  />
+<Data ElementName="soga_hair_color2" Type="EQ2_Color"  />
+<Data ElementName="soga_hair_highlight" Type="EQ2_Color" />
+<Data ElementName="soga_unknown11" Type="int8" Size="26" />
+<Data ElementName="soga_hair_file" Type="EQ2_16Bit_String" />
+<Data ElementName="soga_hair_type_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="soga_hair_type_highlight_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="soga_face_file" Type="EQ2_16Bit_String" />
+<Data ElementName="soga_hair_face_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="soga_hair_face_highlight_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="soga_wing_file" Type="EQ2_16Bit_String" />
+<Data ElementName="soga_wing_color1" Type="EQ2_Color" Size="1" />
+<Data ElementName="soga_wing_color2" Type="EQ2_Color" Size="1" />
+<Data ElementName="soga_chest_file" Type="EQ2_16Bit_String" />
+<Data ElementName="soga_shirt_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="soga_unknown_chest_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="soga_legs_file" Type="EQ2_16Bit_String" />
+<Data ElementName="soga_pants_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="soga_unknown_legs_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="soga_unknown12" Type="EQ2_Color" Size="1" />
+<Data ElementName="soga_eyes2" Type="float" Size="3" />
+<Data ElementName="soga_ears" Type="float" Size="3" />
+<Data ElementName="soga_eye_brows" Type="float" Size="3" />
+<Data ElementName="soga_cheeks" Type="float" Size="3" />
+<Data ElementName="soga_lips" Type="float" Size="3" />
+<Data ElementName="soga_chin" Type="float" Size="3" />
+<Data ElementName="soga_nose" Type="float" Size="3" />
+<Data ElementName="soga_body_size" Type="float" Size="1" />
+<Data ElementName="soga_body_age" Type="float" Size="1" />
+</Struct>
+<Struct Name="CreateCharacter" ClientVersion="869" OpcodeName="OP_CreateCharacterRequestMsg">
+<Data ElementName="unknown0" Type="int8" />
+<Data ElementName="unknown1" Type="int32" />
+<Data ElementName="account_id" Type="int32"  />
+<Data ElementName="unknown3" Type="int8" />
+<Data ElementName="server_id" Type="int32" />
+<Data ElementName="name" Type="EQ2_16Bit_String" />
+<Data ElementName="race" Type="int8" />
+<Data ElementName="gender" Type="int8" />
+<Data ElementName="deity" Type="int8" />
+<Data ElementName="class" Type="int8" />
+<Data ElementName="level" Type="int8" />
+<Data ElementName="starting_zone" Type="int8" />
+<Data ElementName="version" Type="int8" />
+<Data ElementName="race_file" Type="EQ2_16Bit_String" />
+<Data ElementName="skin_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="skin_color2" Type="EQ2_Color" Size="1" />
+<Data ElementName="eye_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="hair_color1" Type="EQ2_Color" Size="1" />
+<Data ElementName="hair_color2" Type="EQ2_Color" Size="1" />
+<Data ElementName="hair_highlight" Type="EQ2_Color" Size="1" />
+<Data ElementName="unknown8" Type="int8" Size="26" />
+<Data ElementName="hair_file" Type="EQ2_16Bit_String" />
+<Data ElementName="hair_type_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="hair_type_highlight_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="face_file" Type="EQ2_16Bit_String" />
+<Data ElementName="hair_face_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="hair_face_highlight_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="wing_file" Type="EQ2_16Bit_String" />
+<Data ElementName="wing_color1" Type="EQ2_Color" Size="1" />
+<Data ElementName="wing_color2" Type="EQ2_Color" Size="1" />
+<Data ElementName="chest_file" Type="EQ2_16Bit_String" />
+<Data ElementName="shirt_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="unknown_chest_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="legs_file" Type="EQ2_16Bit_String" />
+<Data ElementName="pants_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="unknown_legs_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="unknown9" Type="EQ2_Color" Size="1" />
+<Data ElementName="eyes2" Type="float" Size="3" />
+<Data ElementName="ears" Type="float" Size="3" />
+<Data ElementName="eye_brows" Type="float" Size="3" />
+<Data ElementName="cheeks" Type="float" Size="3" />
+<Data ElementName="lips" Type="float" Size="3" />
+<Data ElementName="chin" Type="float" Size="3" />
+<Data ElementName="nose" Type="float" Size="3" />
+<Data ElementName="body_size" Type="float" Size="1" />
+<Data ElementName="body_age" Type="float" Size="1" />
+<Data ElementName="soga_version" Type="int8" />
+<Data ElementName="soga_race_file" Type="EQ2_16Bit_String" />
+<Data ElementName="soga_skin_color" Type="EQ2_Color" />
+<Data ElementName="soga_eye_color" Type="EQ2_Color" />
+<Data ElementName="soga_hair_color1" Type="EQ2_Color" />
+<Data ElementName="soga_hair_color2" Type="EQ2_Color" />
+<Data ElementName="soga_hair_highlight" Type="EQ2_Color" />
+<Data ElementName="soga_unknown_color1" Type="EQ2_Color" />
+<Data ElementName="soga_unknown11" Type="int8" Size="26" />
+<Data ElementName="soga_hair_file" Type="EQ2_16Bit_String" />
+<Data ElementName="soga_hair_type_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="soga_hair_type_highlight_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="soga_face_file" Type="EQ2_16Bit_String" />
+<Data ElementName="soga_hair_face_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="soga_hair_face_highlight_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="soga_wing_file" Type="EQ2_16Bit_String" />
+<Data ElementName="soga_wing_color1" Type="EQ2_Color" Size="1" />
+<Data ElementName="soga_wing_color2" Type="EQ2_Color" Size="1" />
+<Data ElementName="soga_chest_file" Type="EQ2_16Bit_String" />
+<Data ElementName="soga_shirt_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="soga_unknown_chest_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="soga_legs_file" Type="EQ2_16Bit_String" />
+<Data ElementName="soga_pants_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="soga_unknown_legs_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="soga_unknown12" Type="EQ2_Color" Size="1" />
+<Data ElementName="soga_eyes2" Type="float" Size="3" />
+<Data ElementName="soga_ears" Type="float" Size="3" />
+<Data ElementName="soga_eye_brows" Type="float" Size="3" />
+<Data ElementName="soga_cheeks" Type="float" Size="3" />
+<Data ElementName="soga_lips" Type="float" Size="3" />
+<Data ElementName="soga_chin" Type="float" Size="3" />
+<Data ElementName="soga_nose" Type="float" Size="3" />
+<Data ElementName="soga_body_size" Type="float" Size="1" />
+<Data ElementName="soga_body_age" Type="float" Size="1" />
+</Struct>
+<Struct Name="CreateCharacter" ClientVersion="1096" OpcodeName="OP_CreateCharacterRequestMsg">
+<Data ElementName="unknown0" Type="int8" />
+<Data ElementName="unknown1" Type="int32" />
+<Data ElementName="account_id" Type="int32"  />
+<Data ElementName="unknown3" Type="int8" />
+<Data ElementName="server_id" Type="int32" />
+<Data ElementName="name" Type="EQ2_16Bit_String" />
+<Data ElementName="race" Type="int8" />
+<Data ElementName="gender" Type="int8" />
+<Data ElementName="deity" Type="int8" />
+<Data ElementName="class" Type="int8" />
+<Data ElementName="level" Type="int8" />
+<Data ElementName="starting_zone" Type="int8" />
+<Data ElementName="version" Type="int8" />
+<Data ElementName="race_file" Type="EQ2_16Bit_String" />
+<Data ElementName="skin_color" Type="EQ2_Color" />
+<Data ElementName="skin_color2" Type="EQ2_Color" />
+<Data ElementName="eye_color" Type="EQ2_Color" />
+<Data ElementName="hair_color1" Type="EQ2_Color"  />
+<Data ElementName="hair_color2" Type="EQ2_Color"  />
+<Data ElementName="hair_highlight" Type="EQ2_Color" />
+<Data ElementName="unknown8" Type="int8" Size="26" />
+<Data ElementName="hair_file" Type="EQ2_16Bit_String" />
+<Data ElementName="hair_type_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="hair_type_highlight_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="face_file" Type="EQ2_16Bit_String" />
+<Data ElementName="hair_face_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="hair_face_highlight_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="wing_file" Type="EQ2_16Bit_String" />
+<Data ElementName="wing_color1" Type="EQ2_Color" Size="1" />
+<Data ElementName="wing_color2" Type="EQ2_Color" Size="1" />
+<Data ElementName="chest_file" Type="EQ2_16Bit_String" />
+<Data ElementName="shirt_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="unknown_chest_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="legs_file" Type="EQ2_16Bit_String" />
+<Data ElementName="pants_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="unknown_legs_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="unknown9" Type="EQ2_Color" Size="1" />
+
+<Data ElementName="eyes2" Type="float" Size="3" />
+<Data ElementName="ears" Type="float" Size="3" />
+<Data ElementName="eye_brows" Type="float" Size="3" />
+<Data ElementName="cheeks" Type="float" Size="3" />
+<Data ElementName="lips" Type="float" Size="3" />
+<Data ElementName="chin" Type="float" Size="3" />
+<Data ElementName="nose" Type="float" Size="3" />
+<Data ElementName="body_size" Type="float" Size="1" />
+<Data ElementName="body_age" Type="float" Size="1" />
+
+<Data ElementName="soga_version" Type="int8" />
+<Data ElementName="soga_race_file" Type="EQ2_16Bit_String" />
+<Data ElementName="soga_skin_color" Type="EQ2_Color" />
+<Data ElementName="soga_eye_color" Type="EQ2_Color" />
+<Data ElementName="soga_hair_color1" Type="EQ2_Color"  />
+<Data ElementName="soga_hair_color2" Type="EQ2_Color"  />
+<Data ElementName="soga_hair_highlight" Type="EQ2_Color" />
+<Data ElementName="soga_unknown_color" Type="EQ2_Color" />
+<Data ElementName="soga_unknown11" Type="int8" Size="26" />
+<Data ElementName="soga_hair_file" Type="EQ2_16Bit_String" />
+<Data ElementName="soga_hair_type_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="soga_hair_type_highlight_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="soga_face_file" Type="EQ2_16Bit_String" />
+<Data ElementName="soga_hair_face_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="soga_hair_face_highlight_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="soga_wing_file" Type="EQ2_16Bit_String" />
+<Data ElementName="soga_wing_color1" Type="EQ2_Color" Size="1" />
+<Data ElementName="soga_wing_color2" Type="EQ2_Color" Size="1" />
+<Data ElementName="soga_chest_file" Type="EQ2_16Bit_String" />
+<Data ElementName="soga_shirt_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="soga_unknown_chest_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="soga_legs_file" Type="EQ2_16Bit_String" />
+<Data ElementName="soga_pants_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="soga_unknown_legs_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="soga_unknown12" Type="EQ2_Color" Size="1" />
+<Data ElementName="soga_eyes2" Type="float" Size="3" />
+<Data ElementName="soga_ears" Type="float" Size="3" />
+<Data ElementName="soga_eye_brows" Type="float" Size="3" />
+<Data ElementName="soga_cheeks" Type="float" Size="3" />
+<Data ElementName="soga_lips" Type="float" Size="3" />
+<Data ElementName="soga_chin" Type="float" Size="3" />
+<Data ElementName="soga_nose" Type="float" Size="3" />
+<Data ElementName="soga_body_size" Type="float" Size="1" />
+<Data ElementName="soga_body_age" Type="float" Size="1" />
+</Struct>
+<Struct Name="CreateCharacter" ClientVersion="57080" OpcodeName="OP_CreateCharacterRequestMsg">
+<Data ElementName="unknown0" Type="int8" />
+<Data ElementName="unknown1" Type="int32" />
+<Data ElementName="account_id" Type="int32"  />
+<Data ElementName="unknown3" Type="int8" />
+<Data ElementName="server_id" Type="int32" />
+<Data ElementName="name" Type="EQ2_16Bit_String" />
+<Data ElementName="race" Type="int8" />
+<Data ElementName="gender" Type="int8" />
+<Data ElementName="deity" Type="int8" />
+<Data ElementName="class" Type="int8" />
+<Data ElementName="level" Type="int8" />
+<Data ElementName="starting_zone" Type="int8" />
+<Data ElementName="version" Type="int8" />
+<Data ElementName="unknown10" Type="int16" />
+<Data ElementName="race_file" Type="EQ2_16Bit_String" />
+<Data ElementName="skin_color" Type="EQ2_Color" />
+<Data ElementName="eye_color" Type="EQ2_Color" />
+<Data ElementName="unknown_skin_color2" Type="EQ2_Color" />
+<Data ElementName="hair_color1" Type="EQ2_Color"  />
+<Data ElementName="hair_color2" Type="EQ2_Color"  />
+<Data ElementName="hair_highlight" Type="EQ2_Color" />
+<Data ElementName="unknown8" Type="int8" Size="26" />
+<Data ElementName="hair_file" Type="EQ2_16Bit_String" />
+<Data ElementName="hair_type_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="hair_type_highlight_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="face_file" Type="EQ2_16Bit_String" />
+<Data ElementName="hair_face_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="hair_face_highlight_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="wing_file" Type="EQ2_16Bit_String" />
+<Data ElementName="wing_color1" Type="EQ2_Color" Size="1" />
+<Data ElementName="wing_color2" Type="EQ2_Color" Size="1" />
+<Data ElementName="chest_file" Type="EQ2_16Bit_String" />
+<Data ElementName="shirt_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="unknown_chest_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="legs_file" Type="EQ2_16Bit_String" />
+<Data ElementName="pants_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="unknown_legs_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="unknown9" Type="EQ2_Color" Size="1" />
+
+<Data ElementName="eyes2" Type="float" Size="3" />
+<Data ElementName="ears" Type="float" Size="3" />
+<Data ElementName="eye_brows" Type="float" Size="3" />
+<Data ElementName="cheeks" Type="float" Size="3" />
+<Data ElementName="lips" Type="float" Size="3" />
+<Data ElementName="chin" Type="float" Size="3" />
+<Data ElementName="nose" Type="float" Size="3" />
+<Data ElementName="body_size" Type="float" Size="1" />
+<Data ElementName="body_age" Type="float" Size="1" />
+
+<Data ElementName="soga_version" Type="int8" />
+<Data ElementName="soga_race_file" Type="EQ2_16Bit_String" />
+<Data ElementName="soga_skin_color" Type="EQ2_Color" />
+<Data ElementName="soga_eye_color" Type="EQ2_Color" />
+<Data ElementName="soga_hair_color1" Type="EQ2_Color"  />
+<Data ElementName="soga_hair_color2" Type="EQ2_Color"  />
+<Data ElementName="soga_hair_highlight" Type="EQ2_Color" />
+<Data ElementName="soga_unknown_color" Type="EQ2_Color" />
+<Data ElementName="soga_unknown11" Type="int8" Size="26" />
+<Data ElementName="soga_hair_file" Type="EQ2_16Bit_String" />
+<Data ElementName="soga_hair_type_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="soga_hair_type_highlight_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="soga_face_file" Type="EQ2_16Bit_String" />
+<Data ElementName="soga_hair_face_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="soga_hair_face_highlight_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="soga_wing_file" Type="EQ2_16Bit_String" />
+<Data ElementName="soga_wing_color1" Type="EQ2_Color" Size="1" />
+<Data ElementName="soga_wing_color2" Type="EQ2_Color" Size="1" />
+<Data ElementName="soga_chest_file" Type="EQ2_16Bit_String" />
+<Data ElementName="soga_shirt_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="soga_unknown_chest_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="soga_legs_file" Type="EQ2_16Bit_String" />
+<Data ElementName="soga_pants_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="soga_unknown_legs_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="soga_unknown12" Type="EQ2_Color" Size="1" />
+<Data ElementName="soga_eyes2" Type="float" Size="3" />
+<Data ElementName="soga_ears" Type="float" Size="3" />
+<Data ElementName="soga_eye_brows" Type="float" Size="3" />
+<Data ElementName="soga_cheeks" Type="float" Size="3" />
+<Data ElementName="soga_lips" Type="float" Size="3" />
+<Data ElementName="soga_chin" Type="float" Size="3" />
+<Data ElementName="soga_nose" Type="float" Size="3" />
+<Data ElementName="soga_body_size" Type="float" Size="1" />
+<Data ElementName="soga_body_age" Type="float" Size="1" />
+</Struct>
+<Struct Name="CreateCharacter" ClientVersion="60085" OpcodeName="OP_CreateCharacterRequestMsg" >
+<Data ElementName="unknown0" Type="int8" />
+<Data ElementName="unknown1" Type="int32" />
+<Data ElementName="account_id" Type="int32"  />
+<Data ElementName="unknown3" Type="int8" />
+<Data ElementName="server_id" Type="int32" />
+<Data ElementName="name" Type="EQ2_16Bit_String" />
+<Data ElementName="race" Type="int8" />
+<Data ElementName="gender" Type="int8" />
+<Data ElementName="deity" Type="int8" />
+<Data ElementName="class" Type="int8" />
+<Data ElementName="level" Type="int8" />
+<Data ElementName="starting_zone" Type="int8" />
+<Data ElementName="version" Type="int8" />
+<Data ElementName="unknown10" Type="int16" />
+<Data ElementName="race_file" Type="EQ2_16Bit_String" />
+<Data ElementName="skin_color" Type="EQ2_Color" />
+<Data ElementName="eye_color" Type="EQ2_Color" />
+<Data ElementName="unknown_skin_color2" Type="EQ2_Color" />
+<Data ElementName="hair_color1" Type="EQ2_Color"  />
+<Data ElementName="hair_color2" Type="EQ2_Color"  />
+<Data ElementName="hair_highlight" Type="EQ2_Color" />
+<Data ElementName="unknown8" Type="int8" Size="26" />
+<Data ElementName="hair_file" Type="EQ2_16Bit_String" />
+<Data ElementName="hair_type_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="hair_type_highlight_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="face_file" Type="EQ2_16Bit_String" />
+<Data ElementName="hair_face_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="hair_face_highlight_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="wing_file" Type="EQ2_16Bit_String" />
+<Data ElementName="wing_color1" Type="EQ2_Color" Size="1" />
+<Data ElementName="wing_color2" Type="EQ2_Color" Size="1" />
+<Data ElementName="chest_file" Type="EQ2_16Bit_String" />
+<Data ElementName="shirt_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="unknown_chest_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="legs_file" Type="EQ2_16Bit_String" />
+<Data ElementName="pants_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="unknown_legs_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="unknown9" Type="EQ2_Color" Size="1" />
+
+<Data ElementName="eyes2" Type="float" Size="3" />
+<Data ElementName="ears" Type="float" Size="3" />
+<Data ElementName="eye_brows" Type="float" Size="3" />
+<Data ElementName="cheeks" Type="float" Size="3" />
+<Data ElementName="lips" Type="float" Size="3" />
+<Data ElementName="chin" Type="float" Size="3" />
+<Data ElementName="nose" Type="float" Size="3" />
+<Data ElementName="body_size" Type="float" Size="1" />
+<Data ElementName="body_age" Type="float" Size="1" />
+
+<Data ElementName="soga_version" Type="int8" />
+<Data ElementName="soga_race_file" Type="EQ2_16Bit_String" />
+<Data ElementName="soga_skin_color" Type="EQ2_Color" />
+<Data ElementName="soga_eye_color" Type="EQ2_Color" />
+<Data ElementName="soga_hair_color1" Type="EQ2_Color"  />
+<Data ElementName="soga_hair_color2" Type="EQ2_Color"  />
+<Data ElementName="soga_hair_highlight" Type="EQ2_Color" />
+<Data ElementName="soga_unknown_color" Type="EQ2_Color" />
+<Data ElementName="soga_unknown11" Type="int8" Size="26" />
+<Data ElementName="soga_hair_file" Type="EQ2_16Bit_String" />
+<Data ElementName="soga_hair_type_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="soga_hair_type_highlight_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="soga_face_file" Type="EQ2_16Bit_String" />
+<Data ElementName="soga_hair_face_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="soga_hair_face_highlight_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="soga_wing_file" Type="EQ2_16Bit_String" />
+<Data ElementName="soga_wing_color1" Type="EQ2_Color" Size="1" />
+<Data ElementName="soga_wing_color2" Type="EQ2_Color" Size="1" />
+<Data ElementName="soga_chest_file" Type="EQ2_16Bit_String" />
+<Data ElementName="soga_shirt_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="soga_unknown_chest_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="soga_legs_file" Type="EQ2_16Bit_String" />
+<Data ElementName="soga_pants_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="soga_unknown_legs_color" Type="EQ2_Color" Size="1" />
+<Data ElementName="soga_unknown12" Type="EQ2_Color" Size="1" />
+<Data ElementName="soga_eyes2" Type="float" Size="3" />
+<Data ElementName="soga_ears" Type="float" Size="3" />
+<Data ElementName="soga_eye_brows" Type="float" Size="3" />
+<Data ElementName="soga_cheeks" Type="float" Size="3" />
+<Data ElementName="soga_lips" Type="float" Size="3" />
+<Data ElementName="soga_chin" Type="float" Size="3" />
+<Data ElementName="soga_nose" Type="float" Size="3" />
+<Data ElementName="soga_body_size" Type="float" Size="1" />
+<Data ElementName="soga_body_age" Type="float" Size="1" />
+</Struct>
+<Struct Name="CreateCharacter" ClientVersion="64659" OpcodeName="OP_CreateCharacterRequestMsg" >
+	<Data ElementName="unknown0" Type="int8" />
+	<Data ElementName="unknown1" Type="int32" />
+	<Data ElementName="account_id" Type="int32" />
+	<Data ElementName="unknown3" Type="int8" />
+	<Data ElementName="server_id" Type="int32" />
+	<Data ElementName="name" Type="EQ2_16Bit_String" />
+	<Data ElementName="race" Type="int8" />
+	<Data ElementName="gender" Type="int8" />
+	<Data ElementName="deity" Type="int8" />
+	<Data ElementName="class" Type="int8" />
+	<Data ElementName="level" Type="int8" />
+	<Data ElementName="starting_zone" Type="int32" />
+	<Data ElementName="version" Type="int8" />
+	<Data ElementName="race_file" Type="EQ2_16Bit_String" />
+	<Data ElementName="skin_color" Type="EQ2_Color" Size="1" />
+	<Data ElementName="skin_color2" Type="EQ2_Color" Size="1" />
+	<Data ElementName="eye_color" Type="EQ2_Color" Size="1" />
+	<Data ElementName="hair_color1" Type="EQ2_Color" Size="1" />
+	<Data ElementName="hair_color2" Type="EQ2_Color" Size="1" />
+	<Data ElementName="unknown8" Type="int8" Size="38" />
+	<Data ElementName="hair_file" Type="EQ2_16Bit_String" />
+	<Data ElementName="hair_type_color" Type="EQ2_Color" Size="1" />
+	<Data ElementName="hair_type_highlight_color" Type="EQ2_Color" Size="1" />
+	<Data ElementName="face_file" Type="EQ2_16Bit_String" />
+	<Data ElementName="hair_face_color" Type="EQ2_Color" Size="1" />
+	<Data ElementName="hair_face_highlight_color" Type="EQ2_Color" Size="1" />
+	<Data ElementName="wing_file" Type="EQ2_16Bit_String" />
+	<Data ElementName="wing_color1" Type="EQ2_Color" Size="1" />
+	<Data ElementName="wing_color2" Type="EQ2_Color" Size="1" />
+	<Data ElementName="chest_file" Type="EQ2_16Bit_String" />
+	<Data ElementName="shirt_color" Type="EQ2_Color" Size="1" />
+	<Data ElementName="unknown_chest_color" Type="EQ2_Color" Size="1" />
+	<Data ElementName="legs_file" Type="EQ2_16Bit_String" />
+	<Data ElementName="pants_color" Type="EQ2_Color" Size="1" />
+	<Data ElementName="unknown_legs_color" Type="EQ2_Color" Size="1" />
+	<Data ElementName="unknown9" Type="EQ2_Color" Size="1" />
+	<Data ElementName="eyes2" Type="float" Size="3" />
+	<Data ElementName="ears" Type="float" Size="3" />
+	<Data ElementName="eye_brows" Type="float" Size="3" />
+	<Data ElementName="cheeks" Type="float" Size="3" />
+	<Data ElementName="lips" Type="float" Size="3" />
+	<Data ElementName="chin" Type="float" Size="3" />
+	<Data ElementName="nose" Type="float" Size="3" />
+	<Data ElementName="body_size" Type="float" />
+	<Data ElementName="body_age" Type="float" />
+	<Data ElementName="soga_version" Type="int8" />
+	<Data ElementName="soga_race_file" Type="EQ2_16Bit_String" />
+	<Data ElementName="soga_skin_color" Type="EQ2_Color" Size="1" />
+	<Data ElementName="soga_eye_color" Type="EQ2_Color" Size="1" />
+	<Data ElementName="soga_hair_color1" Type="EQ2_Color" Size="1" />
+	<Data ElementName="soga_hair_color2" Type="EQ2_Color" Size="1" />
+	<Data ElementName="soga_hair_highlight" Type="EQ2_Color" Size="1" />
+	<Data ElementName="soga_unknown11" Type="int8" Size="38" />
+	<Data ElementName="soga_hair_file" Type="EQ2_16Bit_String" />
+	<Data ElementName="soga_hair_type_color" Type="EQ2_Color" Size="1" />
+	<Data ElementName="soga_hair_type_highlight_color" Type="EQ2_Color" Size="1" />
+	<Data ElementName="soga_face_file" Type="EQ2_16Bit_String" />
+	<Data ElementName="soga_hair_face_color" Type="EQ2_Color" Size="1" />
+	<Data ElementName="soga_hair_face_highlight_color" Type="EQ2_Color" Size="1" />
+	<Data ElementName="soga_wing_file" Type="EQ2_16Bit_String" />
+	<Data ElementName="soga_wing_color1" Type="EQ2_Color" Size="1" />
+	<Data ElementName="soga_wing_color2" Type="EQ2_Color" Size="1" />
+	<Data ElementName="soga_chest_file" Type="EQ2_16Bit_String" />
+	<Data ElementName="soga_shirt_color" Type="EQ2_Color" Size="1" />
+	<Data ElementName="soga_unknown_chest_color" Type="EQ2_Color" Size="1" />
+	<Data ElementName="soga_legs_file" Type="EQ2_16Bit_String" />
+	<Data ElementName="soga_pants_color" Type="EQ2_Color" Size="1" />
+	<Data ElementName="soga_unknown_legs_color" Type="EQ2_Color" Size="1" />
+	<Data ElementName="soga_unknown12" Type="EQ2_Color" Size="1" />
+	<Data ElementName="soga_eyes2" Type="float" Size="3" />
+	<Data ElementName="soga_ears" Type="float" Size="3" />
+	<Data ElementName="soga_eye_brows" Type="float" Size="3" />
+	<Data ElementName="soga_cheeks" Type="float" Size="3" />
+	<Data ElementName="soga_lips" Type="float" Size="3" />
+	<Data ElementName="soga_chin" Type="float" Size="3" />
+	<Data ElementName="soga_nose" Type="float" Size="3" />
+	<Data ElementName="soga_body_size" Type="float" />
+	<Data ElementName="soga_body_age" Type="float" />
+	<Data ElementName="unknown13" Type="int8" Size="2" />
+</Struct>
+<Struct Name="CreateCharacter" ClientVersion="65534" OpcodeName="OP_CreateCharacterRequestMsg" >
+	<Data ElementName="unknown0" Type="int8" />
+	<Data ElementName="unknown1" Type="int32" />
+	<Data ElementName="account_id" Type="int32" />
+	<Data ElementName="unknown3" Type="int8" />
+	<Data ElementName="server_id" Type="int32" />
+	<Data ElementName="name" Type="EQ2_16Bit_String" />
+	<Data ElementName="race" Type="int8" />
+	<Data ElementName="gender" Type="int8" />
+	<Data ElementName="deity" Type="int8" />
+	<Data ElementName="class" Type="int8" />
+	<Data ElementName="level" Type="int8" />
+	<Data ElementName="starting_zone" Type="int32" />
+	<Data ElementName="version" Type="int8" />
+	<Data ElementName="race_file" Type="EQ2_16Bit_String" />
+	<Data ElementName="skin_color" Type="EQ2_Color" Size="1" />
+	<Data ElementName="skin_color2" Type="EQ2_Color" Size="1" />
+	<Data ElementName="eye_color" Type="EQ2_Color" Size="1" />
+	<Data ElementName="hair_color1" Type="EQ2_Color" Size="1" />
+	<Data ElementName="hair_color2" Type="EQ2_Color" Size="1" />
+	<Data ElementName="unknown8" Type="int8" Size="38" />
+	<Data ElementName="hair_file" Type="EQ2_16Bit_String" />
+	<Data ElementName="hair_type_color" Type="EQ2_Color" Size="1" />
+	<Data ElementName="hair_type_highlight_color" Type="EQ2_Color" Size="1" />
+	<Data ElementName="face_file" Type="EQ2_16Bit_String" />
+	<Data ElementName="hair_face_color" Type="EQ2_Color" Size="1" />
+	<Data ElementName="hair_face_highlight_color" Type="EQ2_Color" Size="1" />
+	<Data ElementName="wing_file" Type="EQ2_16Bit_String" />
+	<Data ElementName="wing_color1" Type="EQ2_Color" Size="1" />
+	<Data ElementName="wing_color2" Type="EQ2_Color" Size="1" />
+	<Data ElementName="chest_file" Type="EQ2_16Bit_String" />
+	<Data ElementName="shirt_color" Type="EQ2_Color" Size="1" />
+	<Data ElementName="unknown_chest_color" Type="EQ2_Color" Size="1" />
+	<Data ElementName="legs_file" Type="EQ2_16Bit_String" />
+	<Data ElementName="pants_color" Type="EQ2_Color" Size="1" />
+	<Data ElementName="unknown_legs_color" Type="EQ2_Color" Size="1" />
+	<Data ElementName="unknown9" Type="EQ2_Color" Size="1" />
+	<Data ElementName="eyes2" Type="float" Size="3" />
+	<Data ElementName="ears" Type="float" Size="3" />
+	<Data ElementName="eye_brows" Type="float" Size="3" />
+	<Data ElementName="cheeks" Type="float" Size="3" />
+	<Data ElementName="lips" Type="float" Size="3" />
+	<Data ElementName="chin" Type="float" Size="3" />
+	<Data ElementName="nose" Type="float" Size="3" />
+	<Data ElementName="body_size" Type="float" />
+	<Data ElementName="body_age" Type="float" />
+	<Data ElementName="soga_version" Type="int8" />
+	<Data ElementName="soga_race_file" Type="EQ2_16Bit_String" />
+	<Data ElementName="soga_skin_color" Type="EQ2_Color" Size="1" />
+	<Data ElementName="soga_eye_color" Type="EQ2_Color" Size="1" />
+	<Data ElementName="soga_hair_color1" Type="EQ2_Color" Size="1" />
+	<Data ElementName="soga_hair_color2" Type="EQ2_Color" Size="1" />
+	<Data ElementName="soga_hair_highlight" Type="EQ2_Color" Size="1" />
+	<Data ElementName="soga_unknown11" Type="int8" Size="38" />
+	<Data ElementName="soga_hair_file" Type="EQ2_16Bit_String" />
+	<Data ElementName="soga_hair_type_color" Type="EQ2_Color" Size="1" />
+	<Data ElementName="soga_hair_type_highlight_color" Type="EQ2_Color" Size="1" />
+	<Data ElementName="soga_face_file" Type="EQ2_16Bit_String" />
+	<Data ElementName="soga_hair_face_color" Type="EQ2_Color" Size="1" />
+	<Data ElementName="soga_hair_face_highlight_color" Type="EQ2_Color" Size="1" />
+	<Data ElementName="soga_wing_file" Type="EQ2_16Bit_String" />
+	<Data ElementName="soga_wing_color1" Type="EQ2_Color" Size="1" />
+	<Data ElementName="soga_wing_color2" Type="EQ2_Color" Size="1" />
+	<Data ElementName="soga_chest_file" Type="EQ2_16Bit_String" />
+	<Data ElementName="soga_shirt_color" Type="EQ2_Color" Size="1" />
+	<Data ElementName="soga_unknown_chest_color" Type="EQ2_Color" Size="1" />
+	<Data ElementName="soga_legs_file" Type="EQ2_16Bit_String" />
+	<Data ElementName="soga_pants_color" Type="EQ2_Color" Size="1" />
+	<Data ElementName="soga_unknown_legs_color" Type="EQ2_Color" Size="1" />
+	<Data ElementName="soga_unknown12" Type="EQ2_Color" Size="1" />
+	<Data ElementName="soga_eyes2" Type="float" Size="3" />
+	<Data ElementName="soga_ears" Type="float" Size="3" />
+	<Data ElementName="soga_eye_brows" Type="float" Size="3" />
+	<Data ElementName="soga_cheeks" Type="float" Size="3" />
+	<Data ElementName="soga_lips" Type="float" Size="3" />
+	<Data ElementName="soga_chin" Type="float" Size="3" />
+	<Data ElementName="soga_nose" Type="float" Size="3" />
+	<Data ElementName="soga_body_size" Type="float" />
+	<Data ElementName="soga_body_age" Type="float" />
+	<Data ElementName="unknown13" Type="int8" Size="2" />
+</Struct>
+<Struct Name="BadLanguageFilter" ClientVersion="1" OpcodeName="OP_BadLanguageFilter">
+<Data ElementName="num_words" Type="int16" OversizedValue="255" />
+<Data ElementName="words_array" Type="Array" ArraySizeVariable="num_words">
+	<Data ElementName="word" Type="EQ2_16Bit_String" Size="1" />
+</Data>
+</Struct>
+</EQ2Emulator>

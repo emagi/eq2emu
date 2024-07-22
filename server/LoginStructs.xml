@@ -1,0 +1,1103 @@
+<EQ2Emulator>
+<Comment Text="The Emu will get the latest version of the struct that is LESS than or equal to the client's version number.
+This allows multiple struct version to coexist on the same server.  Elements that arent used in the source code are set
+to zero and treated like placeholders." /> 
+<Struct Name="LS_CreateCharacterReply" ClientVersion="1" OpcodeName="OP_CreateCharacterReplyMsg">
+<Data ElementName="account_id" Type="int32" Size="1" />
+<Data ElementName="response" Type="int8" Size="1" />
+<Data ElementName="name" Type="EQ2_16Bit_String" />
+</Struct>
+<Struct Name="LS_CreateCharacterReply" ClientVersion="1189" OpcodeName="OP_CreateCharacterReplyMsg">
+<Data ElementName="account_id" Type="int32" Size="1" />
+<Data ElementName="unknown" Type="int32" Size="1" />
+<Data ElementName="response" Type="int8" Size="1" />
+<Data ElementName="name" Type="EQ2_16Bit_String" />
+</Struct>
+<Struct Name="LS_CreateCharacterReply" ClientVersion="60085" OpcodeName="OP_CreateCharacterReplyMsg">
+<Data ElementName="account_id" Type="int32" Size="1" />
+<Data ElementName="unknown" Type="int32" Size="1" />
+<Data ElementName="response" Type="int8" Size="1" />
+<Data ElementName="name" Type="EQ2_16Bit_String" />
+</Struct>
+<Struct Name="LS_DeleteCharacterRequest" ClientVersion="1" OpcodeName="OP_DeleteCharacterRequestMsg">
+<Data ElementName="char_id" Type="int32" Size="1" />
+<Data ElementName="server_id" Type="int32" Size="1" />
+<Data ElementName="unknown" Type="int32" Size="1" />
+<Data ElementName="name" Type="EQ2_16Bit_String" />
+</Struct>
+<Struct Name="LS_DeleteCharacterResponse" ClientVersion="1" OpcodeName="OP_DeleteCharacterReplyMsg">
+<Data ElementName="response" Type="int8" Size="1" />
+<Data ElementName="server_id" Type="int32" Size="1" />
+<Data ElementName="char_id" Type="int32" Size="1" />
+<Data ElementName="account_id" Type="int32" Size="1" />
+<Data ElementName="name" Type="EQ2_16Bit_String" />
+<Data ElementName="max_characters" Type="int32" Size="1" />
+</Struct>
+<Struct Name="LS_LoginRequest" ClientVersion="1" OpcodeName="OP_LoginRequestMsg">
+<Data ElementName="sessionID" Type="EQ2_16BitString" />
+<Data ElementName="sessionRecycleToken" Type="EQ2_16BitString" />
+<Data ElementName="username" Type="EQ2_16BitString" />
+<Data ElementName="password" Type="EQ2_16Bit_String" />
+<Data ElementName="acctNum" Type="int32" Size="1" />
+<Data ElementName="passCode" Type="int32" Size="1" />
+<Data ElementName="version" Type="int16" />
+</Struct>
+<Struct Name="LS_LoginRequest" ClientVersion="562" OpcodeName="OP_LoginRequestMsg">
+<Data ElementName="accesscode" Type="EQ2_16BitString" />
+<Data ElementName="unknown1" Type="EQ2_16BitString" />
+<Data ElementName="username" Type="EQ2_16BitString" />
+<Data ElementName="password" Type="EQ2_16Bit_String" />
+<Data ElementName="unknown2" Type="int8" Size="8" />
+<Data ElementName="unknown3" Type="int8" Size="2" />
+<Data ElementName="version" Type="int32" />
+<Data ElementName="unknown3" Type="int16" />
+<Data ElementName="unknown4" Type="int32" />
+</Struct>
+<Struct Name="LS_LoginRequest" ClientVersion="1208" OpcodeName="OP_LoginRequestMsg">
+<Data ElementName="accesscode" Type="EQ2_16BitString" />
+<Data ElementName="unknown1" Type="EQ2_16BitString" />
+<Data ElementName="username" Type="EQ2_16BitString" />
+<Data ElementName="password" Type="EQ2_16Bit_String" />
+<Data ElementName="unknown2" Type="int8" Size="8" />
+<Data ElementName="unknown3" Type="int8" Size="2" />
+<Data ElementName="version" Type="int16" />
+<Data ElementName="unknown4" Type="int8" />
+<Data ElementName="unknown5" Type="int32" Size="3" />
+<Data ElementName="unknown6" Type="int16" />
+<Data ElementName="unknown7" Type="EQ2_16Bit_String" />
+</Struct>
+<Struct Name="LS_WorldList" ClientVersion="1" OpcodeName="OP_WorldListMsg">
+<Data ElementName="num_worlds" Type="int8" />
+<Data ElementName="world_list" Type="Array" ArraySizeVariable="num_worlds">
+  <Data ElementName="id" Type="int32" Size="1" />
+  <Data ElementName="name" Type="EQ2_16Bit_String" />
+  <Data ElementName="online" Type="int8" Size="1" />
+  <Data ElementName="locked" Type="int8" Size="1" />
+  <Data ElementName="unknown2" Type="int8" Size="1" />
+  <Data ElementName="unknown3" Type="int8" Size="1" />
+  <Data ElementName="load" Type="int8" Size="1" />
+</Data>
+</Struct>
+<Struct Name="LS_WorldList" ClientVersion="373" OpcodeName="OP_WorldListMsg">
+<Data ElementName="num_worlds" Type="int8" />
+<Data ElementName="world_list" Type="Array" ArraySizeVariable="num_worlds">
+  <Data ElementName="id" Type="int32" Size="1" />
+  <Data ElementName="name" Type="EQ2_16Bit_String" />
+  <Data ElementName="tag" Type="int8" Size="1" />
+  <Data ElementName="locked" Type="int8" Size="1" />
+  <Data ElementName="hidden" Type="int8" Size="1" />
+  <Data ElementName="unknown" Type="int8" Size="1" />
+  <Data ElementName="num_players" Type="int16" Size="1" />
+  <Data ElementName="load" Type="int8" Size="1" />
+  <Data ElementName="number_online_flag" Type="int8" Size="1" />
+  <Data ElementName="allowed_races" Type="int32" Size="1" />
+</Data>
+</Struct>
+<Struct Name="LS_WorldList" ClientVersion="546" OpcodeName="OP_WorldListMsg">
+<Data ElementName="num_worlds" Type="int8" />
+<Data ElementName="world_list" Type="Array" ArraySizeVariable="num_worlds">
+  <Data ElementName="id" Type="int32" Size="1" />
+  <Data ElementName="name" Type="EQ2_16Bit_String" />
+  <Data ElementName="name2" Type="EQ2_16Bit_String" />
+  <Data ElementName="tag" Type="int8" Size="1" />
+  <Data ElementName="locked" Type="int8" Size="1" />
+  <Data ElementName="hidden" Type="int8" Size="1" />
+  <Data ElementName="unknown" Type="int8" Size="1" />
+  <Data ElementName="num_players" Type="int16" Size="1" />
+  <Data ElementName="load" Type="int8" Size="1" />
+  <Data ElementName="number_online_flag" Type="int8" Size="1" />
+  <Data ElementName="unknown2" Type="int8" Size="1" />
+  <Data ElementName="allowed_races" Type="int32" Size="1" />
+</Data>
+</Struct>
+<Struct Name="LS_WorldList" ClientVersion="562" OpcodeName="OP_WorldListMsg">
+<Data ElementName="num_worlds" Type="int8" />
+<Data ElementName="world_list" Type="Array" ArraySizeVariable="num_worlds">
+  <Data ElementName="id" Type="int32" Size="1" />
+  <Data ElementName="name" Type="EQ2_16Bit_String" />
+  <Data ElementName="name2" Type="EQ2_16Bit_String" />
+  <Data ElementName="tag" Type="int8" Size="1" />
+  <Data ElementName="locked" Type="int8" Size="1" />
+  <Data ElementName="hidden" Type="int8" Size="1" />
+  <Data ElementName="unknown" Type="int8" Size="1" />
+  <Data ElementName="num_players" Type="int16" Size="1" />
+  <Data ElementName="load" Type="int8" Size="1" />
+  <Data ElementName="number_online_flag" Type="int8" Size="1" />
+  <Data ElementName="feature_set" Type="int8" Size="2" />
+  <Data ElementName="allowed_races" Type="int32" Size="1" />
+</Data>
+<Data ElementName="unknown2" Type="int8" />
+</Struct>
+<Struct Name="LS_WorldList" ClientVersion="60114" OpcodeName="OP_WorldListMsg">
+<Data ElementName="num_worlds" Type="int8" />
+<Data ElementName="world_list" Type="Array" ArraySizeVariable="num_worlds">
+  <Data ElementName="id" Type="int32" Size="1" />
+  <Data ElementName="name" Type="EQ2_16Bit_String" />
+  <Data ElementName="name2" Type="EQ2_16Bit_String" />
+  <Data ElementName="tag" Type="int8" Size="1" />
+  <Data ElementName="locked" Type="int8" Size="1" />
+  <Data ElementName="hidden" Type="int8" Size="1" />
+  <Data ElementName="unknown" Type="int8" Size="1" />
+  <Data ElementName="num_players" Type="int16" Size="1" />
+  <Data ElementName="load" Type="int8" Size="1" />
+  <Data ElementName="number_online_flag" Type="int8" Size="1" />
+  <Data ElementName="feature_set" Type="int8" Size="2" />
+  <Data ElementName="allowed_races" Type="int32" Size="1" />
+</Data>
+<Data ElementName="unknown2" Type="int8" />
+</Struct>
+<Struct Name="LS_WorldList" ClientVersion="65534" OpcodeName="OP_WorldListMsg">
+<Data ElementName="num_worlds" Type="int8" />
+<Data ElementName="world_list" Type="Array" ArraySizeVariable="num_worlds">
+  <Data ElementName="id" Type="int32" Size="1" />
+  <Data ElementName="name" Type="EQ2_16Bit_String" />
+  <Data ElementName="name2" Type="EQ2_16Bit_String" />
+  <Data ElementName="tag" Type="int8" Size="1" />
+  <Data ElementName="locked" Type="int8" Size="1" />
+  <Data ElementName="hidden" Type="int8" Size="1" />
+  <Data ElementName="unknown" Type="int8" Size="1" />
+  <Data ElementName="num_players" Type="int16" Size="1" />
+  <Data ElementName="load" Type="int8" Size="1" />
+  <Data ElementName="number_online_flag" Type="int8" Size="1" />
+  <Data ElementName="feature_set" Type="int8" Size="3" />
+  <Data ElementName="allowed_races" Type="int32" Size="1" />
+</Data>
+<Data ElementName="unknown2" Type="int8" />
+</Struct>
+<Struct Name="LS_WorldUpdate" ClientVersion="1" OpcodeName="OP_WorldStatusChangeMsg">
+<Data ElementName="server_id" Type="int32" Size="1" />
+<Data ElementName="up" Type="int8" Size="1" />
+<Data ElementName="locked" Type="int8" Size="1" />
+<Data ElementName="unknown1" Type="int8" Size="1" />
+<Data ElementName="unknown2" Type="int8" Size="1" />
+</Struct>
+<Struct Name="LS_PlayRequest" ClientVersion="1" OpcodeName="OP_PlayCharacterRequestMsg">
+<Data ElementName="char_id" Type="int32" Size="1" />
+<Data ElementName="name" Type="EQ2_16BitString" />
+</Struct>
+<Struct Name="LS_PlayRequest" ClientVersion="284" OpcodeName="OP_PlayCharacterRequestMsg">
+<Data ElementName="char_id" Type="int32" Size="1" />
+<Data ElementName="server_id" Type="int32" Size="1" />
+<Data ElementName="unknown" Type="int8" Size="3" />
+</Struct>
+<Struct Name="LS_PlayResponse" ClientVersion="1" OpcodeName="OP_PlayCharacterReplyMsg">
+<Data ElementName="response" Type="int8" Size="1" />
+<Data ElementName="server" Type="EQ2_8BitString" />
+<Data ElementName="port" Type="int16" Size="1" />
+<Data ElementName="account_id" Type="int32" Size="1" />
+<Data ElementName="access_code" Type="int32" Size="1" />
+</Struct>
+<Struct Name="LS_PlayResponse" ClientVersion="1096" OpcodeName="OP_PlayCharacterReplyMsg">
+<Data ElementName="response" Type="int8" Size="1" />
+<Data ElementName="unknown1" Type="int16" Size="1" />
+<Data ElementName="server" Type="EQ2_8BitString" />
+<Data ElementName="port" Type="int16" Size="1" />
+<Data ElementName="account_id" Type="int32" Size="1" />
+<Data ElementName="access_code" Type="int32" Size="1" />
+</Struct>
+<Struct Name="LS_PlayResponse" ClientVersion="60085" OpcodeName="OP_PlayCharacterReplyMsg">
+<Data ElementName="response" Type="int8" Size="1" />
+<Data ElementName="unknown1" Type="int16" Size="3" />
+<Data ElementName="server" Type="EQ2_8BitString" />
+<Data ElementName="port" Type="int16" Size="1" />
+<Data ElementName="account_id" Type="int32" Size="1" />
+<Data ElementName="access_code" Type="int32" Size="1" />
+</Struct>
+<Struct Name="LS_PlayResponse" ClientVersion="60099" OpcodeName="OP_PlayCharacterReplyMsg">
+<Data ElementName="response" Type="int8" Size="1" />
+<Data ElementName="unknown1" Type="int16" Size="3" />
+<Data ElementName="server" Type="EQ2_8BitString" />
+<Data ElementName="port" Type="int16" Size="1" />
+<Data ElementName="account_id" Type="int32" Size="1" />
+<Data ElementName="access_code" Type="int32" Size="1" />
+</Struct>
+<Struct Name="CharSelectProfile" ClientVersion="1"> 
+<Data ElementName="charid" Type="int32" Size="1" />
+<Data ElementName="server_id" Type="int32" Size="1" />
+<Data ElementName="name" Type="EQ2_16BitString" Size="1" />
+<Data ElementName="race" Type="int8" Size="1" />
+<Data ElementName="class" Type="int8" Size="1" />
+<Data ElementName="level" Type="int32" Size="1" />
+<Data ElementName="zone" Type="EQ2_16BitString" Size="1" />
+<Data ElementName="unknown1" Type="int32" Size="1" />
+<Data ElementName="unknown2" Type="int32" Size="1" />
+<Data ElementName="created_date" Type="int32" Size="1" />
+<Data ElementName="last_played" Type="int32" Size="1" />
+<Data ElementName="unknown3" Type="int32" Size="1" />
+<Data ElementName="unknown4" Type="int32" Size="1" />
+<Data ElementName="zonename2" Type="EQ2_16BitString" Size="1" />
+<Data ElementName="zonedesc" Type="EQ2_16BitString" Size="1" />
+<Data ElementName="version" Type="int8" Size="1" />
+<Data ElementName="race_type" Type="int16" Size="1" />
+<Data ElementName="skin_color" Type="sint8" Size="3" />
+<Data ElementName="eye_color" Type="sint8" Size="3" />
+<Data ElementName="equip" Type="EQ2_EquipmentItem" Size="21" />
+<Data ElementName="hair_type" Type="int16" Size="1" />
+<Data ElementName="hair_type_color" Type="sint8" Size="3" />
+<Data ElementName="hair_type_highlight_color" Type="sint8" Size="3" />
+<Data ElementName="hair_face_type" Type="int16" Size="1" />
+<Data ElementName="hair_face_color" Type="sint8" Size="3" />
+<Data ElementName="hair_face_highlight_color" Type="sint8" Size="3" />
+<Data ElementName="chest_type" Type="int16" Size="1" />
+<Data ElementName="shirt_color" Type="sint8" Size="3" />
+<Data ElementName="unknown_chest_color" Type="sint8" Size="3" />
+<Data ElementName="legs_type" Type="int16" Size="1" />
+<Data ElementName="pants_color" Type="sint8" Size="3" />
+<Data ElementName="unknown_legs_color" Type="sint8" Size="3" />
+<Data ElementName="unknown9" Type="sint8" Size="3" />
+<Data ElementName="eye_type" Type="sint8" Size="3" />
+<Data ElementName="ear_type" Type="sint8" Size="3" />
+<Data ElementName="eye_brow_type" Type="sint8" Size="3" />
+<Data ElementName="cheek_type" Type="sint8" Size="3" />
+<Data ElementName="lip_type" Type="sint8" Size="3" />
+<Data ElementName="chin_type" Type="sint8" Size="3" />
+<Data ElementName="nose_type" Type="sint8" Size="3" />
+<Data ElementName="body_size" Type="sint8" Size="1" />
+<Data ElementName="bump_scale" Type="sint8" Size="1" />
+<Data ElementName="mount" Type="int16" Size="1" />
+<Data ElementName="mount_color1" Type="sint8" Size="3" />
+<Data ElementName="mount_color2" Type="sint8" Size="3" />
+<Data ElementName="hair_color1" Type="sint8" Size="3" />
+<Data ElementName="hair_color2" Type="sint8" Size="3" />
+<Data ElementName="hair_color3" Type="sint8" Size="3" />
+<Data ElementName="flags" Type="int8" Size="1" />
+</Struct>
+<Struct Name="CharSelectProfile" ClientVersion="373"> 
+<Data ElementName="charid" Type="int32" Size="1" />
+<Data ElementName="server_id" Type="int32" Size="1" />
+<Data ElementName="name" Type="EQ2_16BitString" Size="1" />
+<Data ElementName="race" Type="int8" Size="1" />
+<Data ElementName="class" Type="int8" Size="1" />
+<Data ElementName="level" Type="int32" Size="1" />
+<Data ElementName="zone" Type="EQ2_16BitString" Size="1" />
+<Data ElementName="unknown1" Type="int32" Size="1" />
+<Data ElementName="unknown2" Type="int32" Size="1" />
+<Data ElementName="created_date" Type="int32" Size="1" />
+<Data ElementName="last_played" Type="int32" Size="1" />
+<Data ElementName="unknown3" Type="int32" Size="1" />
+<Data ElementName="unknown4" Type="int32" Size="1" />
+<Data ElementName="zonename2" Type="EQ2_16BitString" Size="1" />
+<Data ElementName="zonedesc" Type="EQ2_16BitString" Size="1" />
+<Data ElementName="version" Type="int8" Size="1" />
+<Data ElementName="race_type" Type="int16" Size="1" />
+<Data ElementName="skin_color" Type="sint8" Size="3" />
+<Data ElementName="eye_color" Type="sint8" Size="3" />
+<Data ElementName="equip" Type="EQ2_EquipmentItem" Size="21" />
+<Data ElementName="hair_type" Type="int16" Size="1" />
+<Data ElementName="hair_type_color" Type="sint8" Size="3" />
+<Data ElementName="hair_type_highlight_color" Type="sint8" Size="3" />
+<Data ElementName="hair_face_type" Type="int16" Size="1" />
+<Data ElementName="hair_face_color" Type="sint8" Size="3" />
+<Data ElementName="hair_face_highlight_color" Type="sint8" Size="3" />
+<Data ElementName="chest_type" Type="int16" Size="1" />
+<Data ElementName="shirt_color" Type="sint8" Size="3" />
+<Data ElementName="unknown_chest_color" Type="sint8" Size="3" />
+<Data ElementName="legs_type" Type="int16" Size="1" />
+<Data ElementName="pants_color" Type="sint8" Size="3" />
+<Data ElementName="unknown_legs_color" Type="sint8" Size="3" />
+<Data ElementName="unknown9" Type="sint8" Size="3" />
+<Data ElementName="eye_type" Type="sint8" Size="3" />
+<Data ElementName="ear_type" Type="sint8" Size="3" />
+<Data ElementName="eye_brow_type" Type="sint8" Size="3" />
+<Data ElementName="cheek_type" Type="sint8" Size="3" />
+<Data ElementName="lip_type" Type="sint8" Size="3" />
+<Data ElementName="chin_type" Type="sint8" Size="3" />
+<Data ElementName="nose_type" Type="sint8" Size="3" />
+<Data ElementName="body_size" Type="sint8" Size="1" />
+<Data ElementName="bump_scale" Type="sint8" Size="1" />
+<Data ElementName="mount" Type="int16" Size="1" />
+<Data ElementName="mount_color1" Type="sint8" Size="3" />
+<Data ElementName="mount_color2" Type="sint8" Size="3" />
+<Data ElementName="hair_color1" Type="sint8" Size="3" />
+<Data ElementName="hair_color2" Type="sint8" Size="3" />
+<Data ElementName="hair_color3" Type="sint8" Size="3" />
+<Data ElementName="flags" Type="int8" Size="1" />
+</Struct>
+<Struct Name="CharSelectProfile" ClientVersion="546">
+<Data ElementName="charid" Type="int32" Size="1" />
+<Data ElementName="server_id" Type="int32" Size="1" />
+<Data ElementName="name" Type="EQ2_16BitString" Size="1" />
+<Data ElementName="race" Type="int8" Size="1" />
+<Data ElementName="class" Type="int8" Size="1" />
+<Data ElementName="gender" Type="int8" Size="1" />
+<Data ElementName="level" Type="int32" Size="1" />
+<Data ElementName="zone" Type="EQ2_16BitString" Size="1" />
+<Data ElementName="unknown1" Type="int32" Size="1" />
+<Data ElementName="unknown2" Type="int32" Size="1" />
+<Data ElementName="created_date" Type="int32" Size="1" />
+<Data ElementName="last_played" Type="int32" Size="1" />
+<Data ElementName="unknown3" Type="int32" Size="1" />
+<Data ElementName="unknown4" Type="int32" Size="1" />
+<Data ElementName="zonename2" Type="EQ2_16BitString" Size="1" />
+<Data ElementName="zonedesc" Type="EQ2_16BitString" Size="1" />
+<Data ElementName="unknown5" Type="int32" Size="1" /> <!-- 4 -->
+<Data ElementName="version" Type="int8" Size="1" /> <!-- 4 -->
+<Data ElementName="race_type" Type="int16" Size="1" />
+<Data ElementName="skin_color" Type="sint8" Size="3"/>
+<Data ElementName="eye_color" Type="sint8" Size="3" />
+<Data ElementName="equip" Type="EQ2_EquipmentItem" Size="23" />
+<Data ElementName="hair_type" Type="int16" Size="1" />
+<Data ElementName="hair_type_color" Type="sint8" Size="3" />
+<Data ElementName="hair_type_highlight_color" Type="sint8" Size="3" />
+<Data ElementName="hair_face_type" Type="int16" Size="1" />
+<Data ElementName="hair_face_color" Type="sint8" Size="3" />	
+<Data ElementName="hair_face_highlight_color" Type="sint8" Size="3" />
+<Data ElementName="chest_type" Type="int16" Size="1" />
+<Data ElementName="shirt_color" Type="sint8" Size="3" />
+<Data ElementName="unknown_chest_color" Type="sint8" Size="3" />
+<Data ElementName="legs_type" Type="int16" Size="1" />
+<Data ElementName="pants_color" Type="sint8" Size="3" />
+<Data ElementName="unknown_legs_color" Type="sint8" Size="3" />
+<Data ElementName="unknown9" Type="sint8" Size="3" />
+<Data ElementName="eye_type" Type="sint8" Size="3" />
+<Data ElementName="ear_type" Type="sint8" Size="3" />
+<Data ElementName="eye_brow_type" Type="sint8" Size="3" />
+<Data ElementName="cheek_type" Type="sint8" Size="3" />
+<Data ElementName="lip_type" Type="sint8" Size="3" />
+<Data ElementName="chin_type" Type="sint8" Size="3" />
+<Data ElementName="nose_type" Type="sint8" Size="3" />
+<Data ElementName="body_size" Type="sint8" Size="1" />
+<Data ElementName="bump_scale" Type="sint8" Size="1" />
+<Data ElementName="mount" Type="int16" Size="1" />
+<Data ElementName="mount_color1" Type="sint8" Size="3" />
+<Data ElementName="mount_color2" Type="sint8" Size="3" />
+<Data ElementName="hair_color1" Type="sint8" Size="3" />
+<Data ElementName="hair_color2" Type="sint8" Size="3" />
+<Data ElementName="hair_color3" Type="sint8" Size="3" />
+<Data ElementName="unknown11" Type="int8" Size="10" />
+<Data ElementName="soga_race_type" Type="int16" Size="1" />
+<Data ElementName="soga_skin_colorx" Type="EQ2_Color" />
+<Data ElementName="soga_eye_color" Type="EQ2_Color" />
+<Data ElementName="Unknown12" Type="int8" Size="3" />
+<Data ElementName="soga_eye_type" Type="sint8" Size="3" />
+<Data ElementName="soga_ear_type" Type="sint8" Size="3" />
+<Data ElementName="soga_eye_brow_type" Type="sint8" Size="3" />
+<Data ElementName="soga_cheek_type" Type="sint8" Size="3" />
+<Data ElementName="soga_lip_type" Type="sint8" Size="3" />
+<Data ElementName="soga_chin_type" Type="sint8" Size="3" />
+<Data ElementName="soga_nose_type" Type="sint8" Size="3" />
+<Data ElementName="soga_hair_color1" Type="EQ2_Color"  />
+<Data ElementName="soga_chest_type" Type="int16" Size="1" />
+<Data ElementName="soga_hair_color2" Type="EQ2_Color"  />
+<Data ElementName="soga_hair_color3" Type="EQ2_Color"  />
+<Data ElementName="soga_hair_type" Type="int16" Size="1" />
+<Data ElementName="soga_hair_type_color" Type="EQ2_Color" />
+<Data ElementName="soga_hair_type_highlight_color" Type="EQ2_Color" />
+<Data ElementName="soga_hair_face_type" Type="int16" Size="1" />
+<Data ElementName="soga_hair_face_color" Type="EQ2_Color" />
+<Data ElementName="soga_hair_face_highlight_color" Type="EQ2_Color" />
+</Struct>
+<Struct Name="CharSelectProfile" ClientVersion="562"> 
+<Data ElementName="version" Type="int32" Size="1" />
+<Data ElementName="charid" Type="int32" Size="1" />
+<Data ElementName="server_id" Type="int32" Size="1" />
+<Data ElementName="name" Type="EQ2_16BitString" Size="1" />
+<Data ElementName="unknown" Type="int8" Size="1" />
+<Data ElementName="race" Type="int8" Size="1" />
+<Data ElementName="class" Type="int8" Size="1" />
+<Data ElementName="gender" Type="int8" Size="1" />
+<Data ElementName="level" Type="int32" Size="1" />
+<Data ElementName="zone" Type="EQ2_16BitString" Size="1" />
+<Data ElementName="unknown1" Type="int32" Size="1" />
+<Data ElementName="unknown2" Type="int32" Size="1" />
+<Data ElementName="created_date" Type="int32" Size="1" />
+<Data ElementName="last_played" Type="int32" Size="1" />
+<Data ElementName="unknown3" Type="int32" Size="1" />
+<Data ElementName="unknown4" Type="int32" Size="1" />
+<Data ElementName="zonename2" Type="EQ2_16BitString" Size="1" />
+<Data ElementName="zonedesc" Type="EQ2_16BitString" Size="1" />
+<Data ElementName="unknown5" Type="int32" Size="1" />
+<Data ElementName="server_name" Type="EQ2_16BitString" Size="1" />
+<Data ElementName="account_id" Type="int32" Size="1" />
+<Data ElementName="unknown6" Type="int8" Size="2" />
+<Data ElementName="unknown7" Type="int32" Size="1" />
+<Data ElementName="unknown8" Type="int8" Size="1" />
+<Data ElementName="race_type" Type="int16" Size="1" />
+<Data ElementName="skin_color" Type="EQ2_Color" />
+<Data ElementName="eye_color" Type="EQ2_Color" />
+<Data ElementName="equip" Type="EQ2_EquipmentItem" Size="25" />
+<Data ElementName="hair_type" Type="int16" Size="1" />
+<Data ElementName="hair_type_color" Type="EQ2_Color" />
+<Data ElementName="hair_type_highlight_color" Type="EQ2_Color" />
+<Data ElementName="hair_face_type" Type="int16" Size="1" />
+<Data ElementName="hair_face_color" Type="EQ2_Color" />
+<Data ElementName="hair_face_highlight_color" Type="EQ2_Color" />
+<Data ElementName="chest_type" Type="int16" Size="1" />
+<Data ElementName="shirt_color" Type="EQ2_Color" />
+<Data ElementName="unknown_chest_color" Type="EQ2_Color" />
+<Data ElementName="legs_type" Type="int16" Size="1" />
+<Data ElementName="pants_color" Type="EQ2_Color" />
+<Data ElementName="unknown_legs_color" Type="EQ2_Color" />
+<Data ElementName="unknown9" Type="EQ2_Color" />
+<Data ElementName="eye_type" Type="sint8" Size="3" />
+<Data ElementName="ear_type" Type="sint8" Size="3" />
+<Data ElementName="eye_brow_type" Type="sint8" Size="3" />
+<Data ElementName="cheek_type" Type="sint8" Size="3" />
+<Data ElementName="lip_type" Type="sint8" Size="3" />
+<Data ElementName="chin_type" Type="sint8" Size="3" />
+<Data ElementName="nose_type" Type="sint8" Size="3" />
+<Data ElementName="body_size" Type="sint8" Size="1" />
+<Data ElementName="unknown10" Type="int8" Size="9" />
+<Data ElementName="hair_color1" Type="EQ2_Color" />
+<Data ElementName="hair_color2" Type="EQ2_Color" />
+<Data ElementName="unknown11" Type="int8" Size="13" />
+<Data ElementName="unknown15" Type="int8" Size="7" />
+</Struct>
+<Struct Name="CharSelectProfile" ClientVersion="887">
+<Data ElementName="version" Type="int32" Size="1" />
+<Data ElementName="charid" Type="int32" Size="1" />
+<Data ElementName="server_id" Type="int32" Size="1" />
+<Data ElementName="name" Type="EQ2_16BitString" Size="1" />
+<Data ElementName="unknown" Type="int8" Size="1" />
+<Data ElementName="race" Type="int8" Size="1" />
+<Data ElementName="class" Type="int8" Size="1" />
+<Data ElementName="gender" Type="int8" Size="1" />
+<Data ElementName="level" Type="int32" Size="1" />
+<Data ElementName="zone" Type="EQ2_16BitString" Size="1" />
+<Data ElementName="unknown1" Type="int32" Size="1" />
+<Data ElementName="unknown2" Type="int32" Size="1" />
+<Data ElementName="created_date" Type="int32" Size="1" />
+<Data ElementName="last_played" Type="int32" Size="1" />
+<Data ElementName="unknown3" Type="int32" Size="1" />
+<Data ElementName="unknown4" Type="int32" Size="1" />
+<Data ElementName="zonename2" Type="EQ2_16BitString" Size="1" />
+<Data ElementName="zonedesc" Type="EQ2_16BitString" Size="1" />
+<Data ElementName="unknown5" Type="int32" Size="1" />
+<Data ElementName="server_name" Type="EQ2_16BitString" Size="1" />
+<Data ElementName="account_id" Type="int32" Size="1" />
+<Data ElementName="unknown6" Type="int8" Size="2" />
+<Data ElementName="unknown7" Type="int32" Size="1" />
+<Data ElementName="tradeskill_class" Type="int8" Size="1" />
+<Data ElementName="tradeskill_level" Type="int32" Size="1" />
+<Data ElementName="unknown8" Type="int8" Size="1" />
+<Data ElementName="race_type" Type="int16" Size="1" />
+<Data ElementName="skin_color" Type="EQ2_Color" />
+<Data ElementName="eye_color" Type="EQ2_Color" />
+<Data ElementName="equip" Type="EQ2_EquipmentItem" Size="25" />
+<Data ElementName="hair_type" Type="int16" Size="1" />
+<Data ElementName="hair_type_color" Type="EQ2_Color" />
+<Data ElementName="hair_type_highlight_color" Type="EQ2_Color" />
+<Data ElementName="hair_face_type" Type="int16" Size="1" />
+<Data ElementName="hair_face_color" Type="EQ2_Color" />
+<Data ElementName="hair_face_highlight_color" Type="EQ2_Color" />
+<Data ElementName="wing_type" Type="int16" Size="1" />
+<Data ElementName="wing_color1" Type="EQ2_Color" />
+<Data ElementName="wing_color2" Type="EQ2_Color" />
+<Data ElementName="chest_type" Type="int16" Size="1" />
+<Data ElementName="shirt_color" Type="EQ2_Color" />
+<Data ElementName="unknown_chest_color" Type="EQ2_Color" />
+<Data ElementName="legs_type" Type="int16" Size="1" />
+<Data ElementName="pants_color" Type="EQ2_Color" />
+<Data ElementName="unknown_legs_color" Type="EQ2_Color" />
+<Data ElementName="unknown9" Type="EQ2_Color" />
+<Data ElementName="eye_type" Type="sint8" Size="3" />
+<Data ElementName="ear_type" Type="sint8" Size="3" />
+<Data ElementName="eye_brow_type" Type="sint8" Size="3" />
+<Data ElementName="cheek_type" Type="sint8" Size="3" />
+<Data ElementName="lip_type" Type="sint8" Size="3" />
+<Data ElementName="chin_type" Type="sint8" Size="3" />
+<Data ElementName="nose_type" Type="sint8" Size="3" />
+<Data ElementName="body_size" Type="sint8" Size="1" />
+<Data ElementName="unknown10" Type="int8" Size="9" />
+<Data ElementName="hair_color1" Type="EQ2_Color" />
+<Data ElementName="hair_color2" Type="EQ2_Color" />
+<Data ElementName="unknown11" Type="int8" Size="13" />
+<Data ElementName="soga_race_type" Type="int16" Size="1" />
+<Data ElementName="soga_skin_color" Type="EQ2_Color" />
+<Data ElementName="soga_eye_color" Type="EQ2_Color" />
+<Data ElementName="Unknown12" Type="int8" Size="3" />
+<Data ElementName="soga_eye_type" Type="sint8" Size="3" />
+<Data ElementName="soga_ear_type" Type="sint8" Size="3" />
+<Data ElementName="soga_eye_brow_type" Type="sint8" Size="3" />
+<Data ElementName="soga_cheek_type" Type="sint8" Size="3" />
+<Data ElementName="soga_lip_type" Type="sint8" Size="3" />
+<Data ElementName="soga_chin_type" Type="sint8" Size="3" />
+<Data ElementName="soga_nose_type" Type="sint8" Size="3" />
+<Data ElementName="unknown13" Type="int16" Size="1" />
+<Data ElementName="soga_hair_color1" Type="EQ2_Color"  />
+<Data ElementName="soga_hair_color2" Type="EQ2_Color"  />
+<Data ElementName="unknown14" Type="EQ2_Color" />
+<Data ElementName="soga_hair_type" Type="int16" Size="1" />
+<Data ElementName="soga_hair_type_color" Type="EQ2_Color" />
+<Data ElementName="soga_hair_type_highlight_color" Type="EQ2_Color" />
+<Data ElementName="soga_hair_face_type" Type="int16" Size="1" />
+<Data ElementName="soga_hair_face_color" Type="EQ2_Color" />
+<Data ElementName="soga_hair_face_highlight_color" Type="EQ2_Color" />
+<Data ElementName="unknown15" Type="int8" Size="7" />
+</Struct>
+<Struct Name="CharSelectProfile" ClientVersion="60085">
+<Data ElementName="version" Type="int32" Size="1" />
+<Data ElementName="charid" Type="int32" Size="1" />
+<Data ElementName="server_id" Type="int32" Size="1" />
+<Data ElementName="name" Type="EQ2_16BitString" Size="1" />
+<Data ElementName="unknown" Type="int8" Size="1" />
+<Data ElementName="race" Type="int8" Size="1" />
+<Data ElementName="class" Type="int8" Size="1" />
+<Data ElementName="gender" Type="int8" Size="1" />
+<Data ElementName="level" Type="int32" Size="1" />
+<Data ElementName="zone" Type="EQ2_16BitString" Size="1" />
+<Data ElementName="unknown1" Type="int32" Size="1" />
+<Data ElementName="unknown2" Type="int32" Size="1" />
+<Data ElementName="created_date" Type="int32" Size="1" />
+<Data ElementName="last_played" Type="int32" Size="1" />
+<Data ElementName="unknown3" Type="int32" Size="1" />
+<Data ElementName="unknown4" Type="int32" Size="1" />
+<Data ElementName="zonename2" Type="EQ2_16BitString" Size="1" />
+<Data ElementName="zonedesc" Type="EQ2_16BitString" Size="1" />
+<Data ElementName="unknown5" Type="int32" Size="1" />
+<Data ElementName="server_name" Type="EQ2_16BitString" Size="1" />
+<Data ElementName="account_id" Type="int32" Size="1" />
+<Data ElementName="unknown6" Type="int8" Size="2" />
+<Data ElementName="unknown7" Type="int32" Size="1" />
+<Data ElementName="tradeskill_class" Type="int8" Size="1" />
+<Data ElementName="tradeskill_level" Type="int32" Size="1" />
+<Data ElementName="unknown8" Type="int8" Size="1" />
+<Data ElementName="race_type" Type="int16" Size="1" />
+<Data ElementName="skin_color" Type="EQ2_Color" />
+<Data ElementName="eye_color" Type="EQ2_Color" />
+<Data ElementName="equip" Type="EQ2_EquipmentItem" Size="25" />
+<Data ElementName="hair_type" Type="int16" Size="1" />
+<Data ElementName="hair_type_color" Type="EQ2_Color" />
+<Data ElementName="hair_type_highlight_color" Type="EQ2_Color" />
+<Data ElementName="hair_face_type" Type="int16" Size="1" />
+<Data ElementName="hair_face_color" Type="EQ2_Color" />
+<Data ElementName="hair_face_highlight_color" Type="EQ2_Color" />
+<Data ElementName="wing_type" Type="int16" Size="1" />
+<Data ElementName="wing_color1" Type="EQ2_Color" />
+<Data ElementName="wing_color2" Type="EQ2_Color" />
+<Data ElementName="chest_type" Type="int16" Size="1" />
+<Data ElementName="shirt_color" Type="EQ2_Color" />
+<Data ElementName="unknown_chest_color" Type="EQ2_Color" />
+<Data ElementName="legs_type" Type="int16" Size="1" />
+<Data ElementName="pants_color" Type="EQ2_Color" />
+<Data ElementName="unknown_legs_color" Type="EQ2_Color" />
+<Data ElementName="unknown9" Type="EQ2_Color" />
+<Data ElementName="eye_type" Type="sint8" Size="3" />
+<Data ElementName="ear_type" Type="sint8" Size="3" />
+<Data ElementName="eye_brow_type" Type="sint8" Size="3" />
+<Data ElementName="cheek_type" Type="sint8" Size="3" />
+<Data ElementName="lip_type" Type="sint8" Size="3" />
+<Data ElementName="chin_type" Type="sint8" Size="3" />
+<Data ElementName="nose_type" Type="sint8" Size="3" />
+<Data ElementName="body_size" Type="sint8" Size="1" />
+<Data ElementName="unknown10" Type="int8" Size="9" />
+<Data ElementName="hair_color1" Type="EQ2_Color" />
+<Data ElementName="hair_color2" Type="EQ2_Color" />
+<Data ElementName="unknown11" Type="int8" Size="13" />
+<Data ElementName="soga_race_type" Type="int16" Size="1" />
+<Data ElementName="soga_skin_color" Type="EQ2_Color" />
+<Data ElementName="soga_eye_color" Type="EQ2_Color" />
+<Data ElementName="Unknown12" Type="int8" Size="3" />
+<Data ElementName="soga_eye_type" Type="sint8" Size="3" />
+<Data ElementName="soga_ear_type" Type="sint8" Size="3" />
+<Data ElementName="soga_eye_brow_type" Type="sint8" Size="3" />
+<Data ElementName="soga_cheek_type" Type="sint8" Size="3" />
+<Data ElementName="soga_lip_type" Type="sint8" Size="3" />
+<Data ElementName="soga_chin_type" Type="sint8" Size="3" />
+<Data ElementName="soga_nose_type" Type="sint8" Size="3" />
+<Data ElementName="unknown13" Type="int16" Size="1" />
+<Data ElementName="soga_hair_color1" Type="EQ2_Color"  />
+<Data ElementName="soga_hair_color2" Type="EQ2_Color"  />
+<Data ElementName="unknown14" Type="EQ2_Color" />
+<Data ElementName="soga_hair_type" Type="int16" Size="1" />
+<Data ElementName="soga_hair_type_color" Type="EQ2_Color" />
+<Data ElementName="soga_hair_type_highlight_color" Type="EQ2_Color" />
+<Data ElementName="soga_hair_face_type" Type="int16" Size="1" />
+<Data ElementName="soga_hair_face_color" Type="EQ2_Color" />
+<Data ElementName="soga_hair_face_highlight_color" Type="EQ2_Color" />
+<Data ElementName="unknown15" Type="int8" Size="7" />
+</Struct>
+<Struct Name="LS_LoginReplyMsg" ClientVersion="1" OpcodeName="OP_LoginReplyMsg">
+<Data ElementName="login_response" Type="int8" Size="1" />
+<Data ElementName="worldName" Type="EQ2_16Bit_String" Size="1" />
+<Data ElementName="parental_control_flag" Type="int8" Size="1" />
+<Data ElementName="parental_control_timer" Type="int32" Size="2" />
+<Data ElementName="parental_control_next" Type="int32" Size="1" />
+<Data ElementName="account_id" Type="int32" Size="1" />
+</Struct>
+<Struct Name="LS_LoginReplyMsg" ClientVersion="284" OpcodeName="OP_LoginReplyMsg">
+<Data ElementName="login_response" Type="int8" Size="1" />
+<Data ElementName="unknown" Type="EQ2_16Bit_String" Size="1" />
+<Data ElementName="parental_control_flag" Type="int8" Size="1" />
+<Data ElementName="parental_control_timer" Type="int32" Size="1" />
+<Data ElementName="unknown2" Type="int8" Size="8" />
+<Data ElementName="cache_setting_account_id" Type="int32" Size="1" /> <!-- setting this to the account id will attempt to show/reuse cached entries in the login cache based on the account id, 0 means it will work on a fresh set of a character list -->
+<Data ElementName="unknown3" Type="EQ2_16Bit_String" Size="1" />
+<Data ElementName="reset_appearance" Type="int8" Size="1" />
+<Data ElementName="do_not_force_soga" Type="int8" Size="1" />
+<Data ElementName="unknown5" Type="int16" Size="1" />
+<Data ElementName="unknown6" Type="int8" Size="1" />
+<Data ElementName="unknown7" Type="int32" Size="1" />
+<Data ElementName="unknown8" Type="int8" Size="2" />
+<Data ElementName="unknown10" Type="int8" Size="1" />
+<Data ElementName="num_class_items" Type="int8" IfVariableSet="unknown10" Size="1" />
+<Data ElementName="class_items" Type="Array" ArraySizeVariable="num_class_items" IfVariableSet="unknown10" >
+  <Data ElementName="class_id" Type="int8" Size="1" />
+  <Data ElementName="num_items" Type="int8" Size="1" />
+  <Data ElementName="starting_items" Type="Array" ArraySizeVariable="num_items" >
+	<Data ElementName="model_id" Type="int16" />
+	<Data ElementName="slot_id" Type="int8" />
+	<Data ElementName="use_color" Type="int8" />
+	<Data ElementName="use_highlight_color" Type="int8" />
+	<Data ElementName="model_color" Type="EQ2_Color" />
+	<Data ElementName="model_highlight_color" Type="EQ2_Color" />
+  </Data>
+</Data>
+<Data ElementName="unknown_array2_size" Type="int8" Size="1" />
+<Data ElementName="unknown_array2" Type="Array" ArraySizeVariable ="unknown_array2_size" >
+  <Data ElementName="array2_unknown" Type="int32" Size="1" />
+</Data>
+</Struct>
+<Struct Name="LS_LoginReplyMsg" ClientVersion="843" OpcodeName="OP_LoginReplyMsg">
+<Data ElementName="login_response" Type="int8" Size="1" />
+<Data ElementName="unknown" Type="EQ2_16Bit_String" Size="1" />
+<Data ElementName="parental_control_flag" Type="int8" Size="1" />
+<Data ElementName="parental_control_timer" Type="int32" Size="1" />
+<Data ElementName="unknown2" Type="int8" Size="8" />
+<Data ElementName="account_id" Type="int32" Size="1" />
+<Data ElementName="unknown3" Type="EQ2_16Bit_String" Size="1" />
+<Data ElementName="reset_appearance" Type="int8" Size="1" />
+<Data ElementName="do_not_force_soga" Type="int8" Size="1" />
+<Data ElementName="unknown4" Type="int8" Size="1" />
+<Data ElementName="unknown5" Type="int16" Size="1" />
+<Data ElementName="unknown6" Type="int8" Size="1" />
+<Data ElementName="unknown7" Type="int32" Size="1" />
+<Data ElementName="race_unknown" Type="int8" Size="1" />
+<Data ElementName="unknown8" Type="int8" Size="3" />
+<Data ElementName="unknown9" Type="int8" Size="1" />
+<Data ElementName="unknown10" Type="int8" Size="1" />
+<Data ElementName="num_class_items" Type="int8" IfVariableSet="unknown10" Size="1" />
+<Data ElementName="class_items" Type="Array" ArraySizeVariable="num_class_items" IfVariableSet="unknown10" >
+  <Data ElementName="class_id" Type="int8" Size="1" />
+  <Data ElementName="num_items" Type="int8" Size="1" />
+  <Data ElementName="starting_items" Type="Array" ArraySizeVariable="num_items" >
+	<Data ElementName="model_id" Type="int16" />
+	<Data ElementName="slot_id" Type="int8" />
+	<Data ElementName="use_color" Type="int8" />
+	<Data ElementName="use_highlight_color" Type="int8" />
+	<Data ElementName="model_color" Type="EQ2_Color" />
+	<Data ElementName="model_highlight_color" Type="EQ2_Color" />
+  </Data>
+</Data>
+<Data ElementName="unknown_array2_size" Type="int8" Size="1" />
+<Data ElementName="unknown_array2" Type="Array" ArraySizeVariable ="unknown_array2_size" >
+  <Data ElementName="array2_unknown" Type="int32" Size="1" />
+</Data>
+</Struct>
+<Struct Name="LS_LoginReplyMsg" ClientVersion="1096" OpcodeName="OP_LoginReplyMsg">
+<Data ElementName="login_response" Type="int8" Size="1" />
+<Data ElementName="unknown" Type="EQ2_16Bit_String" Size="1" /> <!-- possibly parental control password-->
+<Data ElementName="parental_control_flag" Type="int8" Size="1" />
+<Data ElementName="parental_control_timer" Type="int32" Size="1" />
+<Data ElementName="unknown2" Type="int8" Size="8" />
+<Data ElementName="account_id" Type="int32" Size="1" />
+<Data ElementName="unknown3" Type="EQ2_16Bit_String" Size="1" /> <!-- assume this is a string, could be an array though -->
+<Data ElementName="reset_appearance" Type="int8" Size="1" />
+<Data ElementName="do_not_force_soga" Type="int8" Size="1" />
+<Data ElementName="unknown4" Type="int8" Size="1" />
+<Data ElementName="unknown5" Type="int16" Size="1" />
+<Data ElementName="unknown6" Type="int8" Size="5" />
+<Data ElementName="unknown7" Type="int32" Size="1" /> <!-- expansion info maybe-->
+<Data ElementName="race_unknown" Type="int8" Size="1" />
+<Data ElementName="unknown8" Type="int8" Size="3" /> <!-- possibly related to rave_unknown but can't confirm-->
+<Data ElementName="unknown9" Type="int8" Size="1" /> <!-- screws with models, possibly related to that skeletal revamp that was never finished -->
+<Data ElementName="unknown10" Type="int8" Size="1" />
+<Data ElementName="num_class_items" Type="int8" IfVariableSet="unknown10" Size="1" />
+<Data ElementName="class_items" Type="Array" ArraySizeVariable="num_class_items" IfVariableSet="unknown10" >
+  <Data ElementName="class_id" Type="int8" Size="1" />
+  <Data ElementName="num_items" Type="int8" Size="1" />
+  <Data ElementName="starting_items" Type="Array" ArraySizeVariable="num_items" >
+	<Data ElementName="model_id" Type="int16" />
+	<Data ElementName="slot_id" Type="int8" />
+	<Data ElementName="use_color" Type="int8" />
+	<Data ElementName="use_highlight_color" Type="int8" />
+	<Data ElementName="model_color" Type="EQ2_Color" />
+	<Data ElementName="model_highlight_color" Type="EQ2_Color" />
+  </Data>
+</Data>
+<Data ElementName="unknown_array2_size" Type="int8" Size="1" />
+<Data ElementName="unknown_array2" Type="Array" ArraySizeVariable ="unknown_array2_size" >
+  <Data ElementName="array2_unknown" Type="int32" Size="1" />
+</Data>
+<Data ElementName="unknown11" Type="int32" Size="1" />
+<Data ElementName="sub_level" Type="int32" Size="1" />
+<Data ElementName="race_flag" Type="int32" Size="1" />
+<Data ElementName="class_flag" Type="int32" Size="1" />
+<!-- Both of the following are encrypted, password is correct guessed that the second is username, neither need to be set-->
+<Data ElementName="password" Type="EQ2_16Bit_String" Size="1" />
+<Data ElementName="username" Type="EQ2_16bit_String" Size="1" /> 
+</Struct>
+<Struct Name="LS_LoginReplyMsg" ClientVersion="1142" OpcodeName="OP_LoginReplyMsg">
+<Data ElementName="login_response" Type="int8" Size="1" />
+<Data ElementName="unknown" Type="EQ2_16Bit_String" Size="1" />
+<Data ElementName="parental_control_flag" Type="int8" Size="1" />
+<Data ElementName="parental_control_timer" Type="int32" Size="1" />
+<Data ElementName="unknown2" Type="int8" Size="8" />
+<Data ElementName="account_id" Type="int32" Size="1" />
+<Data ElementName="unknown3" Type="EQ2_16Bit_String" Size="1" />
+<Data ElementName="reset_appearance" Type="int8" Size="1" />
+<Data ElementName="do_not_force_soga" Type="int8" Size="1" />
+<Data ElementName="unknown4" Type="int8" Size="1" />
+<Data ElementName="unknown5" Type="int16" Size="1" />
+<Data ElementName="unknown6" Type="int8" Size="5" />
+<Data ElementName="unknown7" Type="int32" Size="1" />
+<Data ElementName="unknown7a" Type="int32" Size="1" />
+<Data ElementName="race_unknown" Type="int8" Size="1" />
+<Data ElementName="unknown8" Type="int8" Size="3" />
+<Data ElementName="unknown9" Type="int8" Size="1" />
+<Data ElementName="unknown10" Type="int8" Size="1" />
+<Data ElementName="num_class_items" Type="int8" IfVariableSet="unknown10" Size="1" />
+<Data ElementName="class_items" Type="Array" ArraySizeVariable="num_class_items" IfVariableSet="unknown10" >
+  <Data ElementName="class_id" Type="int8" Size="1" />
+  <Data ElementName="num_items" Type="int8" Size="1" />
+  <Data ElementName="starting_items" Type="Array" ArraySizeVariable="num_items" >
+	<Data ElementName="model_id" Type="int16" />
+	<Data ElementName="slot_id" Type="int8" />
+	<Data ElementName="use_color" Type="int8" />
+	<Data ElementName="use_highlight_color" Type="int8" />
+	<Data ElementName="model_color" Type="EQ2_Color" />
+	<Data ElementName="model_highlight_color" Type="EQ2_Color" />
+  </Data>
+</Data>
+<Data ElementName="unknown_array2_size" Type="int8" Size="1" />
+<Data ElementName="unknown_array2" Type="Array" ArraySizeVariable ="unknown_array2_size" >
+  <Data ElementName="array2_unknown" Type="int32" Size="1" />
+</Data>
+<Data ElementName="unknown11" Type="int32" Size="1" />
+<Data ElementName="sub_level" Type="int32" Size="1" />
+<Data ElementName="race_flag" Type="int32" Size="1" />
+<Data ElementName="class_flag" Type="int32" Size="1" />
+<Data ElementName="password" Type="EQ2_16Bit_String" Size="1" />
+<Data ElementName="username" Type="EQ2_16bit_String" Size="1" />
+</Struct>
+<Struct Name="LS_LoginReplyMsg" ClientVersion="1188" OpcodeName="OP_LoginReplyMsg">
+<Data ElementName="login_response" Type="int8" Size="1" />
+<Data ElementName="unknown" Type="EQ2_16Bit_String" Size="1" />
+<Data ElementName="parental_control_flag" Type="int8" Size="1" />
+<Data ElementName="parental_control_timer" Type="int32" Size="1" />
+<Data ElementName="unknown2" Type="int8" Size="8" />
+<Data ElementName="account_id" Type="int32" Size="1" />
+<Data ElementName="unknown3" Type="EQ2_16Bit_String" Size="1" />
+<Data ElementName="reset_appearance" Type="int8" Size="1" />
+<Data ElementName="do_not_force_soga" Type="int8" Size="1" />
+<Data ElementName="unknown4" Type="int8" Size="1" />
+<Data ElementName="unknown5" Type="int16" Size="1" />
+<Data ElementName="unknown6" Type="int8" Size="5" />
+<Data ElementName="unknown7" Type="int32" Size="1" />
+<Data ElementName="unknown7a" Type="int32" Size="1" />
+<Data ElementName="race_unknown" Type="int8" Size="1" />
+<Data ElementName="unknown8" Type="int8" Size="3" />
+<Data ElementName="unknown9" Type="int8" Size="1" />
+<Data ElementName="unknown10" Type="int8" Size="1" />
+<Data ElementName="num_class_items" Type="int8" IfVariableSet="unknown10" Size="1" />
+<Data ElementName="class_items" Type="Array" ArraySizeVariable="num_class_items" IfVariableSet="unknown10" >
+  <Data ElementName="class_id" Type="int8" Size="1" />
+  <Data ElementName="num_items" Type="int8" Size="1" />
+  <Data ElementName="starting_items" Type="Array" ArraySizeVariable="num_items" >
+	<Data ElementName="model_id" Type="int16" />
+	<Data ElementName="slot_id" Type="int8" />
+	<Data ElementName="use_color" Type="int8" />
+	<Data ElementName="use_highlight_color" Type="int8" />
+	<Data ElementName="model_color" Type="EQ2_Color" />
+	<Data ElementName="model_highlight_color" Type="EQ2_Color" />
+  </Data>
+</Data>
+<Data ElementName="unknown_array2_size" Type="int8" Size="1" />
+<Data ElementName="unknown_array2" Type="Array" ArraySizeVariable ="unknown_array2_size" >
+  <Data ElementName="array2_unknown" Type="int32" Size="1" />
+</Data>
+<Data ElementName="unknown11" Type="int32" Size="1" />
+<Data ElementName="sub_level" Type="int32" Size="1" />
+<Data ElementName="race_flag" Type="int32" Size="1" />
+<Data ElementName="class_flag" Type="int32" Size="1" />
+<Data ElementName="password" Type="EQ2_16Bit_String" Size="1" />
+<Data ElementName="username" Type="EQ2_16bit_String" Size="1" />
+<Data ElementName="unknown12" Type="EQ2_16bit_String" Size="1" />
+</Struct>
+<Struct Name="LS_LoginReplyMsg" ClientVersion="57080" OpcodeName="OP_LoginReplyMsg">
+<Data ElementName="login_response" Type="int8" Size="1" />
+<Data ElementName="unknown" Type="EQ2_16Bit_String" Size="1" />
+<Data ElementName="parental_control_flag" Type="int8" Size="1" />
+<Data ElementName="parental_control_timer" Type="int32" Size="1" />
+<Data ElementName="unknown2" Type="int8" Size="8" />
+<Data ElementName="account_id" Type="int32" Size="1" />
+<Data ElementName="unknown3" Type="EQ2_16Bit_String" Size="1" />
+<Data ElementName="reset_appearance" Type="int8" Size="1" />
+<Data ElementName="do_not_force_soga" Type="int8" Size="1" />
+<Data ElementName="unknown4" Type="int8" Size="1" />
+<Data ElementName="unknown5" Type="int16" Size="1" />
+<Data ElementName="unknown6" Type="int8" Size="5" />
+<Data ElementName="unknown7" Type="int32" Size="1" />
+<Data ElementName="unknown7a" Type="int32" Size="1" />
+<Data ElementName="race_unknown" Type="int8" Size="1" />
+<Data ElementName="unknown8" Type="int8" Size="3" />
+<Data ElementName="unknown9" Type="int8" Size="1" />
+<Data ElementName="unknown10" Type="int8" Size="1" />
+<Data ElementName="num_class_items" Type="int8" IfVariableSet="unknown10" Size="1" />
+<Data ElementName="class_items" Type="Array" ArraySizeVariable="num_class_items" IfVariableSet="unknown10" >
+  <Data ElementName="class_id" Type="int8" Size="1" />
+  <Data ElementName="num_items" Type="int8" Size="1" />
+  <Data ElementName="starting_items" Type="Array" ArraySizeVariable="num_items" >
+	<Data ElementName="model_id" Type="int32" />
+	<Data ElementName="slot_id" Type="int8" />
+	<Data ElementName="use_color" Type="int8" />
+	<Data ElementName="use_highlight_color" Type="int8" />
+	<Data ElementName="model_color" Type="EQ2_Color" />
+	<Data ElementName="model_highlight_color" Type="EQ2_Color" />
+  </Data>
+</Data>
+<Data ElementName="unknown_array2_size" Type="int8" Size="1" />
+<Data ElementName="unknown_array2" Type="Array" ArraySizeVariable ="unknown_array2_size" >
+  <Data ElementName="array2_unknown" Type="int32" Size="1" />
+</Data>
+<Data ElementName="unknown11" Type="int32" Size="1" />
+<Data ElementName="sub_level" Type="int32" Size="1" />
+<Data ElementName="race_flag" Type="int32" Size="1" />
+<Data ElementName="class_flag" Type="int32" Size="1" />
+<Data ElementName="password" Type="EQ2_16Bit_String" Size="1" />
+<Data ElementName="username" Type="EQ2_16bit_String" Size="1" />
+<Data ElementName="service" Type="EQ2_16bit_String" Size="1" />
+<Data ElementName="web1" Type="EQ2_16bit_String" Size="1" />
+<Data ElementName="web2" Type="EQ2_16bit_String" Size="1" />
+<Data ElementName="web3" Type="EQ2_16bit_String" Size="1" />
+<Data ElementName="web4" Type="EQ2_16bit_String" Size="1" />
+<Data ElementName="web5" Type="EQ2_16bit_String" Size="1" />
+<Data ElementName="web6" Type="EQ2_16bit_String" Size="1" />
+<Data ElementName="web7" Type="EQ2_16bit_String" Size="1" />
+<Data ElementName="web8" Type="EQ2_16bit_String" Size="1" />
+<Data ElementName="web9" Type="EQ2_16bit_String" Size="1" />
+<!-- Seems to be a repeat of the first array -->
+<Data ElementName="unknown12" Type="int8" Size="1" />
+<Data ElementName="lvl90_num_class_items" Type="int8" IfVariableSet="unknown10" Size="1" />
+<Data ElementName="lvl90_class_items" Type="Array" ArraySizeVariable="lvl90_num_class_items" IfVariableSet="unknown10" >
+  <Data ElementName="class_id" Type="int8" Size="1" />
+  <Data ElementName="num_items" Type="int8" Size="1" />
+  <Data ElementName="starting_items" Type="Array" ArraySizeVariable="num_items" >
+	<Data ElementName="model_id" Type="int32" />
+	<Data ElementName="slot_id" Type="int8" />
+	<Data ElementName="use_color" Type="int8" />
+	<Data ElementName="use_highlight_color" Type="int8" />
+	<Data ElementName="model_color" Type="EQ2_Color" />
+	<Data ElementName="model_highlight_color" Type="EQ2_Color" />
+  </Data>
+</Data>
+<Data ElementName="unknown13" Type="int8" Size="5" /> 
+</Struct>
+<Struct Name="LS_LoginReplyMsg" ClientVersion="60100" OpcodeName="OP_LoginReplyMsg">
+<Data ElementName="login_response" Type="int8" Size="1" />
+<Data ElementName="unknown" Type="EQ2_16Bit_String" Size="1" />
+<Data ElementName="parental_control_flag" Type="int8" Size="1" />
+<Data ElementName="parental_control_timer" Type="int32" Size="1" />
+<Data ElementName="unknown2" Type="int8" Size="8" />
+<Data ElementName="account_id" Type="int32" Size="1" />
+<Data ElementName="unknown3" Type="EQ2_16Bit_String" Size="1" />
+<Data ElementName="reset_appearance" Type="int8" Size="1" />
+<Data ElementName="do_not_force_soga" Type="int8" Size="1" />
+<Data ElementName="unknown5" Type="int64" Size="1" />
+<Data ElementName="unknown7" Type="int32" Size="1" /> <!-- 80 -->
+<Data ElementName="unknown7a" Type="int16" Size="1" />
+<Data ElementName="race_unknown" Type="int8" Size="1" />
+<Data ElementName="unknown8" Type="int8" Size="3" />
+<Data ElementName="unknown9" Type="int8" Size="3" />
+<Data ElementName="unknown10" Type="int8" Size="1" />
+<Data ElementName="num_class_items" Type="int8" IfVariableSet="unknown10" Size="1" />
+<Data ElementName="class_items" Type="Array" ArraySizeVariable="num_class_items" IfVariableSet="unknown10" >
+  <Data ElementName="class_id" Type="int8" Size="1" />
+  <Data ElementName="num_items" Type="int8" Size="1" />
+  <Data ElementName="starting_items" Type="Array" ArraySizeVariable="num_items" >
+	<Data ElementName="model_id" Type="int32" />
+	<Data ElementName="slot_id" Type="int8" />
+	<Data ElementName="use_color" Type="int8" />
+	<Data ElementName="use_highlight_color" Type="int8" />
+	<Data ElementName="model_color" Type="EQ2_Color" />
+	<Data ElementName="model_highlight_color" Type="EQ2_Color" />
+  </Data>
+</Data>
+<Data ElementName="unknown_array2_size" Type="int8" Size="1" />
+<Data ElementName="unknown_array2" Type="Array" ArraySizeVariable ="unknown_array2_size" >
+  <Data ElementName="array2_unknown" Type="int32" Size="1" />
+</Data>
+<Data ElementName="unknown11" Type="int32" Size="1" /> <!-- 128 -->
+<Data ElementName="sub_level" Type="int32" Size="1" /> <!-- 132 -->
+<Data ElementName="race_flag" Type="int32" Size="1" /> <!-- 136 -->
+<Data ElementName="class_flag" Type="int32" Size="1" /> <!-- 140 -->
+<Data ElementName="password" Type="EQ2_16Bit_String" Size="1" />
+<Data ElementName="username" Type="EQ2_16bit_String" Size="1" />
+<Data ElementName="service" Type="EQ2_16bit_String" Size="1" />
+<!-- Seems to be a repeat of the first array -->
+<Data ElementName="unknown12" Type="int8" Size="1" />
+<Data ElementName="lvl90_num_class_items" Type="int8" IfVariableSet="unknown12" Size="1" />
+<Data ElementName="lvl90_class_items" Type="Array" ArraySizeVariable="lvl90_num_class_items" IfVariableSet="unknown12" >
+  <Data ElementName="class_id" Type="int8" Size="1" />
+  <Data ElementName="num_items" Type="int8" Size="1" />
+  <Data ElementName="starting_items" Type="Array" ArraySizeVariable="num_items" >
+	<Data ElementName="model_id" Type="int32" />
+	<Data ElementName="slot_id" Type="int8" />
+	<Data ElementName="use_color" Type="int8" />
+	<Data ElementName="use_highlight_color" Type="int8" />
+	<Data ElementName="model_color" Type="EQ2_Color" />
+	<Data ElementName="model_highlight_color" Type="EQ2_Color" />
+  </Data>
+</Data>
+<Data ElementName="unknown13" Type="int8" Size="1" />
+<Data ElementName="time_locked_num_class_items" Type="int8" IfVariableSet="unknown13" Size="1" />
+<Data ElementName="time_locked_class_items" Type="Array" ArraySizeVariable="time_locked_num_class_items" IfVariableSet="unknown13" >
+  <Data ElementName="class_id" Type="int8" Size="1" />
+  <Data ElementName="num_items" Type="int8" Size="1" />
+  <Data ElementName="starting_items" Type="Array" ArraySizeVariable="num_items" >
+	<Data ElementName="model_id" Type="int32" />
+	<Data ElementName="slot_id" Type="int8" />
+	<Data ElementName="use_color" Type="int8" />
+	<Data ElementName="use_highlight_color" Type="int8" />
+	<Data ElementName="model_color" Type="EQ2_Color" />
+	<Data ElementName="model_highlight_color" Type="EQ2_Color" />
+  </Data>
+</Data>
+<Data ElementName="unknown14" Type="int8" Size="13" /> 
+</Struct>
+<Struct Name="LS_LoginReplyMsg" ClientVersion="63181" OpcodeName="OP_LoginReplyMsg">
+<Data ElementName="login_response" Type="int8" Size="1" />
+<Data ElementName="unknown" Type="EQ2_16Bit_String" Size="1" />
+<Data ElementName="parental_control_flag" Type="int8" Size="1" />
+<Data ElementName="parental_control_timer" Type="int32" Size="1" />
+<Data ElementName="unknown2" Type="int8" Size="8" />
+<Data ElementName="account_id" Type="int32" Size="1" />
+<Data ElementName="unknown3" Type="EQ2_16Bit_String" Size="1" />
+<Data ElementName="reset_appearance" Type="int8" Size="1" />
+<Data ElementName="do_not_force_soga" Type="int8" Size="1" />
+<Data ElementName="unknown4" Type="int8" Size="1" />
+<Data ElementName="unknown5" Type="int16" Size="1" />
+<Data ElementName="unknown6" Type="int8" Size="5" />
+<Data ElementName="unknown6a" Type="int8" Size="8" />
+<Data ElementName="unknown7" Type="int32" Size="1" />
+<Data ElementName="unknown7a" Type="int16" Size="1" />
+<Data ElementName="race_unknown" Type="int8" Size="1" />
+<Data ElementName="unknown8" Type="int8" Size="3" />
+<Data ElementName="unknown9" Type="int8" Size="3" />
+<Data ElementName="unknown10" Type="int8" Size="1" />
+<Data ElementName="num_class_items" Type="int8" IfVariableSet="unknown10" Size="1" />
+<Data ElementName="class_items" Type="Array" ArraySizeVariable="num_class_items" IfVariableSet="unknown10" >
+  <Data ElementName="class_id" Type="int8" Size="1" />
+  <Data ElementName="num_items" Type="int8" Size="1" />
+  <Data ElementName="starting_items" Type="Array" ArraySizeVariable="num_items" >
+	<Data ElementName="model_id" Type="int32" />
+	<Data ElementName="slot_id" Type="int8" />
+	<Data ElementName="use_color" Type="int8" />
+	<Data ElementName="use_highlight_color" Type="int8" />
+	<Data ElementName="model_color" Type="EQ2_Color" />
+	<Data ElementName="model_highlight_color" Type="EQ2_Color" />
+  </Data>
+</Data>
+<Data ElementName="unknown_array2_size" Type="int8" Size="1" />
+<Data ElementName="unknown_array2" Type="Array" ArraySizeVariable ="unknown_array2_size" >
+  <Data ElementName="array2_unknown" Type="int32" Size="1" />
+</Data>
+<Data ElementName="unknown11" Type="int32" Size="1" />
+<Data ElementName="sub_level" Type="int32" Size="1" />
+<Data ElementName="race_flag" Type="int32" Size="1" />
+<Data ElementName="class_flag" Type="int32" Size="1" />
+<Data ElementName="password" Type="EQ2_16Bit_String" Size="1" />
+<Data ElementName="username" Type="EQ2_16bit_String" Size="1" />
+<Data ElementName="service" Type="EQ2_16bit_String" Size="1" />
+<!-- Seems to be a repeat of the first array -->
+<Data ElementName="unknown12" Type="int8" Size="1" />
+<Data ElementName="lvl90_num_class_items" Type="int8" IfVariableSet="unknown12" Size="1" />
+<Data ElementName="lvl90_class_items" Type="Array" ArraySizeVariable="lvl90_num_class_items" IfVariableSet="unknown12" >
+  <Data ElementName="class_id" Type="int8" Size="1" />
+  <Data ElementName="num_items" Type="int8" Size="1" />
+  <Data ElementName="starting_items" Type="Array" ArraySizeVariable="num_items" >
+	<Data ElementName="model_id" Type="int32" />
+	<Data ElementName="slot_id" Type="int8" />
+	<Data ElementName="use_color" Type="int8" />
+	<Data ElementName="use_highlight_color" Type="int8" />
+	<Data ElementName="model_color" Type="EQ2_Color" />
+	<Data ElementName="model_highlight_color" Type="EQ2_Color" />
+  </Data>
+</Data>
+<Data ElementName="unknown13" Type="int8" Size="1" />
+<Data ElementName="time_locked_num_class_items" Type="int8" IfVariableSet="unknown13" Size="1" />
+<Data ElementName="time_locked_class_items" Type="Array" ArraySizeVariable="time_locked_num_class_items" IfVariableSet="unknown13" >
+  <Data ElementName="class_id" Type="int8" Size="1" />
+  <Data ElementName="num_items" Type="int8" Size="1" />
+  <Data ElementName="starting_items" Type="Array" ArraySizeVariable="num_items" >
+	<Data ElementName="model_id" Type="int32" />
+	<Data ElementName="slot_id" Type="int8" />
+	<Data ElementName="use_color" Type="int8" />
+	<Data ElementName="use_highlight_color" Type="int8" />
+	<Data ElementName="model_color" Type="EQ2_Color" />
+	<Data ElementName="model_highlight_color" Type="EQ2_Color" />
+  </Data>
+</Data>
+<Data ElementName="unknown14" Type="int8" Size="9" /> 
+</Struct>
+<Struct Name="LS_LoginReplyMsg" ClientVersion="65534" OpcodeName="OP_LoginReplyMsg">
+<Data ElementName="login_response" Type="int8" Size="1" />
+<Data ElementName="world_name" Type="EQ2_16Bit_String" Size="1" />
+<Data ElementName="parental_control_flag" Type="int8" Size="1" />
+<Data ElementName="parental_control_timer" Type="int64" Size="1" />
+<Data ElementName="unknown2" Type="int32" Size="1" />
+<Data ElementName="account_id" Type="int32" Size="1" />
+<Data ElementName="unknown3" Type="EQ2_16Bit_String" Size="1" />
+<Data ElementName="reset_appearance" Type="int8" Size="1" />
+<Data ElementName="do_not_force_soga" Type="int8" Size="1" />
+<Data ElementName="unknown4" Type="EQ2_32Bit_String" Size="1" />
+<Data ElementName="unknown7" Type="EQ2_32Bit_String" Size="1" />
+<Data ElementName="race_unknown" Type="int32" Size="1" />
+<Data ElementName="unknown8" Type="int8" Size="1" />
+<Data ElementName="unknown10" Type="int8" Size="1" />
+<Data ElementName="num_class_items" Type="int8" IfVariableSet="unknown10" Size="1" />
+<Data ElementName="class_items" Type="Array" ArraySizeVariable="num_class_items" IfVariableSet="unknown10" >
+  <Data ElementName="class_id" Type="int8" Size="1" />
+  <Data ElementName="num_items" Type="int8" Size="1" />
+  <Data ElementName="starting_items" Type="Array" ArraySizeVariable="num_items" >
+	<Data ElementName="model_id" Type="int32" />
+	<Data ElementName="slot_id" Type="int8" />
+	<Data ElementName="use_color" Type="int8" />
+	<Data ElementName="use_highlight_color" Type="int8" />
+	<Data ElementName="model_color" Type="EQ2_Color" />
+	<Data ElementName="model_highlight_color" Type="EQ2_Color" />
+  </Data>
+</Data>
+<Data ElementName="unknown_array2_size" Type="int8" Size="1" />
+<Data ElementName="unknown_array2" Type="Array" ArraySizeVariable ="unknown_array2_size" IfVariableSet="unknown_array2_size">
+  <Data ElementName="array2_unknown" Type="int32" Size="1" />
+</Data>
+<Data ElementName="unknown11" Type="int32" Size="1" />
+<Data ElementName="sub_level" Type="int32" Size="1" />
+<Data ElementName="race_flag" Type="int32" Size="1" />
+<Data ElementName="class_flag" Type="int32" Size="1" />
+<Data ElementName="password" Type="EQ2_16Bit_String" Size="1" />
+<Data ElementName="username" Type="EQ2_16Bit_String" Size="1" />
+<Data ElementName="service" Type="EQ2_16Bit_String" Size="1" />
+<!-- Seems to be a repeat of the first array -->
+<Data ElementName="unknown12" Type="int8" Size="1" />
+<Data ElementName="lvl90_num_class_items" Type="int8" IfVariableSet="unknown12" Size="1" />
+<Data ElementName="lvl90_class_items" Type="Array" ArraySizeVariable="lvl90_num_class_items" IfVariableSet="unknown12" >
+  <Data ElementName="class_id" Type="int8" Size="1" />
+  <Data ElementName="num_items" Type="int8" Size="1" />
+  <Data ElementName="starting_items" Type="Array" ArraySizeVariable="num_items" >
+	<Data ElementName="model_id" Type="int32" />
+	<Data ElementName="slot_id" Type="int8" />
+	<Data ElementName="use_color" Type="int8" />
+	<Data ElementName="use_highlight_color" Type="int8" />
+	<Data ElementName="model_color" Type="EQ2_Color" />
+	<Data ElementName="model_highlight_color" Type="EQ2_Color" />
+  </Data>
+</Data>
+<Data ElementName="unknown13" Type="int8" Size="1" />
+<Data ElementName="time_locked_num_class_items" Type="int8" IfVariableSet="unknown13" Size="1" />
+<Data ElementName="time_locked_class_items" Type="Array" ArraySizeVariable="time_locked_num_class_items" IfVariableSet="unknown13" >
+  <Data ElementName="class_id" Type="int8" Size="1" />
+  <Data ElementName="num_items" Type="int8" Size="1" />
+  <Data ElementName="starting_items" Type="Array" ArraySizeVariable="num_items" >
+	<Data ElementName="model_id" Type="int32" />
+	<Data ElementName="slot_id" Type="int8" />
+	<Data ElementName="use_color" Type="int8" />
+	<Data ElementName="use_highlight_color" Type="int8" />
+	<Data ElementName="model_color" Type="EQ2_Color" />
+	<Data ElementName="model_highlight_color" Type="EQ2_Color" />
+  </Data>
+</Data>
+<Data ElementName="unknown14" Type="int8" Size="13" /> 
+</Struct>
+</EQ2Emulator>
