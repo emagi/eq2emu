@@ -39,7 +39,7 @@ along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 #include "Chat/Chat.h"
 #include "SpellProcess.h"
 #include "Zone/ChestTrap.h"
-#include "../../common/GlobalHeaders.h"
+#include "../common/GlobalHeaders.h"
 
 //#include "Quests.h"
 
