@@ -31,7 +31,7 @@
 #include "../common/Mutex.h"
 #include "AltAdvancement/AltAdvancement.h"
 
-#include <LUA/lua.hpp>
+#include <lua.hpp>
 
 #define SPELL_TARGET_SELF			0
 #define SPELL_TARGET_ENEMY			1
