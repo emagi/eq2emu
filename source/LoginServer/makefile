@@ -14,7 +14,7 @@ CC=g++
 LINKER=gcc
 DFLAGS=-DEQ2 -DLOGIN
 WFLAGS=-Wall -Wuninitialized -Wwrite-strings -Wcast-qual  -Wcomment -Wcast-align -Wno-deprecated
-COPTS=$(WFLAGS) -ggdb -march=native -pthread -pipe -DFX -D_GNU_SOURCE -DINVERSEXY $(DFLAGS) -I/usr/include/mariadb -I/usr/local/include/boost -std=c++17
+COPTS=$(WFLAGS) -ggdb -march=native -pthread -pipe -DFX -D_GNU_SOURCE -DINVERSEXY $(DFLAGS) -I/usr/include/mariadb -I/usr/local/include/boost -I/usr/include/lua5.3 -std=c++17
 LINKOPTS=-rdynamic -L. -lstdc++ -lm -lz -L/usr/lib/x86_64-linux-gnu -lmariadb -lboost_system -lboost_thread -lboost_filesystem -lssl -lcrypto -lpthread -ldl
 all: $(APP)
 
