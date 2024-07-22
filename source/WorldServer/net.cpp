@@ -149,11 +149,14 @@ int main(int argc, char** argv) {
 	//remove this when all database calls are using the new database class
 	if (!database.Init()) {
 		LogStop();
+		LogWrite(INIT__ERROR, 0, "Init", "Database init failed!");
 		return EXIT_FAILURE;
 	}
 
-	if (!database.ConnectNewDatabase())
+	if (!database.ConnectNewDatabase()) {
+		LogWrite(INIT__ERROR, 0, "Init", "Cannot connect to database!");
 		return EXIT_FAILURE;
+	}
 
 	#ifdef _DEBUG
 		_CrtSetDbgFlag( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
