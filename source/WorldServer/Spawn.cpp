@@ -2063,7 +2063,7 @@ void Spawn::InitializePosPacketData(Player* player, PacketStruct* packet, bool b
 	{
 		m_GridMutex.writelock(__FUNCTION__, __LINE__);
 		std::map<int32,TimedGridData>::iterator itr = established_grid_id.find(version);
-		if ( itr == established_grid_id.end() || itr->second.timestamp <= (Timer::GetCurrentTime2()))
+		if ( itr == established_grid_id.end() || itr->second.npc_save || itr->second.timestamp <= (Timer::GetCurrentTime2()))
 		{
 			if(itr != established_grid_id.end() && itr->second.x == GetX() && itr->second.z == GetZ() && !itr->second.npc_save) {
 				itr->second.timestamp = Timer::GetCurrentTime2()+100;
@@ -2081,7 +2081,7 @@ void Spawn::InitializePosPacketData(Player* player, PacketStruct* packet, bool b
 				new_y = player->FindBestZ(loc, nullptr, &new_grid_id, &new_widget_id);
 				float zone_ground_y = new_y;
 				if(player->GetMap() != GetMap()) {
-					zone_ground_y = FindBestZ(loc, nullptr, &new_grid_id, &new_widget_id);
+					zone_ground_y = FindBestZ(loc, nullptr, nullptr, nullptr);
 				}
 				TimedGridData data;
 				data.grid_id = new_grid_id;
