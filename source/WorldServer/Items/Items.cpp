@@ -3554,13 +3554,6 @@ EQ2Packet* PlayerItemList::serialize(Player* player, int16 version){
  	if(packet && indexed_items.size() > 0){
 		int8 packet_size = 0;
 		int16 size = indexed_items.size();
-		int16 actual_size = 0;
-		for(int16 i = 0; i < indexed_items.size(); i++){
-			item = indexed_items[i];
-			if(item)
-				actual_size++;
-		}
-		size = actual_size;
 		
 		if (!firstRun && overflowItems.size() > 0)
 			size++;
