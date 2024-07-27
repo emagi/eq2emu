@@ -7506,7 +7506,7 @@ void Player::CalculatePlayerHPPower(int16 new_level) {
 		SetTotalPowerBase(new_power);
 		SetTotalPowerBaseInstance(new_power); // we need the hp base to override the instance as the new default
 		
-		LogWrite(PLAYER__INFO, 0, "Player", "Player %s: Level %u, Set Base HP %i, Set Base Power: %i", GetName(), new_level, power_rule_mod, base_power);
+		LogWrite(PLAYER__INFO, 0, "Player", "Player %s: Level %u, Set Base HP %i, Set Base Power: %i", GetName(), new_level, new_hp, new_power);
 	}
 }
 
