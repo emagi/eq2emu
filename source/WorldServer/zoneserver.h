@@ -371,7 +371,7 @@ public:
 	void	Depop(bool respawns = false, bool repop = false);
 
 	Spawn*	GetSpawnGroup(int32 id);
-	
+	bool	IsSpawnGroupAlive(int32 id);
 	void	AddEnemyList(NPC* npc);
 	
 	void	ReloadClientQuests();

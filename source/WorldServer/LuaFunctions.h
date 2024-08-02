@@ -223,6 +223,7 @@ int EQ2Emu_lua_IsGateAllowed(lua_State* state);
 int EQ2Emu_lua_Bind(lua_State* state);
 int EQ2Emu_lua_Gate(lua_State* state);
 int EQ2Emu_lua_IsAlive(lua_State* state);
+int EQ2Emu_lua_IsSpawnGroupAlive(lua_State* state);
 int EQ2Emu_lua_IsInCombat(lua_State* state);
 int EQ2Emu_lua_SendMessage(lua_State* state);
 int EQ2Emu_lua_SendPopUpMessage(lua_State* state);

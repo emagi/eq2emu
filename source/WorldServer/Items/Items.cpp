@@ -3591,13 +3591,6 @@ EQ2Packet* PlayerItemList::serialize(Player* player, int16 version){
 			if(item && item->details.new_item)
 				new_index++;
 			
-			if(item) {
-				printf("%u: %s\n", i, item->name.c_str());
-			}
-			else{
-				printf("%u: empty\n", i);
-			}
-			
 			if(item && firstRun && i > 19) {
 				item->details.new_item = true;
 				continue;

@@ -1065,6 +1065,7 @@ void LuaInterface::RegisterFunctions(lua_State* state) {
 	lua_register(state, "Zone", EQ2Emu_lua_Zone);
 	lua_register(state, "AddHate", EQ2Emu_lua_AddHate);
 	lua_register(state, "IsAlive", EQ2Emu_lua_IsAlive);
+	lua_register(state, "IsSpawnGroupAlive", EQ2Emu_lua_IsSpawnGroupAlive);
 	lua_register(state, "IsInCombat", EQ2Emu_lua_IsInCombat);
 	lua_register(state, "Attack", EQ2Emu_lua_Attack);
 	lua_register(state, "ApplySpellVisual", EQ2Emu_lua_ApplySpellVisual);

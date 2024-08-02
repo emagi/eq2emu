@@ -4700,6 +4700,17 @@ int EQ2Emu_lua_IsAlive(lua_State* state) {
 	return 0;
 }
 
+int EQ2Emu_lua_IsSpawnGroupAlive(lua_State* state) {
+	ZoneServer* zone = lua_interface->GetZone(state);
+	int32 group_id = lua_interface->GetInt32Value(state, 2);
+	lua_interface->ResetFunctionStack(state);
+	if (zone) {
+		lua_interface->SetBooleanValue(state, zone->IsSpawnGroupAlive(group_id));
+		return 1;
+	}
+	return 0;
+}
+
 int EQ2Emu_lua_IsInCombat(lua_State* state) {
 	if (!lua_interface)
 		return 0;
@@ -10812,6 +10823,9 @@ int EQ2Emu_lua_SpawnGroupByID(lua_State* state) {
 	vector<Spawn*> group;
 
 	Spawn* leader = 0;
+	if(locs == nullptr)
+		return 0;
+	
 	for (itr = locs->begin(); itr != locs->end(); itr++) {
 		SpawnLocation* location = zone->GetSpawnLocation(itr->second);
 		if (!location) {

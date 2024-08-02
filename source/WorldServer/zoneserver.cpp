@@ -4178,6 +4178,31 @@ Spawn*	ZoneServer::GetSpawnGroup(int32 id){
 	return ret;
 }
 
+bool ZoneServer::IsSpawnGroupAlive(int32 id){
+	bool ret = false;
+	if(id < 1)
+		return ret;
+	
+	Spawn* spawn = GetSpawnGroup(id);
+	if(spawn) {
+		vector<Spawn*> groupMembers;
+		if (!spawn->IsPlayer() && spawn->HasSpawnGroup()) {
+			groupMembers = *spawn->GetSpawnGroup();
+		}
+		
+		Spawn* group_spawn = 0;
+		vector<Spawn*>::iterator itr;
+		for(itr = groupMembers.begin(); itr != groupMembers.end(); itr++){
+			group_spawn = *itr;
+			if(group_spawn->Alive()) {
+				 ret = true;
+				 break;
+			}
+		}
+	}
+	return ret;
+}
+
 Spawn* ZoneServer::GetSpawnByLocationID(int32 location_id) {
 	Spawn* ret = 0;
 	Spawn* current_spawn = 0;
