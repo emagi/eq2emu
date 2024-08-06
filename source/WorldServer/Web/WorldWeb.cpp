@@ -71,12 +71,14 @@ void ZoneList::PopulateClientList(http::response<http::string_body>& res) {
 			pt.put("is_linkdead", linkdead);
 			pt.put("in_zone", cur->IsReadyForUpdates());
 			pt.put("zonename", (cur->GetPlayer() && cur->GetPlayer()->GetZone()) ? cur->GetPlayer()->GetZone()->GetZoneName() : "N/A");
-			maintree.add_child("Client", pt);
+			maintree.push_back(std::make_pair("", pt));
 		}
 	}
 	MClientList.unlock();
     
-    boost::property_tree::write_json(oss, maintree);
+	boost::property_tree::ptree result;
+	result.add_child("Clients", maintree);
+    boost::property_tree::write_json(oss, result);
     std::string json = oss.str();
     res.body() = json;
     res.prepare_payload();

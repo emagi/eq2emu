@@ -52,11 +52,13 @@ void LWorldList::PopulateWorldList(http::response<http::string_body>& res) {
 			pt.put("world_name", world->GetName());
 			pt.put("status", (world->GetStatus() == 1) ? "online" : "offline");
 			pt.put("ip_addr", inet_ntoa(in));
-			maintree.add_child("WorldServer", pt);
+			maintree.push_back(std::make_pair("", pt));
 		}
 	}
 	
-    boost::property_tree::write_json(oss, maintree);
+	boost::property_tree::ptree result;
+	result.add_child("WorldServers", maintree);
+    boost::property_tree::write_json(oss, result);
     std::string json = oss.str();
     res.body() = json;
     res.prepare_payload();
