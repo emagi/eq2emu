@@ -1,0 +1,17 @@
+server_config.json
+log_config.xml
+login_db.ini
+world_db.ini
+eq2world
+login
+ItemScripts/
+Maps/
+Quests/
+RegionScripts/
+Regions/
+SpawnScripts/
+Spells/
+ZoneScripts/
+logs/
+*.pem
+*.log
