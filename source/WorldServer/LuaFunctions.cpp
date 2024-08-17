@@ -5834,7 +5834,7 @@ int EQ2Emu_lua_SpawnByLocationID(lua_State* state) {
 		return 0;
 	}
 	
-	int32 rand_number = MakeRandomInt(0, location->entities.size());
+	int32 rand_number = MakeRandomInt(0, location->entities.size() - 1);
 
 	Spawn* spawn = 0;
 	if (location->entities[rand_number]) {
@@ -10835,7 +10835,7 @@ int EQ2Emu_lua_SpawnGroupByID(lua_State* state) {
 			return 0;
 		}
 		
-		int32 rand_number = MakeRandomInt(0, location->entities.size());
+		int32 rand_number = MakeRandomInt(0, location->entities.size() - 1);
 		
 		Spawn* spawn = 0;
 		if (location->entities[rand_number]) {
