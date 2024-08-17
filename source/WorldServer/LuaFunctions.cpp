@@ -5833,19 +5833,21 @@ int EQ2Emu_lua_SpawnByLocationID(lua_State* state) {
 		lua_interface->LogError("%s: LUA SpawnByLocationID command error: no location found for the given ID (%u)", lua_interface->GetScriptName(state), location_id);
 		return 0;
 	}
+	
+	int32 rand_number = MakeRandomInt(0, location->entities.size());
 
 	Spawn* spawn = 0;
-	if (location->entities[0]) {
-		if (location->entities[0]->spawn_type == SPAWN_ENTRY_TYPE_NPC)
-			spawn = zone->AddNPCSpawn(location, location->entities[0]);
-		else if (location->entities[0]->spawn_type == SPAWN_ENTRY_TYPE_GROUNDSPAWN)
-			spawn = zone->AddGroundSpawn(location, location->entities[0]);
-		else if (location->entities[0]->spawn_type == SPAWN_ENTRY_TYPE_OBJECT)
-			spawn = zone->AddObjectSpawn(location, location->entities[0]);
-		else if (location->entities[0]->spawn_type == SPAWN_ENTRY_TYPE_WIDGET)
-			spawn = zone->AddWidgetSpawn(location, location->entities[0]);
-		else if (location->entities[0]->spawn_type == SPAWN_ENTRY_TYPE_SIGN)
-			spawn = zone->AddSignSpawn(location, location->entities[0]);
+	if (location->entities[rand_number]) {
+		if (location->entities[rand_number]->spawn_type == SPAWN_ENTRY_TYPE_NPC)
+			spawn = zone->AddNPCSpawn(location, location->entities[rand_number]);
+		else if (location->entities[rand_number]->spawn_type == SPAWN_ENTRY_TYPE_GROUNDSPAWN)
+			spawn = zone->AddGroundSpawn(location, location->entities[rand_number]);
+		else if (location->entities[rand_number]->spawn_type == SPAWN_ENTRY_TYPE_OBJECT)
+			spawn = zone->AddObjectSpawn(location, location->entities[rand_number]);
+		else if (location->entities[rand_number]->spawn_type == SPAWN_ENTRY_TYPE_WIDGET)
+			spawn = zone->AddWidgetSpawn(location, location->entities[rand_number]);
+		else if (location->entities[rand_number]->spawn_type == SPAWN_ENTRY_TYPE_SIGN)
+			spawn = zone->AddSignSpawn(location, location->entities[rand_number]);
 
 		if(spawn && spawn->IsOmittedByDBFlag())
 		{
@@ -10832,23 +10834,25 @@ int EQ2Emu_lua_SpawnGroupByID(lua_State* state) {
 			lua_interface->LogError("LUA SpawnByLocationID command error: no location found for the given ID (%u)", itr->second);
 			return 0;
 		}
-
+		
+		int32 rand_number = MakeRandomInt(0, location->entities.size());
+		
 		Spawn* spawn = 0;
-		if (location->entities[0]) {
-			if (location->entities[0]->spawn_type == SPAWN_ENTRY_TYPE_NPC)
-				spawn = zone->AddNPCSpawn(location, location->entities[0]);
-			else if (location->entities[0]->spawn_type == SPAWN_ENTRY_TYPE_GROUNDSPAWN)
-				spawn = zone->AddGroundSpawn(location, location->entities[0]);
-			else if (location->entities[0]->spawn_type == SPAWN_ENTRY_TYPE_OBJECT)
-				spawn = zone->AddObjectSpawn(location, location->entities[0]);
-			else if (location->entities[0]->spawn_type == SPAWN_ENTRY_TYPE_WIDGET)
-				spawn = zone->AddWidgetSpawn(location, location->entities[0]);
-			else if (location->entities[0]->spawn_type == SPAWN_ENTRY_TYPE_SIGN)
-				spawn = zone->AddSignSpawn(location, location->entities[0]);
+		if (location->entities[rand_number]) {
+			if (location->entities[rand_number]->spawn_type == SPAWN_ENTRY_TYPE_NPC)
+				spawn = zone->AddNPCSpawn(location, location->entities[rand_number]);
+			else if (location->entities[rand_number]->spawn_type == SPAWN_ENTRY_TYPE_GROUNDSPAWN)
+				spawn = zone->AddGroundSpawn(location, location->entities[rand_number]);
+			else if (location->entities[rand_number]->spawn_type == SPAWN_ENTRY_TYPE_OBJECT)
+				spawn = zone->AddObjectSpawn(location, location->entities[rand_number]);
+			else if (location->entities[rand_number]->spawn_type == SPAWN_ENTRY_TYPE_WIDGET)
+				spawn = zone->AddWidgetSpawn(location, location->entities[rand_number]);
+			else if (location->entities[rand_number]->spawn_type == SPAWN_ENTRY_TYPE_SIGN)
+				spawn = zone->AddSignSpawn(location, location->entities[rand_number]);
 
 			if(spawn && spawn->IsOmittedByDBFlag())
 			{
-				LogWrite(SPAWN__WARNING, 0, "Spawn", "Spawn (%u) was skipped due to a missing expansion / holiday flag being met (LUA SpawnGroupByID).", location->entities[0]->spawn_id);
+				LogWrite(SPAWN__WARNING, 0, "Spawn", "Spawn (%u) was skipped due to a missing expansion / holiday flag being met (LUA SpawnGroupByID).", location->entities[rand_number]->spawn_id);
 				safe_delete(spawn);
 				continue;
 			}
@@ -10868,13 +10872,13 @@ int EQ2Emu_lua_SpawnGroupByID(lua_State* state) {
 				for (int x = 0; x < 3; x++) {
 					switch (x) {
 					case 0:
-						script = world.GetSpawnEntryScript(location->entities[0]->spawn_entry_id);
+						script = world.GetSpawnEntryScript(location->entities[rand_number]->spawn_entry_id);
 						break;
 					case 1:
-						script = world.GetSpawnLocationScript(location->entities[0]->spawn_location_id);
+						script = world.GetSpawnLocationScript(location->entities[rand_number]->spawn_location_id);
 						break;
 					case 2:
-						script = world.GetSpawnScript(location->entities[0]->spawn_id);
+						script = world.GetSpawnScript(location->entities[rand_number]->spawn_id);
 						break;
 					}
 					if (script && lua_interface->GetSpawnScript(script) != 0) {
@@ -14179,3 +14183,32 @@ int EQ2Emu_lua_GetSpellInitialTarget(lua_State* state) {
 	}
 	return 0;
 }
+
+int EQ2Emu_lua_DespawnByLocationID(lua_State* state) {
+	ZoneServer* zone = lua_interface->GetZone(state);
+	int32 location_id = lua_interface->GetInt32Value(state, 2);
+	int32 delay = lua_interface->GetInt32Value(state, 3);
+	lua_interface->ResetFunctionStack(state);
+	if (zone) {
+		Spawn* spawn = zone->GetSpawnByLocationID(location_id);
+		if (spawn) {
+			vector<Spawn*> groupMembers;
+			if (!spawn->IsPlayer() && spawn->HasSpawnGroup()) {
+				groupMembers = *spawn->GetSpawnGroup();
+				for (int32 i = 0; i < groupMembers.size(); i++) {
+					Spawn* member = groupMembers.at(i);
+					if(member && !member->IsPlayer() && member != spawn) {
+						member->GetZone()->Despawn(member, delay);
+					}
+				}
+			}
+			
+			zone->Despawn(spawn, delay);
+			lua_interface->SetBooleanValue(state, true);
+			return 1;
+		}
+	}
+	lua_interface->SetBooleanValue(state, false);
+	return 1;
+}
+

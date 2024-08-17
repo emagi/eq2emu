@@ -1587,6 +1587,8 @@ void LuaInterface::RegisterFunctions(lua_State* state) {
 	lua_register(state, "ToggleCharacterFlag", EQ2Emu_lua_ToggleCharacterFlag);
 	
 	lua_register(state, "GetSpellInitialTarget", EQ2Emu_lua_GetSpellInitialTarget);
+	
+	lua_register(state,"DespawnByLocationID", EQ2Emu_lua_DespawnByLocationID);
 }
 
 void LuaInterface::LogError(const char* error, ...)  {
