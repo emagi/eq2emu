@@ -1,4 +1,5 @@
 #include "../World.h"
+#include "../WorldDatabase.h"
 #include "../LoginServer.h"
 
 #include <boost/property_tree/ptree.hpp>
@@ -9,6 +10,7 @@ extern ZoneList zone_list;
 extern World world;
 extern LoginServer loginserver;
 extern sint32 numclients;
+extern WorldDatabase database;
 
 void World::Web_worldhandle_status(const http::request<http::string_body>& req, http::response<http::string_body>& res) {
     res.set(http::field::content_type, "application/json");
@@ -65,6 +67,7 @@ void ZoneList::PopulateClientList(http::response<http::string_body>& res) {
 			pt.put("account_age", cur->GetPlayer() ? cur->GetPlayer()->GetInfoStruct()->get_account_age_base() : 0);
 			pt.put("account_id", cur->GetAccountID());
 			pt.put("version", cur->GetVersion());
+			pt.put("status", cur->GetAdminStatus());
 			pt.put("is_zoning", (cur->IsZoning() || !cur->IsReadyForUpdates()));
 			
 			bool linkdead = cur->GetPlayer() ? (((cur->GetPlayer()->GetActivityStatus() & ACTIVITY_STATUS_LINKDEAD) > 0)) : false;
@@ -84,3 +87,44 @@ void ZoneList::PopulateClientList(http::response<http::string_body>& res) {
     res.prepare_payload();
 }
 
+void World::Web_worldhandle_setadminstatus(const http::request<http::string_body>& req, http::response<http::string_body>& res) {
+    res.set(http::field::content_type, "application/json");
+	boost::property_tree::ptree pt, json_tree;
+	
+	std::istringstream json_stream(req.body());
+    boost::property_tree::read_json(json_stream, json_tree);
+	
+	sint16 status = 0;
+	std::string charname("");
+	bool got_status_field = false;
+	if (auto name = json_tree.get_optional<std::string>("character_name")) {
+		charname = name.get();
+	}
+	if (auto new_status = json_tree.get_optional<sint16>("new_status")) {
+            status = new_status.get();
+			got_status_field = true;
+    }
+	
+	sint32 success = 0;
+	
+	if(got_status_field && charname.size() > 0 && database.UpdateAdminStatus((char*)charname.c_str(),status)) {
+		
+		Client* target = zone_list.GetClientByCharName(charname.c_str());
+		if (target) {
+			target->SetAdminStatus(status);
+			target->Message(CHANNEL_COLOR_YELLOW, "Your admin status has been set to %i.", status);
+		}
+		success = 1;
+	}
+	else if(!got_status_field || charname.size() < 1) {
+		success = -1;
+	}
+	
+    pt.put("success", success);
+
+    std::ostringstream oss;
+    boost::property_tree::write_json(oss, pt);
+    std::string json = oss.str();
+    res.body() = json;
+    res.prepare_payload();
+}

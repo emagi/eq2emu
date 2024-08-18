@@ -651,6 +651,7 @@ public:
 	
 	static void Web_worldhandle_status(const http::request<http::string_body>& req, http::response<http::string_body>& res);
 	static void Web_worldhandle_clients(const http::request<http::string_body>& req, http::response<http::string_body>& res);
+	static void Web_worldhandle_setadminstatus(const http::request<http::string_body>& req, http::response<http::string_body>& res);
 	
 	Mutex MVoiceOvers;
 	
