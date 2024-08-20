@@ -2702,7 +2702,11 @@ void Spawn::InitializeInfoPacketData(Player* spawn, PacketStruct* packet) {
 		}
 	}
 	packet->setDataByName("icon", temp_icon);//appearance.icon);
-
+	if(GetPickupItemID()) {
+		if(GetVersion() <= 546) {
+			packet->setDataByName("house_icon", 1);//appearance.icon);
+		}
+	}
 	int32 temp_activity_status = 0;
 
 	if (!Alive() && GetTotalHP() > 0 && !IsObject() && !IsGroundSpawn())
