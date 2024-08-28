@@ -2703,7 +2703,7 @@ void Spawn::InitializeInfoPacketData(Player* spawn, PacketStruct* packet) {
 	}
 	packet->setDataByName("icon", temp_icon);//appearance.icon);
 	if(GetPickupItemID()) {
-		if(GetVersion() <= 546) {
+		if(version <= 546) {
 			packet->setDataByName("house_icon", 1);//appearance.icon);
 		}
 	}
