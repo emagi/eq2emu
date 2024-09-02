@@ -674,9 +674,11 @@ bool LuaInterface::CallSpellProcess(LuaSpell* spell, int8 num_parameters, std::s
 	if(lua_pcall(spell->state, num_parameters, 0, 0) != 0){
 		LogError("Error running function '%s' in %s: %s", customFunction.c_str(), spell->spell->GetName(), lua_tostring(spell->state, -1));
 		lua_pop(spell->state, 1);
+		ResetFunctionStack(spell->state);
 		RemoveSpell(spell, false); // may be in a lock
 		return false;
 	}
+	ResetFunctionStack(spell->state);
 	return true;
 }
 
