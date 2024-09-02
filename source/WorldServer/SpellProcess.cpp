@@ -582,28 +582,30 @@ bool SpellProcess::ProcessSpell(LuaSpell* spell, bool first_cast, const char* fu
 std::string SpellProcess::ApplyLuaFunction(LuaSpell* spell, bool first_cast, const char* function, SpellScriptTimer* timer, Spawn* altTarget)
 {
 	std::string functionCall = lua_interface->AddSpawnPointers(spell, first_cast, false, function, timer, false, altTarget);
-	vector<LUAData*>* data = spell->spell->GetLUAData();
-	for(int32 i=0;i<data->size();i++){
-		switch(data->at(i)->type){
-			case 0:{
-				lua_interface->SetSInt32Value(spell->state, data->at(i)->int_value);
-				break;
-			}
-			case 1:{
-				lua_interface->SetFloatValue(spell->state, data->at(i)->float_value);
-				break;
-			}
-			case 2:{
-				lua_interface->SetBooleanValue(spell->state, data->at(i)->bool_value);
-				break;
-			}
-			case 3:{
-				lua_interface->SetStringValue(spell->state, data->at(i)->string_value.c_str());
-				break;
-			}
-				default:{
-				LogWrite(SPELL__ERROR, 0, "Spell", "Error: Unknown LUA Type '%i' in SpellProcess::ProcessSpell for Spell '%s'", (int)data->at(i)->type, spell->spell->GetName());
-				return string("");
+	if(functionCall.length() > 0) {
+		vector<LUAData*>* data = spell->spell->GetLUAData();
+		for(int32 i=0;i<data->size();i++){
+			switch(data->at(i)->type){
+				case 0:{
+					lua_interface->SetSInt32Value(spell->state, data->at(i)->int_value);
+					break;
+				}
+				case 1:{
+					lua_interface->SetFloatValue(spell->state, data->at(i)->float_value);
+					break;
+				}
+				case 2:{
+					lua_interface->SetBooleanValue(spell->state, data->at(i)->bool_value);
+					break;
+				}
+				case 3:{
+					lua_interface->SetStringValue(spell->state, data->at(i)->string_value.c_str());
+					break;
+				}
+					default:{
+					LogWrite(SPELL__ERROR, 0, "Spell", "Error: Unknown LUA Type '%i' in SpellProcess::ProcessSpell for Spell '%s'", (int)data->at(i)->type, spell->spell->GetName());
+					return string("");
+				}
 			}
 		}
 	}

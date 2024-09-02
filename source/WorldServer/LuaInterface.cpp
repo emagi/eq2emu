@@ -584,9 +584,6 @@ std::string LuaInterface::AddSpawnPointers(LuaSpell* spell, bool first_cast, boo
 		lua_pop(spell->state, 1);
 		return string("");
 	}
-	else {
-		lua_getglobal(spell->state, functionCalled.c_str());
-	}
 
 	if(passLuaSpell)
 		SetSpellValue(spell->state, spell);
@@ -858,7 +855,6 @@ void LuaInterface::RemoveSpell(LuaSpell* spell, bool call_remove_function, bool 
 			lua_pop(spell->state, 1);
 		}
 		else {
-			lua_getglobal(spell->state, "remove");
 			LUASpawnWrapper* spawn_wrapper = new LUASpawnWrapper();
 			spawn_wrapper->spawn = spell->caster;
 			AddUserDataPtr(spawn_wrapper, spawn_wrapper->spawn);
