@@ -650,7 +650,7 @@ bool SpellProcess::CastInstant(Spell* spell, Entity* caster, Entity* target, boo
 	if (!lua_spell->spell->IsCopiedSpell())
 	{
 		lua_getglobal(lua_spell->state, "customspell");
-		if (lua_isfunction(lua_spell->state, lua_gettop(lua_spell->state))) {
+		if (lua_isfunction(lua_spell->state, -1)) {
 			lua_pop(lua_spell->state, 1);
 			Spell* tmpSpell = lua_spell->spell;
 			lua_spell->spell = new Spell(lua_spell->spell);
@@ -1094,7 +1094,7 @@ void SpellProcess::ProcessSpell(ZoneServer* zone, Spell* spell, Entity* caster, 
 		if (!customSpell && !lua_spell->spell->IsCopiedSpell())
 		{
 			lua_getglobal(lua_spell->state, "customspell");
-			if (lua_isfunction(lua_spell->state, lua_gettop(lua_spell->state))) {
+			if (lua_isfunction(lua_spell->state, -1)) {
 				lua_pop(lua_spell->state, 1);
 				Spell* tmpSpell = lua_spell->spell;
 				lua_spell->spell = new Spell(lua_spell->spell);

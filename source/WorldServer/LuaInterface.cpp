@@ -580,7 +580,7 @@ std::string LuaInterface::AddSpawnPointers(LuaSpell* spell, bool first_cast, boo
 	
 	LogWrite(SPELL__DEBUG, 0, "Spell", "LuaInterface::AddSpawnPointers spell %s (%u) function %s, caster %s.", spell->spell ? spell->spell->GetName() : "UnknownUnset", spell->spell ? spell->spell->GetSpellID() : 0, functionCalled.c_str(), spell->caster ? spell->caster->GetName() : "Unknown");
 
-	if (!lua_isfunction(spell->state, lua_gettop(spell->state))){
+	if (!lua_isfunction(spell->state, -1)){
 		lua_pop(spell->state, 1);
 		return string("");
 	}
@@ -592,13 +592,21 @@ std::string LuaInterface::AddSpawnPointers(LuaSpell* spell, bool first_cast, boo
 	if (timer && timer->caster && spell->caster && spell->caster->GetZone())
 		temp_spawn = spell->caster->GetZone()->GetSpawnByID(timer->caster);
 
+	bool spawnSet = true;
 	if (temp_spawn)
 		SetSpawnValue(spell->state, temp_spawn);
 	else if (spell->caster)
 		SetSpawnValue(spell->state, spell->caster);
+	else
+		spawnSet = false;
+	
+	if(!spawnSet) {
+		SetSpawnValue(spell->state, 0);
+	}
 
 	temp_spawn = 0;
-
+	spawnSet = true;
+	
 	if (timer && timer->target && spell->caster && spell->caster->GetZone())
 		temp_spawn = spell->caster->GetZone()->GetSpawnByID(timer->target);
 
@@ -851,7 +859,7 @@ lua_State* LuaInterface::LoadLuaFile(const char* name) {
 void LuaInterface::RemoveSpell(LuaSpell* spell, bool call_remove_function, bool can_delete, string reason, bool removing_all_spells) {
 	if(call_remove_function){
 		lua_getglobal(spell->state, "remove");
-		if (!lua_isfunction(spell->state, lua_gettop(spell->state))){
+		if (!lua_isfunction(spell->state, -1)){
 			lua_pop(spell->state, 1);
 		}
 		else {
