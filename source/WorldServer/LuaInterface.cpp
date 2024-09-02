@@ -288,7 +288,8 @@ bool LuaInterface::LoadLuaSpell(const char* name) {
 		spell->restored = false;
 		spell->initial_caster_char_id = 0;
 		spell->initial_target_char_id = 0;
-
+		spell->spell_deleting = false;
+		
 		MSpells.lock();
 		if (spells.count(lua_script) > 0) {
 			
@@ -2078,6 +2079,7 @@ LuaSpell* LuaInterface::GetSpell(const char* name)  {
 		new_spell->restored = false;
 		new_spell->initial_caster_char_id = 0;
 		new_spell->initial_target_char_id = 0;
+		new_spell->spell_deleting = false;
 		return new_spell;
 	}
 	else{
