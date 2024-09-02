@@ -414,12 +414,11 @@ bool SpellProcess::DeleteCasterSpell(LuaSpell* spell, string reason, bool removi
 	if(shared_lock_spell && !removing_all_spells) {
 		MSpellProcess.lock_shared();
 	}
-	
+
 	bool ret = false;
 	Spawn* target = 0;
 	bool target_valid = false;
-	if(spell && !spell->spell_deleting) {
-		spell->spell_deleting = true;
+	if(spell) {
 		spell->MSpellTargets.writelock(__FUNCTION__, __LINE__);
 		if(remove_target && spell->targets.size() > 1) {
 			for (int32 i = 0; i < spell->targets.size(); i++) {		

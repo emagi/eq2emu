@@ -22,7 +22,6 @@
 
 #include <mutex>
 #include <shared_mutex>
-#include <atomic>
 
 #include "Spawn.h"
 #include "Spells.h"
@@ -103,7 +102,7 @@ struct LuaSpell{
 	Mutex           MSpellTargets;
 	int32           effect_bitmask;
 	bool			restored; // restored spell cross zone
-	std::atomic<bool> spell_deleting;
+
 };
 
 class LUAUserData{

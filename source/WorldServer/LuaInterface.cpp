@@ -288,8 +288,7 @@ bool LuaInterface::LoadLuaSpell(const char* name) {
 		spell->restored = false;
 		spell->initial_caster_char_id = 0;
 		spell->initial_target_char_id = 0;
-		spell->spell_deleting = false;
-		
+
 		MSpells.lock();
 		if (spells.count(lua_script) > 0) {
 			
@@ -855,36 +854,43 @@ lua_State* LuaInterface::LoadLuaFile(const char* name) {
 void LuaInterface::RemoveSpell(LuaSpell* spell, bool call_remove_function, bool can_delete, string reason, bool removing_all_spells) {
 	if(call_remove_function){
 		lua_getglobal(spell->state, "remove");
-		LUASpawnWrapper* spawn_wrapper = new LUASpawnWrapper();
-		spawn_wrapper->spawn = spell->caster;
-		AddUserDataPtr(spawn_wrapper, spawn_wrapper->spawn);
-		lua_pushlightuserdata(spell->state, spawn_wrapper);
-		if(spell->caster && (spell->initial_target || spell->caster->GetTarget())){
-			spawn_wrapper = new LUASpawnWrapper();
-			if(!spell->initial_target)
-				spawn_wrapper->spawn = spell->caster->GetTarget();
-			else if(spell->caster->GetZone()) {
-				spawn_wrapper->spawn = spell->caster->GetZone()->GetSpawnByID(spell->initial_target);
-			}
-			else {
-				spawn_wrapper->spawn = nullptr; // we need it set to something or else the ptr could be loose
-			}
+		if (!lua_isfunction(spell->state, lua_gettop(spell->state))){
+			lua_pop(spell->state, 1);
+		}
+		else {
+			lua_getglobal(spell->state, "remove");
+			LUASpawnWrapper* spawn_wrapper = new LUASpawnWrapper();
+			spawn_wrapper->spawn = spell->caster;
 			AddUserDataPtr(spawn_wrapper, spawn_wrapper->spawn);
 			lua_pushlightuserdata(spell->state, spawn_wrapper);
+			if(spell->caster && (spell->initial_target || spell->caster->GetTarget())){
+				spawn_wrapper = new LUASpawnWrapper();
+				if(!spell->initial_target)
+					spawn_wrapper->spawn = spell->caster->GetTarget();
+				else if(spell->caster->GetZone()) {
+					spawn_wrapper->spawn = spell->caster->GetZone()->GetSpawnByID(spell->initial_target);
+				}
+				else {
+					spawn_wrapper->spawn = nullptr; // we need it set to something or else the ptr could be loose
+				}
+				AddUserDataPtr(spawn_wrapper, spawn_wrapper->spawn);
+				lua_pushlightuserdata(spell->state, spawn_wrapper);
+			}
+			else
+				lua_pushlightuserdata(spell->state, 0);
+
+			if (spell->caster && !spell->caster->Alive())
+				reason = "dead";
+
+			lua_pushstring(spell->state, (char*)reason.c_str());
+
+			MSpells.lock();
+			current_spells[spell->state] = spell;
+			MSpells.unlock();
+			
+			lua_pcall(spell->state, 3, 0, 0); 
+			ResetFunctionStack(spell->state);
 		}
-		else
-			lua_pushlightuserdata(spell->state, 0);
-
-		if (spell->caster && !spell->caster->Alive())
-			reason = "dead";
-
-		lua_pushstring(spell->state, (char*)reason.c_str());
-
-		MSpells.lock();
-		current_spells[spell->state] = spell;
-		MSpells.unlock();
-		lua_pcall(spell->state, 3, 0, 0); 
-		ResetFunctionStack(spell->state);
 	}
 	
 	spell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
@@ -2079,7 +2085,6 @@ LuaSpell* LuaInterface::GetSpell(const char* name)  {
 		new_spell->restored = false;
 		new_spell->initial_caster_char_id = 0;
 		new_spell->initial_target_char_id = 0;
-		new_spell->spell_deleting = false;
 		return new_spell;
 	}
 	else{
