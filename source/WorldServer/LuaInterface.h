@@ -102,6 +102,7 @@ struct LuaSpell{
 	Mutex           MSpellTargets;
 	int32           effect_bitmask;
 	bool			restored; // restored spell cross zone
+	std::atomic<bool> has_proc;
 
 };
 
@@ -183,8 +184,6 @@ public:
 	LuaInterface();
 	~LuaInterface();
 	int				GetNumberOfArgs(lua_State* state);
-	bool			LoadLuaSpell(const char* name);
-	bool			LoadLuaSpell(string name);
 	bool			LoadItemScript(string name);
 	bool			LoadItemScript(const char* name);
 	bool			LoadSpawnScript(string name);
@@ -193,6 +192,8 @@ public:
 	bool			LoadZoneScript(const char* name);
 	bool			LoadRegionScript(string name);
 	bool			LoadRegionScript(const char* name);
+	LuaSpell*		LoadSpellScript(string name);
+	LuaSpell*		LoadSpellScript(const char* name);
 	void			RemoveSpell(LuaSpell* spell, bool call_remove_function = true, bool can_delete = true, string reason = "", bool removing_all_spells = false);
 	Spawn*			GetSpawn(lua_State* state, int8 arg_num = 1);
 	Item*			GetItem(lua_State* state, int8 arg_num = 1);
@@ -233,7 +234,7 @@ public:
 
 	std::string		AddSpawnPointers(LuaSpell* spell, bool first_cast, bool precast = false, const char* function = 0, SpellScriptTimer* timer = 0, bool passLuaSpell=false, Spawn* altTarget = 0);
 	LuaSpell*		GetCurrentSpell(lua_State* state, bool needsLock = true);
-	void			RemoveCurrentSpell(lua_State* state, bool needsLock = true);
+	void			RemoveCurrentSpell(lua_State* state, LuaSpell* cur_spell, bool needsLock = true, bool removeCurSpell = true);
 	bool			CallSpellProcess(LuaSpell* spell, int8 num_parameters, std::string functionCalled);
 	LuaSpell*		GetSpell(const char* name);
 	void			UseItemScript(const char* name, lua_State* state, bool val);
@@ -244,6 +245,9 @@ public:
 	lua_State*		GetSpawnScript(const char* name, bool create_new = true, bool use = false);
 	lua_State*		GetZoneScript(const char* name, bool create_new = true, bool use = false);
 	lua_State*		GetRegionScript(const char* name, bool create_new = true, bool use = false);
+	LuaSpell*		GetSpellScript(const char* name, bool create_new = true, bool use = true);
+	LuaSpell*		CreateSpellScript(const char* name, lua_State* existState);
+	
 	Quest*			LoadQuest(int32 id, const char* name, const char* type, const char* zone, int8 level, const char* description, char* script_name);
 
 	const char*		GetScriptName(lua_State* state);
@@ -286,6 +290,7 @@ public:
 	Mutex*			GetItemScriptMutex(const char* name);
 	Mutex*			GetZoneScriptMutex(const char* name);
 	Mutex*			GetRegionScriptMutex(const char* name);
+	Mutex*			GetSpellScriptMutex(const char* name);
 	Mutex*			GetQuestMutex(Quest* quest);
 
 	void			SetLuaSystemReloading(bool val) { lua_system_reloading = val; }
@@ -326,6 +331,7 @@ private:
 	map<string, map<lua_State*, bool> > spawn_scripts;
 	map<string, map<lua_State*, bool> > zone_scripts;
 	map<string, map<lua_State*, bool> > region_scripts;
+	map<string, map<lua_State*, LuaSpell*> > spell_scripts;
 
 	map<int32, LuaSpell*> custom_spells;
 	std::deque<int32> custom_free_spell_ids;
@@ -340,6 +346,7 @@ private:
 	map<string, Mutex*> zone_scripts_mutex;
 	map<int32, Mutex*> quests_mutex;
 	map<string, Mutex*> region_scripts_mutex;
+	map<string, Mutex*> spell_scripts_mutex;
 
 	Mutex			MDebugClients;
 	Mutex			MSpells;
@@ -351,6 +358,7 @@ private:
 	Mutex			MSpellDelete;
 	Mutex			MCustomSpell;
 	Mutex			MRegionScripts;
+	Mutex			MSpellScripts;
 	
 	mutable std::shared_mutex	MLUAUserData;
 };

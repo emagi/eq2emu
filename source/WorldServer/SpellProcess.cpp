@@ -217,6 +217,9 @@ void SpellProcess::Process(){
 				}
 				if (cast_timer->delete_timer) {
 					safe_delete(cast_timer->timer);
+					if(cast_timer->spell && !cast_timer->spell->has_proc) {
+						lua_interface->RemoveCurrentSpell(cast_timer->spell->state, cast_timer->spell, true, false);
+					}
 					cast_timers.Remove(cast_timer, true);
 				}
 			}
@@ -650,7 +653,7 @@ bool SpellProcess::CastInstant(Spell* spell, Entity* caster, Entity* target, boo
 	if (!lua_spell->spell->IsCopiedSpell())
 	{
 		lua_getglobal(lua_spell->state, "customspell");
-		if (lua_isfunction(lua_spell->state, -1)) {
+		if (lua_isfunction(lua_spell->state, lua_gettop(lua_spell->state))) {
 			lua_pop(lua_spell->state, 1);
 			Spell* tmpSpell = lua_spell->spell;
 			lua_spell->spell = new Spell(lua_spell->spell);
@@ -1094,7 +1097,7 @@ void SpellProcess::ProcessSpell(ZoneServer* zone, Spell* spell, Entity* caster, 
 		if (!customSpell && !lua_spell->spell->IsCopiedSpell())
 		{
 			lua_getglobal(lua_spell->state, "customspell");
-			if (lua_isfunction(lua_spell->state, -1)) {
+			if (lua_isfunction(lua_spell->state, lua_gettop(lua_spell->state))) {
 				lua_pop(lua_spell->state, 1);
 				Spell* tmpSpell = lua_spell->spell;
 				lua_spell->spell = new Spell(lua_spell->spell);
@@ -1636,6 +1639,9 @@ void SpellProcess::ProcessSpell(ZoneServer* zone, Spell* spell, Entity* caster, 
 				lua_spell->caster->GetZone()->GetSpellProcess()->RemoveSpellScriptTimerBySpell(lua_spell);
 				DeleteSpell(lua_spell);
 				return;
+			}
+			if(!lua_spell->has_proc) {
+				lua_interface->RemoveCurrentSpell(lua_spell->state, lua_spell, true, false); 
 			}
 		}
 
@@ -2969,7 +2975,7 @@ void SpellProcess::DeleteSpell(LuaSpell* spell)
 	}
 	
 	lua_interface->SetLuaUserDataStale(spell);
-	lua_interface->RemoveCurrentSpell(spell->state, true);
+	lua_interface->RemoveCurrentSpell(spell->state, spell, true);
 	
 	DeleteActiveSpell(spell);
 }

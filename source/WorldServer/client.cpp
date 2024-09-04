@@ -11391,7 +11391,7 @@ bool Client::EntityCommandPrecheck(Spawn* spawn, const char* command) {
 			if (state_mutex)
 				state_mutex->writelock(__FUNCTION__, __LINE__);
 			lua_getglobal(state, "can_use_command");
-			if (lua_isfunction(state, -1)) {
+			if (lua_isfunction(state, lua_gettop(state))) {
 				lua_interface->SetSpawnValue(state, spawn);
 				lua_interface->SetSpawnValue(state, GetPlayer());
 				lua_interface->SetStringValue(state, command ? command : "");

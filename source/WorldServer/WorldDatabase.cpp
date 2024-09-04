@@ -4508,7 +4508,7 @@ int32 WorldDatabase::LoadSpellScriptData() {
 
 	while (result && (row = mysql_fetch_row(result))) {
 		if (row[0] && strlen(row[0]) > 0) {
-			if (lua_interface->LoadLuaSpell(row[0]))
+			if (lua_interface->GetSpell(row[0]))
 				LogWrite(SPELL__DEBUG, 5, "Spells", "SpellScript: %s loaded.", row[0]);
 		}
 	}
@@ -7787,7 +7787,6 @@ void WorldDatabase::LoadCharacterSpellEffects(int32 char_id, Client* client, int
 			if((lua_spell = lua_interface->GetSpell(lua_file.c_str())) == nullptr)
 			{
 				LogWrite(LUA__WARNING, 0, "LUA", "WorldDatabase::LoadCharacterSpellEffects: GetSpell(%u, %u, '%s'), custom lua script not loaded, when attempting to load.", spell_id, tier, lua_file.c_str());
-				lua_interface->LoadLuaSpell(lua_file);
 			}
 		}
 

@@ -1662,7 +1662,12 @@ void Entity::AddProc(int8 type, float chance, Item* item, LuaSpell* spell, int8 
 	proc->chance = chance;
 	proc->item = item;
 	proc->spell = spell;
-	proc->spellid = spell->spell->GetSpellID();
+	if(spell) {
+		spell->has_proc = true;
+	}
+	if(spell && spell->spell) {
+		proc->spellid = spell->spell->GetSpellID();
+	}
 	proc->health_ratio = hp_ratio;
 	proc->below_health = below_health;
 	proc->damage_type = damage_type;
@@ -1701,12 +1706,12 @@ bool Entity::CastProc(Proc* proc, int8 type, Spawn* target) {
 	lua_State* state = 0;
 	bool item_proc = false;
 	int8 num_args = 3;
-
+	Mutex* mutex = 0;
 	if (proc->spell) {
 		state = proc->spell->state;
 	}
 	else if (proc->item) {
-		state = lua_interface->GetItemScript(proc->item->GetItemScript());
+		state = lua_interface->GetItemScript(proc->item->GetItemScript(), true, true);
 		item_proc = true;
 	}
 	
@@ -1714,6 +1719,13 @@ bool Entity::CastProc(Proc* proc, int8 type, Spawn* target) {
 		LogWrite(COMBAT__ERROR, 0, "Proc", "No valid lua_State* found");
 		return false;
 	}
+	
+	if(item_proc) {
+		mutex = lua_interface->GetItemScriptMutex(proc->item->GetItemScript());
+	}
+	
+	if(mutex)
+		mutex->readlock(__FUNCTION__, __LINE__);
 
 	if(proc->extended_version) {
 		lua_getglobal(state, "proc_ext");
@@ -1721,7 +1733,7 @@ bool Entity::CastProc(Proc* proc, int8 type, Spawn* target) {
 	else {
 		lua_getglobal(state, "proc");
 	}
-	if (lua_isfunction(state, -1)) {
+	if (lua_isfunction(state, lua_gettop(state))) {
 		if (item_proc) {
 			num_args++;
 			lua_interface->SetItemValue(state, proc->item);
@@ -1730,7 +1742,10 @@ bool Entity::CastProc(Proc* proc, int8 type, Spawn* target) {
 		lua_interface->SetSpawnValue(state, this);
 		lua_interface->SetSpawnValue(state, target);
 		lua_interface->SetInt32Value(state, type);
-		lua_interface->SetInt32Value(state, proc->damage_type);
+		
+		if(proc->extended_version) {
+			lua_interface->SetInt32Value(state, proc->damage_type);
+		}
 
 		/*
 		Add spell data from db in case of a spell proc here...
@@ -1768,12 +1783,19 @@ bool Entity::CastProc(Proc* proc, int8 type, Spawn* target) {
 		if (lua_pcall(state, num_args, 0, 0) != 0) {
 			LogWrite(COMBAT__ERROR, 0, "Proc", "Unable to call the proc function for spell %i tier %i", proc->spell->spell->GetSpellID(), proc->spell->spell->GetSpellTier());
 			lua_pop(state, 1);
+			if(mutex)
+				mutex->releasereadlock(__FUNCTION__, __LINE__);
+			if(item_proc)
+				lua_interface->UseItemScript(proc->item->GetItemScript(), state, false);
 			return false;
 		}
 	}
 	
 	lua_interface->ResetFunctionStack(state);
-
+	if(mutex)
+		mutex->releasereadlock(__FUNCTION__);
+	if(item_proc)
+		lua_interface->UseItemScript(proc->item->GetItemScript(), state, false);
 	return true;
 }
 

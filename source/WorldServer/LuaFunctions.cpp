@@ -12248,7 +12248,6 @@ int EQ2Emu_lua_GetSpell(lua_State* state) {
 			if((lua_spell = lua_interface->GetSpell(custom_lua_script.c_str())) == nullptr)
 			{		
 				LogWrite(LUA__WARNING, 0, "LUA", "GetSpell(%u, %u, '%s'), custom lua script not loaded, attempting to load.", spell_id, spell_tier, custom_lua_script.c_str());
-				lua_interface->LoadLuaSpell(custom_lua_script);
 			}
 		}
 		else

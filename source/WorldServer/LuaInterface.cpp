@@ -147,11 +147,12 @@ void LuaInterface::DestroySpells() {
 	MSpells.lock();
 	for(itr = spells.begin(); itr != spells.end(); itr++){
 		MSpellDelete.lock();
-		RemoveCurrentSpell(itr->second->state, false);
+		RemoveCurrentSpell(itr->second->state, itr->second, false);
 		MSpellDelete.unlock();
 		lua_close(itr->second->state);
 		safe_delete(itr->second);
 	}
+	spell_scripts.clear();
 	spells.clear();
 	MSpells.unlock();
 }
@@ -254,61 +255,6 @@ void LuaInterface::DestroyRegionScripts()  {
 void LuaInterface::ReloadSpells() {
 	DestroySpells();
 	database.LoadSpellScriptData();
-}
-
-bool LuaInterface::LoadLuaSpell(const char* name) {
-	LuaSpell* spell = 0;
-	string lua_script = string(name);
-	if (lua_script.find(".lua") == string::npos)
-		lua_script.append(".lua");
-	lua_State* state = LoadLuaFile(lua_script.c_str());
-	if(state){
-		spell = new LuaSpell;
-		spell->file_name = lua_script;
-		spell->state = state;
-		spell->spell = 0;
-		spell->caster = 0;
-		spell->initial_target = 0;
-		spell->resisted = false;
-		spell->has_damaged = false;
-		spell->is_damage_spell = false;
-		spell->interrupted = false;
-		spell->last_spellattack_hit = false;
-		spell->crit = false;
-		spell->MSpellTargets.SetName("LuaSpell.MSpellTargets");
-		spell->cancel_after_all_triggers = false;
-		spell->num_triggers = 0;
-		spell->num_calls = 0;
-		spell->is_recast_timer = false;
-		spell->had_triggers = false;
-		spell->had_dmg_remaining = false;
-		spell->slot_pos = 0;
-		spell->damage_remaining = 0;
-		spell->effect_bitmask = 0;
-		spell->restored = false;
-		spell->initial_caster_char_id = 0;
-		spell->initial_target_char_id = 0;
-
-		MSpells.lock();
-		if (spells.count(lua_script) > 0) {
-			
-			SetLuaUserDataStale(spells[lua_script]);
-			MSpellDelete.lock();
-			RemoveCurrentSpell(spells[lua_script]->state, false);
-			MSpellDelete.unlock();
-			lua_close(spells[lua_script]->state);
-			safe_delete(spells[lua_script]);
-		}
-		spells[lua_script] = spell;
-		MSpells.unlock();
-
-		return true;
-	}
-	return false;
-}
-
-bool LuaInterface::LoadLuaSpell(string name) {
-	return LoadLuaSpell(name.c_str());
 }
 
 bool LuaInterface::LoadItemScript(string name) {
@@ -555,6 +501,10 @@ bool LuaInterface::LoadRegionScript(string name) {
 	return LoadRegionScript(name.c_str());
 }
 
+LuaSpell* LuaInterface::LoadSpellScript(string name) {
+	return LoadSpellScript(name.c_str());
+}
+
 std::string LuaInterface::AddSpawnPointers(LuaSpell* spell, bool first_cast, bool precast, const char* function, SpellScriptTimer* timer, bool passLuaSpell, Spawn* altTarget) {
 	std::string functionCalled = string(""); 
 	if (function)
@@ -580,7 +530,7 @@ std::string LuaInterface::AddSpawnPointers(LuaSpell* spell, bool first_cast, boo
 	
 	LogWrite(SPELL__DEBUG, 0, "Spell", "LuaInterface::AddSpawnPointers spell %s (%u) function %s, caster %s.", spell->spell ? spell->spell->GetName() : "UnknownUnset", spell->spell ? spell->spell->GetSpellID() : 0, functionCalled.c_str(), spell->caster ? spell->caster->GetName() : "Unknown");
 
-	if (!lua_isfunction(spell->state, -1)){
+	if (!lua_isfunction(spell->state, lua_gettop(spell->state))){
 		lua_pop(spell->state, 1);
 		return string("");
 	}
@@ -647,13 +597,28 @@ LuaSpell* LuaInterface::GetCurrentSpell(lua_State* state, bool needsLock) {
 	return spell;
 }
 
-void LuaInterface::RemoveCurrentSpell(lua_State* state, bool needsLock) {
+void LuaInterface::RemoveCurrentSpell(lua_State* state, LuaSpell* cur_spell, bool needsLock, bool removeCurSpell) {
 	if(needsLock) {
 		MSpells.lock();
 		MSpellDelete.lock();
 	}
 	map<lua_State*, LuaSpell*>::iterator itr = current_spells.find(state);
-	if(itr != current_spells.end())
+	if(itr->second) {
+		MSpellScripts.readlock(__FUNCTION__, __LINE__);
+		map<string, map<lua_State*, LuaSpell*> >::iterator spell_script_itr = spell_scripts.find(cur_spell->file_name);
+		if(spell_script_itr != spell_scripts.end()) {
+			LogWrite(SPELL__DEBUG, 9, "Spell", "LuaInterface::RemoveCurrentSpell spell %s.  Queue Entries %u.", cur_spell->file_name.c_str(), spell_script_itr->second.size());
+			Mutex* mutex = GetSpellScriptMutex(cur_spell->file_name.c_str());
+			mutex->writelock(__FUNCTION__, __LINE__);
+			map<lua_State*, LuaSpell*>::iterator spell_script_itr2 = spell_script_itr->second.find(state);
+			if(spell_script_itr2 != spell_script_itr->second.end()) {
+				spell_script_itr2->second = nullptr;
+			}
+			mutex->releasewritelock(__FUNCTION__, __LINE__);
+		}
+		MSpellScripts.releasereadlock(__FUNCTION__, __LINE__);
+	}
+	if(itr != current_spells.end() && removeCurSpell)
 		current_spells.erase(itr);
 	if(needsLock) {
 		MSpellDelete.unlock();
@@ -664,10 +629,6 @@ void LuaInterface::RemoveCurrentSpell(lua_State* state, bool needsLock) {
 bool LuaInterface::CallSpellProcess(LuaSpell* spell, int8 num_parameters, std::string customFunction) {
 	if(shutting_down || !spell || !spell->caster)
 		return false;
-
-	MSpells.lock();
-	current_spells[spell->state] = spell;
-	MSpells.unlock();
 	
 	LogWrite(SPELL__DEBUG, 0, "Spell", "LuaInterface::CallSpellProcess spell %s (%u) function %s, caster %s.", spell->spell ? spell->spell->GetName() : "UnknownUnset", spell->spell ? spell->spell->GetSpellID() : 0, customFunction.c_str(), spell->caster->GetName());
 	
@@ -861,7 +822,7 @@ lua_State* LuaInterface::LoadLuaFile(const char* name) {
 void LuaInterface::RemoveSpell(LuaSpell* spell, bool call_remove_function, bool can_delete, string reason, bool removing_all_spells) {
 	if(call_remove_function){
 		lua_getglobal(spell->state, "remove");
-		if (!lua_isfunction(spell->state, -1)){
+		if (!lua_isfunction(spell->state, lua_gettop(spell->state))){
 			lua_pop(spell->state, 1);
 		}
 		else {
@@ -889,10 +850,6 @@ void LuaInterface::RemoveSpell(LuaSpell* spell, bool call_remove_function, bool 
 				reason = "dead";
 
 			lua_pushstring(spell->state, (char*)reason.c_str());
-
-			MSpells.lock();
-			current_spells[spell->state] = spell;
-			MSpells.unlock();
 			
 			lua_pcall(spell->state, 3, 0, 0); 
 			ResetFunctionStack(spell->state);
@@ -1672,7 +1629,7 @@ void LuaInterface::DeletePendingSpells(bool all) {
 			}
 
 			SetLuaUserDataStale(spell);
-			RemoveCurrentSpell(spell->state, false);
+			RemoveCurrentSpell(spell->state, spell, false);
 			safe_delete(spell);
 		}
 	}
@@ -2056,47 +2013,49 @@ void LuaInterface::SetSpellValue(lua_State* state, LuaSpell* spell) {
 	lua_pushlightuserdata(state, spell_wrapper);
 }
 
-LuaSpell* LuaInterface::GetSpell(const char* name)  {
+LuaSpell* LuaInterface::LoadSpellScript(const char* name)  {
+	LuaSpell* spell = nullptr;
 	string lua_script = string(name);
 	if (lua_script.find(".lua") == string::npos)
 		lua_script.append(".lua");
-	if(spells.count(lua_script) > 0)
-	{
-		LogWrite(LUA__DEBUG, 0, "LUA", "Found LUA Spell Script: '%s'", lua_script.c_str());
-		LuaSpell* spell = spells[lua_script];
-		LuaSpell* new_spell = new LuaSpell;
-		new_spell->state = spell->state;
-		new_spell->file_name = string(spell->file_name);
-		new_spell->timer = spell->timer;
-		new_spell->timer.Disable();
-		new_spell->resisted = false;
-		new_spell->is_damage_spell = false;
-		new_spell->has_damaged = false;
-		new_spell->interrupted = false;
-		new_spell->crit = false;
-		new_spell->last_spellattack_hit = false;
-		new_spell->MSpellTargets.SetName("LuaSpell.MSpellTargets");
-		new_spell->cancel_after_all_triggers = false;
-		new_spell->num_triggers = 0;
-		new_spell->num_calls = 0;
-		new_spell->is_recast_timer = false;
-		new_spell->had_triggers = false;
-		new_spell->had_dmg_remaining = false;
-		new_spell->slot_pos = 0;
-		new_spell->damage_remaining = 0;
-		new_spell->effect_bitmask = 0;
-		new_spell->caster = 0;
-		new_spell->initial_target = 0;
-		new_spell->spell = 0;
-		new_spell->restored = false;
-		new_spell->initial_caster_char_id = 0;
-		new_spell->initial_target_char_id = 0;
-		return new_spell;
+	lua_State* state = LoadLuaFile(lua_script.c_str());
+	if(state) {
+		spell = new LuaSpell;
+		spell->file_name = lua_script;
+		spell->state = state;
+		spell->spell = 0;
+		spell->caster = 0;
+		spell->initial_target = 0;
+		spell->resisted = false;
+		spell->has_damaged = false;
+		spell->is_damage_spell = false;
+		spell->interrupted = false;
+		spell->last_spellattack_hit = false;
+		spell->crit = false;
+		spell->MSpellTargets.SetName("LuaSpell.MSpellTargets");
+		spell->cancel_after_all_triggers = false;
+		spell->num_triggers = 0;
+		spell->num_calls = 0;
+		spell->is_recast_timer = false;
+		spell->had_triggers = false;
+		spell->had_dmg_remaining = false;
+		spell->slot_pos = 0;
+		spell->damage_remaining = 0;
+		spell->effect_bitmask = 0;
+		spell->restored = false;
+		spell->has_proc = false;
+		spell->initial_caster_char_id = 0;
+		spell->initial_target_char_id = 0;
+		
+		MSpells.lock();
+		current_spells[spell->state] = spell;
+		MSpells.unlock();
+		
+		MSpellScripts.writelock(__FUNCTION__, __LINE__);
+		spell_scripts[lua_script][state] = spell;
+		MSpellScripts.releasewritelock(__FUNCTION__, __LINE__);
 	}
-	else{
-		LogWrite(LUA__ERROR, 0, "LUA", "Error LUA Spell Script: '%s'", name);
-		return 0;
-	}
+	return spell;
 }
 
 Mutex* LuaInterface::GetItemScriptMutex(const char* name) {
@@ -2139,6 +2098,17 @@ Mutex* LuaInterface::GetRegionScriptMutex(const char* name) {
 	if(!mutex){
 		mutex = new Mutex();
 		region_scripts_mutex[name] = mutex;
+	}
+	return mutex;
+}
+
+Mutex* LuaInterface::GetSpellScriptMutex(const char* name) {
+	Mutex* mutex = 0;
+	if(spell_scripts_mutex.count(name) > 0)
+		mutex = spell_scripts_mutex[name];
+	if(!mutex){
+		mutex = new Mutex();
+		spell_scripts_mutex[name] = mutex;
 	}
 	return mutex;
 }
@@ -2268,7 +2238,7 @@ lua_State* LuaInterface::GetZoneScript(const char* name, bool create_new, bool u
 	}
 	if(!ret && create_new){
 		if(name && LoadZoneScript(name))
-			ret = GetZoneScript(name);
+			ret = GetZoneScript(name, create_new, use);
 		else{
 			LogError("Error LUA Zone Script '%s'", name);
 			return 0;
@@ -2302,13 +2272,85 @@ lua_State* LuaInterface::GetRegionScript(const char* name, bool create_new, bool
 	}
 	if(!ret && create_new){
 		if(name && LoadRegionScript(name))
-			ret = GetRegionScript(name);
+			ret = GetRegionScript(name, create_new, use);
 		else{
 			LogError("Error LUA Zone Script '%s'", name);
 			return 0;
 		}
 	}
 	return ret;
+}
+
+LuaSpell* LuaInterface::GetSpellScript(const char* name, bool create_new, bool use)  {
+	map<string, map<lua_State*, LuaSpell*> >::iterator itr;
+	map<lua_State*, LuaSpell*>::iterator spell_script_itr;
+	LuaSpell* ret = 0;
+	Mutex* mutex = 0;
+
+	itr = spell_scripts.find(name);
+	if(itr != spell_scripts.end()) {
+		mutex = GetSpellScriptMutex(name);
+		mutex->readlock(__FUNCTION__, __LINE__);
+		for(spell_script_itr = itr->second.begin(); spell_script_itr != itr->second.end(); spell_script_itr++){
+			if(spell_script_itr->second == nullptr){ //not in use
+				if (use)
+				{
+					spell_script_itr->second = CreateSpellScript(name, spell_script_itr->first);
+					ret = spell_script_itr->second;
+					break; // don't keep iterating, we already have our result
+				}
+			}
+		}
+		mutex->releasereadlock(__FUNCTION__, __LINE__);
+	}
+	if(!ret && create_new){
+		if(!name || (ret = LoadSpellScript(name)) == nullptr) {
+			LogError("Error LUA Spell Script '%s'", name == nullptr ? "unknown" : name);
+		}
+	}
+	return ret;
+}
+
+LuaSpell* LuaInterface::CreateSpellScript(const char* name, lua_State* existState) {
+	LuaSpell* new_spell = new LuaSpell;
+	new_spell->state = existState;
+	new_spell->file_name = string(name);
+	new_spell->resisted = false;
+	new_spell->is_damage_spell = false;
+	new_spell->has_damaged = false;
+	new_spell->interrupted = false;
+	new_spell->crit = false;
+	new_spell->last_spellattack_hit = false;
+	new_spell->MSpellTargets.SetName("LuaSpell.MSpellTargets");
+	new_spell->cancel_after_all_triggers = false;
+	new_spell->num_triggers = 0;
+	new_spell->num_calls = 0;
+	new_spell->is_recast_timer = false;
+	new_spell->had_triggers = false;
+	new_spell->had_dmg_remaining = false;
+	new_spell->slot_pos = 0;
+	new_spell->damage_remaining = 0;
+	new_spell->effect_bitmask = 0;
+	new_spell->caster = 0;
+	new_spell->initial_target = 0;
+	new_spell->spell = 0;
+	new_spell->restored = false;
+	new_spell->has_proc = false;
+	new_spell->initial_caster_char_id = 0;
+	new_spell->initial_target_char_id = 0;
+	
+	MSpells.lock();
+	current_spells[new_spell->state] = new_spell;
+	MSpells.unlock();
+	
+	MSpellScripts.writelock(__FUNCTION__, __LINE__);
+	spell_scripts[std::string(name)][new_spell->state] = new_spell;
+	MSpellScripts.releasewritelock(__FUNCTION__, __LINE__);
+	return new_spell;
+}
+
+LuaSpell* LuaInterface::GetSpell(const char* name) {
+	return GetSpellScript(name, true);
 }
 
 bool LuaInterface::RunItemScript(string script_name, const char* function_name, Item* item, Spawn* spawn, Spawn* target, sint64* returnValue) {
