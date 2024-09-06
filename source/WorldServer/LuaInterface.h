@@ -234,7 +234,7 @@ public:
 
 	std::string		AddSpawnPointers(LuaSpell* spell, bool first_cast, bool precast = false, const char* function = 0, SpellScriptTimer* timer = 0, bool passLuaSpell=false, Spawn* altTarget = 0);
 	LuaSpell*		GetCurrentSpell(lua_State* state, bool needsLock = true);
-	void			RemoveCurrentSpell(lua_State* state, LuaSpell* cur_spell, bool needsLock = true, bool removeCurSpell = true);
+	void			RemoveCurrentSpell(lua_State* state, LuaSpell* cur_spell, bool needsLock = true, bool removeCurSpell = true, bool removeSpellScript = true);
 	bool			CallSpellProcess(LuaSpell* spell, int8 num_parameters, std::string functionCalled);
 	LuaSpell*		GetSpell(const char* name);
 	void			UseItemScript(const char* name, lua_State* state, bool val);
@@ -322,7 +322,6 @@ private:
 	vector<string>*	GetDirectoryListing(const char* directory);
 	lua_State*		LoadLuaFile(const char* name);
 	void			RegisterFunctions(lua_State* state);
-	map<string, LuaSpell*> spells;
 	map<lua_State*, string> inverse_spells;
 
 	map<int32, Quest*>		quests;

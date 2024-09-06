@@ -143,17 +143,25 @@ void LuaInterface::Process() {
 }
 
 void LuaInterface::DestroySpells() {
-	map<string, LuaSpell*>::iterator itr;
 	MSpells.lock();
-	for(itr = spells.begin(); itr != spells.end(); itr++){
-		MSpellDelete.lock();
-		RemoveCurrentSpell(itr->second->state, itr->second, false);
-		MSpellDelete.unlock();
-		lua_close(itr->second->state);
-		safe_delete(itr->second);
+	map<string, map<lua_State*, LuaSpell*> >::iterator spell_script_itr;
+	for(spell_script_itr = spell_scripts.begin(); spell_script_itr != spell_scripts.end(); spell_script_itr++) {
+		map<lua_State*, LuaSpell*>::iterator inner_itr;
+		for(inner_itr = spell_script_itr->second.begin(); inner_itr != spell_script_itr->second.end(); inner_itr++) {
+			LuaSpell* cur_spell = inner_itr->second;
+			MSpellDelete.lock();
+			RemoveCurrentSpell(inner_itr->first, inner_itr->second, false, true, false);
+			MSpellDelete.unlock();
+			lua_close(inner_itr->first);
+			safe_delete(cur_spell);
+		}
+		
+		Mutex* mutex = GetSpellScriptMutex(spell_script_itr->first.c_str());
+		safe_delete(mutex);
 	}
+	current_spells.clear();
+	spell_scripts_mutex.clear();
 	spell_scripts.clear();
-	spells.clear();
 	MSpells.unlock();
 }
 
@@ -597,13 +605,13 @@ LuaSpell* LuaInterface::GetCurrentSpell(lua_State* state, bool needsLock) {
 	return spell;
 }
 
-void LuaInterface::RemoveCurrentSpell(lua_State* state, LuaSpell* cur_spell, bool needsLock, bool removeCurSpell) {
+void LuaInterface::RemoveCurrentSpell(lua_State* state, LuaSpell* cur_spell, bool needsLock, bool removeCurSpell, bool removeSpellScript) {
 	if(needsLock) {
 		MSpells.lock();
 		MSpellDelete.lock();
 	}
 	map<lua_State*, LuaSpell*>::iterator itr = current_spells.find(state);
-	if(itr->second) {
+	if(removeSpellScript && itr->second) {
 		MSpellScripts.readlock(__FUNCTION__, __LINE__);
 		map<string, map<lua_State*, LuaSpell*> >::iterator spell_script_itr = spell_scripts.find(cur_spell->file_name);
 		if(spell_script_itr != spell_scripts.end()) {
