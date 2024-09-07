@@ -2295,7 +2295,8 @@ LuaSpell* LuaInterface::GetSpellScript(const char* name, bool create_new, bool u
 	LuaSpell* ret = 0;
 	Mutex* mutex = 0;
 
-	MSpellScripts.readlock(__FUNCTION__, __LINE__);
+	MSpells.lock();
+	MSpellScripts.writelock(__FUNCTION__, __LINE__);
 	itr = spell_scripts.find(name);
 	if(itr != spell_scripts.end()) {
 		mutex = GetSpellScriptMutex(name);
@@ -2305,17 +2306,16 @@ LuaSpell* LuaInterface::GetSpellScript(const char* name, bool create_new, bool u
 				if (use)
 				{
 					lua_State* state = spell_script_itr->first;
-					MSpellScripts.releasereadlock(__FUNCTION__, __LINE__);
-					ret = CreateSpellScript(name, state);
+					ret = CreateSpellScript(name, state, true);
 					break; // don't keep iterating, we already have our result
 				}
 			}
 		}
 		mutex->releasewritelock(__FUNCTION__, __LINE__);
 	}
-	if(!ret) {
-		MSpellScripts.releasereadlock(__FUNCTION__, __LINE__);
-	}
+	MSpellScripts.releasewritelock(__FUNCTION__, __LINE__);
+	MSpells.unlock();
+	
 	if(!ret && create_new){
 		if(!name || (ret = LoadSpellScript(name)) == nullptr) {
 			LogError("Error LUA Spell Script '%s'", name == nullptr ? "unknown" : name);
@@ -2327,11 +2327,7 @@ LuaSpell* LuaInterface::GetSpellScript(const char* name, bool create_new, bool u
 LuaSpell* LuaInterface::CreateSpellScript(const char* name, lua_State* existState) {
 	LuaSpell* new_spell = new LuaSpell;
 	new_spell->state = existState;
-	
-	MSpellScripts.writelock(__FUNCTION__, __LINE__);
 	spell_scripts[std::string(name)][new_spell->state] = new_spell;
-	MSpellScripts.releasewritelock(__FUNCTION__, __LINE__);
-	
 	new_spell->file_name = string(name);
 	new_spell->resisted = false;
 	new_spell->is_damage_spell = false;
@@ -2357,9 +2353,7 @@ LuaSpell* LuaInterface::CreateSpellScript(const char* name, lua_State* existStat
 	new_spell->initial_caster_char_id = 0;
 	new_spell->initial_target_char_id = 0;
 	
-	MSpells.lock();
 	current_spells[new_spell->state] = new_spell;
-	MSpells.unlock();
 	return new_spell;
 }
 
