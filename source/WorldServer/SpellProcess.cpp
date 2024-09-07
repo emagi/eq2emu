@@ -2975,7 +2975,6 @@ void SpellProcess::DeleteSpell(LuaSpell* spell)
 	}
 	
 	lua_interface->SetLuaUserDataStale(spell);
-	lua_interface->RemoveCurrentSpell(spell->state, spell, true);
 	
 	DeleteActiveSpell(spell);
 }
@@ -3024,6 +3023,7 @@ void SpellProcess::AddSelfAndPetToCharTargets(LuaSpell* spell, Spawn* caster, bo
 }
 
 void SpellProcess::DeleteActiveSpell(LuaSpell* spell) {
+	lua_interface->RemoveCurrentSpell(spell->state, spell, true);
 	active_spells.Remove(spell, true);
 }
 
