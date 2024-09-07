@@ -2299,7 +2299,7 @@ LuaSpell* LuaInterface::GetSpellScript(const char* name, bool create_new, bool u
 	itr = spell_scripts.find(name);
 	if(itr != spell_scripts.end()) {
 		mutex = GetSpellScriptMutex(name);
-		mutex->readlock(__FUNCTION__, __LINE__);
+		mutex->writelock(__FUNCTION__, __LINE__);
 		for(spell_script_itr = itr->second.begin(); spell_script_itr != itr->second.end(); spell_script_itr++){
 			if(spell_script_itr->second == nullptr){ //not in use
 				if (use)
@@ -2311,7 +2311,7 @@ LuaSpell* LuaInterface::GetSpellScript(const char* name, bool create_new, bool u
 				}
 			}
 		}
-		mutex->releasereadlock(__FUNCTION__, __LINE__);
+		mutex->releasewritelock(__FUNCTION__, __LINE__);
 	}
 	if(!ret) {
 		MSpellScripts.releasereadlock(__FUNCTION__, __LINE__);
@@ -2327,6 +2327,11 @@ LuaSpell* LuaInterface::GetSpellScript(const char* name, bool create_new, bool u
 LuaSpell* LuaInterface::CreateSpellScript(const char* name, lua_State* existState) {
 	LuaSpell* new_spell = new LuaSpell;
 	new_spell->state = existState;
+	
+	MSpellScripts.writelock(__FUNCTION__, __LINE__);
+	spell_scripts[std::string(name)][new_spell->state] = new_spell;
+	MSpellScripts.releasewritelock(__FUNCTION__, __LINE__);
+	
 	new_spell->file_name = string(name);
 	new_spell->resisted = false;
 	new_spell->is_damage_spell = false;
@@ -2355,10 +2360,6 @@ LuaSpell* LuaInterface::CreateSpellScript(const char* name, lua_State* existStat
 	MSpells.lock();
 	current_spells[new_spell->state] = new_spell;
 	MSpells.unlock();
-	
-	MSpellScripts.writelock(__FUNCTION__, __LINE__);
-	spell_scripts[std::string(name)][new_spell->state] = new_spell;
-	MSpellScripts.releasewritelock(__FUNCTION__, __LINE__);
 	return new_spell;
 }
 
