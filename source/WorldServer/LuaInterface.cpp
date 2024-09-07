@@ -2306,7 +2306,7 @@ LuaSpell* LuaInterface::GetSpellScript(const char* name, bool create_new, bool u
 				if (use)
 				{
 					lua_State* state = spell_script_itr->first;
-					ret = CreateSpellScript(name, state, true);
+					ret = CreateSpellScript(name, state);
 					break; // don't keep iterating, we already have our result
 				}
 			}
