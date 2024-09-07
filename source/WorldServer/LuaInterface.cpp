@@ -612,7 +612,7 @@ void LuaInterface::RemoveCurrentSpell(lua_State* state, LuaSpell* cur_spell, boo
 	}
 	map<lua_State*, LuaSpell*>::iterator itr = current_spells.find(state);
 	if(removeSpellScript && itr->second) {
-		MSpellScripts.readlock(__FUNCTION__, __LINE__);
+		MSpellScripts.writelock(__FUNCTION__, __LINE__);
 		map<string, map<lua_State*, LuaSpell*> >::iterator spell_script_itr = spell_scripts.find(cur_spell->file_name);
 		if(spell_script_itr != spell_scripts.end()) {
 			LogWrite(SPELL__DEBUG, 9, "Spell", "LuaInterface::RemoveCurrentSpell spell %s.  Queue Entries %u.", cur_spell->file_name.c_str(), spell_script_itr->second.size());
@@ -624,7 +624,7 @@ void LuaInterface::RemoveCurrentSpell(lua_State* state, LuaSpell* cur_spell, boo
 			}
 			mutex->releasewritelock(__FUNCTION__, __LINE__);
 		}
-		MSpellScripts.releasereadlock(__FUNCTION__, __LINE__);
+		MSpellScripts.releasewritelock(__FUNCTION__, __LINE__);
 	}
 	if(itr != current_spells.end() && removeCurSpell)
 		current_spells.erase(itr);
@@ -2295,6 +2295,7 @@ LuaSpell* LuaInterface::GetSpellScript(const char* name, bool create_new, bool u
 	LuaSpell* ret = 0;
 	Mutex* mutex = 0;
 
+	MSpellScripts.readlock(__FUNCTION__, __LINE__);
 	itr = spell_scripts.find(name);
 	if(itr != spell_scripts.end()) {
 		mutex = GetSpellScriptMutex(name);
@@ -2303,13 +2304,18 @@ LuaSpell* LuaInterface::GetSpellScript(const char* name, bool create_new, bool u
 			if(spell_script_itr->second == nullptr){ //not in use
 				if (use)
 				{
-					spell_script_itr->second = CreateSpellScript(name, spell_script_itr->first);
+					lua_State* state = spell_script_itr->first;
 					ret = spell_script_itr->second;
+					MSpellScripts.releasereadlock(__FUNCTION__, __LINE__);
+					CreateSpellScript(name, state);
 					break; // don't keep iterating, we already have our result
 				}
 			}
 		}
 		mutex->releasereadlock(__FUNCTION__, __LINE__);
+	}
+	if(!ret) {
+		MSpellScripts.releasereadlock(__FUNCTION__, __LINE__);
 	}
 	if(!ret && create_new){
 		if(!name || (ret = LoadSpellScript(name)) == nullptr) {
