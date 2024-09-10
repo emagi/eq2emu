@@ -67,7 +67,7 @@ void SpellProcess::RemoveAllSpells(bool reload_spells){
 	
 	active_spells_itr = active_spells.begin();
 	while(active_spells_itr.Next()){
-		active_spells.Remove(active_spells_itr->value, true);
+		active_spells.Remove(active_spells_itr->value);
 	}
 	active_spells.clear();	
 

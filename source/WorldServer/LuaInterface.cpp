@@ -153,7 +153,7 @@ void LuaInterface::DestroySpells() {
 			RemoveCurrentSpell(inner_itr->first, inner_itr->second, false, true, false);
 			MSpellDelete.unlock();
 			lua_close(inner_itr->first);
-			// spell is deleted in this context by SpellProcess::DeleteSpell because removing_all_spells = true
+			safe_delete(cur_spell);
 		}
 		
 		Mutex* mutex = GetSpellScriptMutex(spell_script_itr->first.c_str());
