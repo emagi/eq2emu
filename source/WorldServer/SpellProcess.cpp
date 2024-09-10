@@ -83,7 +83,6 @@ void SpellProcess::RemoveAllSpells(bool reload_spells){
 	MutexList<CastTimer*>::iterator cast_timers_itr = cast_timers.begin();	
 	while(cast_timers_itr.Next()){
 		safe_delete(cast_timers_itr->value->timer);
-		safe_delete(cast_timers_itr->value->spell);
 		cast_timers.Remove(cast_timers_itr->value, true);
 	}
 	cast_timers.clear();

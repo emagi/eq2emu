@@ -151,9 +151,9 @@ void LuaInterface::DestroySpells() {
 			LuaSpell* cur_spell = inner_itr->second;
 			MSpellDelete.lock();
 			RemoveCurrentSpell(inner_itr->first, inner_itr->second, false, true, false);
-			MSpellDelete.unlock();
 			lua_close(inner_itr->first);
 			safe_delete(cur_spell);
+			MSpellDelete.unlock();
 		}
 		
 		Mutex* mutex = GetSpellScriptMutex(spell_script_itr->first.c_str());
@@ -258,11 +258,6 @@ void LuaInterface::DestroyRegionScripts()  {
 	region_inverse_scripts.clear();
 	region_scripts_mutex.clear();
 	MRegionScripts.releasewritelock(__FUNCTION__, __LINE__);
-}
-
-void LuaInterface::ReloadSpells() {
-	DestroySpells();
-	database.LoadSpellScriptData();
 }
 
 bool LuaInterface::LoadItemScript(string name) {
@@ -2357,8 +2352,8 @@ LuaSpell* LuaInterface::CreateSpellScript(const char* name, lua_State* existStat
 	return new_spell;
 }
 
-LuaSpell* LuaInterface::GetSpell(const char* name) {
-	return GetSpellScript(name, true);
+LuaSpell* LuaInterface::GetSpell(const char* name, bool use) {
+	return GetSpellScript(name, true, use);
 }
 
 bool LuaInterface::RunItemScript(string script_name, const char* function_name, Item* item, Spawn* spawn, Spawn* target, sint64* returnValue) {

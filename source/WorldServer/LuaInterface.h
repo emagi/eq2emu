@@ -236,7 +236,7 @@ public:
 	LuaSpell*		GetCurrentSpell(lua_State* state, bool needsLock = true);
 	void			RemoveCurrentSpell(lua_State* state, LuaSpell* cur_spell, bool needsLock = true, bool removeCurSpell = true, bool removeSpellScript = true);
 	bool			CallSpellProcess(LuaSpell* spell, int8 num_parameters, std::string functionCalled);
-	LuaSpell*		GetSpell(const char* name);
+	LuaSpell*		GetSpell(const char* name, bool use = true);
 	void			UseItemScript(const char* name, lua_State* state, bool val);
 	void			UseSpawnScript(const char* name, lua_State* state, bool val);
 	void			UseZoneScript(const char* name, lua_State* state, bool val);
@@ -269,7 +269,6 @@ public:
 	void			DestroySpells();
 	void			DestroySpawnScripts();
 	void			DestroyItemScripts();
-	void			ReloadSpells();
 	void			DestroyQuests(bool reload = false);
 	void			DestroyZoneScripts();
 	void			DestroyRegionScripts();

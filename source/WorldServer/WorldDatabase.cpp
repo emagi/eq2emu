@@ -4508,7 +4508,7 @@ int32 WorldDatabase::LoadSpellScriptData() {
 
 	while (result && (row = mysql_fetch_row(result))) {
 		if (row[0] && strlen(row[0]) > 0) {
-			if (lua_interface->GetSpell(row[0]))
+			if (lua_interface->GetSpell(row[0], false))
 				LogWrite(SPELL__DEBUG, 5, "Spells", "SpellScript: %s loaded.", row[0]);
 		}
 	}
