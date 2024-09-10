@@ -2725,7 +2725,7 @@ int EQ2Emu_lua_AddControlEffect(lua_State* state) {
 	bool only_add_spawn = lua_interface->GetInt8Value(state, 3) == 1;
 	LuaSpell* luaspell = lua_interface->GetCurrentSpell(state);
 	
-	if(luaspell && luaspell->resisted) {
+	if(!luaspell || luaspell->resisted) {
 		lua_interface->ResetFunctionStack(state);
 		return 0;
 	}

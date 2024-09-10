@@ -4508,8 +4508,13 @@ int32 WorldDatabase::LoadSpellScriptData() {
 
 	while (result && (row = mysql_fetch_row(result))) {
 		if (row[0] && strlen(row[0]) > 0) {
-			if (lua_interface->GetSpell(row[0], false))
+			LuaSpell* testSpell = nullptr;
+			if ((testSpell = lua_interface->GetSpell(row[0], false)) != nullptr) {
 				LogWrite(SPELL__DEBUG, 5, "Spells", "SpellScript: %s loaded.", row[0]);
+				// make the lua_state available to the queue, this isn't a real Spell just a test load
+				lua_interface->RemoveCurrentSpell(testSpell->state, testSpell);
+				safe_delete(testSpell);
+			}
 		}
 	}
 
