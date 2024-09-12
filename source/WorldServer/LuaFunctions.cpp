@@ -9523,13 +9523,8 @@ int EQ2Emu_lua_CureByControlEffect(lua_State* state) {
 		return 0;
 
 	LuaSpell* spell = lua_interface->GetCurrentSpell(state);
-	if (!spell) {
-		lua_interface->LogError("%s: LUA CureByControlEffect command error: can only be used in a spell script", lua_interface->GetScriptName(state));
-		lua_interface->ResetFunctionStack(state);
-		return 0;
-	}
 	
-	if(spell->resisted) {
+	if(spell && spell->resisted) {
 		lua_interface->ResetFunctionStack(state);
 		return 0;
 	}
