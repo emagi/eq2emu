@@ -2724,9 +2724,9 @@ int EQ2Emu_lua_AddControlEffect(lua_State* state) {
 	int8 type = lua_interface->GetInt32Value(state, 2);
 	bool only_add_spawn = lua_interface->GetInt8Value(state, 3) == 1;
 	LuaSpell* luaspell = lua_interface->GetCurrentSpell(state);
+	lua_interface->ResetFunctionStack(state);
 	
 	if(!luaspell || luaspell->resisted) {
-		lua_interface->ResetFunctionStack(state);
 		return 0;
 	}
 	
@@ -2895,6 +2895,7 @@ int EQ2Emu_lua_RemoveControlEffect(lua_State* state) {
 	int8 type = lua_interface->GetInt8Value(state, 2);
 	bool only_remove_spawn = lua_interface->GetInt8Value(state, 3) == 1;
 	LuaSpell* luaspell = lua_interface->GetCurrentSpell(state);
+	lua_interface->ResetFunctionStack(state);
 	if (spawn && spawn->IsEntity()) {
 		if (!only_remove_spawn && luaspell && luaspell->spell && luaspell->caster) {
 			ZoneServer* zone = luaspell->caster->GetZone();
@@ -2970,6 +2971,7 @@ int EQ2Emu_lua_HasControlEffect(lua_State* state) {
 		return 0;
 	Spawn* spawn = lua_interface->GetSpawn(state);
 	int8 type = lua_interface->GetInt8Value(state, 2);
+	lua_interface->ResetFunctionStack(state);
 
 	bool hasEffect = false;
 
@@ -3555,6 +3557,7 @@ int EQ2Emu_lua_QuestStepIsComplete(lua_State* state) {
 	Spawn* player = lua_interface->GetSpawn(state);
 	int32 quest_id = lua_interface->GetInt32Value(state, 2);
 	int32 step_id = lua_interface->GetInt32Value(state, 3);
+	lua_interface->ResetFunctionStack(state);
 	if (player && player->IsPlayer() && quest_id > 0) {
 		lua_interface->SetBooleanValue(state, ((Player*)player)->GetQuestStepComplete(quest_id, step_id));
 		return 1;
@@ -3567,6 +3570,7 @@ int EQ2Emu_lua_GetQuestStep(lua_State* state) {
 		return 0;
 	Spawn* player = lua_interface->GetSpawn(state);
 	int32 quest_id = lua_interface->GetInt32Value(state, 2);
+	lua_interface->ResetFunctionStack(state);
 	if (player && player->IsPlayer() && quest_id > 0) {
 		lua_interface->SetInt32Value(state, ((Player*)player)->GetQuestStep(quest_id));
 		return 1;
@@ -3583,6 +3587,7 @@ int EQ2Emu_lua_RegisterQuest(lua_State* state) {
 	string zone = lua_interface->GetStringValue(state, 4);
 	int16 level = lua_interface->GetInt16Value(state, 5);
 	string description = lua_interface->GetStringValue(state, 6);
+	lua_interface->ResetFunctionStack(state);
 	bool load = true;
 	if (!quest) {
 		lua_interface->LogError("%s: Quest not given in RegisterQuest!", lua_interface->GetScriptName(state));
@@ -8887,17 +8892,12 @@ int EQ2Emu_lua_InFront(lua_State* state) {
 		return 0;
 	}
 
-	if (!spawn->IsEntity()) {
-		lua_interface->LogError("%s: LUA InFrontSpawn command error: spawn is not an entity", lua_interface->GetScriptName(state));
-		return 0;
-	}
-
 	if (!target) {
 		lua_interface->LogError("%s: LUA InFrontSpawn command error: target is not valid", lua_interface->GetScriptName(state));
 		return 0;
 	}
 
-	lua_interface->SetBooleanValue(state, ((Entity*)spawn)->InFrontSpawn(target, spawn->GetX(), spawn->GetZ()));
+	lua_interface->SetBooleanValue(state, spawn->InFrontSpawn(target, spawn->GetX(), spawn->GetZ()));
 	return 1;
 }
 
