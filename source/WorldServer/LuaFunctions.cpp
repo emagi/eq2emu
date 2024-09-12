@@ -9524,7 +9524,7 @@ int EQ2Emu_lua_CureByControlEffect(lua_State* state) {
 
 	LuaSpell* spell = lua_interface->GetCurrentSpell(state);
 	
-	if(spell && spell->resisted) {
+	if(spell->resisted) {
 		lua_interface->ResetFunctionStack(state);
 		return 0;
 	}
@@ -13684,12 +13684,12 @@ int EQ2Emu_lua_ChangeFaction(lua_State* state) {
 
 int EQ2Emu_lua_HasCoin(lua_State* state) {
 	bool hascoin = 0;
-	Player* player = (Player*)lua_interface->GetSpawn(state);
+	Spawn* player = lua_interface->GetSpawn(state);
 	int32 coins = lua_interface->GetInt32Value(state, 2);
 	lua_interface->ResetFunctionStack(state);
 		
 if (player && player->IsPlayer()) {
-	hascoin = player->HasCoins(coins);
+	hascoin = ((Player*)player)->HasCoins(coins);
 	if(hascoin == 0) {
 		lua_interface->SetBooleanValue(state, false);
 		return 1;
