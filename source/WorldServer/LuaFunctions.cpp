@@ -10826,7 +10826,7 @@ int EQ2Emu_lua_SpawnGroupByID(lua_State* state) {
 	for (itr = locs->begin(); itr != locs->end(); itr++) {
 		SpawnLocation* location = zone->GetSpawnLocation(itr->second);
 		if (!location) {
-			lua_interface->LogError("LUA SpawnByLocationID command error: no location found for the given ID (%u)", itr->second);
+			lua_interface->LogError("%s: LUA SpawnGroupByID command error: no location found for the given ID (%u)", lua_interface->GetScriptName(state), itr->second);
 			return 0;
 		}
 		
@@ -10886,7 +10886,7 @@ int EQ2Emu_lua_SpawnGroupByID(lua_State* state) {
 				group.push_back(spawn);
 			}
 			else {
-				LogWrite(ZONE__ERROR, 0, "Zone", "Error adding spawn by group id to zone %s with location id %u.", zone->GetZoneName(), group_id);
+				LogWrite(ZONE__ERROR, 0, "Zone", "%s: Error adding spawn by group id to zone %s with location id %u.", lua_interface->GetScriptName(state), zone->GetZoneName(), group_id);
 				safe_delete(spawn);
 			}
 		}
