@@ -2667,52 +2667,50 @@ int EQ2Emu_lua_RemoveSkillBonus(lua_State* state) {
 		return 0;
 	Spawn* spawn = lua_interface->GetSpawn(state);
 	LuaSpell* luaspell = lua_interface->GetCurrentSpell(state);
-	if (spawn && spawn->IsPlayer()) {
-		int32 spell_id = 0;
-		if (luaspell && luaspell->spell && luaspell->caster) {
-			if(luaspell->resisted) {
-				lua_interface->ResetFunctionStack(state);
-				return 0;
-			}
-			spell_id = luaspell->spell->GetSpellID();
-			ZoneServer* zone = luaspell->caster->GetZone();
-			Spawn* target = 0;
-			luaspell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
-			for (int32 i = 0; i < luaspell->targets.size(); i++) {
-				target = zone->GetSpawnByID(luaspell->targets[i]);
-				if (target) {
-					if (target->IsPlayer()) {
-						((Player*)target)->RemoveSkillBonus(spell_id);
-						Client* client = ((Player*)target)->GetClient();
-						if (client) {
-							EQ2Packet* packet = ((Player*)target)->GetSkills()->GetSkillPacket(client->GetVersion());
-							if (packet)
-								client->QueuePacket(packet);
-						}
+	lua_interface->ResetFunctionStack(state);
+	int32 spell_id = 0;
+	if (luaspell && luaspell->spell && luaspell->caster) {
+		if(luaspell->resisted) {
+			return 0;
+		}
+		spell_id = luaspell->spell->GetSpellID();
+		ZoneServer* zone = luaspell->caster->GetZone();
+		Spawn* target = 0;
+		luaspell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
+		for (int32 i = 0; i < luaspell->targets.size(); i++) {
+			target = zone->GetSpawnByID(luaspell->targets[i]);
+			if (target) {
+				if (target->IsPlayer()) {
+					((Player*)target)->RemoveSkillBonus(spell_id);
+					Client* client = ((Player*)target)->GetClient();
+					if (client) {
+						EQ2Packet* packet = ((Player*)target)->GetSkills()->GetSkillPacket(client->GetVersion());
+						if (packet)
+							client->QueuePacket(packet);
 					}
-					else if (target->IsNPC())
-						((NPC*)target)->RemoveSkillBonus(spell_id);
-					else
-						LogWrite(LUA__ERROR, 0, "LUA", "Error removing skill bonus on '%s'.  Not a NPC or player.", spawn->GetName());
 				}
+				else if (target->IsNPC())
+					((NPC*)target)->RemoveSkillBonus(spell_id);
+				else
+					LogWrite(LUA__ERROR, 0, "LUA", "Error removing skill bonus on '%s'.  Not a NPC or player.", spawn->GetName());
 			}
-			luaspell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
 		}
-		else if (spawn) {
-			if (spawn->IsPlayer()) {
-				((Player*)spawn)->RemoveSkillBonus(spell_id);
-				Client* client = ((Player*)spawn)->GetClient();
-				if (client) {
-					EQ2Packet* packet = ((Player*)spawn)->GetSkills()->GetSkillPacket(client->GetVersion());
-					if (packet)
-						client->QueuePacket(packet);
-				}
+		luaspell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
+	}
+	else if (spawn) {
+		if (spawn->IsPlayer()) {
+			((Player*)spawn)->RemoveSkillBonus(spell_id);
+			Client* client = ((Player*)spawn)->GetClient();
+			if (client) {
+				EQ2Packet* packet = ((Player*)spawn)->GetSkills()->GetSkillPacket(client->GetVersion());
+				if (packet)
+					client->QueuePacket(packet);
 			}
-			else if (spawn->IsNPC())
-				((NPC*)spawn)->RemoveSkillBonus(spell_id);
-			else
-				LogWrite(LUA__ERROR, 0, "LUA", "Error removing skill bonus on '%s'.  Not a NPC or player.", spawn->GetName());
 		}
+		else if (spawn->IsNPC())
+			((NPC*)spawn)->RemoveSkillBonus(spell_id);
+		else
+			LogWrite(LUA__ERROR, 0, "LUA", "Error removing skill bonus on '%s'.  Not a NPC or player.", spawn->GetName());
 	}
 	return 0;
 }
@@ -10804,7 +10802,7 @@ int EQ2Emu_lua_SpawnGroupByID(lua_State* state) {
 
 	ZoneServer* zone = lua_interface->GetZone(state, 1);
 	if (!zone) {
-		lua_interface->LogError("%s: LUA GetPlayersInZone command error: zone is not valid", lua_interface->GetScriptName(state));
+		lua_interface->LogError("%s: LUA SpawnGroupByID command error: zone is not valid", lua_interface->GetScriptName(state));
 		return 0;
 	}
 
@@ -10826,7 +10824,7 @@ int EQ2Emu_lua_SpawnGroupByID(lua_State* state) {
 	for (itr = locs->begin(); itr != locs->end(); itr++) {
 		SpawnLocation* location = zone->GetSpawnLocation(itr->second);
 		if (!location) {
-			lua_interface->LogError("%s: LUA SpawnGroupByID command error: no location found for the given ID (%u)", lua_interface->GetScriptName(state), itr->second);
+			lua_interface->LogError("%s: LUA SpawnGroupByID command error: no location found for group id %u and the given ID (%u)", lua_interface->GetScriptName(state), group_id, itr->second);
 			return 0;
 		}
 		
