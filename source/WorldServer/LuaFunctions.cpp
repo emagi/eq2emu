@@ -2284,6 +2284,7 @@ int EQ2Emu_lua_SetMount(lua_State* state) {
 		return 0;
 	Spawn* spawn = lua_interface->GetSpawn(state);
 	int16 value = lua_interface->GetInt16Value(state, 2);
+	lua_interface->ResetFunctionStack(state);
 	if (spawn && spawn->IsEntity()) {
 		((Entity*)spawn)->SetMount(value);
 		EQ2_Color color;
@@ -2307,6 +2308,7 @@ int EQ2Emu_lua_SetMountColor(lua_State* state) {
 	saddle_color.red = lua_interface->GetInt8Value(state, 5);
 	saddle_color.green = lua_interface->GetInt8Value(state, 6);
 	saddle_color.blue = lua_interface->GetInt8Value(state, 7);
+	lua_interface->ResetFunctionStack(state);
 	if (spawn && spawn->IsEntity()) {
 		((Entity*)spawn)->SetMountColor(&mount_color);
 		((Entity*)spawn)->SetMountSaddleColor(&saddle_color);
@@ -2317,6 +2319,7 @@ int EQ2Emu_lua_GetMount(lua_State* state) {
 	if (!lua_interface)
 		return 0;
 	Spawn* spawn = lua_interface->GetSpawn(state);
+	lua_interface->ResetFunctionStack(state);
 	if (spawn && spawn->IsEntity()) {
 		lua_interface->SetInt32Value(state, ((Entity*)spawn)->GetMount());
 		return 1;
@@ -2327,6 +2330,7 @@ int EQ2Emu_lua_GetRace(lua_State* state) {
 	if (!lua_interface)
 		return 0;
 	Spawn* spawn = lua_interface->GetSpawn(state);
+	lua_interface->ResetFunctionStack(state);
 	if (spawn)
 	{
 		LogWrite(LUA__DEBUG, 0, "LUA", "%s - Race: %i", __FUNCTION__, spawn->GetRace());
@@ -2340,6 +2344,7 @@ int EQ2Emu_lua_GetRaceName(lua_State* state) {
 	if (!lua_interface)
 		return 0;
 	Spawn* spawn = lua_interface->GetSpawn(state);
+	lua_interface->ResetFunctionStack(state);
 	if (spawn) {
 		lua_interface->SetStringValue(state, races.GetRaceName(spawn->GetRace()));
 		return 1;
@@ -2349,6 +2354,7 @@ int EQ2Emu_lua_GetRaceName(lua_State* state) {
 
 int EQ2Emu_lua_GetClass(lua_State* state) {
 	Spawn* spawn = lua_interface->GetSpawn(state);
+	lua_interface->ResetFunctionStack(state);
 	if (spawn) {
 		lua_interface->SetInt32Value(state, spawn->GetAdventureClass());
 		return 1;
@@ -2358,6 +2364,7 @@ int EQ2Emu_lua_GetClass(lua_State* state) {
 
 int EQ2Emu_lua_GetClassName(lua_State* state) {
 	Spawn* spawn = lua_interface->GetSpawn(state);
+	lua_interface->ResetFunctionStack(state);
 	if (spawn) {
 		lua_interface->SetStringValue(state, classes.GetClassName(spawn->GetAdventureClass()));
 		return 1;
@@ -2401,9 +2408,9 @@ int EQ2Emu_lua_AddSpellBonus(lua_State* state) {
 	const int16 type = lua_interface->GetInt16Value(state, 2);
 	const float value = lua_interface->GetFloatValue(state, 3);
 	LuaSpell* luaspell = lua_interface->GetCurrentSpell(state);
+	lua_interface->ResetFunctionStack(state);
 	
 	if(!luaspell || luaspell->resisted) {
-		lua_interface->ResetFunctionStack(state);
 		return 0;
 	}
 
@@ -2475,6 +2482,7 @@ int EQ2Emu_lua_AddSpawnSpellBonus(lua_State* state) {
 	int16 type = lua_interface->GetInt16Value(state, 2);
 	sint32 value = lua_interface->GetSInt32Value(state, 3);
 	LuaSpell* luaspell = lua_interface->GetCurrentSpell(state);
+	lua_interface->ResetFunctionStack(state);
 
 	if (!spawn) {
 		lua_interface->LogError("%s: LUA AddSpawnSpellBonus command error: spawn is not valid", lua_interface->GetScriptName(state));
@@ -2497,7 +2505,6 @@ int EQ2Emu_lua_AddSpawnSpellBonus(lua_State* state) {
 	}
 	
 	if(luaspell->resisted) {
-		lua_interface->ResetFunctionStack(state);
 		return 0;
 	}
 
@@ -2566,6 +2573,7 @@ int EQ2Emu_lua_RemoveSpellBonus(lua_State* state) {
 		return 0;
 	Spawn* spawn = lua_interface->GetSpawn(state);
 	LuaSpell* luaspell = lua_interface->GetCurrentSpell(state);
+	lua_interface->ResetFunctionStack(state);
 	if (luaspell && luaspell->spell) {
 		ZoneServer* zone = nullptr;
 		if (luaspell->caster != nullptr)
@@ -9435,8 +9443,13 @@ int EQ2Emu_lua_RemoveThreatTransfer(lua_State* state) {
 	LuaSpell* spell = lua_interface->GetCurrentSpell(state);
 	lua_interface->ResetFunctionStack(state);
 
-	if (!spawn) {
+	if (!spawn || !spawn->IsEntity()) {
 		lua_interface->LogError("%s: LUA RemoveThreatTransfer command error: spawn is not valid", lua_interface->GetScriptName(state));
+		return 0;
+	}
+	
+	if (!spawn->IsEntity()) {
+		lua_interface->LogError("%s: LUA RemoveThreatTransfer command error: spawn is not an entity", lua_interface->GetScriptName(state));
 		return 0;
 	}
 
@@ -12935,6 +12948,12 @@ int EQ2Emu_lua_ResetCharacterTitleSuffix(lua_State* state) {
 	Spawn* spawn = lua_interface->GetSpawn(state);
 	
 	lua_interface->ResetFunctionStack(state);
+	if(!spawn)
+	{
+		lua_interface->LogError("%s: LUA ResetCharacterTitleSuffix command error: spawn is null", lua_interface->GetScriptName(state));
+		return 0;
+	}
+
 	if(!spawn->IsPlayer())
 	{
 		lua_interface->LogError("%s: LUA ResetCharacterTitleSuffix command error: player is not valid", lua_interface->GetScriptName(state));
@@ -12957,6 +12976,13 @@ int EQ2Emu_lua_ResetCharacterTitlePrefix(lua_State* state) {
 	Spawn* spawn = lua_interface->GetSpawn(state);
 	
 	lua_interface->ResetFunctionStack(state);
+	
+	if(!spawn)
+	{
+		lua_interface->LogError("%s: LUA ResetCharacterTitlePrefix command error: spawn is null", lua_interface->GetScriptName(state));
+		return 0;
+	}
+	
 	if(!spawn->IsPlayer())
 	{
 		lua_interface->LogError("%s: LUA ResetCharacterTitlePrefix command error: player is not valid", lua_interface->GetScriptName(state));
