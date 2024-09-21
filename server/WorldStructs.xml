@@ -16186,6 +16186,34 @@ to zero and treated like placeholders." />
 <Data ElementName="unknown3" Type="int16" Size="1" />
 <Data ElementName="unknown4" Type="int8" Size="4" />
 </Struct>
+<Struct Name="WS_GetMailHeader" ClientVersion="546" OpcodeName="OP_MailGetHeadersReplyMsg">
+<Data ElementName="kiosk_id" Type="int32" />
+<Data ElementName="num_messages" Type="int8" Size="1" />
+<Data ElementName="message_array" Type="Array" ArraySizeVariable="num_messages">
+    <Data ElementName="mail_id" Type="int32" Size="1" />
+    <Data ElementName="player_to_id" Type="int32" Size="1" />
+    <Data ElementName="subject" Type="EQ2_16Bit_String" />
+    <Data ElementName="player_from" Type="EQ2_16Bit_String" />
+    <Data ElementName="unknown1" Type="int16" Size="1" />
+    <Data ElementName="already_read" Type="int8" Size="1" />
+    <Data ElementName="mail_deletion" Type="int32" Size="1" />
+    <Data ElementName="mail_type" Type="int8" Size="1" />
+    <Data ElementName="mail_expire" Type="int32" Size="1" />
+    <Data ElementName="coin_copper" Type="int32" Size="1" />
+    <Data ElementName="coin_silver" Type="int32" Size="1" />
+    <Data ElementName="coin_gold" Type="int32" Size="1" />
+    <Data ElementName="coin_plat" Type="int32" Size="1" />
+    <Data ElementName="item" Type="EQ2_Item" Optional="TRUE"/>
+    <Data ElementName="end_tagx" Type="int16" IfVariableNotSet="item_%i"/>
+    <Data ElementName="end_tag2" Type="int16" IfVariableNotSet="item_%i"/>
+    <Data ElementName="end_tag3" Type="int16" IfVariableNotSet="item_%i"/>
+    <Data ElementName="end_tag4" Type="int8" size="4"/>
+</Data>
+<Data ElementName="postage_cost" Type="int32" Size="1" />
+<Data ElementName="attachment_cost" Type="int32" Size="1" />
+<Data ElementName="unknown3" Type="int16" Size="1" />
+<Data ElementName="unknown4" Type="int8" Size="4" />
+</Struct>
 <Struct Name="WS_GetMailHeader" ClientVersion="1193" OpcodeName="OP_MailGetHeadersReplyMsg">
 <Data ElementName="kiosk_id" Type="int32" />
 <Data ElementName="num_messages" Type="int16" Size="1" />
@@ -16215,6 +16243,9 @@ to zero and treated like placeholders." />
 <Data ElementName="unknown3" Type="int16" Size="1" />
 <Data ElementName="unknown4" Type="int8" Size="4" />
 </Struct>
+<!-- didn't exist before trial of isle client/version in March 2005 -->
+<Struct Name="WS_MailGetMessage" ClientVersion="1" OpcodeName="OP_MailGetMessageReplyMsg">
+</Struct>
 <Struct Name="WS_MailGetMessage" ClientVersion="373" OpcodeName="OP_MailGetMessageReplyMsg">
 <Data ElementName="kiosk_id" Type="int32" />
 <Data ElementName="mail_id" Type="int32" />
@@ -16235,7 +16266,7 @@ to zero and treated like placeholders." />
 <Data ElementName="end_tag3" Type="int8" IfVariableNotSet="item_%i"/>
 <Data ElementName="end_tag4" Type="int8" size="5"/>
 </Struct>
-<Struct Name="WS_MailGetMessage" ClientVersion="1" OpcodeName="OP_MailGetMessageReplyMsg">
+<Struct Name="WS_MailGetMessage" ClientVersion="546" OpcodeName="OP_MailGetMessageReplyMsg">
 <Data ElementName="kiosk_id" Type="int32" />
 <Data ElementName="mail_id" Type="int32" />
 <Data ElementName="player_to_id" Type="int32" />
