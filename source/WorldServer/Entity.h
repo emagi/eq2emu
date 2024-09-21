@@ -1899,9 +1899,9 @@ public:
 	void AddDazeImmunity(LuaSpell* spell);
 	void RemoveDazeImmunity(LuaSpell* spell);
 	bool IsDazeImmune();
-	void AddImmunity(LuaSpell* spell, int16 type);
-	void RemoveImmunity(LuaSpell* spell, int16 type);
-	bool IsImmune(int16 type);
+	void AddImmunity(LuaSpell* spell, int8 type);
+	void RemoveImmunity(LuaSpell* spell, int8 type);
+	bool IsImmune(int8 type);
 	void AddFlightSpell(LuaSpell* spell);
 	void RemoveFlightSpell(LuaSpell* spell);
 	void AddSafefallSpell(LuaSpell* spell);

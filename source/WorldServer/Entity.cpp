@@ -3267,7 +3267,7 @@ bool Entity::IsDazeImmune(){
 	return (immunities[IMMUNITY_TYPE_DAZE] && immunities[IMMUNITY_TYPE_DAZE]->size(true) > 0);
 }
 
-void Entity::AddImmunity(LuaSpell* spell, int16 type){
+void Entity::AddImmunity(LuaSpell* spell, int8 type){
 	if (!spell)
 		return;
 
@@ -3277,7 +3277,7 @@ void Entity::AddImmunity(LuaSpell* spell, int16 type){
 	immunities[type]->Add(spell);
 }
 
-void Entity::RemoveImmunity(LuaSpell* spell, int16 type){
+void Entity::RemoveImmunity(LuaSpell* spell, int8 type){
 	MutexList<LuaSpell*>* list = immunities[type];
 	if (!list || list->size(true) == 0)
 		return;
@@ -3285,7 +3285,7 @@ void Entity::RemoveImmunity(LuaSpell* spell, int16 type){
 	list->Remove(spell);
 }
 
-bool Entity::IsImmune(int16 type){
+bool Entity::IsImmune(int8 type){
 	return (immunities[type] && immunities[type]->size(true) > 0);
 }
 
