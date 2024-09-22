@@ -138,7 +138,10 @@ void GroundSpawn::ProcessHarvest(Client* client) {
 
 	int16 totalSkill = skill->current_val;
 	int32 skillID = master_item_list.GetItemStatIDByName(collection_skill);
-	int16 max_skill_req_groundspawn = 10;
+	int16 max_skill_req_groundspawn = rule_manager.GetGlobalRule(R_Player, MinSkillMultiplierValue)->GetInt16();
+	if(max_skill_req_groundspawn < 1) // can't be 0
+		max_skill_req_groundspawn = 1;
+	
 	if(skillID != 0xFFFFFFFF)
 	{
 		((Entity*)client->GetPlayer())->MStats.lock();

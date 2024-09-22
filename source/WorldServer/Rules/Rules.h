@@ -99,6 +99,7 @@ enum RuleType {
 	StartPowerLevelMod,
 	AllowPlayerEquipCombat,
 	MaxTargetCommandDistance,
+	MinSkillMultiplierValue,
 	HarvestSkillUpMultiplier,
 
 	/* PVP */

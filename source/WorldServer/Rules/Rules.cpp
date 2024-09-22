@@ -239,7 +239,8 @@ void RuleManager::Init()
 	RULE_INIT(R_Player, StartPowerLevelMod, "2.1");
 	RULE_INIT(R_Player, AllowPlayerEquipCombat, "1");
 	RULE_INIT(R_Player, MaxTargetCommandDistance, "50.0"); // max distance allowed for /target command when target name is not in group
-	RULE_INIT(R_Player, HarvestSkillUpMultiplier, "1.5"); /* multiplier for node to take the "min skill" max and use a multiplier to offset the max skill allowed to skill up on node.
+	RULE_INIT(R_Player, MinSkillMultiplierValue, "30"); // min skill we use as a multiplier to note the max skill allowed by the node
+	RULE_INIT(R_Player, HarvestSkillUpMultiplier, "2.0"); /* multiplier for node to take the "min skill" max and use a multiplier to offset the max skill allowed to skill up on node.
 														  ** Eg. 50 min skill on node, 50*1.5=75, no one with higher than 75 skill gets a skill up
 														  */
 	/* PVP */
