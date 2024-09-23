@@ -445,9 +445,6 @@ bool SpellProcess::DeleteCasterSpell(LuaSpell* spell, string reason, bool removi
 			return target_valid;
 		}
 		spell->MSpellTargets.releasewritelock(__FUNCTION__, __LINE__);
-		
-		if (active_spells.count(spell) > 0)
-			active_spells.Remove(spell);
 		if (!zone_shutting_down && spell->caster) { // spell->caster ptr cannot be trusted during zone shutdown
 			if(spell->caster->GetThreatTransfer() && spell->caster->GetThreatTransfer()->Spell == spell) {
 				spell->caster->SetThreatTransfer(nullptr);
@@ -3023,7 +3020,7 @@ void SpellProcess::AddSelfAndPetToCharTargets(LuaSpell* spell, Spawn* caster, bo
 
 void SpellProcess::DeleteActiveSpell(LuaSpell* spell) {
 	lua_interface->RemoveCurrentSpell(spell->state, spell, true);
-	active_spells.Remove(spell, true);
+	active_spells.Remove(spell, true, 2000);
 }
 
 bool SpellProcess::AddLuaSpellTarget(LuaSpell* lua_spell, int32 id, bool lock_spell_targets) {
