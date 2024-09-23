@@ -588,7 +588,7 @@ void ClientPacketFunctions::SendItemCreationUI(Client* client, Recipe* recipe) {
 
 	packet->PrintPacket();
 	EQ2Packet* outapp = packet->serialize();
-	DumpPacket(outapp);
+	//DumpPacket(outapp);
 	client->QueuePacket(outapp);
 	safe_delete(packet);
 }

@@ -2817,7 +2817,7 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
 			LogWrite(OPCODE__DEBUG, 1, "Opcode", "Received %04X (%i)", app->GetRawOpcode(), app->GetRawOpcode());
 
 		// keeping this around for debugging purposes
-		DumpPacket(app);
+		//DumpPacket(app);
 
 	}
 	}
@@ -3225,7 +3225,7 @@ void Client::HandleExamineInfoRequest(EQApplicationPacket* app) {
 	//LogWrite(CCLIENT__DEBUG, 0, "Client", "Request2:");
 
 	int8 type = app->pBuffer[0];
-	DumpPacket(app->pBuffer,app->size);
+	//DumpPacket(app->pBuffer,app->size);
 	//283: item: 0, effect: 1, recipe: 2, spell: 3
 	if (version <= 373) {
 		if (type == 1)
@@ -9996,7 +9996,7 @@ void Client::SearchStore(int32 page) {
 				}
 			}
 			EQ2Packet* outapp = packet->serialize();
-			DumpPacket(outapp);
+			//DumpPacket(outapp);
 			QueuePacket(outapp);
 			safe_delete(packet);
 		}
@@ -13118,7 +13118,7 @@ void Client::SendHearCast(Spawn* caster, Spawn* target, int32 spell_visual, int1
 		packet->setDataByName("spell_tier", 1);
 		EQ2Packet* outapp = packet->serialize();
 		
-		DumpPacket(outapp);
+		//DumpPacket(outapp);
 		QueuePacket(outapp);
 		safe_delete(packet);
 	}
