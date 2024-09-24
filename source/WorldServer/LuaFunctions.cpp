@@ -8682,18 +8682,6 @@ int EQ2Emu_lua_RemoveProc(lua_State* state) {
 	Item* item = lua_interface->GetItem(state, 2);
 	LuaSpell* spell = 0;
 
-	if (!spawn) {
-		lua_interface->LogError("%s: LUA RemoveProc command error: spawn is not valid", lua_interface->GetScriptName(state));
-		lua_interface->ResetFunctionStack(state);
-		return 0;
-	}
-
-	if (!spawn->IsEntity()) {
-		lua_interface->LogError("%s: LUA RemoveProc command error: spawn is not a valid entity", lua_interface->GetScriptName(state));
-		lua_interface->ResetFunctionStack(state);
-		return 0;
-	}
-
 	if (!item)
 		spell = lua_interface->GetCurrentSpell(state);
 	
@@ -8717,9 +8705,17 @@ int EQ2Emu_lua_RemoveProc(lua_State* state) {
 		spell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
 		spell->caster->RemoveProc(item, spell);
 	}
-	else
+	else if (!spawn) {
+		lua_interface->LogError("%s: LUA RemoveProc command error: spawn is not valid", lua_interface->GetScriptName(state));
+		return 0;
+	}
+	else if (!spawn->IsEntity()) {
+		lua_interface->LogError("%s: LUA RemoveProc command error: spawn is not a valid entity", lua_interface->GetScriptName(state));
+		return 0;
+	}
+	else {
 		((Entity*)spawn)->RemoveProc(item, spell);
-
+	}
 	return 0;
 }
 
