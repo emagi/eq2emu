@@ -1790,7 +1790,9 @@ bool Entity::CastProc(Proc* proc, int8 type, Spawn* target) {
 			return false;
 		}
 	}
-	
+	else if(state) {
+		lua_pop(state, 1);
+	}
 	lua_interface->ResetFunctionStack(state);
 	if(mutex)
 		mutex->releasereadlock(__FUNCTION__);
