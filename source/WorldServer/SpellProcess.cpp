@@ -560,8 +560,10 @@ bool SpellProcess::ProcessSpell(LuaSpell* spell, bool first_cast, const char* fu
 					if(altSpawn)
 					{
 						std::string functionCall = ApplyLuaFunction(spell, first_cast, function, timer, altSpawn);
-						if(functionCall.length() < 1)
+						if(functionCall.length() < 1) {
 							ret = false;
+							lua_interface->ResetFunctionStack(spell->state);
+						}
 						else
 							ret = lua_interface->CallSpellProcess(spell, 2 + spell->spell->GetLUAData()->size(), functionCall);
 					}
@@ -570,8 +572,10 @@ bool SpellProcess::ProcessSpell(LuaSpell* spell, bool first_cast, const char* fu
 			return true;
 		}
 		std::string functionCall = ApplyLuaFunction(spell, first_cast, function, timer);
-		if(functionCall.length() < 1)
+		if(functionCall.length() < 1) {
 			ret = false;
+			lua_interface->ResetFunctionStack(spell->state);
+		}
 		else
 			ret = lua_interface->CallSpellProcess(spell, 2 + spell->spell->GetLUAData()->size(), functionCall);
 	}
