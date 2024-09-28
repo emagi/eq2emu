@@ -263,7 +263,7 @@ void NPC::Runback(float distance, bool stopFollowing){
 	m_runningBack = true;
 	SetSpeed(GetMaxSpeed()*2);
 
-	if (CheckLoS(glm::vec3(runback->x, runback->z, runback->y + 1.0f), glm::vec3(GetX(), GetZ(), GetY() + 1.0f)))
+	if (distance <= 5.0f && CheckLoS(glm::vec3(runback->x, runback->z, runback->y + 1.0f), glm::vec3(GetX(), GetZ(), GetY() + 1.0f)))
 	{
 		FaceTarget(runback->x, runback->z);
 		ClearRunningLocations();

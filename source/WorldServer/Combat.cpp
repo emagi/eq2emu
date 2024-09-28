@@ -1297,6 +1297,9 @@ void Entity::AddHate(Entity* attacker, sint32 hate) {
 	if(!attacker || GetHP() <= 0 || attacker->GetHP() <= 0)
 		return;
 
+	if(IsInSpawnGroup(attacker))
+		return; // can't aggro your own members
+	
 	// If a players pet and protect self is off
 	if (IsPet() && ((NPC*)this)->GetOwner() && ((NPC*)this)->GetOwner()->IsPlayer() && ((((Player*)((NPC*)this)->GetOwner())->GetInfoStruct()->get_pet_behavior() & 2) == 0))
 		return;
@@ -1414,7 +1417,7 @@ void Entity::KillSpawn(Spawn* dead, int8 type, int8 damage_type, int16 kill_blow
 	if(!dead)
 		return;
 
-	if (IsPlayer()) {
+	if (IsPlayer() && GetVersion() > 561) { // old clients do not support WS_EnterCombat, uses activity_status in spawn info
 		Client* client = ((Player*)this)->GetClient();
 		if(client) {
 			PacketStruct* packet = configReader.getStruct("WS_EnterCombat", client->GetVersion());

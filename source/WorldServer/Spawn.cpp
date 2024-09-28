@@ -3889,6 +3889,8 @@ void Spawn::CheckEncounterState(Entity* victim, bool test_auto_lock) {
 
 	Entity* ent = ((Entity*)this);
 	if (victim->GetLockedNoLoot() == ENCOUNTER_STATE_AVAILABLE) {
+		if(IsInSpawnGroup(victim))
+			return; // can't aggro your own members
 
 		Entity* attacker = nullptr;
 		if (ent->GetOwner())
