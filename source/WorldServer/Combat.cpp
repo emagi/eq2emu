@@ -1417,9 +1417,9 @@ void Entity::KillSpawn(Spawn* dead, int8 type, int8 damage_type, int16 kill_blow
 	if(!dead)
 		return;
 
-	if (IsPlayer() && GetVersion() > 561) { // old clients do not support WS_EnterCombat, uses activity_status in spawn info
+	if (IsPlayer()) { // old clients do not support WS_EnterCombat, uses activity_status in spawn info
 		Client* client = ((Player*)this)->GetClient();
-		if(client) {
+		if(client && client->GetVersion() > 561) {
 			PacketStruct* packet = configReader.getStruct("WS_EnterCombat", client->GetVersion());
 			if (packet) {
 				client->QueuePacket(packet->serialize());
