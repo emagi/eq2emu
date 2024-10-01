@@ -1183,7 +1183,7 @@ EQ2Packet* PlayerInfo::serialize(int16 version, int16 modifyPos, int32 modifyVal
 		string* data = packet->serializeString();
 		int32 size = data->length();
 
-		printf("CharSheet size: %u for version %u\n", size, version);
+		//printf("CharSheet size: %u for version %u\n", size, version);
 		//DumpPacket((uchar*)data->c_str(), data->size());
 		//packet->PrintPacket();
 		uchar* tmp = new uchar[size];
