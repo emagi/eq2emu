@@ -28,11 +28,13 @@
 #include "../zoneserver.h"
 #include "../WorldDatabase.h"
 #include "../../common/Log.h"
+#include "../Rules/Rules.h"
 
 extern ConfigReader configReader;
 extern ZoneList zone_list;
 extern WorldDatabase database;
 extern World world;
+extern RuleManager rule_manager;
 
 /***************************************************************************************************************************************************
  *																							GUILD
@@ -151,7 +153,8 @@ void Guild::AddEXPCurrent(sint64 exp, bool send_packet) {
 	char message[128];
 	char adjective[16];
 
-	if (exp > 0 && level < GUILD_MAX_LEVEL) {
+	int8 guild_max_level = rule_manager.GetGlobalRule(R_Guild, MaxLevel)->GetInt8();
+	if (exp > 0 && level < guild_max_level) {
 		exp_current += exp;
 		if (exp_current >= exp_to_next_level) {
 			LogWrite(GUILD__DEBUG, 0, "Guilds", "Guild %s Level UP! New Level: %i (current XP: %ul)", name, level, exp_current);
