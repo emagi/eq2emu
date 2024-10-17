@@ -133,6 +133,9 @@ void World::Web_worldhandle_reloadrules(const http::request<http::string_body>& 
     res.set(http::field::content_type, "application/json");
 	boost::property_tree::ptree pt, json_tree;
 	
+	std::istringstream json_stream(req.body());
+    boost::property_tree::read_json(json_stream, json_tree);
+	
 	database.LoadRuleSets(true);
 
     pt.put("success", 1);
