@@ -246,6 +246,7 @@ void World::init(std::string web_ipaddr, int16 web_port, std::string cert_file, 
 			world_webserver->register_route("/status", World::Web_worldhandle_status);
 			world_webserver->register_route("/clients", World::Web_worldhandle_clients);
 			world_webserver->register_route("/setadminstatus", World::Web_worldhandle_setadminstatus);
+			world_webserver->register_route("/reloadrules", World::Web_worldhandle_reloadrules);
 			world_webserver->run();
 			LogWrite(INIT__INFO, 0, "Init", "World Web Server is listening on %s:%u..", web_ipaddr.c_str(), web_port);
 		}

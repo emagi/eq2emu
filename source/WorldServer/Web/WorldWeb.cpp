@@ -128,3 +128,18 @@ void World::Web_worldhandle_setadminstatus(const http::request<http::string_body
     res.body() = json;
     res.prepare_payload();
 }
+
+void World::Web_worldhandle_reloadrules(const http::request<http::string_body>& req, http::response<http::string_body>& res) {
+    res.set(http::field::content_type, "application/json");
+	boost::property_tree::ptree pt, json_tree;
+	
+	database.LoadRuleSets(true);
+
+    pt.put("success", 1);
+
+    std::ostringstream oss;
+    boost::property_tree::write_json(oss, pt);
+    std::string json = oss.str();
+    res.body() = json;
+    res.prepare_payload();
+}
