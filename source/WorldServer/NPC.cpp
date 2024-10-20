@@ -345,7 +345,7 @@ void NPC::InCombat(bool val){
 		}
 	}
 
-	int8 ruleAutoLockEncounter = rule_manager.GetGlobalRule(R_World, AutoLockEncounter)->GetInt8();
+	int8 ruleAutoLockEncounter = rule_manager.GetZoneRule(GetZone() ? GetZone()->GetZoneID() : 0, R_World, AutoLockEncounter)->GetInt8();
 	in_combat = val;
 	if(val){
 		LogWrite(NPC__DEBUG, 3, "NPC", "'%s' engaged in combat with '%s'", this->GetName(), ( GetTarget() ) ? GetTarget()->GetName() : "Unknown" );

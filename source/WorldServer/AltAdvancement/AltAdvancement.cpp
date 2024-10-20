@@ -536,7 +536,7 @@ void MasterAAList::DisplayAA(Client* client,int8 newtemplate,int8 changemode) {
 	index = 0;
 	packet->setDataByName("class_tab_title",  classes.GetClassNameCase(classes.GetSecondaryBaseClass(client->GetPlayer()->GetAdventureClass())).c_str());
 	packet->setDataByName("class_tree_node_id",  node_id[AA_CLASS]);
-	packet->setDataByName("class_max_aa",  rule_manager.GetGlobalRule(R_Player, MaxClassAA)->GetInt32());
+	packet->setDataByName("class_max_aa",  rule_manager.GetZoneRule(client->GetCurrentZoneID(), R_Player, MaxClassAA)->GetInt32());
 	int32 class_id = TreeNodeList[node_id[AA_CLASS]]->AAtreeID;
 	class_id = classid[node_id[AA_CLASS]];
 	packet->setDataByName("class_id", classid[node_id[AA_CLASS]]);
@@ -630,7 +630,7 @@ void MasterAAList::DisplayAA(Client* client,int8 newtemplate,int8 changemode) {
 	index = 0;
 	packet->setDataByName("subclass_tab_title", classes.GetClassNameCase(client->GetPlayer()->GetAdventureClass()).c_str());
 	packet->setDataByName("subclass_tree_node_id",  node_id[AA_SUBCLASS]);
-	packet->setDataByName("subclass_max_aa", rule_manager.GetGlobalRule(R_Player, MaxSubclassAA)->GetInt32());
+	packet->setDataByName("subclass_max_aa", rule_manager.GetZoneRule(client->GetCurrentZoneID(), R_Player, MaxSubclassAA)->GetInt32());
 	int32 unknown3 = TreeNodeList[node_id[AA_SUBCLASS]]->AAtreeID;
 		
 	packet->setDataByName("subclass_id", classid[node_id[AA_SUBCLASS]]);
@@ -745,7 +745,7 @@ void MasterAAList::DisplayAA(Client* client,int8 newtemplate,int8 changemode) {
 	index = 0;
 	packet->setDataByName("shadows_tab_title", "Shadows");
 	packet->setDataByName("shadows_tree_node_id", node_id[AA_SHADOW]);
-	packet->setDataByName("shadows_max_aa", rule_manager.GetGlobalRule(R_Player, MaxShadowsAA)->GetInt32());
+	packet->setDataByName("shadows_max_aa", rule_manager.GetZoneRule(client->GetCurrentZoneID(), R_Player, MaxShadowsAA)->GetInt32());
 	packet->setDataByName("shadows_id", classid[node_id[AA_SHADOW]]);
 	packet->setDataByName("shadows_eof_req", 0);
 	packet->setArrayLengthByName("shadows_num_items", shadows_num_items, 0);
@@ -848,7 +848,7 @@ void MasterAAList::DisplayAA(Client* client,int8 newtemplate,int8 changemode) {
 	index = 0; 
 	packet->setDataByName("heroic_tab_title", "Heroic");
 	packet->setDataByName("heroic_tree_node_id", node_id[AA_HEROIC]);
-	packet->setDataByName("heroic_max_aa", rule_manager.GetGlobalRule(R_Player, MaxHeroicAA)->GetInt32());
+	packet->setDataByName("heroic_max_aa", rule_manager.GetZoneRule(client->GetCurrentZoneID(), R_Player, MaxHeroicAA)->GetInt32());
 	packet->setDataByName("heroic_id", classid[node_id[AA_HEROIC]]);
 	packet->setDataByName("heroic_eof_req", 0);
 	packet->setArrayLengthByName("heroic_num_items", heroic_num_items, 0);
@@ -956,7 +956,7 @@ void MasterAAList::DisplayAA(Client* client,int8 newtemplate,int8 changemode) {
 		index = 0;
 		packet->setDataByName("tradeskill_tab_title", "Tradeskill");
 		packet->setDataByName("tradeskill_tree_node_id", node_id[AA_TRADESKILL]);
-		packet->setDataByName("tradeskill_max_aa", rule_manager.GetGlobalRule(R_Player, MaxTradeskillAA)->GetInt32());
+		packet->setDataByName("tradeskill_max_aa", rule_manager.GetZoneRule(client->GetCurrentZoneID(), R_Player, MaxTradeskillAA)->GetInt32());
 		packet->setDataByName("tradeskill_id", classid[node_id[AA_TRADESKILL]]);
 		packet->setDataByName("tradeskill_eof_req", 0);
 		packet->setArrayLengthByName("tradeskill_num_items", tradeskill_num_items, 0);
@@ -1048,7 +1048,7 @@ void MasterAAList::DisplayAA(Client* client,int8 newtemplate,int8 changemode) {
 		index = 0;
 		packet->setDataByName("prestige_tab_title", "Prestige");
 		packet->setDataByName("prestige_tree_node_id", node_id[AA_PRESTIGE]);
-		packet->setDataByName("prestige_max_aa", rule_manager.GetGlobalRule(R_Player, MaxPrestigeAA)->GetInt32());
+		packet->setDataByName("prestige_max_aa", rule_manager.GetZoneRule(client->GetCurrentZoneID(), R_Player, MaxPrestigeAA)->GetInt32());
 		packet->setDataByName("prestige_id", classid[node_id[AA_PRESTIGE]]);
 		packet->setDataByName("prestige_eof_req", 0);
 		packet->setArrayLengthByName("prestige_num_items", prestige_num_items, 0);
@@ -1151,7 +1151,7 @@ void MasterAAList::DisplayAA(Client* client,int8 newtemplate,int8 changemode) {
 			packet->setDataByName("tradeskillprestige_tab_title", "Tradeskill Prestige");
 		}
 		packet->setDataByName("tradeskillprestige_tree_node_id",  node_id[AA_TRADESKILL_PRESTIGE]);
-		packet->setDataByName("tradeskillprestige_max_aa", rule_manager.GetGlobalRule(R_Player, MaxPrestigeAA)->GetInt32());
+		packet->setDataByName("tradeskillprestige_max_aa", rule_manager.GetZoneRule(client->GetCurrentZoneID(), R_Player, MaxPrestigeAA)->GetInt32());
 		packet->setDataByName("tradeskillprestige_id", classid[node_id[AA_TRADESKILL_PRESTIGE]]);
 		packet->setDataByName("tradeskillprestige_eof_req", 0);
 		packet->setArrayLengthByName("tradeskillprestige_num_items", tradeskillprestige_num_items, 0);
@@ -1245,7 +1245,7 @@ void MasterAAList::DisplayAA(Client* client,int8 newtemplate,int8 changemode) {
 		index = 0;
 		packet->setDataByName("dragon_tab_title", "Dragon");
 		packet->setDataByName("dragon_tree_node_id", node_id[AA_DRAGON]);
-		packet->setDataByName("dragon_max_aa", rule_manager.GetGlobalRule(R_Player, MaxDragonAA)->GetInt32());
+		packet->setDataByName("dragon_max_aa", rule_manager.GetZoneRule(client->GetCurrentZoneID(), R_Player, MaxDragonAA)->GetInt32());
 		packet->setDataByName("dragon_id", classid[node_id[AA_DRAGON]]);
 		packet->setDataByName("dragon_eof_req", 0);
 		packet->setArrayLengthByName("dragon_num_items", dragon_num_items, 0);
@@ -1324,7 +1324,7 @@ void MasterAAList::DisplayAA(Client* client,int8 newtemplate,int8 changemode) {
 		index = 0;
 		packet->setDataByName("dragonclass_tab_title", classes.GetClassNameCase(client->GetPlayer()->GetAdventureClass()).c_str());
 		packet->setDataByName("dragonclass_tree_node_id",  node_id[AA_DRAGONCLASS]);
-		packet->setDataByName("dragonclass_max_aa", rule_manager.GetGlobalRule(R_Player, MaxDragonAA)->GetInt32());
+		packet->setDataByName("dragonclass_max_aa", rule_manager.GetZoneRule(client->GetCurrentZoneID(), R_Player, MaxDragonAA)->GetInt32());
 		packet->setDataByName("dragonclass_id", classid[node_id[AA_DRAGONCLASS]]);
 		packet->setDataByName("dragonclass_eof_req", 0);
 		packet->setArrayLengthByName("dragonclass_num_items", dragonclass_num_items, 0);
@@ -1402,7 +1402,7 @@ void MasterAAList::DisplayAA(Client* client,int8 newtemplate,int8 changemode) {
 		index = 0;
 		packet->setDataByName("farseas_tab_title", "Farseas");
 		packet->setDataByName("farseas_tree_node_id", node_id[AA_FARSEAS]);
-		packet->setDataByName("farseas_max_aa", rule_manager.GetGlobalRule(R_Player, MaxDragonAA)->GetInt32());
+		packet->setDataByName("farseas_max_aa", rule_manager.GetZoneRule(client->GetCurrentZoneID(), R_Player, MaxDragonAA)->GetInt32());
 		packet->setDataByName("farseas_id", classid[node_id[AA_FARSEAS]]);
 		packet->setDataByName("farseas_eof_req", 0);
 		packet->setArrayLengthByName("farseas_num_items", farseas_num_items, 0);

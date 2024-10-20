@@ -222,6 +222,7 @@ public:
 	bool	CheckZoneAccess(const char* zoneName);
 	
 	ZoneServer* GetCurrentZone();
+	int32 GetCurrentZoneID();
 	void	SetCurrentZoneByInstanceID(int32 id, int32 zoneid);
 	//void	SetCurrentZoneByInstanceID(instanceid, zoneid);
 	void	SetCurrentZone(int32 id);

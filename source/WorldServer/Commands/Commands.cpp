@@ -2352,7 +2352,7 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 								break;
 							}
 							int16 tier_up = player->GetTierUp(spell->GetSpellTier());
-							if (rule_manager.GetGlobalRule(R_Spells, RequirePreviousTierScribe)->GetInt8() && !player->HasSpell(spell->GetSpellID(), tier_up, false, true))
+							if (rule_manager.GetZoneRule(client->GetCurrentZoneID(), R_Spells, RequirePreviousTierScribe)->GetInt8() && !player->HasSpell(spell->GetSpellID(), tier_up, false, true))
 								client->SimpleMessage(CHANNEL_COLOR_RED, "You have not scribed the required previous version of this ability.");
 							else if (!player->HasSpell(spell->GetSpellID(), spell->GetSpellTier(), true)) {
 								old_slot = player->GetSpellSlot(spell->GetSpellID());
@@ -2549,7 +2549,7 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 				if (spawn->IsNPC())
 					show_bubble = false;
 				client->GetCurrentZone()->HandleChatMessage(client->GetPlayer(), 0, CHANNEL_SAY, tmp, HEAR_SPAWN_DISTANCE, 0, show_bubble, client->GetPlayer()->GetCurrentLanguage());
-				if(spawn->IsPlayer() == false && spawn->Alive() && spawn->GetDistance(client->GetPlayer()) < rule_manager.GetGlobalRule(R_Spawn, HailDistance)->GetInt32()){
+				if(spawn->IsPlayer() == false && spawn->Alive() && spawn->GetDistance(client->GetPlayer()) < rule_manager.GetZoneRule(client->GetCurrentZoneID(), R_Spawn, HailDistance)->GetInt32()){
 					if(spawn->IsNPC() && ((NPC*)spawn)->EngagedInCombat())
 						spawn->GetZone()->CallSpawnScript(spawn, SPAWN_SCRIPT_HAILED_BUSY, client->GetPlayer());
 					else
@@ -2563,7 +2563,7 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 						}
 
 						if(spawn->GetZone()->CallSpawnScript(spawn, SPAWN_SCRIPT_HAILED, client->GetPlayer()) && pauseRunback)
-							spawn->PauseMovement(rule_manager.GetGlobalRule(R_Spawn, HailMovementPause)->GetInt32());
+							spawn->PauseMovement(rule_manager.GetZoneRule(client->GetCurrentZoneID(), R_Spawn, HailMovementPause)->GetInt32());
 						else if(spawn->IsNPC() && pauseRunback)
 							((NPC*)spawn)->ClearRunback();
 					}
@@ -3034,11 +3034,11 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 			}
 
 			if(cmdTarget && cmdTarget->IsEntity()){
-				if (cmdTarget->GetDistance(client->GetPlayer()) <= rule_manager.GetGlobalRule(R_Loot, LootRadius)->GetFloat()){
-					if (!rule_manager.GetGlobalRule(R_Loot, AutoDisarmChest)->GetBool() && command->handler == COMMAND_DISARM )
+				if (cmdTarget->GetDistance(client->GetPlayer()) <= rule_manager.GetZoneRule(client->GetCurrentZoneID(), R_Loot, LootRadius)->GetFloat()){
+					if (!rule_manager.GetZoneRule(client->GetCurrentZoneID(), R_Loot, AutoDisarmChest)->GetBool() && command->handler == COMMAND_DISARM )
 						client->OpenChest(cmdTarget, true);
 					else
-						client->LootSpawnRequest(cmdTarget, rule_manager.GetGlobalRule(R_Loot, AutoDisarmChest)->GetBool());
+						client->LootSpawnRequest(cmdTarget, rule_manager.GetZoneRule(client->GetCurrentZoneID(), R_Loot, AutoDisarmChest)->GetBool());
 					if (!(cmdTarget)->HasLoot()){
 						if (((Entity*)cmdTarget)->IsNPC())
 							client->GetCurrentZone()->RemoveDeadSpawn(cmdTarget);
@@ -7012,7 +7012,7 @@ void Commands::Command_Inventory(Client* client, Seperator* sep, EQ2_RemoteComma
 		}
 		else if(sep->arg[2][0] && strncasecmp("swap_equip", sep->arg[0], 10) == 0 && sep->IsNumber(1) && sep->IsNumber(2))
 		{
-			if(client->GetPlayer()->EngagedInCombat() && rule_manager.GetGlobalRule(R_Player, AllowPlayerEquipCombat)->GetInt8() == 0) {
+			if(client->GetPlayer()->EngagedInCombat() && rule_manager.GetZoneRule(client->GetCurrentZoneID(), R_Player, AllowPlayerEquipCombat)->GetInt8() == 0) {
 				client->SimpleMessage(CHANNEL_COLOR_RED, "You may not swap items while in combat.");
 			}
 			else {
@@ -7250,7 +7250,7 @@ void Commands::Command_LastName(Client* client, Seperator* sep)
 	if (sep && sep->arg[0])
 	{
 		if (!client->GetPlayer()->get_character_flag(CF_ENABLE_CHANGE_LASTNAME)){
-			client->Message(CHANNEL_COLOR_YELLOW, "You must be atleast level %i to change your last name.", rule_manager.GetGlobalRule(R_Player, MinLastNameLevel)->GetInt8());
+			client->Message(CHANNEL_COLOR_YELLOW, "You must be atleast level %i to change your last name.", rule_manager.GetZoneRule(client->GetCurrentZoneID(), R_Player, MinLastNameLevel)->GetInt8());
 			return;
 		}
 		client->RemovePendingLastName();
@@ -7265,13 +7265,13 @@ void Commands::Command_LastName(Client* client, Seperator* sep)
 		}
 
 		if (!valid_name) {
-			client->Message(CHANNEL_COLOR_YELLOW, "Your last name can only contain letters.", rule_manager.GetGlobalRule(R_Player, MinLastNameLevel)->GetInt8());
+			client->Message(CHANNEL_COLOR_YELLOW, "Your last name can only contain letters.", rule_manager.GetZoneRule(client->GetCurrentZoneID(), R_Player, MinLastNameLevel)->GetInt8());
 			return;
 		}
 
 		string last_name = (string)sep->arg[0];
-		int8 max_length = rule_manager.GetGlobalRule(R_Player, MaxLastNameLength)->GetInt8();
-		int8 min_length = rule_manager.GetGlobalRule(R_Player, MinLastNameLength)->GetInt8();
+		int8 max_length = rule_manager.GetZoneRule(client->GetCurrentZoneID(), R_Player, MaxLastNameLength)->GetInt8();
+		int8 min_length = rule_manager.GetZoneRule(client->GetCurrentZoneID(), R_Player, MinLastNameLength)->GetInt8();
 		if (last_name.length() <= max_length && last_name.length() >= min_length){
 			client->SetPendingLastName(last_name);
 			client->SendLastNameConfirmation();
@@ -11272,15 +11272,15 @@ void Commands::Command_Weather(Client* client, Seperator* sep)
 		}
 		else if( strncasecmp(value, "reset", strlen(value)) == 0 ) 
 		{
-			zsZone->SetWeatherType(rule_manager.GetGlobalRule(R_Zone, WeatherType)->GetInt8());
-			zsZone->SetWeatherFrequency(rule_manager.GetGlobalRule(R_Zone, WeatherChangeFrequency)->GetInt32());
-			zsZone->SetWeatherMinSeverity(rule_manager.GetGlobalRule(R_Zone, MinWeatherSeverity)->GetFloat());
-			zsZone->SetWeatherMaxSeverity(rule_manager.GetGlobalRule(R_Zone, MaxWeatherSeverity)->GetFloat());
+			zsZone->SetWeatherType(rule_manager.GetZoneRule(client->GetCurrentZoneID(), R_Zone, WeatherType)->GetInt8());
+			zsZone->SetWeatherFrequency(rule_manager.GetZoneRule(client->GetCurrentZoneID(), R_Zone, WeatherChangeFrequency)->GetInt32());
+			zsZone->SetWeatherMinSeverity(rule_manager.GetZoneRule(client->GetCurrentZoneID(), R_Zone, MinWeatherSeverity)->GetFloat());
+			zsZone->SetWeatherMaxSeverity(rule_manager.GetZoneRule(client->GetCurrentZoneID(), R_Zone, MaxWeatherSeverity)->GetFloat());
 			zsZone->SetCurrentWeather(zsZone->GetWeatherMinSeverity());
 			zsZone->SetWeatherPattern(1);
-			zsZone->SetWeatherChance(rule_manager.GetGlobalRule(R_Zone, WeatherChangeChance)->GetInt8());
-			zsZone->SetWeatherChangeAmount(rule_manager.GetGlobalRule(R_Zone, WeatherChangePerInterval)->GetFloat());
-			zsZone->SetWeatherDynamicOffset(rule_manager.GetGlobalRule(R_Zone, WeatherDynamicMaxOffset)->GetFloat());
+			zsZone->SetWeatherChance(rule_manager.GetZoneRule(client->GetCurrentZoneID(), R_Zone, WeatherChangeChance)->GetInt8());
+			zsZone->SetWeatherChangeAmount(rule_manager.GetZoneRule(client->GetCurrentZoneID(), R_Zone, WeatherChangePerInterval)->GetFloat());
+			zsZone->SetWeatherDynamicOffset(rule_manager.GetZoneRule(client->GetCurrentZoneID(), R_Zone, WeatherDynamicMaxOffset)->GetFloat());
 			zsZone->SetWeatherLastChangedTime(Timer::GetUnixTimeStamp() - zsZone->GetWeatherFrequency());
 			zsZone->ProcessWeather();
 		}
@@ -11627,9 +11627,9 @@ void Commands::Command_AchievementAdd(Client* client, Seperator* sep) {
 void Commands::Command_Editor(Client* client, Seperator* sep) {
 	PacketStruct* packet = configReader.getStruct("WS_ChoiceWindow", client->GetVersion());
 	if (packet) {
-		string url = string(rule_manager.GetGlobalRule(R_World, EditorURL)->GetString());
+		string url = string(rule_manager.GetZoneRule(client->GetCurrentZoneID(), R_World, EditorURL)->GetString());
 
-		if (rule_manager.GetGlobalRule(R_World, EditorOfficialServer)->GetBool()) {
+		if (rule_manager.GetZoneRule(client->GetCurrentZoneID(), R_World, EditorOfficialServer)->GetBool()) {
 			char command[255];
 			url = "browser " + url;
 			int32 spawn_id = 0;
@@ -11661,7 +11661,7 @@ void Commands::Command_Editor(Client* client, Seperator* sep) {
 
 			packet->setDataByName("accept_command", command);
 		}
-		else if (rule_manager.GetGlobalRule(R_World, EditorIncludeID)->GetBool()) {
+		else if (rule_manager.GetZoneRule(client->GetCurrentZoneID(), R_World, EditorIncludeID)->GetBool()) {
 			char command[255];
 			url = "browser " + url;
 			if (client->GetPlayer()->GetTarget())
@@ -12042,40 +12042,40 @@ void Commands::Command_CurePlayer(Client* client, Seperator* sep)
 					if(str == "arcane") {
 						type = EFFECT_CURE_TYPE_ARCANE;
 						// cure arcane spell missing in DB?
-						if(use_spells && rule_manager.GetGlobalRule(R_Spells, CureArcaneSpellID)->GetInt32()) {
-							entry = client->GetPlayer()->GetSpellBookSpell(rule_manager.GetGlobalRule(R_Spells, CureArcaneSpellID)->GetInt32()); // cure noxious
+						if(use_spells && rule_manager.GetZoneRule(client->GetCurrentZoneID(), R_Spells, CureArcaneSpellID)->GetInt32()) {
+							entry = client->GetPlayer()->GetSpellBookSpell(rule_manager.GetZoneRule(client->GetCurrentZoneID(), R_Spells, CureArcaneSpellID)->GetInt32()); // cure noxious
 						}
 					}
 					else if(str == "trauma") {
 						type = EFFECT_CURE_TYPE_TRAUMA;
 						// cure trauma spell missing in DB?
-						if(use_spells && rule_manager.GetGlobalRule(R_Spells, CureTraumaSpellID)->GetInt32()) {
-							entry = client->GetPlayer()->GetSpellBookSpell(rule_manager.GetGlobalRule(R_Spells, CureTraumaSpellID)->GetInt32()); // cure noxious
+						if(use_spells && rule_manager.GetZoneRule(client->GetCurrentZoneID(), R_Spells, CureTraumaSpellID)->GetInt32()) {
+							entry = client->GetPlayer()->GetSpellBookSpell(rule_manager.GetZoneRule(client->GetCurrentZoneID(), R_Spells, CureTraumaSpellID)->GetInt32()); // cure noxious
 						}
 					}
 					else if(str == "noxious") {
 						type = EFFECT_CURE_TYPE_NOXIOUS;
-						if(use_spells && rule_manager.GetGlobalRule(R_Spells, CureNoxiousSpellID)->GetInt32()) {
-							entry = client->GetPlayer()->GetSpellBookSpell(rule_manager.GetGlobalRule(R_Spells, CureNoxiousSpellID)->GetInt32()); // cure noxious
+						if(use_spells && rule_manager.GetZoneRule(client->GetCurrentZoneID(), R_Spells, CureNoxiousSpellID)->GetInt32()) {
+							entry = client->GetPlayer()->GetSpellBookSpell(rule_manager.GetZoneRule(client->GetCurrentZoneID(), R_Spells, CureNoxiousSpellID)->GetInt32()); // cure noxious
 						}
 					}
 					else if(str == "curse") {
 						type = EFFECT_CURE_TYPE_CURSE;
-						if(use_spells && rule_manager.GetGlobalRule(R_Spells, CureCurseSpellID)->GetInt32()) {
-							entry = client->GetPlayer()->GetSpellBookSpell(rule_manager.GetGlobalRule(R_Spells, CureCurseSpellID)->GetInt32()); // cure curse
+						if(use_spells && rule_manager.GetZoneRule(client->GetCurrentZoneID(), R_Spells, CureCurseSpellID)->GetInt32()) {
+							entry = client->GetPlayer()->GetSpellBookSpell(rule_manager.GetZoneRule(client->GetCurrentZoneID(), R_Spells, CureCurseSpellID)->GetInt32()); // cure curse
 						}
 					}
 					else if(str == "magic") {
 						type = EFFECT_CURE_TYPE_MAGIC;
-						if(use_spells && rule_manager.GetGlobalRule(R_Spells, CureMagicSpellID)->GetInt32()) {
-							entry = client->GetPlayer()->GetSpellBookSpell(rule_manager.GetGlobalRule(R_Spells, CureMagicSpellID)->GetInt32()); // cure magic
+						if(use_spells && rule_manager.GetZoneRule(client->GetCurrentZoneID(), R_Spells, CureMagicSpellID)->GetInt32()) {
+							entry = client->GetPlayer()->GetSpellBookSpell(rule_manager.GetZoneRule(client->GetCurrentZoneID(), R_Spells, CureMagicSpellID)->GetInt32()); // cure magic
 						}
 					}
 				
 				if(use_spells) {
 					// check if any of the specific cure types are available, if not then check the base cures
-					if(!entry && rule_manager.GetGlobalRule(R_Spells, CureSpellID)->GetInt32()) {
-						entry = client->GetPlayer()->GetSpellBookSpell(rule_manager.GetGlobalRule(R_Spells, CureSpellID)->GetInt32()); // cure
+					if(!entry && rule_manager.GetZoneRule(client->GetCurrentZoneID(), R_Spells, CureSpellID)->GetInt32()) {
+						entry = client->GetPlayer()->GetSpellBookSpell(rule_manager.GetZoneRule(client->GetCurrentZoneID(), R_Spells, CureSpellID)->GetInt32()); // cure
 					}
 					
 					if(entry && entry->spell_id) {
@@ -12353,7 +12353,7 @@ void Commands::Command_Target(Client* client, Seperator* sep) {
 	Entity* player = (Entity*)client->GetPlayer();
 	Spawn* res = nullptr;
 	if(sep && sep->arg[0] && player->GetZone()) {
-		float max_distance = rule_manager.GetGlobalRule(R_Player, MaxTargetCommandDistance)->GetFloat();
+		float max_distance = rule_manager.GetZoneRule(client->GetCurrentZoneID(), R_Player, MaxTargetCommandDistance)->GetFloat();
 		
 		if(max_distance < 1.0f) {
 			max_distance = 10.0f;

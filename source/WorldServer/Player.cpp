@@ -826,13 +826,13 @@ EQ2Packet* PlayerInfo::serialize(int16 version, int16 modifyPos, int32 modifyVal
 		packet->setDataByName("coins_plat", info_struct->get_coin_plat());// dov confirmed
 		
 		Skill* skill = player->GetSkillByName("Swimming", false);
-		float breath_modifier = rule_manager.GetGlobalRule(R_Player, SwimmingSkillMinBreathLength)->GetFloat();
+		float breath_modifier = rule_manager.GetZoneRule(player->GetZone() ? player->GetZone()->GetZoneID() : 0, R_Player, SwimmingSkillMinBreathLength)->GetFloat();
 		if(skill) {
 			int32 max_val = 450;
 			if(skill->max_val > 0)
 				max_val = skill->max_val;
 			float diff = (float)(skill->current_val + player->GetStat(ITEM_STAT_SWIMMING)) / (float)max_val;
-			float max_breath_mod = rule_manager.GetGlobalRule(R_Player, SwimmingSkillMaxBreathLength)->GetFloat();
+			float max_breath_mod = rule_manager.GetZoneRule(player->GetZone() ? player->GetZone()->GetZoneID() : 0, R_Player, SwimmingSkillMaxBreathLength)->GetFloat();
 			float diff_mod = max_breath_mod * diff;
 			if(diff_mod > max_breath_mod)
 				breath_modifier = max_breath_mod;
@@ -6835,7 +6835,7 @@ bool Player::CanSeeInvis(Entity* target)
 	else if (target->IsInvis() && HasSeeInvisSpell())
 		return true;
 
-	sint32 radius = rule_manager.GetGlobalRule(R_PVP, InvisPlayerDiscoveryRange)->GetSInt32();
+	sint32 radius = rule_manager.GetZoneRule(GetZone() ? GetZone()->GetZoneID() : 0, R_PVP, InvisPlayerDiscoveryRange)->GetSInt32();
 
 	if (radius == 0) // radius of 0 is always seen
 		return true;
@@ -7512,7 +7512,7 @@ void Player::CalculatePlayerHPPower(int16 new_level) {
 
 bool Player::IsAllowedCombatEquip(int8 slot, bool send_message) {
 	bool rule_pass = true;
-	if(EngagedInCombat() && rule_manager.GetGlobalRule(R_Player, AllowPlayerEquipCombat)->GetInt8() == 0) {
+	if(EngagedInCombat() && rule_manager.GetZoneRule(GetZone() ? GetZone()->GetZoneID() : 0, R_Player, AllowPlayerEquipCombat)->GetInt8() == 0) {
 		switch(slot) {
 			case EQ2_PRIMARY_SLOT:
 			case EQ2_SECONDARY_SLOT:

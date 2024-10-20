@@ -1047,6 +1047,7 @@ public:
 	void			SetLastAttacker(Spawn* spawn);
 	bool			TakeDamage(int32 damage);
 	ZoneServer*		GetZone();
+	int32			GetZoneID();
 	virtual void	SetZone(ZoneServer* in_zone, int32 version=0);
 	void			SetFactionID(int32 val) { faction_id = val; }
 	int32			GetFactionID(){

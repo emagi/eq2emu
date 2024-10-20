@@ -684,7 +684,7 @@ void Client::HandlePlayerRevive(int32 point_id)
 		safe_delete(packet);
 	}
 	
-	if(rule_manager.GetGlobalRule(R_Combat, EnableSpiritShards)->GetBool())
+	if(rule_manager.GetZoneRule(GetCurrentZoneID(), R_Combat, EnableSpiritShards)->GetBool())
 	{
 		NPC* shard = player->InstantiateSpiritShard(origX, origY, origZ, origHeading, origGridID, originalZone);
 
@@ -841,7 +841,7 @@ void Client::SendCharInfo() {
 	}
 
 	//Allow this player to change their last name if they meet the level requirement
-	if (!player->get_character_flag(CF_ENABLE_CHANGE_LASTNAME) && player->GetLevel() >= rule_manager.GetGlobalRule(R_Player, MinLastNameLevel)->GetInt8())
+	if (!player->get_character_flag(CF_ENABLE_CHANGE_LASTNAME) && player->GetLevel() >= rule_manager.GetZoneRule(GetCurrentZoneID(), R_Player, MinLastNameLevel)->GetInt8())
 		player->set_character_flag(CF_ENABLE_CHANGE_LASTNAME);
 
 	safe_delete(items);
@@ -1229,9 +1229,9 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
 			if (!camp_timer) {
 				int16 camp_time = 20; // default if rule cannot be found
 				if (GetAdminStatus() >= 100)
-					camp_time = rule_manager.GetGlobalRule(R_World, GMCampTimer)->GetInt16();
+					camp_time = rule_manager.GetZoneRule(GetCurrentZoneID(), R_World, GMCampTimer)->GetInt16();
 				else
-					camp_time = rule_manager.GetGlobalRule(R_World, PlayerCampTimer)->GetInt16();
+					camp_time = rule_manager.GetZoneRule(GetCurrentZoneID(), R_World, PlayerCampTimer)->GetInt16();
 
 				PacketStruct* response = configReader.getStruct("WS_Camp", GetVersion());
 				if (response) {
@@ -2337,7 +2337,7 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
 				HouseZone* hz = world.GetHouseZone(house_id);
 				if (hz) {
 					bool got_bank_money = BankHasCoin(hz->cost_coin);
-					int8 disable_alignment_req = rule_manager.GetGlobalRule(R_Player, DisableHouseAlignmentRequirement)->GetInt8();
+					int8 disable_alignment_req = rule_manager.GetZoneRule(GetCurrentZoneID(), R_Player, DisableHouseAlignmentRequirement)->GetInt8();
 					std::vector<PlayerHouse*> houses = world.GetAllPlayerHouses(GetCharacterID());
 					if (houses.size() > 24)
 					{
@@ -3721,7 +3721,7 @@ bool Client::Process(bool zone_process) {
 		LogWrite(CCLIENT__DEBUG, 1, "Client", "%s, ProcessQuestUpdates", __FUNCTION__, __LINE__);
 		ProcessQuestUpdates();
 	}
-	int32 queue_timer_delay = rule_manager.GetGlobalRule(R_Client, QuestQueueTimer)->GetInt32();
+	int32 queue_timer_delay = rule_manager.GetZoneRule(GetCurrentZoneID(), R_Client, QuestQueueTimer)->GetInt32();
 	if(queue_timer_delay < 10) {
 		queue_timer_delay = 10;
 	}
@@ -3770,12 +3770,12 @@ bool Client::Process(bool zone_process) {
 			enabled_player_pos_timer = true;
 			if(!underworld_cooldown_timer.Enabled() || (underworld_cooldown_timer.Enabled() && underworld_cooldown_timer.Check())) {
 				bool underworld = false;
-				if(rule_manager.GetGlobalRule(R_Zone, UseMapUnderworldCoords)->GetBool()) {
+				if(rule_manager.GetZoneRule(GetCurrentZoneID(), R_Zone, UseMapUnderworldCoords)->GetBool()) {
 					if(GetCurrentZone()->GetUnderWorld() != -1000000.0f) {
 						if(GetPlayer()->GetY() < GetCurrentZone()->GetUnderWorld())
 							underworld = true;
 					}
-					else if(GetPlayer()->GetMap() && GetPlayer()->GetMap()->GetMinY() != 9999999.0f && GetPlayer()->GetY() < (GetPlayer()->GetMap()->GetMinY() + rule_manager.GetGlobalRule(R_Zone, MapUnderworldCoordOffset)->GetFloat())) {		
+					else if(GetPlayer()->GetMap() && GetPlayer()->GetMap()->GetMinY() != 9999999.0f && GetPlayer()->GetY() < (GetPlayer()->GetMap()->GetMinY() + rule_manager.GetZoneRule(GetCurrentZoneID(), R_Zone, MapUnderworldCoordOffset)->GetFloat())) {		
 						underworld = true;
 					}
 				}
@@ -4111,6 +4111,10 @@ void Client::SetCurrentZoneByInstanceID(int32 id, int32 zoneid) {
 
 ZoneServer* Client::GetCurrentZone() {
 	return current_zone;
+}
+
+int32 Client::GetCurrentZoneID() {
+	return current_zone ? current_zone->GetZoneID() : 0;
 }
 
 int8 Client::GetMessageChannelColor(int8 channel_type) {
@@ -4672,7 +4676,7 @@ bool Client::TryZoneInstance(int32 zoneID, bool zone_coords_valid) {
 				instance_zone = zone_list.GetByLowestPopulation(zoneID);
 				if (instance_zone) {
 					// Check the current population against the max population, if greater or equal start a new version
-					if (instance_zone->GetClientCount() >= rule_manager.GetGlobalRule(R_Zone, MaxPlayers)->GetInt32())
+					if (instance_zone->GetClientCount() >= rule_manager.GetZoneRule(GetCurrentZoneID(), R_Zone, MaxPlayers)->GetInt32())
 						instance_zone = zone_list.GetByInstanceID(0, zoneID);
 				}
 				else
@@ -4804,7 +4808,7 @@ bool Client::CheckZoneAccess(const char* zoneName) {
 	LogWrite(CCLIENT__DEBUG, 0, "Client", "Access Requirements: status %i, level %i - %i, req >= %i version", zoneMinStatus, zoneMinLevel, zoneMaxLevel, zoneMinVersion);
 
 	// use ZoneLevelOverrideStatus in both min_level and max_level checks
-	sint16 ZoneLevelOverrideStatus = rule_manager.GetGlobalRule(R_Zone, MinZoneLevelOverrideStatus)->GetSInt16();
+	sint16 ZoneLevelOverrideStatus = rule_manager.GetZoneRule(GetCurrentZoneID(), R_Zone, MinZoneLevelOverrideStatus)->GetSInt16();
 
 	if ((zoneMinVersion > 0) && (GetVersion() < zoneMinVersion))
 	{
@@ -4839,7 +4843,7 @@ bool Client::CheckZoneAccess(const char* zoneName) {
 	{
 		LogWrite(CCLIENT__DEBUG, 0, "Client", "Zone MinStatus of %i challenge...", zoneMinStatus);
 
-		sint16 ZoneAccessOverrideStatus = rule_manager.GetGlobalRule(R_Zone, MinZoneAccessOverrideStatus)->GetSInt16();
+		sint16 ZoneAccessOverrideStatus = rule_manager.GetZoneRule(GetCurrentZoneID(), R_Zone, MinZoneAccessOverrideStatus)->GetSInt16();
 		if (ZoneAccessOverrideStatus && ZoneAccessOverrideStatus > GetAdminStatus())
 		{
 			LogWrite(CCLIENT__DEBUG, 0, "Client", "Player denied access to zone '%s' (status req: %i)", zoneName, GetAdminStatus());
@@ -5263,7 +5267,7 @@ void Client::ChangeLevel(int16 old_level, int16 new_level) {
 		safe_delete(command_packet);
 	}
 
-	if (!player->get_character_flag(CF_ENABLE_CHANGE_LASTNAME) && new_level >= rule_manager.GetGlobalRule(R_Player, MinLastNameLevel)->GetInt8())
+	if (!player->get_character_flag(CF_ENABLE_CHANGE_LASTNAME) && new_level >= rule_manager.GetZoneRule(GetCurrentZoneID(), R_Player, MinLastNameLevel)->GetInt8())
 		player->set_character_flag(CF_ENABLE_CHANGE_LASTNAME);
 
 	SendNewAdventureSpells();
@@ -5303,7 +5307,7 @@ void Client::ChangeLevel(int16 old_level, int16 new_level) {
 	player_skills->SetSkillCapsByType(SKILL_TYPE_ARMOR, new_skill_cap);
 	player_skills->SetSkillCapsByType(SKILL_TYPE_SHIELD, new_skill_cap);
 	
-	if(rule_manager.GetGlobalRule(R_Player, AutoSkillUpBaseSkills)->GetBool()) {
+	if(rule_manager.GetZoneRule(GetCurrentZoneID(), R_Player, AutoSkillUpBaseSkills)->GetBool()) {
 		//SKILL_TYPE_ARMOR/SKILL_TYPE_SHIELD always has the same current / max values
 		player_skills->SetSkillValuesByType(SKILL_TYPE_ARMOR, new_skill_cap, false);
 		player_skills->SetSkillValuesByType(SKILL_TYPE_SHIELD, new_skill_cap, false);
@@ -5312,7 +5316,7 @@ void Client::ChangeLevel(int16 old_level, int16 new_level) {
 	player_skills->SetSkillCapsByType(SKILL_TYPE_CLASS, new_skill_cap);
 	player_skills->SetSkillCapsByType(SKILL_TYPE_WEAPON, new_skill_cap);
 	
-	if(rule_manager.GetGlobalRule(R_Player, AutoSkillUpBaseSkills)->GetBool()) {
+	if(rule_manager.GetZoneRule(GetCurrentZoneID(), R_Player, AutoSkillUpBaseSkills)->GetBool()) {
 		//SKILL_TYPE_CLASS/SKILL_TYPE_WEAPON always has the same current/max values
 		player_skills->SetSkillValuesByType(SKILL_TYPE_CLASS, new_skill_cap, false);
 		player_skills->SetSkillValuesByType(SKILL_TYPE_WEAPON, new_skill_cap, false);
@@ -6045,7 +6049,7 @@ void Client::OpenChest(Spawn* entity, bool attemptDisarm)
 				if (disarmSkill->CheckDisarmSkill(entity->GetLevel(), chest_difficulty) < 1)
 				{
 					CastGroupOrSelf(entity && entity->IsEntity() ? (Entity*)entity : 0, nextTrap.spell_id, nextTrap.spell_tier,
-						rule_manager.GetGlobalRule(R_Loot, ChestTriggerRadiusGroup)->GetFloat());
+						rule_manager.GetZoneRule(GetCurrentZoneID(), R_Loot, ChestTriggerRadiusGroup)->GetFloat());
 					Message(CHANNEL_NARRATIVE, "You trigger the trap on %s!", modelName.c_str());
 				}
 				else
@@ -6059,7 +6063,7 @@ void Client::OpenChest(Spawn* entity, bool attemptDisarm)
 			else // no disarm skill, always fail
 			{
 				CastGroupOrSelf(entity && entity->IsEntity() ? (Entity*)entity : 0, nextTrap.spell_id, nextTrap.spell_tier,
-					rule_manager.GetGlobalRule(R_Loot, ChestTriggerRadiusGroup)->GetFloat());
+					rule_manager.GetZoneRule(GetCurrentZoneID(), R_Loot, ChestTriggerRadiusGroup)->GetFloat());
 				Message(CHANNEL_NARRATIVE, "You trigger the trap on %s!", modelName.c_str());
 			}
 		}
@@ -8491,7 +8495,7 @@ void Client::SendBuyMerchantList(bool sell) {
 					else
 						tmp_level = item->generic_info.tradeskill_default_level;
 					packet->setArrayDataByName("level", tmp_level, i);
-					if(rule_manager.GetGlobalRule(R_World, DisplayItemTiers)->GetBool()) {
+					if(rule_manager.GetZoneRule(GetCurrentZoneID(), R_World, DisplayItemTiers)->GetBool()) {
 						packet->setArrayDataByName("tier", item->details.tier, i);
 					}
 					packet->setArrayDataByName("item_id2", item->details.item_id, i);
@@ -8687,7 +8691,7 @@ void Client::SendSellMerchantList(bool sell) {
 						tmp_level = item->generic_info.tradeskill_default_level;
 					packet->setArrayDataByName("level", item->details.recommended_level, i);
 					
-					if(rule_manager.GetGlobalRule(R_World, DisplayItemTiers)->GetBool()) {
+					if(rule_manager.GetZoneRule(GetCurrentZoneID(), R_World, DisplayItemTiers)->GetBool()) {
 						packet->setArrayDataByName("tier", item->details.tier, i);
 					}
 					packet->setArrayDataByName("item_id2", item->details.item_id, i);
@@ -8769,7 +8773,7 @@ void Client::SendBuyBackList(bool sell) {
 					else
 						tmp_level = master_item->generic_info.tradeskill_default_level;
 					packet->setArrayDataByName("level", tmp_level, i);
-					if(rule_manager.GetGlobalRule(R_World, DisplayItemTiers)->GetBool()) {
+					if(rule_manager.GetZoneRule(GetCurrentZoneID(), R_World, DisplayItemTiers)->GetBool()) {
 						packet->setArrayDataByName("tier", master_item->details.tier, i);
 					}
 					packet->setArrayDataByName("item_id2", master_item->details.item_id, i);
@@ -8841,7 +8845,7 @@ void Client::SendRepairList() {
 				packet->setArrayDataByName("level", tmp_level, i);*/
 				packet->setArrayDataByName("level", item->generic_info.adventure_default_level, i);
 				
-				if(rule_manager.GetGlobalRule(R_World, DisplayItemTiers)->GetBool()) {
+				if(rule_manager.GetZoneRule(GetCurrentZoneID(), R_World, DisplayItemTiers)->GetBool()) {
 					packet->setArrayDataByName("tier", item->details.tier, i);
 				}
 				packet->setArrayDataByName("item_id2", item->details.item_id, i);
@@ -8892,7 +8896,7 @@ void Client::ShowLottoWindow() {
 	Spawn* spawn = GetMerchantTransaction();
 	if (spawn) {
 
-		int32 item_id = rule_manager.GetGlobalRule(R_World, GamblingTokenItemID)->GetInt32();
+		int32 item_id = rule_manager.GetZoneRule(GetCurrentZoneID(), R_World, GamblingTokenItemID)->GetInt32();
 		if (!item_id)
 		{
 			LogWrite(WORLD__ERROR, 0, "World", "No GamblingTokenItemID rule set!");
@@ -8927,7 +8931,7 @@ void Client::ShowLottoWindow() {
 			packet->setArrayDataByName("icon", item->GetIcon(GetVersion()));
 			packet->setArrayDataByName("level", item->generic_info.adventure_default_level);
 			
-			if(rule_manager.GetGlobalRule(R_World, DisplayItemTiers)->GetBool()) {
+			if(rule_manager.GetZoneRule(GetCurrentZoneID(), R_World, DisplayItemTiers)->GetBool()) {
 				packet->setArrayDataByName("tier", item->details.tier);
 			}
 			packet->setArrayDataByName("item_id2", item->details.item_id);
@@ -10246,7 +10250,7 @@ void Client::BeginWaypoint(const char* waypoint_name, float x, float y, float z)
 void Client::InspectPlayer(Player* player_to_inspect) {
 	int source_pvp_alignment = GetPlayer()->GetPVPAlignment();
 	int target_pvp_alignment = player_to_inspect->GetPVPAlignment();
-	bool pvp_allowed = rule_manager.GetGlobalRule(R_PVP, AllowPVP)->GetBool();
+	bool pvp_allowed = rule_manager.GetZoneRule(GetCurrentZoneID(), R_PVP, AllowPVP)->GetBool();
 
 	if(pvp_allowed == true){
 		if(source_pvp_alignment != target_pvp_alignment){
@@ -11317,16 +11321,16 @@ void Client::SavePlayerImages() {
 	LogWrite(CCLIENT__DEBUG, 0, "Client", "Saving %s image for player %s (%u)", (incoming_paperdoll.image_type == PAPERDOLL_TYPE_FULL ? "paperdoll" : "headshot"), GetPlayer()->GetName(), GetCharacterID());
 
 	// Save the paperdoll image if the server allows it
-	if (incoming_paperdoll.image_type == PAPERDOLL_TYPE_FULL && rule_manager.GetGlobalRule(R_World, SavePaperdollImage)->GetBool())
+	if (incoming_paperdoll.image_type == PAPERDOLL_TYPE_FULL && rule_manager.GetZoneRule(GetCurrentZoneID(), R_World, SavePaperdollImage)->GetBool())
 		database.SaveCharacterPicture(GetCharacterID(), incoming_paperdoll.image_type, incoming_paperdoll.image_bytes, incoming_paperdoll.current_size_bytes);
 
 	if (incoming_paperdoll.image_type == PAPERDOLL_TYPE_HEAD) {
 		// Save the head shot if the server allows it
-		if (rule_manager.GetGlobalRule(R_World, SaveHeadshotImage)->GetBool())
+		if (rule_manager.GetZoneRule(GetCurrentZoneID(), R_World, SaveHeadshotImage)->GetBool())
 			database.SaveCharacterPicture(GetCharacterID(), incoming_paperdoll.image_type, incoming_paperdoll.image_bytes, incoming_paperdoll.current_size_bytes);
 
 		// Send the head shot to the login server
-		if (rule_manager.GetGlobalRule(R_World, SendPaperdollImagesToLogin)->GetBool()) {
+		if (rule_manager.GetZoneRule(GetCurrentZoneID(), R_World, SendPaperdollImagesToLogin)->GetBool()) {
 			int32 size = incoming_paperdoll.current_size_bytes + CHARPICSTRUCT_MINSIZE;
 			ServerPacket* packet = new ServerPacket(ServerOP_CharacterPicture, size);
 			memset(packet->pBuffer, 0, size);
@@ -11450,7 +11454,7 @@ bool Client::HandleNewLogin(int32 account_id, int32 access_code)
 			GetPlayer()->vis_changed = false;
 			GetPlayer()->info_changed = false;
 			
-			bool pvp_allowed = rule_manager.GetGlobalRule(R_PVP, AllowPVP)->GetBool();
+			bool pvp_allowed = rule_manager.GetZoneRule(GetCurrentZoneID(), R_PVP, AllowPVP)->GetBool();
 			if (pvp_allowed)
 				this->GetPlayer()->SetAttackable(1);
 			MDeletePlayer.writelock(__FUNCTION__, __LINE__);
@@ -12360,7 +12364,7 @@ void Client::AwardCoins(int64 total_coins, std::string reason)
 
 void Client::TriggerSpellSave()
 {
-	int32 interval = rule_manager.GetGlobalRule(R_Spells, PlayerSpellSaveStateWaitInterval)->GetInt32();
+	int32 interval = rule_manager.GetZoneRule(GetCurrentZoneID(), R_Spells, PlayerSpellSaveStateWaitInterval)->GetInt32();
 	// default to not have some bogus value in the rule
 	if(interval < 1)
 		interval = 100;
@@ -12376,7 +12380,7 @@ void Client::TriggerSpellSave()
 		int32 elapsed_time = save_spell_state_timer.GetElapsedTime();
 		save_spell_state_time_bucket += elapsed_time;
 
-		int32 save_wait_cap = rule_manager.GetGlobalRule(R_Spells, PlayerSpellSaveStateCap)->GetInt32();
+		int32 save_wait_cap = rule_manager.GetZoneRule(GetCurrentZoneID(), R_Spells, PlayerSpellSaveStateCap)->GetInt32();
 		
 		// default to not have some bogus value in the rule
 		if(save_wait_cap < interval)
@@ -12739,7 +12743,7 @@ bool Client::CheckConsumptionAllowed(int16 slot, bool send_message) {
 
 void Client::StartLinkdeadTimer() {
 	if(!linkdead_timer) {
-		int32 LD_Timer = rule_manager.GetGlobalRule(R_World, LinkDeadTimer)->GetInt32();
+		int32 LD_Timer = rule_manager.GetZoneRule(GetCurrentZoneID(), R_World, LinkDeadTimer)->GetInt32();
 		LogWrite(CCLIENT__DEBUG, 0, "Client", "Starting linkdead timer for %s (timer %u seconds)", GetPlayer()->GetName(), (LD_Timer/1000));
 		linkdead_timer = new Timer(LD_Timer);
 		linkdead_timer->Enable();

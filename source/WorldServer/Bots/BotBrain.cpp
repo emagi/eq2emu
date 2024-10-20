@@ -50,7 +50,7 @@ void BotBrain::Think() {
 		float distance = GetBody()->GetDistance(target);
 
 		// If out of melee range then move closer
-		if (distance > rule_manager.GetGlobalRule(R_Combat, MaxCombatRange)->GetFloat())
+		if (distance > rule_manager.GetZoneRule(GetBody()->GetZoneID(), R_Combat, MaxCombatRange)->GetFloat())
 			MoveCloser(target);
 	}
 }

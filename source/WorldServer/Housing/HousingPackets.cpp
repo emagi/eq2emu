@@ -12,7 +12,7 @@ extern RuleManager rule_manager;
 void ClientPacketFunctions::SendHousePurchase(Client* client, HouseZone* hz, int32 spawnID) {
 	PacketStruct* packet = configReader.getStruct("WS_PlayerHousePurchase", client->GetVersion());
 	if (packet) {
-		int8 disable_alignment_req = rule_manager.GetGlobalRule(R_Player, DisableHouseAlignmentRequirement)->GetInt8();
+		int8 disable_alignment_req = rule_manager.GetZoneRule(client->GetCurrentZoneID(), R_Player, DisableHouseAlignmentRequirement)->GetInt8();
 		packet->setDataByName("house_name", hz->name.c_str());
 		packet->setDataByName("house_id", hz->id);
 		packet->setDataByName("spawn_id", spawnID);

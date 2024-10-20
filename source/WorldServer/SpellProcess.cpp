@@ -743,7 +743,7 @@ void SpellProcess::SendFinishedCast(LuaSpell* spell, Client* client){
 					Spawn* target = client->GetPlayer()->GetZone()->GetSpawnByID(spell->initial_target);
 					if(target) {
 						float distance = client->GetPlayer()->GetDistance(target);
-						if(distance <= rule_manager.GetGlobalRule(R_Combat, MaxCombatRange)->GetFloat()) {
+						if(distance <= rule_manager.GetZoneRule(client->GetCurrentZoneID(), R_Combat, MaxCombatRange)->GetFloat()) {
 							client->GetPlayer()->InCombat(true, false);
 							client->GetPlayer()->SetRangeAttack(false);
 						}

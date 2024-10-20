@@ -581,7 +581,7 @@ void ZoneList::Remove(ZoneServer* zone) {
 	MZoneList.releasewritelock(__FUNCTION__, __LINE__);
 	
 	ZoneServer* alternativeZone = Get(zoneName, false, false);
-	if(!alternativeZone && !rule_manager.GetGlobalRule(R_World, MemoryCacheZoneMaps)->GetBool()) {
+	if(!alternativeZone && !rule_manager.GetZoneRule(zone->GetZoneID(), R_World, MemoryCacheZoneMaps)->GetBool()) {
 		world.RemoveMaps(std::string(zoneName));
 	}
 }

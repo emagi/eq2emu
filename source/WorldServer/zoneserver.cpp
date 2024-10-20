@@ -378,12 +378,12 @@ void ZoneServer::CancelThreads() {
 
 void ZoneServer::InitWeather()
 {
-	weather_enabled = rule_manager.GetGlobalRule(R_Zone, WeatherEnabled)->GetBool();
+	weather_enabled = rule_manager.GetZoneRule(GetZoneID(), R_Zone, WeatherEnabled)->GetBool();
 	if( weather_enabled && isWeatherAllowed())
 	{
 		string tmp;
 		// set up weather system when zone starts up
-		weather_type				= rule_manager.GetGlobalRule(R_Zone, WeatherType)->GetInt8();
+		weather_type				= rule_manager.GetZoneRule(GetZoneID(), R_Zone, WeatherType)->GetInt8();
 		switch(weather_type)
 		{
 		case 3: tmp = "Chaotic"; break;
@@ -393,14 +393,14 @@ void ZoneServer::InitWeather()
 		}
 		LogWrite(ZONE__DEBUG, 0, "Zone", "%s: Setting up '%s' weather", zone_name, tmp.c_str());
 
-		weather_frequency			= rule_manager.GetGlobalRule(R_Zone, WeatherChangeFrequency)->GetInt32();
+		weather_frequency			= rule_manager.GetZoneRule(GetZoneID(), R_Zone, WeatherChangeFrequency)->GetInt32();
 		LogWrite(ZONE__DEBUG, 1, "Zone", "%s: Change weather every %u seconds", zone_name, weather_frequency);
 
-		weather_change_chance		= rule_manager.GetGlobalRule(R_Zone, WeatherChangeChance)->GetInt8();
+		weather_change_chance		= rule_manager.GetZoneRule(GetZoneID(), R_Zone, WeatherChangeChance)->GetInt8();
 		LogWrite(ZONE__DEBUG, 1, "Zone", "%s: Chance of weather change: %i%%", zone_name, weather_change_chance);
 
-		weather_min_severity		= rule_manager.GetGlobalRule(R_Zone, MinWeatherSeverity)->GetFloat();
-		weather_max_severity		= rule_manager.GetGlobalRule(R_Zone, MaxWeatherSeverity)->GetFloat();
+		weather_min_severity		= rule_manager.GetZoneRule(GetZoneID(), R_Zone, MinWeatherSeverity)->GetFloat();
+		weather_max_severity		= rule_manager.GetZoneRule(GetZoneID(), R_Zone, MaxWeatherSeverity)->GetFloat();
 		LogWrite(ZONE__DEBUG, 1, "Zone", "%s: Weather Severity min/max is %.2f - %.2f", zone_name, weather_min_severity, weather_max_severity);
 		// Allow a random roll to determine if weather should start out severe or calm
 		if( MakeRandomInt(1, 100) > 50)
@@ -415,12 +415,12 @@ void ZoneServer::InitWeather()
 		}
 		LogWrite(ZONE__DEBUG, 1, "Zone", "%s: Weather Severity set to %.2f, pattern: %i", zone_name, weather_current_severity, weather_pattern);
 
-		weather_change_amount		= rule_manager.GetGlobalRule(R_Zone, WeatherChangePerInterval)->GetFloat();
+		weather_change_amount		= rule_manager.GetZoneRule(GetZoneID(), R_Zone, WeatherChangePerInterval)->GetFloat();
 		LogWrite(ZONE__DEBUG, 1, "Zone", "%s: Weather change by %.2f each interval", zone_name, weather_change_amount);
 
 		if( weather_type > 0 )
 		{
-			weather_dynamic_offset		= rule_manager.GetGlobalRule(R_Zone, WeatherDynamicMaxOffset)->GetFloat();
+			weather_dynamic_offset		= rule_manager.GetZoneRule(GetZoneID(), R_Zone, WeatherDynamicMaxOffset)->GetFloat();
 			LogWrite(ZONE__DEBUG, 1, "Zone", "%s: Weather Max Offset changes no more than %.2f each interval", zone_name, weather_dynamic_offset);
 		}
 		else
@@ -428,7 +428,7 @@ void ZoneServer::InitWeather()
 
 		SetRain(weather_current_severity);
 		weather_last_changed_time = Timer::GetUnixTimeStamp();
-		weatherTimer.Start(rule_manager.GetGlobalRule(R_Zone, WeatherTimer)->GetInt32());
+		weatherTimer.Start(rule_manager.GetZoneRule(GetZoneID(), R_Zone, WeatherTimer)->GetInt32());
 	}
 }
 void ZoneServer::DeleteSpellProcess(){
@@ -1072,7 +1072,7 @@ void ZoneServer::AddEnemyList(NPC* npc){
 	if(faction_id <= 9)
 		return;
 
-	if(!rule_manager.GetGlobalRule(R_Faction, AllowFactionBasedCombat)->GetBool()) {
+	if(!rule_manager.GetZoneRule(GetZoneID(), R_Faction, AllowFactionBasedCombat)->GetBool()) {
 		LogWrite(FACTION__WARNING, 0, "Faction", "Faction Combat is DISABLED via R_Faction::AllowFactionBasedCombat rule!");
 		return;
 	}
@@ -2705,7 +2705,7 @@ void ZoneServer::AddLoot(NPC* npc, Spawn* killer, GroupLootMethod loot_method, i
 	if(killer)
 	{
 		npc->SetLootMethod(loot_method, item_rarity, group_id);
-		int8 skip_loot_gray_mob_flag = rule_manager.GetGlobalRule(R_Loot, SkipLootGrayMob)->GetInt8();
+		int8 skip_loot_gray_mob_flag = rule_manager.GetZoneRule(GetZoneID(), R_Loot, SkipLootGrayMob)->GetInt8();
 		if(skip_loot_gray_mob_flag) {
 			Player* player = 0;
 			if(killer->IsPlayer())
@@ -5946,8 +5946,8 @@ EQ2Packet* ZoneServer::GetZoneInfoPacket(Client* client){
 		safe_delete(slides);
 	}
 
-	if(rule_manager.GetGlobalRule(R_Zone, UseMapUnderworldCoords)->GetBool() && client->GetPlayer()->GetMap()) {
-		packet->setDataByName("underworld", client->GetPlayer()->GetMap()->GetMinY() + rule_manager.GetGlobalRule(R_Zone, MapUnderworldCoordOffset)->GetFloat());
+	if(rule_manager.GetZoneRule(GetZoneID(), R_Zone, UseMapUnderworldCoords)->GetBool() && client->GetPlayer()->GetMap()) {
+		packet->setDataByName("underworld", client->GetPlayer()->GetMap()->GetMinY() + rule_manager.GetZoneRule(GetZoneID(), R_Zone, MapUnderworldCoordOffset)->GetFloat());
 	}
 	else {
 		packet->setDataByName("underworld", underworld);
@@ -6524,7 +6524,7 @@ void ZoneServer::CheckLocationGrids() {
 						grid->players.Put(player, true);
 
 						bool show_enter_location_popup = true;
-						bool discovery_enabled = rule_manager.GetGlobalRule(R_World, EnablePOIDiscovery)->GetBool();
+						bool discovery_enabled = rule_manager.GetZoneRule(GetZoneID(), R_World, EnablePOIDiscovery)->GetBool();
 
 						if( grid->discovery && discovery_enabled && !player->DiscoveredLocation(grid->id) )
 						{
@@ -7085,7 +7085,7 @@ void ZoneServer::ProcessAggroChecks(Spawn* spawn) {
 	if (spawn->GetFactionID() < 1 || spawn->EngagedInCombat())
 		return;
 	// If faction based combat is not allowed then no need to run the loops so just return out
-	if(!rule_manager.GetGlobalRule(R_Faction, AllowFactionBasedCombat)->GetBool())
+	if(!rule_manager.GetZoneRule(GetZoneID(), R_Faction, AllowFactionBasedCombat)->GetBool())
 		return;
 
 	if (spawn && spawn->IsNPC() && spawn->Alive())

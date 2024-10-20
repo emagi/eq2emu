@@ -138,7 +138,7 @@ void GroundSpawn::ProcessHarvest(Client* client) {
 
 	int16 totalSkill = skill->current_val;
 	int32 skillID = master_item_list.GetItemStatIDByName(collection_skill);
-	int16 max_skill_req_groundspawn = rule_manager.GetGlobalRule(R_Player, MinSkillMultiplierValue)->GetInt16();
+	int16 max_skill_req_groundspawn = rule_manager.GetZoneRule(client->GetCurrentZoneID(), R_Player, MinSkillMultiplierValue)->GetInt16();
 	if(max_skill_req_groundspawn < 1) // can't be 0
 		max_skill_req_groundspawn = 1;
 	
@@ -278,7 +278,7 @@ void GroundSpawn::ProcessHarvest(Client* client) {
 				else
 					LogWrite(GROUNDSPAWN__DEBUG, 3, "GSpawn", "Harvest nothing...");
 				
-				float node_maxskill_multiplier = rule_manager.GetGlobalRule(R_Player, HarvestSkillUpMultiplier)->GetFloat();
+				float node_maxskill_multiplier = rule_manager.GetZoneRule(client->GetCurrentZoneID(), R_Player, HarvestSkillUpMultiplier)->GetFloat();
 				if(node_maxskill_multiplier <= 0.0f) {
 					node_maxskill_multiplier = 1.0f;
 				}

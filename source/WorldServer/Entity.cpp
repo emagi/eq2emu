@@ -781,7 +781,7 @@ void Entity::GetWeaponDamage(Item* item, int32* low_damage, int32* high_damage) 
 	int32 selected_high_dmg = item->weapon_info->damage_high3;
 	
 	if(IsPlayer()) {
-		float skillMultiplier = rule_manager.GetGlobalRule(R_Player, LevelMasterySkillMultiplier)->GetFloat();
+		float skillMultiplier = rule_manager.GetZoneRule(GetZoneID(), R_Player, LevelMasterySkillMultiplier)->GetFloat();
 		if(skillMultiplier <= 0.0f) {
 			skillMultiplier = 1.0f;
 		}
@@ -919,12 +919,12 @@ void Entity::UpdateWeapons() {
 int32 Entity::GetStrengthDamage() {
 	int32 str_offset = 1;
 	if(IsNPC()) {
-		str_offset = rule_manager.GetGlobalRule(R_Combat, StrengthNPC)->GetInt32();
+		str_offset = rule_manager.GetZoneRule(GetZoneID(), R_Combat, StrengthNPC)->GetInt32();
 		if(str_offset < 1)
 			str_offset = 1;
 	}
 	else {
-		str_offset = rule_manager.GetGlobalRule(R_Combat, StrengthOther)->GetInt32();
+		str_offset = rule_manager.GetZoneRule(GetZoneID(), R_Combat, StrengthOther)->GetInt32();
 		if(str_offset < 1)
 			str_offset = 1;
 		
@@ -1343,7 +1343,7 @@ void Entity::SetMaxSpeed(float val){
 float Entity::CalculateSkillStatChance(char* skillName, int16 item_stat, float max_cap, float modifier, bool add_to_skill)
 {
 	float skillAndItemsChance = 0.0f;
-	float maxBonusCap = (float)GetLevel()*rule_manager.GetGlobalRule(R_Combat, MaxSkillBonusByLevel)->GetFloat();
+	float maxBonusCap = (float)GetLevel()*rule_manager.GetZoneRule(GetZoneID(), R_Combat, MaxSkillBonusByLevel)->GetFloat();
 	Skill* skill = GetSkillByName(skillName, false);
 	if(skill){
 		MStats.lock();
@@ -1398,7 +1398,7 @@ float Entity::CalculateSkillWithBonus(char* skillName, int16 item_stat, bool cha
 }
 
 float Entity::GetRuleSkillMaxBonus() {
-	return (float)GetLevel()*rule_manager.GetGlobalRule(R_Combat, MaxSkillBonusByLevel)->GetFloat();
+	return (float)GetLevel()*rule_manager.GetZoneRule(GetZoneID(), R_Combat, MaxSkillBonusByLevel)->GetFloat();
 }
 
 void Entity::CalculateBonuses(){
@@ -1468,7 +1468,7 @@ void Entity::CalculateBonuses(){
 	
 	info->set_cur_mitigation(info->get_mitigation_base());
 	
-	int32 calc_mit_cap = effective_level * rule_manager.GetGlobalRule(R_Combat, CalculatedMitigationCapLevel)->GetInt32();
+	int32 calc_mit_cap = effective_level * rule_manager.GetZoneRule(GetZoneID(), R_Combat, CalculatedMitigationCapLevel)->GetInt32();
 	info->set_max_mitigation(calc_mit_cap);
 	
 	int16 mit_percent = (int16)(CalculateMitigation() * 1000.0f);
@@ -1656,7 +1656,7 @@ void Entity::CalculateApplyWeight() {
 		int32 coin_gold = GetInfoStruct()->get_coin_gold();
 		int32 coin_plat = GetInfoStruct()->get_coin_plat();
 		
-		float weight_per_stone = rule_manager.GetGlobalRule(R_Player, CoinWeightPerStone)->GetFloat();
+		float weight_per_stone = rule_manager.GetZoneRule(GetZoneID(), R_Player, CoinWeightPerStone)->GetFloat();
 		if(weight_per_stone < 0.0f) {
 			weight_per_stone = 0.0f;
 		}
@@ -1683,8 +1683,8 @@ void Entity::CalculateApplyWeight() {
 		((Player*)this)->SetCharSheetChanged(true);
 	}
 	int32 max_weight = 0;
-	float weight_str_multiplier = rule_manager.GetGlobalRule(R_Player, MaxWeightStrengthMultiplier)->GetFloat();
-	int32 base_weight = rule_manager.GetGlobalRule(R_Player, BaseWeight)->GetInt32();
+	float weight_str_multiplier = rule_manager.GetZoneRule(GetZoneID(), R_Player, MaxWeightStrengthMultiplier)->GetFloat();
+	int32 base_weight = rule_manager.GetZoneRule(GetZoneID(), R_Player, BaseWeight)->GetInt32();
 	if(weight_str_multiplier < 0.0f) {
 		weight_str_multiplier = 0.0f;
 	}
@@ -1701,7 +1701,7 @@ void Entity::CalculateApplyWeight() {
 
 void Entity::SetRegenValues(int16 effective_level)
 {
-	bool classicRegen = rule_manager.GetGlobalRule(R_Spawn, ClassicRegen)->GetBool();
+	bool classicRegen = rule_manager.GetZoneRule(GetZoneID(), R_Spawn, ClassicRegen)->GetBool();
 	bool override_ = (IsPlayer() && !GetInfoStruct()->get_engaged_encounter());
 	
 	if(!GetInfoStruct()->get_hp_regen_override())
@@ -2934,9 +2934,9 @@ float Entity::GetHighestSnare() {
 	// For simplicity this will return the highest snare value, which is actually the lowest value
 	float ret = 1.0f;
 	float weight_diff = 0.0f;
-	if (IsPlayer() && rule_manager.GetGlobalRule(R_Player, WeightInflictsSpeed)->GetBool()) {
-		float weight_pct_impact = rule_manager.GetGlobalRule(R_Player, WeightPercentImpact)->GetFloat();
-		float weight_pct_cap = rule_manager.GetGlobalRule(R_Player, WeightPercentCap)->GetFloat();
+	if (IsPlayer() && rule_manager.GetZoneRule(GetZoneID(), R_Player, WeightInflictsSpeed)->GetBool()) {
+		float weight_pct_impact = rule_manager.GetZoneRule(GetZoneID(), R_Player, WeightPercentImpact)->GetFloat();
+		float weight_pct_cap = rule_manager.GetZoneRule(GetZoneID(), R_Player, WeightPercentCap)->GetFloat();
 		if(weight_pct_impact > 1.0f) {
 			weight_pct_impact = 1.0f;
 		}

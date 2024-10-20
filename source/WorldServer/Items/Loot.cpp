@@ -40,7 +40,7 @@ extern RuleManager rule_manager;
 
 NPC* Entity::DropChest() {
 	// Check to see if treasure chests are disabled in the rules
-	if (rule_manager.GetGlobalRule(R_World, TreasureChestDisabled)->GetBool())
+	if (rule_manager.GetZoneRule(GetZoneID(), R_World, TreasureChestDisabled)->GetBool())
 		return 0;
 	
 	if(GetChestDropTime()) {
@@ -66,8 +66,8 @@ NPC* Entity::DropChest() {
 	// heading needs to be GetHeading() - 180 so the chest faces the proper way
 	chest->SetHeading(GetHeading() - 180);
 	// Set the primary command to loot and the secondary to disarm
-	chest->AddPrimaryEntityCommand("loot", rule_manager.GetGlobalRule(R_Loot, LootRadius)->GetFloat(), "loot", "", 0, 0);
-	chest->AddSecondaryEntityCommand("Disarm", rule_manager.GetGlobalRule(R_Loot, LootRadius)->GetFloat(), "Disarm", "", 0, 0);
+	chest->AddPrimaryEntityCommand("loot", rule_manager.GetZoneRule(GetZoneID(), R_Loot, LootRadius)->GetFloat(), "loot", "", 0, 0);
+	chest->AddSecondaryEntityCommand("Disarm", rule_manager.GetZoneRule(GetZoneID(), R_Loot, LootRadius)->GetFloat(), "Disarm", "", 0, 0);
 	// 32 = loot icon for the mouse
 	chest->SetIcon(32);
 	// 1 = show the right click menu

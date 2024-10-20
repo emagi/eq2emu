@@ -125,7 +125,7 @@ bool Entity::AttackAllowed(Entity* target, float distance, bool range_attack) {
 		return false;
 	}
 	
-	if(rule_manager.GetGlobalRule(R_Combat, LockedEncounterNoAttack)->GetBool()) {
+	if(rule_manager.GetZoneRule(GetZoneID(), R_Combat, LockedEncounterNoAttack)->GetBool()) {
 		if(target->IsNPC() && (target->GetLockedNoLoot() == ENCOUNTER_STATE_LOCKED || target->GetLockedNoLoot() == ENCOUNTER_STATE_OVERMATCHED) && 
 			!attacker->IsEngagedBySpawnID(target->GetID())) {
 			return false;
@@ -138,14 +138,14 @@ bool Entity::AttackAllowed(Entity* target, float distance, bool range_attack) {
 
 	if (attacker->IsPlayer() && target->IsPlayer())
 	{
-		bool pvp_allowed = rule_manager.GetGlobalRule(R_PVP, AllowPVP)->GetBool();
+		bool pvp_allowed = rule_manager.GetZoneRule(GetZoneID(), R_PVP, AllowPVP)->GetBool();
 		if (!pvp_allowed) {
 			LogWrite(COMBAT__DEBUG, 3, "AttackAllowed", "Failed to attack: pvp is not allowed");
 			return false;
 		}
 		else
 		{
-			sint32 pvpLevelRange = rule_manager.GetGlobalRule(R_PVP, LevelRange)->GetSInt32();
+			sint32 pvpLevelRange = rule_manager.GetZoneRule(GetZoneID(), R_PVP, LevelRange)->GetSInt32();
 			int32 attackerLevel = attacker->GetLevel();
 			int32 defenderLevel = target->GetLevel();
 			if ((sint32)abs((sint32)attackerLevel - (sint32)defenderLevel) > pvpLevelRange)
@@ -186,7 +186,7 @@ bool Entity::AttackAllowed(Entity* target, float distance, bool range_attack) {
 		}
 	}
 	else if (distance != 0) {
-		if(distance >= rule_manager.GetGlobalRule(R_Combat, MaxCombatRange)->GetFloat()) {
+		if(distance >= rule_manager.GetZoneRule(GetZoneID(), R_Combat, MaxCombatRange)->GetFloat()) {
 			LogWrite(COMBAT__DEBUG, 3, "AttackAllowed", "Failed to attack: distance is beyond melee range");
 			return false;
 		}
@@ -808,7 +808,7 @@ int8 Entity::DetermineHit(Spawn* victim, int8 type, int8 damage_type, float ToHi
 		LogWrite(COMBAT__DEBUG, 9, "Combat", "SpellResist: resistibility %f, bonus %f", lua_spell->spell->GetSpellData()->resistibility, bonus);
 		// Here we take into account Subjugation, Disruption and Ordination (debuffs)
 		if(lua_spell->spell->GetSpellData()->mastery_skill) {
-			int32 master_skill_reduce = rule_manager.GetGlobalRule(R_Spells, MasterSkillReduceSpellResist)->GetInt32();
+			int32 master_skill_reduce = rule_manager.GetZoneRule(GetZoneID(), R_Spells, MasterSkillReduceSpellResist)->GetInt32();
 			if(master_skill_reduce < 1)
 				master_skill_reduce = 25;
 			if(IsPlayer() && lua_spell->spell->GetSpellData()->spell_book_type == SPELL_BOOK_TYPE_TRADESKILL && 
@@ -1230,7 +1230,7 @@ float Entity::CalculateMitigation(int8 type, int8 damage_type, int16 effective_l
 	else
 		effective_level_attacker = 1;
 
-	int32 effective_mit_cap = effective_level_victim * rule_manager.GetGlobalRule(R_Combat, EffectiveMitigationCapLevel)->GetInt32();
+	int32 effective_mit_cap = effective_level_victim * rule_manager.GetZoneRule(GetZoneID(), R_Combat, EffectiveMitigationCapLevel)->GetInt32();
 	float max_mit = (float)GetInfoStruct()->get_max_mitigation();
 	if(max_mit == 0.0f)
 		max_mit = effective_level_victim * 100.0f;
@@ -1268,26 +1268,26 @@ float Entity::CalculateMitigation(int8 type, int8 damage_type, int16 effective_l
 	}
 	
 	if(for_pvp) {
-		mit_to_use += effective_level_victim * rule_manager.GetGlobalRule(R_Combat, MitigationLevelEffectivenessMax)->GetInt32();
+		mit_to_use += effective_level_victim * rule_manager.GetZoneRule(GetZoneID(), R_Combat, MitigationLevelEffectivenessMax)->GetInt32();
 	}
 	
 	if(mit_to_use > effective_mit_cap) {
 		mit_to_use = effective_mit_cap;
 	}
 	float level_diff = ((float)effective_level_victim / (float)effective_level_attacker);
-	if(level_diff > rule_manager.GetGlobalRule(R_Combat, MitigationLevelEffectivenessMax)->GetFloat()) {
-		level_diff = rule_manager.GetGlobalRule(R_Combat, MitigationLevelEffectivenessMax)->GetFloat();
+	if(level_diff > rule_manager.GetZoneRule(GetZoneID(), R_Combat, MitigationLevelEffectivenessMax)->GetFloat()) {
+		level_diff = rule_manager.GetZoneRule(GetZoneID(), R_Combat, MitigationLevelEffectivenessMax)->GetFloat();
 	}
-	else if(level_diff < rule_manager.GetGlobalRule(R_Combat, MitigationLevelEffectivenessMax)->GetFloat()) {
-		level_diff = rule_manager.GetGlobalRule(R_Combat, MitigationLevelEffectivenessMin)->GetFloat();
+	else if(level_diff < rule_manager.GetZoneRule(GetZoneID(), R_Combat, MitigationLevelEffectivenessMax)->GetFloat()) {
+		level_diff = rule_manager.GetZoneRule(GetZoneID(), R_Combat, MitigationLevelEffectivenessMin)->GetFloat();
 	}
 	float mit_percentage = ((float)mit_to_use / max_mit) * level_diff;
 	
-	if(!for_pvp && mit_percentage > rule_manager.GetGlobalRule(R_Combat, MaxMitigationAllowed)->GetFloat()) {
-		mit_percentage = rule_manager.GetGlobalRule(R_Combat, MaxMitigationAllowed)->GetFloat();
+	if(!for_pvp && mit_percentage > rule_manager.GetZoneRule(GetZoneID(), R_Combat, MaxMitigationAllowed)->GetFloat()) {
+		mit_percentage = rule_manager.GetZoneRule(GetZoneID(), R_Combat, MaxMitigationAllowed)->GetFloat();
 	}
-	else if(for_pvp && mit_percentage > rule_manager.GetGlobalRule(R_Combat, MaxMitigationAllowedPVP)->GetFloat()) {
-		mit_percentage = rule_manager.GetGlobalRule(R_Combat, MaxMitigationAllowedPVP)->GetFloat();
+	else if(for_pvp && mit_percentage > rule_manager.GetZoneRule(GetZoneID(), R_Combat, MaxMitigationAllowedPVP)->GetFloat()) {
+		mit_percentage = rule_manager.GetZoneRule(GetZoneID(), R_Combat, MaxMitigationAllowedPVP)->GetFloat();
 	} 
 	
 	return mit_percentage;
@@ -1356,13 +1356,13 @@ void Entity::AddHate(Entity* attacker, sint32 hate) {
 }
 
 bool Entity::CheckFizzleSpell(LuaSpell* spell) {
-	if(!spell || !rule_manager.GetGlobalRule(R_Spells, EnableFizzleSpells)->GetInt8()
+	if(!spell || !rule_manager.GetZoneRule(GetZoneID(), R_Spells, EnableFizzleSpells)->GetInt8()
 	|| spell->spell->GetSpellData()->can_fizzle == false)
 		return false;
 
-	float fizzleMaxSkill = rule_manager.GetGlobalRule(R_Spells, FizzleMaxSkill)->GetFloat();
-	float baseFizzle = rule_manager.GetGlobalRule(R_Spells, DefaultFizzleChance)->GetFloat()/100.0f; // 10%
-	float skillObtained = rule_manager.GetGlobalRule(R_Spells, FizzleDefaultSkill)->GetFloat(); // default of .2f so we don't go over the threshold if no skill
+	float fizzleMaxSkill = rule_manager.GetZoneRule(GetZoneID(), R_Spells, FizzleMaxSkill)->GetFloat();
+	float baseFizzle = rule_manager.GetZoneRule(GetZoneID(), R_Spells, DefaultFizzleChance)->GetFloat()/100.0f; // 10%
+	float skillObtained = rule_manager.GetZoneRule(GetZoneID(), R_Spells, FizzleDefaultSkill)->GetFloat(); // default of .2f so we don't go over the threshold if no skill
 	Skill* skill = GetSkillByID(spell->spell->GetSpellData()->mastery_skill, false);
 	if(skill && spell->spell->GetSpellData()->min_class_skill_req > 0)
 	{
@@ -1397,7 +1397,7 @@ bool Entity::CheckInterruptSpell(Entity* attacker) {
 		
 	//originally base of 30 percent chance to continue casting if attacked
 	//modified to 50% and added global rule, 30% was too small at starting levels
-	int8 percent = rule_manager.GetGlobalRule(R_Spells, NoInterruptBaseChance)->GetInt32();
+	int8 percent = rule_manager.GetZoneRule(GetZoneID(), R_Spells, NoInterruptBaseChance)->GetInt32();
 
 	float focus_skill_with_bonus = CalculateSkillWithBonus("Focus", ITEM_STAT_FOCUS, true);
 
@@ -1464,13 +1464,13 @@ void Entity::HandleDeathExperienceDebt(Spawn* killer)
 	float ruleDebt = 0.0f;
 	
 	if(killer && killer->IsPlayer())
-		ruleDebt = rule_manager.GetGlobalRule(R_Combat, PVPDeathExperienceDebt)->GetFloat()/100.0f;
+		ruleDebt = rule_manager.GetZoneRule(GetZoneID(), R_Combat, PVPDeathExperienceDebt)->GetFloat()/100.0f;
 	else
-		ruleDebt = rule_manager.GetGlobalRule(R_Combat, DeathExperienceDebt)->GetFloat()/100.0f;
+		ruleDebt = rule_manager.GetZoneRule(GetZoneID(), R_Combat, DeathExperienceDebt)->GetFloat()/100.0f;
 
 	if(ruleDebt > 0.0f)
 	{
-		bool groupDebt = rule_manager.GetGlobalRule(R_Combat, GroupExperienceDebt)->GetBool();
+		bool groupDebt = rule_manager.GetZoneRule(GetZoneID(), R_Combat, GroupExperienceDebt)->GetBool();
 		if(groupDebt && ((Player*)this)->GetGroupMemberInfo())
 		{
 			world.GetGroupManager()->GroupLock(__FUNCTION__, __LINE__);
@@ -1594,7 +1594,7 @@ void Player::ProcessCombat() {
 			}
 		}
 	}
-	else if(distance <= rule_manager.GetGlobalRule(R_Combat, MaxCombatRange)->GetFloat()) {
+	else if(distance <= rule_manager.GetZoneRule(GetZoneID(), R_Combat, MaxCombatRange)->GetFloat()) {
 		// We are doing melee auto attacks and are within range
 
 		// Check to see if we can attack the target

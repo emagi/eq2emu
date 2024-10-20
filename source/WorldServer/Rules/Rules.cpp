@@ -513,17 +513,18 @@ bool RuleManager::SetZoneRuleSet(int32 zone_id, int32 rule_set_id) {
 Rule * RuleManager::GetZoneRule(int32 zone_id, int32 category, int32 type) {
 	Rule *ret = 0;
 
-	/* we never want to return null so MAKE SURE the rule exists. if this assertion fails then the server admin must fix the problem */
-	assert(rules.count(category) > 0);
-	assert(rules[category].count(type) > 0);
-
 	/* first try to get the zone rule */
-	m_zone_rule_sets.readlock(__FUNCTION__, __LINE__);
-	if (zone_rule_sets.count(zone_id) > 0)
-		ret = zone_rule_sets[zone_id]->GetRule(category, type);
-	m_zone_rule_sets.releasereadlock(__FUNCTION__, __LINE__);
-
-	return ret ? ret : rules[category][type];
+	if(zone_id) {
+		m_zone_rule_sets.readlock(__FUNCTION__, __LINE__);
+		if (zone_rule_sets.count(zone_id) > 0)
+			ret = zone_rule_sets[zone_id]->GetRule(category, type);
+		m_zone_rule_sets.releasereadlock(__FUNCTION__, __LINE__);
+	}
+	if(!ret) {
+		ret = GetGlobalRule(category, type);
+	}
+	
+	return ret;
 }
 
 void RuleManager::ClearZoneRuleSets() {
