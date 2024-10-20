@@ -2370,7 +2370,7 @@ void Spawn::InitializeInfoPacketData(Player* spawn, PacketStruct* packet) {
 
 	int8 classicFlags = 0;
 	// radius of 0 is always seen, -1 is never seen (unless items/spells override), larger than 0 is a defined radius to restrict visibility
-	sint32 radius = rule_manager.GetZoneRule(GetZone() ? GetZone()->GetZoneID() : 0, R_PVP, InvisPlayerDiscoveryRange)->GetSInt32();
+	sint32 radius = rule_manager.GetZoneRule(GetZoneID(), R_PVP, InvisPlayerDiscoveryRange)->GetSInt32();
 	if (radius != 0 && (Spawn*)spawn != this && this->IsPlayer() && !spawn->CanSeeInvis((Entity*)this))
 		spawnHiddenFromClient = true;
 
@@ -3101,20 +3101,20 @@ void Spawn::ProcessMovement(bool isSpawnListLocked){
 
 			float dist = GetDistance(followTarget, true);
 			if ((!EngagedInCombat() && m_followDistance > 0 && dist <= m_followDistance) || 
-				(dist <= rule_manager.GetZoneRule(GetZone() ? GetZone()->GetZoneID() : 0, R_Combat, MaxCombatRange)->GetFloat())) {
+				(dist <= rule_manager.GetZoneRule(GetZoneID(), R_Combat, MaxCombatRange)->GetFloat())) {
 				ClearRunningLocations();
 				CalculateRunningLocation(true);
 			}
 			else if (loc) {
 				float distance = GetDistance(followTarget, loc->x, loc->y, loc->z);
 				if ( (!EngagedInCombat() && m_followDistance > 0 && distance > m_followDistance) ||
-					 ( EngagedInCombat() && distance > rule_manager.GetZoneRule(GetZone() ? GetZone()->GetZoneID() : 0, R_Combat, MaxCombatRange)->GetFloat())) {
-					MoveToLocation(followTarget, rule_manager.GetZoneRule(GetZone() ? GetZone()->GetZoneID() : 0, R_Combat, MaxCombatRange)->GetFloat(), true, loc->mapped);
+					 ( EngagedInCombat() && distance > rule_manager.GetZoneRule(GetZoneID(), R_Combat, MaxCombatRange)->GetFloat())) {
+					MoveToLocation(followTarget, rule_manager.GetZoneRule(GetZoneID(), R_Combat, MaxCombatRange)->GetFloat(), true, loc->mapped);
 					CalculateRunningLocation();
 				}
 			}
 			else {
-				MoveToLocation(followTarget, rule_manager.GetZoneRule(GetZone() ? GetZone()->GetZoneID() : 0, R_Combat, MaxCombatRange)->GetFloat(), false);
+				MoveToLocation(followTarget, rule_manager.GetZoneRule(GetZoneID(), R_Combat, MaxCombatRange)->GetFloat(), false);
 				CalculateRunningLocation();
 			}
 		}
@@ -3378,7 +3378,7 @@ void Spawn::RunToLocation(float x, float y, float z, float following_x, float fo
 		return;
 	}
 	
-	if(!IsWidget() && (!EngagedInCombat() || GetDistance(GetTarget()) > rule_manager.GetZoneRule(GetZone() ? GetZone()->GetZoneID() : 0, R_Combat, MaxCombatRange)->GetFloat()))
+	if(!IsWidget() && (!EngagedInCombat() || GetDistance(GetTarget()) > rule_manager.GetZoneRule(GetZoneID(), R_Combat, MaxCombatRange)->GetFloat()))
 		FaceTarget(x, z);
 	SetPos(&appearance.pos.X2, x, false);
 	SetPos(&appearance.pos.Z2, z, false);
@@ -3669,7 +3669,7 @@ void Spawn::CalculateRunningLocation(bool stop){
 	
 	if (continueElseIf && GetZone() && GetTarget() != NULL && EngagedInCombat())
 	{
-		if (GetDistance(GetTarget()) > rule_manager.GetZoneRule(GetZone() ? GetZone()->GetZoneID() : 0, R_Combat, MaxCombatRange)->GetFloat())
+		if (GetDistance(GetTarget()) > rule_manager.GetZoneRule(GetZoneID(), R_Combat, MaxCombatRange)->GetFloat())
 		{
 			if ((IsFlyingCreature() || IsWaterCreature() || InWater()) && CheckLoS(GetTarget()))
 				AddRunningLocation(GetTarget()->GetX(), GetTarget()->GetY(), GetTarget()->GetZ(), GetSpeed(), 0, false);
@@ -3957,7 +3957,7 @@ void Spawn::CheckEncounterState(Entity* victim, bool test_auto_lock) {
 			attacker->GetInfoStruct()->set_engaged_encounter(1);
 		}
 
-		int8 skip_loot_gray_mob_flag = rule_manager.GetZoneRule(GetZone() ? GetZone()->GetZoneID() : 0, R_Loot, SkipLootGrayMob)->GetInt8();
+		int8 skip_loot_gray_mob_flag = rule_manager.GetZoneRule(GetZoneID(), R_Loot, SkipLootGrayMob)->GetInt8();
 
 		int8 difficulty = attacker->GetArrowColor(victim->GetLevel());
 
@@ -4755,7 +4755,7 @@ bool Spawn::IsWaterCreature()
 
 
 void Spawn::SetFlyingCreature() {
-	if(!IsEntity() || !rule_manager.GetZoneRule(GetZone() ? GetZone()->GetZoneID() : 0, R_Spawn, UseHardCodeFlyingModelType)->GetInt8())
+	if(!IsEntity() || !rule_manager.GetZoneRule(GetZoneID(), R_Spawn, UseHardCodeFlyingModelType)->GetInt8())
 		return;
 
 	if(((Entity*)this)->GetInfoStruct()->get_flying_type() > 0) // DB spawn npc flag already set
@@ -4775,7 +4775,7 @@ void Spawn::SetFlyingCreature() {
 }
 	
 void Spawn::SetWaterCreature() {
-	if(!IsEntity() || !rule_manager.GetZoneRule(GetZone() ? GetZone()->GetZoneID() : 0, R_Spawn, UseHardCodeWaterModelType)->GetInt8())
+	if(!IsEntity() || !rule_manager.GetZoneRule(GetZoneID(), R_Spawn, UseHardCodeWaterModelType)->GetInt8())
 		return;
 
 	if(((Entity*)this)->GetInfoStruct()->get_water_type() > 0) // DB spawn npc flag already set
@@ -5053,13 +5053,13 @@ bool Spawn::HasLootWindowCompleted() {
 
 void Spawn::StartLootTimer(Spawn* looter) {
 	if (!IsLootTimerRunning()) {
-		int32 loot_timer_time = rule_manager.GetZoneRule(GetZone() ? GetZone()->GetZoneID() : 0, R_Loot, LootDistributionTime)->GetInt32() * 1000;
-		if(rule_manager.GetZoneRule(GetZone() ? GetZone()->GetZoneID() : 0, R_Loot, AllowChestUnlockByDropTime)->GetBool() && loot_timer_time > rule_manager.GetZoneRule(GetZone() ? GetZone()->GetZoneID() : 0, R_Loot, ChestUnlockedTimeDrop)->GetInt32()*1000) {
-			loot_timer_time = (rule_manager.GetZoneRule(GetZone() ? GetZone()->GetZoneID() : 0, R_Loot, ChestUnlockedTimeDrop)->GetInt32()*1000) / 2;
+		int32 loot_timer_time = rule_manager.GetZoneRule(GetZoneID(), R_Loot, LootDistributionTime)->GetInt32() * 1000;
+		if(rule_manager.GetZoneRule(GetZoneID(), R_Loot, AllowChestUnlockByDropTime)->GetBool() && loot_timer_time > rule_manager.GetZoneRule(GetZoneID(), R_Loot, ChestUnlockedTimeDrop)->GetInt32()*1000) {
+			loot_timer_time = (rule_manager.GetZoneRule(GetZoneID(), R_Loot, ChestUnlockedTimeDrop)->GetInt32()*1000) / 2;
 		}
 		
-		if(rule_manager.GetZoneRule(GetZone() ? GetZone()->GetZoneID() : 0, R_Loot, AllowChestUnlockByTrapTime)->GetBool() && loot_timer_time > rule_manager.GetZoneRule(GetZone() ? GetZone()->GetZoneID() : 0, R_Loot, ChestUnlockedTimeTrap)->GetInt32()*1000) {
-			loot_timer_time = (rule_manager.GetZoneRule(GetZone() ? GetZone()->GetZoneID() : 0, R_Loot, ChestUnlockedTimeTrap)->GetInt32()*1000) / 2;
+		if(rule_manager.GetZoneRule(GetZoneID(), R_Loot, AllowChestUnlockByTrapTime)->GetBool() && loot_timer_time > rule_manager.GetZoneRule(GetZoneID(), R_Loot, ChestUnlockedTimeTrap)->GetInt32()*1000) {
+			loot_timer_time = (rule_manager.GetZoneRule(GetZoneID(), R_Loot, ChestUnlockedTimeTrap)->GetInt32()*1000) / 2;
 		}
 		
 		if(loot_timer_time < 1000) {

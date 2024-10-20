@@ -856,8 +856,7 @@ ItemStatsValues* MasterItemList::CalculateItemBonuses(Item* item, Entity* entity
 				{
 					int32 diff = item->details.recommended_level - effective_level;
 					float tmpValue = (float)value;
-					int32 zone_id = entity->GetZone() ? entity->GetZone()->GetZoneID() : 0;
-					value = (sint32)(float)(tmpValue / (1.0f + ((float)diff * rule_manager.GetZoneRule(zone_id, R_Player, MentorItemDecayRate)->GetFloat())));
+					value = (sint32)(float)(tmpValue / (1.0f + ((float)diff * rule_manager.GetZoneRule(entity->GetZoneID(), R_Player, MentorItemDecayRate)->GetFloat())));
 				}
 			}
 			
@@ -1851,8 +1850,7 @@ void Item::serialize(PacketStruct* packet, bool show_name, Player* player, int16
 		packet->setSubstructDataByName("header_info", "unique_id", details.unique_id);
 	packet->setSubstructDataByName("header_info", "icon", GetIcon(packet->GetVersion()));
 	
-	int32 zone_id = player->GetZone() ? player->GetZone()->GetZoneID() : 0;
-	if(rule_manager.GetZoneRule(zone_id, R_World, DisplayItemTiers)->GetBool()) {
+	if(rule_manager.GetZoneRule(player->GetZoneID(), R_World, DisplayItemTiers)->GetBool()) {
 		packet->setSubstructDataByName("header_info", "tier", details.tier);
 	}
  	packet->setSubstructDataByName("header_info", "flags", generic_info.item_flags);
@@ -1896,8 +1894,7 @@ void Item::serialize(PacketStruct* packet, bool show_name, Player* player, int16
 				{
 					int32 diff = details.recommended_level - effective_level;
 					float tmpValue = (float)statValue;
-					int32 zone_id = player->GetZone() ? player->GetZone()->GetZoneID() : 0;
-					statValue = (sint32)(float)(tmpValue / (1.0f + ((float)diff * rule_manager.GetZoneRule(zone_id, R_Player, MentorItemDecayRate)->GetFloat())));
+					statValue = (sint32)(float)(tmpValue / (1.0f + ((float)diff * rule_manager.GetZoneRule(player->GetZoneID(), R_Player, MentorItemDecayRate)->GetFloat())));
 				}
 			}	
 			
@@ -2398,8 +2395,7 @@ void Item::serialize(PacketStruct* packet, bool show_name, Player* player, int16
 							
 							// either don't require previous tier or check that we have the lower tier spells potentially
 							int32 tier_up = player->GetTierUp(skill_info->spell_tier);
-							int32 zone_id = player->GetZone() ? player->GetZone()->GetZoneID() : 0;
-							if (!rule_manager.GetZoneRule(zone_id, R_Spells, RequirePreviousTierScribe)->GetInt8() || player->HasSpell(skill_info->spell_id, tier_up, false, true))
+							if (!rule_manager.GetZoneRule(player->GetZoneID(), R_Spells, RequirePreviousTierScribe)->GetInt8() || player->HasSpell(skill_info->spell_id, tier_up, false, true))
 								packet->setDataByName("require_previous", 1, 0);
 							// membership required
 							//packet->setDataByName("unknown_1188_2_MJ", 1, 1);
@@ -3824,8 +3820,7 @@ void PlayerItemList::AddItemToPacket(PacketStruct* packet, Player* player, Item*
 	packet->setSubstructArrayDataByName("items", "item_level", item->details.recommended_level , 0, i);
 	
 	
-	int32 zone_id = player->GetZone() ? player->GetZone()->GetZoneID() : 0;
-	if(rule_manager.GetZoneRule(zone_id, R_World, DisplayItemTiers)->GetBool()) {
+	if(rule_manager.GetZoneRule(player->GetZoneID(), R_World, DisplayItemTiers)->GetBool()) {
 		packet->setSubstructArrayDataByName("items", "tier", item->details.tier, 0, i);
 	}
 	
@@ -4397,8 +4392,7 @@ EQ2Packet* EquipmentItemList::serialize(int16 version, Player* player){
 				packet->setSubstructArrayDataByName("items", "count", item->details.count, 0, i);
 				// item level needed here
 				
-				int32 zone_id = player->GetZone() ? player->GetZone()->GetZoneID() : 0;
-				if(rule_manager.GetZoneRule(zone_id, R_World, DisplayItemTiers)->GetBool()) {
+				if(rule_manager.GetZoneRule(player->GetZoneID(), R_World, DisplayItemTiers)->GetBool()) {
 					packet->setSubstructArrayDataByName("items", "tier", item->details.tier, 0, i);
 				}
 				packet->setSubstructArrayDataByName("items", "num_slots", item->details.num_slots, 0, i);

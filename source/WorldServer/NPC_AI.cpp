@@ -395,7 +395,7 @@ vector<Entity*>* Brain::GetHateList() {
 
 void Brain::MoveCloser(Spawn* target) {
 	if (target && m_body->GetFollowTarget() != target)
-		m_body->SetFollowTarget(target, rule_manager.GetZoneRule(m_body->GetZone() ? m_body->GetZone()->GetZoneID() : 0, R_Combat, MaxCombatRange)->GetFloat());
+		m_body->SetFollowTarget(target, rule_manager.GetZoneRule(m_body->GetZoneID(), R_Combat, MaxCombatRange)->GetFloat());
 
 	if (m_body->GetFollowTarget() && !m_body->following) {
 		m_body->CalculateRunningLocation(true);
@@ -478,7 +478,7 @@ bool Brain::CheckBuffs() {
 }
 
 void Brain::ProcessMelee(Entity* target, float distance) {
-	if(distance > rule_manager.GetZoneRule(m_body->GetZone() ? m_body->GetZone()->GetZoneID() : 0, R_Combat, MaxCombatRange)->GetFloat())
+	if(distance > rule_manager.GetZoneRule(m_body->GetZoneID(), R_Combat, MaxCombatRange)->GetFloat())
 		MoveCloser((Spawn*)target);
 	else {
 		if (target) {
@@ -581,12 +581,12 @@ bool Brain::CheckLootAllowed(Entity* entity) {
 			LogWrite(LOOT__INFO, 0, "Loot", "%s: CheckLootAllowed failed, looter spawn id %u does not match received %s(%u)", GetBody()->GetName(), m_body->GetLooterSpawnID(), entity->GetName(), entity->GetID());
 			return false;
 		}
-		if (rule_manager.GetZoneRule(m_body->GetZone() ? m_body->GetZone()->GetZoneID() : 0, R_Loot, AllowChestUnlockByDropTime)->GetInt8()
-			&& m_body->GetChestDropTime() > 0 && Timer::GetCurrentTime2() >= m_body->GetChestDropTime() + (rule_manager.GetZoneRule(m_body->GetZone() ? m_body->GetZone()->GetZoneID() : 0, R_Loot, ChestUnlockedTimeDrop)->GetInt32() * 1000)) {
+		if (rule_manager.GetZoneRule(m_body->GetZoneID(), R_Loot, AllowChestUnlockByDropTime)->GetInt8()
+			&& m_body->GetChestDropTime() > 0 && Timer::GetCurrentTime2() >= m_body->GetChestDropTime() + (rule_manager.GetZoneRule(m_body->GetZoneID(), R_Loot, ChestUnlockedTimeDrop)->GetInt32() * 1000)) {
 			return true;
 		}
-		if (rule_manager.GetZoneRule(m_body->GetZone() ? m_body->GetZone()->GetZoneID() : 0, R_Loot, AllowChestUnlockByTrapTime)->GetInt8()
-			&& m_body->GetTrapOpenedTime() > 0 && Timer::GetCurrentTime2() >= m_body->GetChestDropTime() + (rule_manager.GetZoneRule(m_body->GetZone() ? m_body->GetZone()->GetZoneID() : 0, R_Loot, ChestUnlockedTimeTrap)->GetInt32() * 1000)) {
+		if (rule_manager.GetZoneRule(m_body->GetZoneID(), R_Loot, AllowChestUnlockByTrapTime)->GetInt8()
+			&& m_body->GetTrapOpenedTime() > 0 && Timer::GetCurrentTime2() >= m_body->GetChestDropTime() + (rule_manager.GetZoneRule(m_body->GetZoneID(), R_Loot, ChestUnlockedTimeTrap)->GetInt32() * 1000)) {
 			return true;
 		}
 		if ((m_body->GetLootMethod() == GroupLootMethod::METHOD_LOTTO || m_body->GetLootMethod() == GroupLootMethod::METHOD_NEED_BEFORE_GREED) && m_body->HasSpawnLootWindowCompleted(entity->GetID())) {
@@ -770,7 +770,7 @@ void CombatPetBrain::Think() {
 	float distance = GetBody()->GetDistance(target);
 
 	// If out of melee range then move closer
-	if (distance > rule_manager.GetZoneRule(m_body->GetZone() ? m_body->GetZone()->GetZoneID() : 0, R_Combat, MaxCombatRange)->GetFloat())
+	if (distance > rule_manager.GetZoneRule(m_body->GetZoneID(), R_Combat, MaxCombatRange)->GetFloat())
 		MoveCloser((Spawn*)target);
 }
 
@@ -802,7 +802,7 @@ void NonCombatPetBrain::Think() {
 	float distance = GetBody()->GetDistance(target);
 
 	// If out of melee range then move closer
-	if (distance > rule_manager.GetZoneRule(m_body->GetZone() ? m_body->GetZone()->GetZoneID() : 0, R_Combat, MaxCombatRange)->GetFloat())
+	if (distance > rule_manager.GetZoneRule(m_body->GetZoneID(), R_Combat, MaxCombatRange)->GetFloat())
 		MoveCloser((Spawn*)target);
 }
 
