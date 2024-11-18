@@ -28,6 +28,7 @@ along with EQ2Emu.  If not, see <http://www.gnu.org/licenses/>.
 #include <optional>
 #include <memory>
 #include <mutex>
+#include <atomic>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include "../../common/types.h"
