@@ -167,18 +167,26 @@ ZoneServer::ZoneServer(const char* name) {
 	strcpy(zonesky_file,"");
 	
 	reloading = true;
+	spawnthread_active = false;
+	movementMgr = nullptr;
+	spellProcess = nullptr;
+	tradeskillMgr = nullptr;
 	watchdogTimestamp = Timer::GetCurrentTime2();
 
 	MPendingSpawnRemoval.SetName("ZoneServer::MPendingSpawnRemoval");
 
 	lifetime_client_count = 0;
+	
+	is_initialized = false;
 }
 
 typedef map <int32, bool> ChangedSpawnMapType;
 ZoneServer::~ZoneServer() {
 	zoneShuttingDown = true;  //ensure other threads shut down too
 	//allow other threads to properly shut down
-	LogWrite(ZONE__INFO, 0, "Zone", "Initiating zone shutdown of '%s'", zone_name);
+	if(is_initialized) {
+		LogWrite(ZONE__INFO, 0, "Zone", "Initiating zone shutdown of '%s'", zone_name);
+	}
 	int32 disp_count = 0;
 	int32 next_disp_count = 100;
 	while (spawnthread_active || initial_spawn_threads_active > 0){
@@ -246,7 +254,9 @@ ZoneServer::~ZoneServer() {
 	grid_maps.clear();
     MGridMaps.unlock();
 	
-	LogWrite(ZONE__INFO, 0, "Zone", "Completed zone shutdown of '%s'", zone_name);
+	if(is_initialized) {
+		LogWrite(ZONE__INFO, 0, "Zone", "Completed zone shutdown of '%s'", zone_name);
+	}
 	--numzones;
 	UpdateWindowTitle(0);
 	zone_list.Remove(this);
@@ -276,6 +286,8 @@ void ZoneServer::Init()
 {
 	LogWrite(ZONE__INFO, 0, "Zone", "Loading new Zone '%s'", zone_name);
 	zone_list.Add(this);
+	
+	is_initialized = true;
 
 	spellProcess = new SpellProcess();
 	tradeskillMgr = new TradeskillMgr();
@@ -337,6 +349,17 @@ void ZoneServer::Init()
 	pathing = IPathfinder::Load(zoneName);
 	movementMgr = new MobMovementManager();
 
+	if(GetInstanceID()) {
+		PlayerHouse* ph = world.GetPlayerHouseByInstanceID(GetInstanceID());
+		if(ph) {
+			HouseZone* hz = world.GetHouseZone(ph->house_id);
+			if(hz) {
+				std::string desc = ph->player_name + "'s " + hz->name;
+				SetZoneDescription((char*)desc.c_str());
+			}
+		}
+	}
+	
 	MMasterSpawnLock.SetName("ZoneServer::MMasterSpawnLock");
 	m_npc_faction_list.SetName("ZoneServer::npc_faction_list");
 	m_enemy_faction_list.SetName("ZoneServer::enemy_faction_list");
@@ -1414,10 +1437,10 @@ void ZoneServer::LootProcess(Spawn* spawn) {
 						looter = entry;
 					}
 					if (spawn->GetLootMethod() == GroupLootMethod::METHOD_LOTTO) {
-						world.GetGroupManager()->SendGroupMessage(spawn->GetLootGroupID(), CHANNEL_LOOT_ROLLS, "%s rolled %u on %s.", entry->GetName(), out_itr->second, tmpItem ? tmpItem->name.c_str() : "Unknown");
+						world.GetGroupManager()->SendGroupChatMessage(spawn->GetLootGroupID(), CHANNEL_LOOT_ROLLS, "%s rolled %u on %s.", entry->GetName(), out_itr->second, tmpItem ? tmpItem->name.c_str() : "Unknown");
 					}
 					else {
-						world.GetGroupManager()->SendGroupMessage(spawn->GetLootGroupID(), CHANNEL_LOOT_ROLLS, "%s rolled %s (%u) on %s.", entry->GetName(), itemNeed ? "NEED" : "GREED", out_itr->second, tmpItem ? tmpItem->name.c_str() : "Unknown");
+						world.GetGroupManager()->SendGroupChatMessage(spawn->GetLootGroupID(), CHANNEL_LOOT_ROLLS, "%s rolled %s (%u) on %s.", entry->GetName(), itemNeed ? "NEED" : "GREED", out_itr->second, tmpItem ? tmpItem->name.c_str() : "Unknown");
 					}
 				}
 
@@ -1493,6 +1516,10 @@ void ZoneServer::DeleteSpawns(bool delete_all) {
 					continue;
 				
 				spawn = itr->first;
+				
+				lua_interface->SetLuaUserDataStale(spawn);
+				spellProcess->RemoveCaster(spawn);
+				
 				if(movementMgr != nullptr) {
 					movementMgr->RemoveMob((Entity*)spawn);
 				}
@@ -1508,8 +1535,6 @@ void ZoneServer::DeleteSpawns(bool delete_all) {
 				spawn_delete_list.erase(erase_itr);
 				
 				MSpawnList.writelock(__FUNCTION__, __LINE__);
-				lua_interface->SetLuaUserDataStale(spawn);
-				
 				std::map<int32, Spawn*>::iterator sitr = spawn_list.find(spawn->GetID());
 				if(sitr != spawn_list.end()) {
 					spawn_list.erase(sitr);
@@ -1530,7 +1555,6 @@ void ZoneServer::DeleteSpawns(bool delete_all) {
 					housing_spawn_map.erase(spawn->GetID());
 				}
 				MSpawnList.releasewritelock(__FUNCTION__, __LINE__);
-				spellProcess->RemoveCaster(spawn);
 				safe_delete(spawn);
 			}
 			else
@@ -1710,8 +1734,12 @@ bool ZoneServer::Process()
 		}
 
 		// client loop
-		if(charsheet_changes.Check())
+		if(charsheet_changes.Check()) {
 			SendCharSheetChanges();
+		}
+		else {
+			SendRaidSheetChanges();
+		}
 
 		// Client loop
 		ClientProcess(startupDelayTimer.Enabled());
@@ -1998,15 +2026,13 @@ void ZoneServer::CheckRespawns(){
 	for(int i=tmp_respawn_list.size()-1;i>=0;i--){
 		if ( IsInstanceZone() )
 		{
-			if ( database.DeleteInstanceSpawnRemoved(GetInstanceID(),tmp_respawn_list[i]) )
-			{
-			}
-			else
-			{
-			}
+			database.DeleteInstanceSpawnRemoved(GetInstanceID(),tmp_respawn_list[i]);
+		}
+		else {
+			database.DeletePersistedRespawn(GetZoneID(),tmp_respawn_list[i]);
 		}
 
-		ProcessSpawnLocation(tmp_respawn_list[i], true);
+		ProcessSpawnLocation(tmp_respawn_list[i], nullptr, nullptr, nullptr, nullptr, nullptr, true);
 		respawn_timers.erase(tmp_respawn_list[i]);
 	}
 }
@@ -2291,6 +2317,23 @@ void ZoneServer::SendPlayerPositionChanges(Player* player){
 	}
 }
 
+void ZoneServer::SendRaidSheetChanges(){
+	vector<Client*>::iterator client_itr;
+
+	MClientList.readlock(__FUNCTION__, __LINE__);
+	for (client_itr = clients.begin(); client_itr != clients.end(); client_itr++) {
+		Client* client = (Client*)(*client_itr);
+		if(client && client->IsConnected() && client->GetPlayer()->GetRaidSheetChanged()) {
+			client->GetPlayer()->SetRaidSheetChanged(false);
+			EQ2Packet* packet = client->GetPlayer()->GetRaidUpdatePacket(client->GetVersion());
+			if(packet) {
+				client->QueuePacket(packet);
+			}
+		}
+	}
+	MClientList.releasereadlock(__FUNCTION__, __LINE__);
+}
+
 void ZoneServer::SendCharSheetChanges(){
 	vector<Client*>::iterator client_itr;
 
@@ -2301,9 +2344,11 @@ void ZoneServer::SendCharSheetChanges(){
 }
 
 void ZoneServer::SendCharSheetChanges(Client* client){
-	if(client && client->IsConnected() && client->GetPlayer()->GetCharSheetChanged()){
-		client->GetPlayer()->SetCharSheetChanged(false);
-		ClientPacketFunctions::SendCharacterSheet(client);
+	if(client && client->IsConnected()){
+		if(client->GetPlayer()->GetCharSheetChanged()) {
+			client->GetPlayer()->SetCharSheetChanged(false);
+			ClientPacketFunctions::SendCharacterSheet(client);
+		}
 	}
 }
 
@@ -2377,7 +2422,7 @@ int32 ZoneServer::CalculateSpawnGroup(SpawnLocation* spawnlocation, bool respawn
 			MSpawnLocationList.readlock(__FUNCTION__, __LINE__);
 			for (itr = locations->begin(); itr != locations->end(); itr++) {
 				if(spawn_location_list.count(itr->second) > 0){
-					spawn = ProcessSpawnLocation(spawn_location_list[itr->second], respawn);
+					spawn = ProcessSpawnLocation(spawn_location_list[itr->second], nullptr, nullptr, nullptr, nullptr, nullptr, respawn);
 					if(!leader && spawn)
 						leader = spawn;
 					if(leader)
@@ -2400,7 +2445,7 @@ int32 ZoneServer::CalculateSpawnGroup(SpawnLocation* spawnlocation, bool respawn
 	return group;
 }
 
-void ZoneServer::ProcessSpawnLocation(int32 location_id, bool respawn)
+void ZoneServer::ProcessSpawnLocation(int32 location_id, map<int32,int32>* instNPCs, map<int32,int32>* instGroundSpawns, map<int32,int32>* instObjSpawns, map<int32,int32>* instWidgetSpawns, map<int32,int32>* instSignSpawns, bool respawn)
 {
 	LogWrite(SPAWN__TRACE, 0, "Spawn", "Enter %s", __FUNCTION__);
 
@@ -2442,12 +2487,12 @@ void ZoneServer::ProcessSpawnLocation(int32 location_id, bool respawn)
 
 		LogWrite(SPAWN__TRACE, 0, "Spawn", "Exit %s", __FUNCTION__);
 
-		ProcessSpawnLocation(spawn_location_list[location_id], respawn);
+		ProcessSpawnLocation(spawn_location_list[location_id], instNPCs, instGroundSpawns, instObjSpawns, instWidgetSpawns, instSignSpawns, respawn);
 	}
 	MSpawnLocationList.releasereadlock(__FUNCTION__, __LINE__);
 }
 
-Spawn* ZoneServer::ProcessSpawnLocation(SpawnLocation* spawnlocation, bool respawn)
+Spawn* ZoneServer::ProcessSpawnLocation(SpawnLocation* spawnlocation, map<int32,int32>* instNPCs, map<int32,int32>* instGroundSpawns, map<int32,int32>* instObjSpawns, map<int32,int32>* instWidgetSpawns, map<int32,int32>* instSignSpawns, bool respawn)
 {
 	LogWrite(SPAWN__TRACE, 0, "Spawn", "Enter %s", __FUNCTION__);
 
@@ -2461,7 +2506,23 @@ Spawn* ZoneServer::ProcessSpawnLocation(SpawnLocation* spawnlocation, bool respa
 	{
 		if(spawnlocation->entities[i]->spawn_percentage == 0)
 			continue;
-
+		
+		
+		int32 spawnTime = 0;
+		
+		if(spawnlocation->entities[i]->spawn_type == SPAWN_ENTRY_TYPE_NPC)
+			spawnTime = database.CheckSpawnRemoveInfo(instNPCs,spawnlocation->entities[i]->spawn_location_id);
+		else if(spawnlocation->entities[i]->spawn_type == SPAWN_ENTRY_TYPE_OBJECT)
+			spawnTime = database.CheckSpawnRemoveInfo(instObjSpawns,spawnlocation->entities[i]->spawn_location_id);
+		
+		if(spawnTime == 0) { // don't respawn
+			return nullptr;
+		}
+		else if(spawnTime > 1) { // if not 1, respawn after time
+			AddRespawn(spawnlocation->entities[i]->spawn_location_id, spawnTime);
+			return nullptr;
+		}
+		
 		if (spawnlocation->conditional > 0) {
 			if ((spawnlocation->conditional & SPAWN_CONDITIONAL_DAY) == SPAWN_CONDITIONAL_DAY && isDusk)
 				continue;
@@ -2635,6 +2696,13 @@ void ZoneServer::ProcessSpawnLocations()
 		instWidgetSpawns = database.GetInstanceRemovedSpawns(this->GetInstanceID() , SPAWN_ENTRY_TYPE_WIDGET );
 		instSignSpawns = database.GetInstanceRemovedSpawns(this->GetInstanceID() , SPAWN_ENTRY_TYPE_SIGN );
 	}
+	else {
+		instNPCs = database.GetPersistedSpawns(this->GetZoneID() , SPAWN_ENTRY_TYPE_NPC );
+		instGroundSpawns = database.GetPersistedSpawns(this->GetZoneID() , SPAWN_ENTRY_TYPE_GROUNDSPAWN );
+		instObjSpawns = database.GetPersistedSpawns(this->GetZoneID() , SPAWN_ENTRY_TYPE_OBJECT );
+		instWidgetSpawns = database.GetPersistedSpawns(this->GetZoneID() , SPAWN_ENTRY_TYPE_WIDGET );
+		instSignSpawns = database.GetPersistedSpawns(this->GetZoneID() , SPAWN_ENTRY_TYPE_SIGN );
+	}
 
 	map<int32, bool> processed_spawn_locations;
 	map<int32, SpawnLocation*>::iterator itr;
@@ -2683,7 +2751,7 @@ void ZoneServer::ProcessSpawnLocations()
 			else
 			{
 				//LogWrite(SPAWN__DEBUG, 5, "Spawn", "ProcessSpawnLocation (%u)...", itr->second->placement_id);
-				ProcessSpawnLocation(itr->second);
+				ProcessSpawnLocation(itr->second,instNPCs,instGroundSpawns,instObjSpawns,instWidgetSpawns,instSignSpawns);
 			}
 		}
 	}
@@ -3288,13 +3356,14 @@ void ZoneServer::CheckTransporters(Client* client) {
 						client->QueuePacket(packet);
 				}
 				else{
-					ZoneServer* new_zone = zone_list.Get(loc->destination_zone_id);
-					if(new_zone){
+					ZoneChangeDetails zone_details;
+					bool foundZone = zone_list.GetZone(&zone_details, loc->destination_zone_id);
+					if(foundZone){
 						client->GetPlayer()->SetX(loc->destination_x);
 						client->GetPlayer()->SetY(loc->destination_y);
 						client->GetPlayer()->SetZ(loc->destination_z);
 						client->GetPlayer()->SetHeading(loc->destination_heading);
-						client->Zone(new_zone, false);
+						client->Zone(&zone_details, (ZoneServer*)zone_details.zonePtr);
 					}
 				}
 				break;
@@ -3543,8 +3612,10 @@ void ZoneServer::RemoveClient(Client* client)
 		map<int32, int32>::iterator itr;
 		for (itr = client->GetPlayer()->SpawnedBots.begin(); itr != client->GetPlayer()->SpawnedBots.end(); itr++) {
 			Spawn* spawn = GetSpawnByID(itr->second);
-			if (spawn)
+			if (spawn && spawn->IsBot()) {
+				((Entity*)spawn)->SetOwner(nullptr);
 				((Bot*)spawn)->Camp();
+			}
 		}
 		
 		if(dismissPets) {
@@ -3598,7 +3669,7 @@ void ZoneServer::ClientProcess(bool ignore_shutdown_timer)
 	{
 		MIncomingClients.readlock(__FUNCTION__, __LINE__);
 		bool shutdownDelayCheck = shutdownDelayTimer.Check();
-		if((!AlwaysLoaded() && !shutdownTimer.Enabled()) || shutdownDelayCheck)
+		if((!AlwaysLoaded() && !shutdownTimer.Enabled()) || (!AlwaysLoaded() && shutdownDelayCheck))
 		{
 			if(incoming_clients && !shutdownDelayTimer.Enabled()) {
 				LogWrite(ZONE__INFO, 0, "Zone", "Incoming clients (%u) expected for %s, delaying shutdown timer...", incoming_clients, GetZoneName());
@@ -3619,6 +3690,9 @@ void ZoneServer::ClientProcess(bool ignore_shutdown_timer)
 					LogWrite(ZONE__INFO, 0, "Zone", "zone shutdown timer for %s has %u remaining...", GetZoneName(), shutdownTimer.GetRemainingTime());
 				}
 			}
+		}
+		else if(AlwaysLoaded() && shutdownTimer.Enabled()) {
+			shutdownTimer.Disable();
 		}
 		MIncomingClients.releasereadlock(__FUNCTION__, __LINE__);
 		return;
@@ -3751,6 +3825,36 @@ void ZoneServer::HandleChatMessage(Client* client, Spawn* from, const char* to, 
 	}
 }
 
+void ZoneServer::HandleChatMessage(Client* client, std::string fromName, const char* to, int16 channel, const char* message, float distance, const char* channel_name, int32 language) {	
+	if (!client->GetPlayer()->IsIgnored(fromName.c_str())) {
+		PacketStruct* packet = configReader.getStruct("WS_HearChat", client->GetVersion());
+		if (packet) {
+			packet->setMediumStringByName("from", fromName.c_str());
+			
+			int8 clientchannel = client->GetMessageChannelColor(channel);
+			packet->setDataByName("channel", client->GetMessageChannelColor(channel));
+			packet->setDataByName("from_spawn_id", 0xFFFFFFFF);
+			packet->setDataByName("to_spawn_id", 0xFFFFFFFF);
+			packet->setMediumStringByName("message", message);
+			packet->setDataByName("language", language);
+
+			bool hasLanguage = client->GetPlayer()->HasLanguage(language);
+			if (language > 0 && !hasLanguage)
+				packet->setDataByName("understood", 0);
+			else
+				packet->setDataByName("understood", 1);
+
+			packet->setDataByName("show_bubble", 0);
+			if (channel_name)
+				packet->setMediumStringByName("channel_name", channel_name);
+			EQ2Packet* outapp = packet->serialize();
+			//DumpPacket(outapp);
+			client->QueuePacket(outapp);
+			safe_delete(packet);
+		}
+	}
+}
+
 void ZoneServer::HandleChatMessage(Spawn* from, const char* to, int16 channel, const char* message, float distance, const char* channel_name, bool show_bubble, int32 language){
 	vector<Client*>::iterator client_itr;
 	Client* client = 0;
@@ -3760,6 +3864,19 @@ void ZoneServer::HandleChatMessage(Spawn* from, const char* to, int16 channel, c
 		client = *client_itr;
 		if(client && client->IsConnected())
 			HandleChatMessage(client, from, to, channel, message, distance, channel_name, show_bubble, language);
+	}
+	MClientList.releasereadlock(__FUNCTION__, __LINE__);
+}
+
+void ZoneServer::HandleChatMessage(std::string fromName, const char* to, int16 channel, const char* message, float distance, const char* channel_name, int32 language){
+	vector<Client*>::iterator client_itr;
+	Client* client = 0;
+
+	MClientList.readlock(__FUNCTION__, __LINE__);
+	for (client_itr = clients.begin(); client_itr != clients.end(); client_itr++) {
+		client = *client_itr;
+		if(client && client->IsConnected())
+			HandleChatMessage(client, fromName, to, channel, message, distance, channel_name, language);
 	}
 	MClientList.releasereadlock(__FUNCTION__, __LINE__);
 }
@@ -4582,33 +4699,9 @@ void ZoneServer::RemoveSpawn(Spawn* spawn, bool delete_spawn, bool respawn, bool
 	if(erase_from_spawn_list)
 		AddPendingSpawnRemove(spawn->GetID());
 
-	if(respawn && !spawn->IsPlayer() && spawn->GetRespawnTime() > 0 && spawn->GetSpawnLocationID() > 0)
-	{
+	if(respawn && !spawn->IsPlayer() && spawn->GetSpawnLocationID() > 0) {
 		LogWrite(ZONE__DEBUG, 3, "Zone", "Handle NPC Respawn for '%s'.", spawn->GetName());
-
-		// handle instance spawn db info
-		// we don't care if a NPC or a client kills the spawn, we could have events that cause NPCs to kill NPCs.
-		if(spawn->GetZone()->GetInstanceID() > 0 && spawn->GetSpawnLocationID() > 0)
-		{
-			LogWrite(ZONE__DEBUG, 3, "Zone", "Handle NPC Respawn in an Instance.");
-			// use respawn time to either insert/update entry (likely insert in this situation)
-			if ( spawn->IsNPC() )
-			{
-				database.CreateInstanceSpawnRemoved(spawn->GetSpawnLocationID(),SPAWN_ENTRY_TYPE_NPC, 
-				spawn->GetRespawnTime(),spawn->GetZone()->GetInstanceID());
-			}
-			else if ( spawn->IsObject ( ) )
-			{
-				database.CreateInstanceSpawnRemoved(spawn->GetSpawnLocationID(),SPAWN_ENTRY_TYPE_OBJECT, 
-				spawn->GetRespawnTime(),spawn->GetZone()->GetInstanceID());
-			}
-		}
-		else
-		{
-			int32 spawnLocationID = spawn->GetSpawnLocationID();
-			int32 spawnRespawnTime = spawn->GetRespawnTime();
-			respawn_timers.Put(spawnLocationID, Timer::GetCurrentTime2() + spawnRespawnTime * 1000);
-		}
+		AddRespawn(spawn);
 	}
 	
 	RemoveSpawnFromGrid(spawn, spawn->GetLocation());
@@ -5144,6 +5237,12 @@ void ZoneServer::KillSpawn(bool spawnListLocked, Spawn* dead, Spawn* killer, boo
 				database.CreateInstanceSpawnRemoved(dead->GetSpawnLocationID(),SPAWN_ENTRY_TYPE_NPC, dead->GetRespawnTime(),dead->GetZone()->GetInstanceID());
 			else if ( dead->IsObject ( ) )
 				database.CreateInstanceSpawnRemoved(dead->GetSpawnLocationID(),SPAWN_ENTRY_TYPE_OBJECT, dead->GetRespawnTime(),dead->GetZone()->GetInstanceID());
+		}
+		else if(!groupMemberAlive && dead->GetSpawnLocationID() > 0) {
+			if(dead->IsNPC())
+				database.CreatePersistedRespawn(dead->GetSpawnLocationID(),SPAWN_ENTRY_TYPE_NPC,dead->GetRespawnTime(),GetZoneID());
+			else if(dead->IsObject())
+				database.CreatePersistedRespawn(dead->GetSpawnLocationID(),SPAWN_ENTRY_TYPE_OBJECT,dead->GetRespawnTime(),GetZoneID());
 		}
 
 		// Call the spawn scripts death() function
@@ -8662,7 +8761,7 @@ void ZoneServer::ProcessSpawnConditional(int8 condition) {
 		SpawnLocation* loc = itr2->second;
 		if (loc && loc->conditional > 0 && ((loc->conditional & condition) == condition))
 			if (GetSpawnByLocationID(loc->placement_id) == NULL)
-				ProcessSpawnLocation(loc);
+				ProcessSpawnLocation(loc, nullptr, nullptr, nullptr, nullptr, nullptr);
 	}
 	
 	MSpawnLocationList.releasereadlock(__FUNCTION__, __LINE__);
@@ -9125,5 +9224,15 @@ void ZoneServer::AddIgnoredWidget(int32 id) {
 	std::unique_lock lock(MIgnoredWidgets);
 	if(ignored_widgets.find(id) == ignored_widgets.end()) {
 		ignored_widgets.insert(make_pair(id,true));
+	}
+}
+
+void ZoneServer::AddRespawn(Spawn* spawn) {
+	AddRespawn(spawn->GetSpawnLocationID(), spawn->GetRespawnTime());
+}
+
+void ZoneServer::AddRespawn(int32 locationID, int32 respawnTime) {
+	if(locationID > 0 && respawnTime > 0) {
+		respawn_timers.Put(locationID, Timer::GetCurrentTime2() + respawnTime * 1000);
 	}
 }

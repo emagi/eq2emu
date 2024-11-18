@@ -32,11 +32,14 @@
 #include "Player.h"
 #include "Quests.h"
 
+#include "Web/PeerManager.h"
+
 using namespace std;
 #define CLIENT_TIMEOUT 60000
 struct TransportDestination;
 struct ConversationOption;
 struct VoiceOverStruct;
+struct GroupOptions;
 
 #define MAIL_SEND_RESULT_SUCCESS				0
 #define MAIL_SEND_RESULT_UNKNOWN_PLAYER			1
@@ -165,13 +168,14 @@ public:
 	void	QueuePacket(EQ2Packet* app, bool attemptedCombine=false);
 	void	SendLoginInfo();
 	int8	GetMessageChannelColor(int8 channel_type);
-	void	HandleTellMessage(Client* from, const char* message, const char* to, int32 current_language_id);
+	void	HandleTellMessage(const char* fromName, const char* message, const char* to, int32 current_language_id);
 	void	SimpleMessage(int8 color, const char* message);
 	void	Message(int8 type, const char* message, ...);
 	void	SendSpellUpdate(Spell* spell, bool add_silently = false, bool add_to_hotbar = true);
-	void	Zone(ZoneServer* new_zone, bool set_coords = true, bool is_spell = false);
+	void	Zone(ZoneChangeDetails* new_zone, ZoneServer* opt_zone = nullptr, bool set_coords = true, bool is_spell = false);
 	void	Zone(const char* new_zone, bool set_coords = true, bool is_spell = false);
 	void	Zone(int32 instanceid, bool set_coords = true, bool byInstanceID=false, bool is_spell = false);
+	void	ApproveZone();
 	void	SendZoneInfo();
 	void	SendZoneSpawns();
 	void	HandleVerbRequest(EQApplicationPacket* app);
@@ -194,7 +198,7 @@ public:
 	void	ChangeTSLevel(int16 old_level, int16 new_level);
 	bool	Summon(const char* search_name);
 	std::string	IdentifyInstanceLockout(int32 zoneID, bool displayClient = true);
-	ZoneServer*	IdentifyInstance(int32 zoneID);
+	bool	IdentifyInstance(ZoneChangeDetails* zone_details, int32 zoneID);
 	bool	TryZoneInstance(int32 zoneID, bool zone_coords_valid=false);
 	bool	GotoSpawn(const char* search_name, bool forceTarget=false);
 	void	DisplayDeadWindow();
@@ -588,6 +592,15 @@ public:
 	int32	GetSpellVisualOverride(int32 spell_visual);
 	
 	sint16	GetClientItemPacketOffset() { sint16 offset = -1; if(GetVersion() <= 373) { offset = -2; } return offset; }
+	
+	int32	GetZoningID() { return zoning_id; }
+	int32	GetZoningInstanceID() { return zoning_instance_id; }
+	
+	void	SetZoningDetails(ZoneChangeDetails* details) { zoning_details = ZoneChangeDetails(details); }
+	
+	void	HandleGroupAcceptResponse(int8 result);
+	void	SetGroupOptionsReference(GroupOptions* options);
+	void	SendReceiveOffer(Client* client_target, int8 type, std::string name, int8 unknown2);
 private:
 	void	AddRecipeToPlayerPack(Recipe* recipe, PacketStruct* packet, int16* i);
 	void    SavePlayerImages();
@@ -657,7 +670,9 @@ private:
 	
 	bool	seencharsel;
 	bool	connected_to_zone;
-	bool	client_zoning;
+	std::atomic<bool> client_zoning;
+	std::atomic<bool> client_zoning_details_set;
+	ZoneChangeDetails zoning_details;
 	int32	zoning_id;
 	int32	zoning_instance_id;
 	ZoneServer* zoning_destination;
@@ -691,7 +706,7 @@ private:
 	string* pending_last_name;
 	IncomingPaperdollImage incoming_paperdoll;
 	int32 transmuteID;
-	ZoneServer* GetHouseZoneServer(int32 spawn_id, int64 house_id);
+	bool GetHouseZoneServer(ZoneChangeDetails* zone_details, int32 spawn_id, int64 house_id);
 	
 	std::atomic<bool> m_recipeListSent;
 	bool initial_spawns_sent;

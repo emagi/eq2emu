@@ -437,6 +437,8 @@ public:
 	PlayerInfo* GetPlayerInfo();
 	void SetCharSheetChanged(bool val);
 	bool GetCharSheetChanged();
+	void SetRaidSheetChanged(bool val);
+	bool GetRaidSheetChanged();
 	void AddFriend(const char* name, bool save);
 	bool IsFriend(const char* name);
 	void RemoveFriend(const char* name);
@@ -552,8 +554,9 @@ public:
 	int8 GetSpellTier(int32 id);
 	void SetSpellStatus(Spell* spell, int8 status);
 	void RemoveSpellStatus(Spell* spell, int8 status);
-	EQ2Packet* GetSpellBookUpdatePacket(int16 version);
 	EQ2Packet* GetSpellSlotMappingPacket(int16 version);
+	EQ2Packet* GetSpellBookUpdatePacket(int16 version);
+	EQ2Packet* GetRaidUpdatePacket(int16 version);
 	int32 GetCharacterID();
 	void SetCharacterID(int32 new_id);
 	EQ2Packet* GetQuickbarPacket(int16 version);
@@ -775,7 +778,6 @@ public:
 	void				SetAwayMessage(string val) { away_message = val; }
 	void				SetRangeAttack(bool val);
 	bool				GetRangeAttack();
-	ZoneServer*			GetGroupMemberInZone(int32 zone_id);
 	bool				AddMail(Mail* mail);
 	MutexMap<int32, Mail*>*	GetMail();
 	Mail*				GetMail(int32 mail_id);
@@ -1112,6 +1114,7 @@ public:
 	map<int8, int32> m_levelXPReq;
 
 	mutable std::shared_mutex spell_packet_update_mutex;
+	mutable std::shared_mutex raid_update_mutex;
 private:
 	bool reset_mentorship;
 	bool range_attack;
@@ -1129,7 +1132,9 @@ private:
 	map<Spawn*, bool>	current_quest_flagged;
 	PlayerFaction		factions;
 	map<int32, Quest*>	completed_quests;
-		bool				charsheet_changed;
+	std::atomic<bool>	charsheet_changed;
+	std::atomic<bool>	raidsheet_changed;
+	std::atomic<bool>	hassent_raid;
 	map<int32, string>	spawn_vis_packet_list;
 	map<int32, string>	spawn_info_packet_list;
 	map<int32, string>	spawn_pos_packet_list;
@@ -1140,6 +1145,9 @@ private:
 	uchar*				spell_orig_packet;
 	uchar*				spell_xor_packet;
 	int16				spell_count;
+	
+	uchar*				raid_orig_packet;
+	uchar*				raid_xor_packet;
 	//float				speed;
 	int16				target_id;
 	Spawn*              combat_target;

@@ -24,6 +24,7 @@
 #include <time.h>
 #include <math.h>
 #include <chrono>
+#include <random>
 
 #ifndef WIN32
 #include <netinet/in.h>
@@ -324,27 +325,19 @@ int64 hextoi64(char* num) {
 	return ret;
 }
 
-float MakeRandomFloat(float low, float high)
-{
-#ifdef _WIN32	
-	thread_local bool seeded = false;
-#else
-	static bool seeded = false;
-#endif
-
+float MakeRandomFloat(float low, float high) {
+    // Handle edge case where range is zero or inverted
 	float diff = high - low;
-  
 	if(!diff) return low;
-	if(diff < 0)
-		diff = 0 - diff;
+	
+    if (low == high) return low;
+    if (low > high) std::swap(low, high);
 
-	if(!seeded)
-	{
-		srand(time(0) * (time(0) % (int)diff));
-		seeded = true;
-	}
-  
-	return (rand() / (float)RAND_MAX * diff + (low > high ? high : low));
+    // Use a thread-local random generator for thread safety
+    thread_local std::mt19937 generator(std::random_device{}()); // Seed once per thread
+    std::uniform_real_distribution<float> distribution(low, high);
+
+    return distribution(generator);
 }
 
 int32 GenerateEQ2Color(float* r, float* g, float* b){

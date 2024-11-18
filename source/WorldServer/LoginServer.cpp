@@ -66,6 +66,8 @@ extern int errno;
 #include "World.h"
 #include "../common/ConfigReader.h"
 #include "Rules/Rules.h"
+#include "Web/PeerManager.h"
+#include "Web/HTTPSClientPool.h"
 
 extern sint32			numzones;
 extern sint32			numclients;
@@ -80,6 +82,8 @@ extern volatile bool	RunLoops;
 volatile bool LoginLoopRunning = false;
 extern ConfigReader configReader;
 extern RuleManager rule_manager;
+extern PeerManager peer_manager;
+extern HTTPSClientPool peer_https_pool;
 
 bool AttemptingConnect = false;
 
@@ -176,7 +180,7 @@ bool LoginServer::Process() {
 				LogWrite(WORLD__ERROR, 0, "World", "Login Server returned a fatal error: %s\n", pack->pBuffer);
 				tcpc->Disconnect();
 				ret = false;
-				net.ReadLoginINI();
+				//net.ReadLoginINI(); // can't properly support with command line args now
 				break;
 			}
 		case ServerOP_CharTimeStamp: 
@@ -367,10 +371,13 @@ bool LoginServer::Process() {
 
 			int32 access_key = 0;
 
-			// if it is a accepted login, we add the zone auth request
-			access_key = DetermineCharacterLoginRequest ( utwr );
 
-			if (  access_key != 0 )
+			ZoneChangeDetails details;
+			std::string name = database.loadCharacterFromLogin(&details, utwr->char_id, utwr->lsaccountid);
+			// if it is a accepted login, we add the zone auth request
+			access_key = DetermineCharacterLoginRequest ( utwr, &details, name);
+
+			if ( access_key != 0 )
 			{
 				zone_auth.PurgeInactiveAuth();
 				char* characterName = database.GetCharacterName( utwr->char_id );
@@ -555,22 +562,11 @@ void LoginServer::SendFilterNameResponse ( int8 resp, int32 acct_id , int32 char
 	safe_delete(outpack);
 }
 
-int32 LoginServer::DetermineCharacterLoginRequest ( UsertoWorldRequest_Struct* utwr ) {
+int32 LoginServer::DetermineCharacterLoginRequest ( UsertoWorldRequest_Struct* utwr, ZoneChangeDetails* details, std::string name) {
 	LogWrite(LOGIN__TRACE, 9, "Login", "Enter: %s", __FUNCTION__);
-	ServerPacket* outpack = new ServerPacket;
-	outpack->opcode = ServerOP_UsertoWorldResp;
-	outpack->size = sizeof(UsertoWorldResponse_Struct);
-	outpack->pBuffer = new uchar[outpack->size];
-	memset(outpack->pBuffer, 0, outpack->size);
-	UsertoWorldResponse_Struct* utwrs = (UsertoWorldResponse_Struct*) outpack->pBuffer;
-	utwrs->lsaccountid = utwr->lsaccountid;
-	utwrs->char_id = utwr->char_id;
-	utwrs->ToID = utwr->FromID;
 	int32 timestamp = Timer::GetUnixTimeStamp();
-	utwrs->access_key = timestamp;
-
-	// set default response to 0
-	utwrs->response = 0;
+	int32 key = static_cast<unsigned int>(MakeRandomFloat(0.01,1.0) * UINT32_MAX);
+	int8 response = 0;
 
 	sint16 lowestStatus = database.GetLowestCharacterAdminStatus( utwr->lsaccountid );
 
@@ -587,19 +583,19 @@ int32 LoginServer::DetermineCharacterLoginRequest ( UsertoWorldRequest_Struct* u
 		LogWrite(WORLD__ERROR, 0, "World", "Login Rejected based on PLAY_ERROR (UserStatus) (MinStatus: %i), UserStatus: %i, CharID: %i",loginserver.minLockedStatus,status,utwr->char_id );
 		switch(status){
 			case -10:
-				utwrs->response = PLAY_ERROR_CHAR_NOT_LOADED;
+				response = PLAY_ERROR_CHAR_NOT_LOADED;
 				break;
 			case -9:
-				utwrs->response = 0;//PLAY_ERROR_ACCOUNT_IN_USE;
+				response = 0;//PLAY_ERROR_ACCOUNT_IN_USE;
 				break;
 			case -8:
-				utwrs->response = PLAY_ERROR_LOADING_ERROR;
+				response = PLAY_ERROR_LOADING_ERROR;
 				break;
 			case -1:
-				utwrs->response = PLAY_ERROR_ACCOUNT_BANNED;
+				response = PLAY_ERROR_ACCOUNT_BANNED;
 				break;
 			default:
-				utwrs->response = PLAY_ERROR_PROBLEM;
+				response = PLAY_ERROR_PROBLEM;
 		}
 	}
 	else if(net.world_locked == true){
@@ -607,7 +603,7 @@ int32 LoginServer::DetermineCharacterLoginRequest ( UsertoWorldRequest_Struct* u
 
 		// has high enough status, allow it
 		if(status >= loginserver.minLockedStatus)
-			utwrs->response = 1;
+			response = 1;
 	}
 	else if(loginserver.maxPlayers > -1 && ((sint16)client_list.Count()) >= loginserver.maxPlayers)
 	{
@@ -616,14 +612,66 @@ int32 LoginServer::DetermineCharacterLoginRequest ( UsertoWorldRequest_Struct* u
 		// has high enough status, allow it
 		if(status >= loginserver.minGameFullStatus)
 		{
-			utwrs->response = 1;
+			response = 1;
 		}
 		else
-			utwrs->response = -3; // server full response is -3
+			response = -3; // server full response is -3
 	}
 	else
-		utwrs->response = 1;
+		response = 1;
 
+	bool attemptedPeer = false;
+	if(response == 1 && details->peerId.size() > 0 && details->peerId != "self" && name.size() > 0) {
+			boost::property_tree::ptree root;
+			root.put("account_id", utwr->lsaccountid);
+			root.put("character_name", std::string(name));
+			root.put("character_id", std::to_string(utwr->char_id));
+			root.put("zone_id", std::to_string(details->zoneId));
+			root.put("instance_id", std::to_string(details->instanceId));
+			root.put("login_key", std::to_string(key));
+			root.put("client_ip", std::string(utwr->ip_address));
+			root.put("world_id", std::to_string(utwr->worldid));
+			root.put("from_id", std::to_string(utwr->FromID));
+			root.put("first_login", true);
+			std::ostringstream jsonStream;
+			boost::property_tree::write_json(jsonStream, root);
+			std::string jsonPayload = jsonStream.str();
+			LogWrite(PEERING__INFO, 0, "Peering", "%s: Sending AddCharAuth for %s to peer %s:%u for existing zone %s", __FUNCTION__, name, details->peerWebAddress.c_str(), details->peerWebPort, details->zoneName.c_str());
+			attemptedPeer = true;
+			peer_https_pool.sendPostRequestToPeerAsync(details->peerId, details->peerWebAddress, std::to_string(details->peerWebPort), "/addcharauth", jsonPayload);
+	}
+	else if(response == 1 && details->peerId == "") {
+			std::shared_ptr<Peer> peer = peer_manager.getHealthyPeerWithLeastClients();
+			if(peer != nullptr) {
+				boost::property_tree::ptree root;
+				char* characterName = database.GetCharacterName( utwr->char_id );
+				if(!characterName) {
+					LogWrite(PEERING__ERROR, 0, "Peering", "%s: AddCharAuth failed to identify character name for char id %u to peer %s:%u", __FUNCTION__, utwr->char_id, peer->webAddr.c_str(), peer->webPort);
+				}
+				else {
+					root.put("account_id", utwr->lsaccountid);
+					root.put("character_name", std::string(characterName));
+					root.put("character_id", std::to_string(utwr->char_id));
+					root.put("zone_id", std::to_string(details->zoneId));
+					root.put("instance_id", std::to_string(details->instanceId));
+					root.put("login_key", std::to_string(key));
+					root.put("client_ip", std::string(utwr->ip_address));
+					root.put("world_id", std::to_string(utwr->worldid));
+					root.put("from_id", std::to_string(utwr->FromID));
+					root.put("first_login", true);
+					std::ostringstream jsonStream;
+					boost::property_tree::write_json(jsonStream, root);
+					std::string jsonPayload = jsonStream.str();
+					LogWrite(PEERING__INFO, 0, "Peering", "%s: Sending AddCharAuth for %s to peer %s:%u for new zone %s", __FUNCTION__, characterName, peer->webAddr.c_str(), peer->webPort, details->zoneName.c_str());
+					attemptedPeer = true;
+					peer_https_pool.sendPostRequestToPeerAsync(peer->id, peer->webAddr, std::to_string(peer->webPort), "/addcharauth", jsonPayload);
+				}
+			}
+			else if(peer_manager.hasPeers()) {
+					LogWrite(PEERING__WARNING, 0, "Peering", "%s: AddCharAuth failed to find healthy peer for char id %u", __FUNCTION__, utwr->char_id);
+			}
+	}
+	
 	/*sint32 x = database.CommandRequirement("$MAXCLIENTS");
 	if( (sint32)numplayers >= x && x != -1 && x != 255 && status < 80)
 	utwrs->response = -3;
@@ -634,34 +682,61 @@ int32 LoginServer::DetermineCharacterLoginRequest ( UsertoWorldRequest_Struct* u
 	utwrs->response = -2;
 	*/
 	//printf("Response is %i for %i\n",utwrs->response,id);struct sockaddr_in sa;
+	
+	if(!attemptedPeer) {
+		SendCharApprovedLogin(response, "", "", std::string(utwr->ip_address), 0, utwr->lsaccountid, utwr->char_id, key, utwr->worldid, utwr->FromID);
+	}
+
+	LogWrite(LOGIN__TRACE, 9, "Login", "Exit: %s with timestamp=%u", __FUNCTION__, timestamp);
+	// depending on the response determined above, this could return 0 (for failure)
+	return (attemptedPeer) ? 0 : key;
+}
+
+void LoginServer::SendCharApprovedLogin(int8 response, std::string peerAddress, std::string peerInternalAddress, std::string clientIP, int16 peerPort, int32 account_id, int32 char_id, int32 key, int32 world_id, int32 from_id) {
+	ServerPacket* outpack = new ServerPacket;
+	outpack->opcode = ServerOP_UsertoWorldResp;
+	outpack->size = sizeof(UsertoWorldResponse_Struct);
+	outpack->pBuffer = new uchar[outpack->size];
+	memset(outpack->pBuffer, 0, outpack->size);
+	UsertoWorldResponse_Struct* utwrs = (UsertoWorldResponse_Struct*) outpack->pBuffer;
+	utwrs->response = response;
+	utwrs->lsaccountid = account_id;
+	utwrs->char_id = char_id;
+	utwrs->ToID = from_id;
+	utwrs->access_key = key;
+	
 	int32 ipv4addr = 0;
 	int result = 0;
 	#ifdef WIN32
 		struct sockaddr_in myaddr;
 		ZeroMemory(&myaddr, sizeof(myaddr));
-		result = InetPton(AF_INET, utwr->ip_address, &(myaddr.sin_addr));
+		result = InetPton(AF_INET, clientIP.c_str(), &(myaddr.sin_addr));
 		if(result)
 			ipv4addr = ntohl(myaddr.sin_addr.s_addr);
 
 	#else
-		result = inet_pton(AF_INET, utwr->ip_address, &ipv4addr);
+		result = inet_pton(AF_INET, clientIP.c_str(), &ipv4addr);
 		if(result)
 			ipv4addr = ntohl(ipv4addr);
 	#endif
-		if (((result > 0 && IsPrivateAddress(ipv4addr)) || (strcmp(net.GetWorldAddress(), utwr->ip_address) == 0)) && (strlen(net.GetInternalWorldAddress()) > 0))
-		strcpy(utwrs->ip_address, net.GetInternalWorldAddress());
-	else
-		strcpy(utwrs->ip_address, net.GetWorldAddress());
 	
-	LogWrite(CCLIENT__INFO, 0, "World", "New client login attempt from %s, providing %s as the world server address.",utwr->ip_address, utwrs->ip_address );
+	std::string internalAddress = std::string(net.GetInternalWorldAddress());
+	std::string address = std::string(net.GetWorldAddress());
+	int16 worldport = net.GetWorldPort();
+	if(peerAddress.size() > 0 && peerPort > 0) {
+		internalAddress = peerInternalAddress;
+		address = peerAddress;
+		worldport = peerPort;
+	}
+		if (((result > 0 && IsPrivateAddress(ipv4addr)) || (strcmp(address.c_str(), clientIP.c_str()) == 0)) && (internalAddress.size() > 0))
+		strcpy(utwrs->ip_address, internalAddress.c_str());
+	else
+		strcpy(utwrs->ip_address, address.c_str());
+	
+	LogWrite(CCLIENT__INFO, 0, "World", "New client login attempt from %s, providing %s:%u as the world server address.",clientIP.c_str(), utwrs->ip_address, worldport );
 
-	utwrs->port = net.GetWorldPort();
-	utwrs->worldid = utwr->worldid;
+	utwrs->port = worldport;
+	utwrs->worldid = world_id;
 	SendPacket(outpack);
 	delete outpack;
-
-	LogWrite(LOGIN__TRACE, 9, "Login", "Exit: %s with timestamp=%u", __FUNCTION__, timestamp);
-	// depending on the response determined above, this could return 0 (for failure)
-	return timestamp;
 }
-

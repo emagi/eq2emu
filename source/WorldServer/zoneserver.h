@@ -298,6 +298,9 @@ public:
 	void	SimpleMessage(int8 type, const char* message, Spawn* from, float distance, bool send_to_sender = true);
 	void	HandleChatMessage(Spawn* from, const char* to, int16 channel, const char* message, float distance = 0, const char* channel_name = 0, bool show_bubble = true, int32 language = 0);
 	void	HandleChatMessage(Client* client, Spawn* from, const char* to, int16 channel, const char* message, float distance = 0, const char* channel_name = 0, bool show_bubble = true, int32 language = 0);
+	void	HandleChatMessage(Client* client, std::string fromName, const char* to, int16 channel, const char* message, float distance = 0, const char* channel_name = 0, int32 language = 0);
+	void	HandleChatMessage(std::string fromName, const char* to, int16 channel, const char* message, float distance, const char* channel_name, int32 language);
+	
 	void	HandleBroadcast(const char* message);
 	void	HandleAnnouncement(const char* message);
 	
@@ -517,7 +520,7 @@ public:
 	void	SetZoneDescription(char* desc) { 
 		if( strlen(desc) >= sizeof zone_description )
 			return;
-		strcpy(zone_description, desc); 
+		strncpy(zone_description, desc, 255); 
 	}
 	
 	void			SetUnderWorld(float under){ underworld = under; }
@@ -543,7 +546,7 @@ public:
 	void			SetZoneLockState(bool lock_state) { locked = lock_state; }	// JA: /zone lock|unlock
 	int32			GetInstanceID() { return instanceID; }
 	bool			IsInstanceZone() { return isInstance; }
-
+	void			SetInstanceID(int32 newInstanceID) { instanceID = newInstanceID; }
 	void SetShutdownTimer(int val){ 
 		shutdownTimer.SetTimer(val*1000);
 	}
@@ -725,8 +728,10 @@ public:
 	int32	GetSpawnCountInGrid(int32 grid_id);
 	void	SendClientSpawnListInGrid(Client* client, int32 grid_id);
 	
-	void AddIgnoredWidget(int32 id);	
+	void 	AddIgnoredWidget(int32 id);	
 	
+	void	AddRespawn(Spawn* spawn);
+	void	AddRespawn(int32 locationID, int32 respawnTime);
 private:
 #ifndef WIN32
 	pthread_t ZoneThread;
@@ -752,9 +757,10 @@ private:
 	vector<int32>*	GetAssociatedLocations(set<int32>* groups);													// never used outside zone server
 	set<int32>* GetAssociatedGroups(int32 group_id);															// never used outside zone server
 	list<int32>* GetSpawnGroupsByLocation(int32 location_id);													// never used outside zone server
-	void	ProcessSpawnLocation(int32 location_id, bool respawn = false);										// never used outside zone server
-	Spawn*	ProcessSpawnLocation(SpawnLocation* spawnlocation, bool respawn = false);							// never used outside zone server
+	void	ProcessSpawnLocation(int32 location_id, map<int32,int32>* instNPCs, map<int32,int32>* instGroundSpawns, map<int32,int32>* instObjSpawns, map<int32,int32>* instWidgetSpawns, map<int32,int32>* instSignSpawns, bool respawn = false);										// never used outside zone server
+	Spawn*	ProcessSpawnLocation(SpawnLocation* spawnlocation, map<int32,int32>* instNPCs, map<int32,int32>* instGroundSpawns, map<int32,int32>* instObjSpawns, map<int32,int32>* instWidgetSpawns, map<int32,int32>* instSignSpawns, bool respawn = false);							// never used outside zone server
 	Spawn*	ProcessInstanceSpawnLocation(SpawnLocation* spawnlocation, map<int32,int32>* instNPCs, map<int32,int32>* instGroundSpawns, map<int32,int32>* instObjSpawns, map<int32,int32>* instWidgetSpawns, map<int32,int32>* instSignSpawns, bool respawn = false);													// never used outside zone server
+	void	SendRaidSheetChanges();																				// never used outside zone server
 	void	SendCharSheetChanges();																				// never used outside zone server
 	void	SendCharSheetChanges(Client* client);																// never used outside zone server
 	void	SaveClients();																						// never used outside zone server
@@ -925,6 +931,7 @@ private:
 	volatile bool	LoadingData;
 	std::atomic<bool> reloading_spellprocess;
 	std::atomic<bool> zoneShuttingDown;
+	std::atomic<bool> is_initialized;
 	bool	cityzone;
 	bool	always_loaded;
 	bool	isInstance;	

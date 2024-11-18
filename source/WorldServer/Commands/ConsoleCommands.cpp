@@ -359,14 +359,14 @@ bool ConsoleZoneCommand(Seperator *sep)
 		{
 			if( sep->IsNumber(2) )
 			{
-				zone = zone_list.Get(atoi(sep->arg[2]), false, false, false);
-				if( zone )
+				ZoneChangeDetails zone_details;
+				if( zone_list.GetZone(&zone_details, atoi(sep->arg[2]), "", false, false, false) )
 				{
 					printf("> Zone status for zone ID %i...\n", atoi(sep->arg[2]));
 					printf("============================================================================================\n");
 					printf("| %30s | %10s | %42s |\n", "Zone", "Param", "Value");
 					printf("============================================================================================\n");
-					printf("| %30s | %10s | %42s |\n", zone->GetZoneName(), "locked", zone->GetZoneLockState() ? "true" : "false");
+					printf("| %30s | %10s | %42s |\n", zone_details.zoneName, "locked", zone_details.lockState ? "true" : "false");
 				}
 				else
 				{

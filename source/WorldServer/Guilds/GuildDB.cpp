@@ -67,6 +67,39 @@ void WorldDatabase::LoadGuilds() {
 	LogWrite(GUILD__INFO, 0, "Guilds", "\tLoaded %u Guild(s)", num_guilds);
 }
 
+void WorldDatabase::LoadGuild(int32 guild_id) {
+	Query query;
+	MYSQL_ROW row;
+	Guild* tmpGuild = guild_list.GetGuild(guild_id);
+	if(tmpGuild) // already loaded
+		return;
+	
+	MYSQL_RES* result = query.RunQuery2(Q_SELECT, "SELECT `id`, `name`, `motd`, `level`, `xp`, `xp_needed`, `formed_on` FROM `guilds` where id=%u", guild_id);
+	if (result && (row = mysql_fetch_row(result))) {
+		LogWrite(GUILD__DEBUG, 1, "Guilds", "%u. %s", atoul(row[0]), row[1]);
+		Guild* guild = new Guild;
+		guild->SetID(atoul(row[0]));
+		guild->SetName(row[1]);
+		if (row[2])
+			guild->SetMOTD(row[2], false);
+		guild->SetLevel(atoi(row[3]), false);
+		guild->SetEXPCurrent(atoul(row[4]), false);
+		guild->SetEXPToNextLevel(atoul(row[5]), false);
+		guild->SetFormedDate(atoul(row[6]));
+
+		LogWrite(GUILD__DEBUG, 3, "Guilds", "\tLoaded %i guild members.", LoadGuildMembers(guild));
+		LogWrite(GUILD__DEBUG, 3, "Guilds", "\tLoading Guild Ranks...");
+		LoadGuildRanks(guild);
+		LogWrite(GUILD__DEBUG, 3, "Guilds", "\tLoading Guild Event Filters...");
+		LoadGuildEventFilters(guild);
+		LogWrite(GUILD__DEBUG, 3, "Guilds", "\tLoading Guild Events...");
+		LoadGuildEvents(guild);
+		LogWrite(GUILD__DEBUG, 3, "Guilds", "\tLoading Guild Recruiting...");
+		LoadGuildRecruiting(guild);
+		guild_list.AddGuild(guild);
+	}
+}
+
 int32 WorldDatabase::LoadGuildMembers(Guild* guild) {
 	int32 num_members = 0;
 	Query query;

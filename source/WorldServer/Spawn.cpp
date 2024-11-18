@@ -1320,6 +1320,9 @@ EQ2Packet* Spawn::serialize(Player* player, int16 version){
 Spawn* Spawn::GetTarget(){
 	Spawn* ret = 0;
 	
+	if(!GetZone())
+		return 0;
+	
 	// only attempt to get a spawn if we had a target stored
 	if (target != 0)
 	{
@@ -4933,14 +4936,7 @@ void Spawn::AddIgnoredWidget(int32 id) {
 void Spawn::SendGroupUpdate() {
 	if (IsEntity() && ((Entity*)this)->GetGroupMemberInfo()) {
 		((Entity*)this)->UpdateGroupMemberInfo();
-		if (IsPlayer()) {
-			Client* client = ((Player*)this)->GetClient();
-			if(client) {
-				world.GetGroupManager()->SendGroupUpdate(((Entity*)this)->GetGroupMemberInfo()->group_id, client);
-			}
-		}
-		else
-			world.GetGroupManager()->SendGroupUpdate(((Entity*)this)->GetGroupMemberInfo()->group_id);
+		world.GetGroupManager()->SendGroupUpdate(((Entity*)this)->GetGroupMemberInfo()->group_id);
 	}
 }
 
@@ -4996,7 +4992,7 @@ bool Spawn::HasSpawnLootWindowCompleted(int32 spawn_id) {
 
 bool Spawn::HasSpawnNeedGreedEntry(int32 item_id, int32 spawn_id) {
 	for (auto [itr, rangeEnd] = need_greed_items.equal_range(item_id); itr != rangeEnd; itr++) {
-		LogWrite(LOOT__DEBUG, 8, "Loot", "%s: HasSpawnNeedGreedEntry Item ID: %u, Spawn ID: %u", GetName(), itr->first, itr->second.first);
+		LogWrite(LOOT__DEBUG, 1, "Loot", "%s: HasSpawnNeedGreedEntry Item ID: %u, Spawn ID: %u", GetName(), itr->first, itr->second.first);
 		if (spawn_id == itr->second.first) {
 			return true;
 		}
@@ -5006,7 +5002,7 @@ bool Spawn::HasSpawnNeedGreedEntry(int32 item_id, int32 spawn_id) {
 
 bool Spawn::HasSpawnLottoEntry(int32 item_id, int32 spawn_id) {
 	for (auto [itr, rangeEnd] = lotto_items.equal_range(item_id); itr != rangeEnd; itr++) {
-		LogWrite(LOOT__DEBUG, 8, "Loot", "%s: HasSpawnLottoEntry Item ID: %u, Spawn ID: %u", GetName(), itr->first, itr->second);
+		LogWrite(LOOT__DEBUG, 1, "Loot", "%s: HasSpawnLottoEntry Item ID: %u, Spawn ID: %u", GetName(), itr->first, itr->second);
 		if (spawn_id == itr->second) {
 			return true;
 		}

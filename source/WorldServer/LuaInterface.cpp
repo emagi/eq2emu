@@ -905,9 +905,9 @@ void LuaInterface::RemoveSpell(LuaSpell* spell, bool call_remove_function, bool 
 			spell->caster->RemoveProc(0, spell);
 			spell->caster->RemoveMaintainedSpell(spell);
 
-			int8 spell_type = spell->spell->GetSpellData()->spell_type;
-			if(spell->caster->IsPlayer() && !removing_all_spells)
+			if(spell->spell && spell->spell->GetSpellData() && spell->caster->IsPlayer() && !removing_all_spells)
 			{
+				int8 spell_type = spell->spell->GetSpellData()->spell_type;
 				Player* player = (Player*)spell->caster;
 				switch(spell_type)
 				{
@@ -1562,6 +1562,9 @@ void LuaInterface::RegisterFunctions(lua_State* state) {
 	lua_register(state, "GetSpellInitialTarget", EQ2Emu_lua_GetSpellInitialTarget);
 	
 	lua_register(state,"DespawnByLocationID", EQ2Emu_lua_DespawnByLocationID);
+	
+	lua_register(state,"AddRespawn", EQ2Emu_lua_AddRespawn);
+	lua_register(state,"CreatePersistedRespawn", EQ2Emu_lua_CreatePersistedRespawn);
 }
 
 void LuaInterface::LogError(const char* error, ...)  {

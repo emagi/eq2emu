@@ -77,6 +77,8 @@ Player::Player(){
 	spell_count = 0;
 	spell_orig_packet = 0;
 	spell_xor_packet = 0;
+	raid_orig_packet = nullptr;
+	raid_xor_packet = nullptr;
 	resurrecting = false;
 	spawn_id = 1;
 	spawn_type = 4;
@@ -131,6 +133,8 @@ Player::Player(){
 	need_trait_update = true;
 	active_food_unique_id = 0;
 	active_drink_unique_id = 0;
+	raidsheet_changed = false;
+	hassent_raid = false;
 }
 Player::~Player(){
 	SetSaveSpellEffects(true);
@@ -181,6 +185,8 @@ Player::~Player(){
 	safe_delete_array(spawn_tmp_pos_xor_packet);
 	safe_delete_array(spell_xor_packet);
 	safe_delete_array(spell_orig_packet);
+	safe_delete_array(raid_orig_packet);
+	safe_delete_array(raid_xor_packet);
 	DestroyQuests();
 	WritePlayerStatistics();
 	RemovePlayerStatistics();
@@ -1067,7 +1073,7 @@ EQ2Packet* PlayerInfo::serialize(int16 version, int16 modifyPos, int32 modifyVal
 		player->GetMaintainedMutex()->readlock(__FUNCTION__, __LINE__);
 		for (int i = 0; i < 45; i++) {
 			if (i < 30) {
-				maintained_target = player->GetZone()->GetSpawnByID(info_struct->maintained_effects[i].target);
+				maintained_target = player->GetZone() ? player->GetZone()->GetSpawnByID(info_struct->maintained_effects[i].target) : nullptr;
 				packet->setSubstructDataByName("maintained_effects", "name", info_struct->maintained_effects[i].name, i, 0);
 				if (maintained_target)
 					packet->setSubstructDataByName("maintained_effects", "target", player->GetIDWithPlayerSpawn(maintained_target), i, 0);
@@ -3055,6 +3061,162 @@ EQ2Packet* Player::GetSpellBookUpdatePacket(int16 version) {
 	}
 	return ret;
 }
+EQ2Packet* Player::GetRaidUpdatePacket(int16 version) {
+    std::unique_lock lock(raid_update_mutex);
+	
+	std::vector<int32> raidGroups;
+	PacketStruct* packet = configReader.getStruct("WS_RaidUpdate", version);
+	EQ2Packet* ret = 0;
+	Entity* member = 0;
+	int8 det_count = 0;
+	int8 total_groups = 0;
+	if (packet) {
+		int16 ptr = 0;
+		// Get the packet size
+		PacketStruct* packet2 = configReader.getStruct("Substruct_RaidMember", version);
+		int32 total_bytes = packet2->GetTotalPacketSize();
+		safe_delete(packet2);
+			world.GetGroupManager()->GroupLock(__FUNCTION__, __LINE__);
+			if (GetGroupMemberInfo()) {
+				PlayerGroup* group = world.GetGroupManager()->GetGroup(GetGroupMemberInfo()->group_id);
+				if (group)
+				{
+					group->GetRaidGroups(&raidGroups);
+					std::vector<int32>::iterator raid_itr;
+					int32 group_pos = 0;
+					for(raid_itr = raidGroups.begin(); raid_itr != raidGroups.end(); raid_itr++) {
+						group = world.GetGroupManager()->GetGroup((*raid_itr));
+						if(!group)
+							continue;
+					total_groups++;
+					group->MGroupMembers.readlock(__FUNCTION__, __LINE__);
+					deque<GroupMemberInfo*>* members = group->GetMembers();
+					deque<GroupMemberInfo*>::iterator itr;
+					GroupMemberInfo* info = 0;
+					int x = 1;
+					int lastpos = 1;
+					bool gotleader = false;
+					for (itr = members->begin(); itr != members->end(); itr++) {
+						info = *itr;
+						
+						if(!info)
+							continue;
+						
+						member = info->member;
+						
+						std::string prop_name("group_member");
+						if(!gotleader && info->leader) {
+							lastpos = x;
+							x = 0;
+							gotleader = true;
+						}
+						else if(lastpos) {
+							x = lastpos;
+							lastpos = 0;
+						}
+						prop_name.append(std::to_string(x) + "_" + std::to_string(group_pos));
+						x++;
+						if (member && member->GetZone() == GetZone()) {
+							packet->setSubstructDataByName(prop_name.c_str(), "spawn_id", GetIDWithPlayerSpawn(member), 0);
+
+							if (member->HasPet()) {
+								if (member->GetPet())
+									packet->setSubstructDataByName(prop_name.c_str(), "pet_id", GetIDWithPlayerSpawn(member->GetPet()), 0);
+								else
+									packet->setSubstructDataByName(prop_name.c_str(), "pet_id", GetIDWithPlayerSpawn(member->GetCharmedPet()), 0);
+							}
+							else
+								packet->setSubstructDataByName(prop_name.c_str(), "pet_id", 0xFFFFFFFF, 0);
+
+							//Send detriment counts as 255 if all dets of that type are incurable
+							det_count = member->GetTraumaCount();
+							if (det_count > 0) {
+								if (!member->HasCurableDetrimentType(DET_TYPE_TRAUMA))
+									det_count = 255;
+							}
+							packet->setSubstructDataByName(prop_name.c_str(), "trauma_count", det_count, 0);
+
+							det_count = member->GetArcaneCount();
+							if (det_count > 0) {
+								if (!member->HasCurableDetrimentType(DET_TYPE_ARCANE))
+									det_count = 255;
+							}
+							packet->setSubstructDataByName(prop_name.c_str(), "arcane_count", det_count, 0);
+
+							det_count = member->GetNoxiousCount();
+							if (det_count > 0) {
+								if (!member->HasCurableDetrimentType(DET_TYPE_NOXIOUS))
+									det_count = 255;
+							}
+							packet->setSubstructDataByName(prop_name.c_str(), "noxious_count", det_count, 0);
+
+							det_count = member->GetElementalCount();
+							if (det_count > 0) {
+								if (!member->HasCurableDetrimentType(DET_TYPE_ELEMENTAL))
+									det_count = 255;
+							}
+							packet->setSubstructDataByName(prop_name.c_str(), "elemental_count", det_count, 0);
+
+							det_count = member->GetCurseCount();
+							if (det_count > 0) {
+								if (!member->HasCurableDetrimentType(DET_TYPE_CURSE))
+									det_count = 255;
+							}
+							packet->setSubstructDataByName(prop_name.c_str(), "curse_count", det_count, 0);
+
+							packet->setSubstructDataByName(prop_name.c_str(), "zone_status", 1, 0);
+						}
+						else {
+							packet->setSubstructDataByName(prop_name.c_str(), "pet_id", 0xFFFFFFFF, 0);
+							//packet->setSubstructDataByName(prop_name.c_str(), "unknown5", 1, 0, 1); // unknown5 > 1 = name is blue
+							packet->setSubstructDataByName(prop_name.c_str(), "zone_status", 2, 0);
+						}
+
+						packet->setSubstructDataByName(prop_name.c_str(), "name", info->name.c_str(), 0);
+						packet->setSubstructDataByName(prop_name.c_str(), "hp_current", info->hp_current, 0);
+						packet->setSubstructDataByName(prop_name.c_str(), "hp_max", info->hp_max, 0);
+						packet->setSubstructDataByName(prop_name.c_str(), "hp_current2", info->hp_current, 0);
+						packet->setSubstructDataByName(prop_name.c_str(), "power_current", info->power_current, 0);
+						packet->setSubstructDataByName(prop_name.c_str(), "power_max", info->power_max, 0);
+						packet->setSubstructDataByName(prop_name.c_str(), "level_current", info->level_current, 0);
+						packet->setSubstructDataByName(prop_name.c_str(), "level_max", info->level_max, 0);
+						packet->setSubstructDataByName(prop_name.c_str(), "zone", info->zone.c_str(), 0);
+						packet->setSubstructDataByName(prop_name.c_str(), "race_id", info->race_id, 0);
+						packet->setSubstructDataByName(prop_name.c_str(), "class_id", info->class_id, 0);
+					}
+					
+					group->MGroupMembers.releasereadlock(__FUNCTION__, __LINE__);
+					group_pos += 1;
+				}
+		}
+	}
+		world.GetGroupManager()->ReleaseGroupLock(__FUNCTION__, __LINE__);
+		//packet->PrintPacket();
+
+		hassent_raid = true;
+		string* data = packet->serializeString();
+		int32 size = data->length();
+		
+		uchar* tmp = new uchar[size];
+		if(!raid_xor_packet){
+			raid_orig_packet = new uchar[size];
+			raid_xor_packet = new uchar[size];
+			memcpy(raid_orig_packet, (uchar*)data->c_str(), size);
+			size = Pack(tmp, (uchar*)data->c_str(), size, size, version);
+		}
+		else{
+			memcpy(raid_xor_packet, (uchar*)data->c_str(), size);
+			Encode(raid_xor_packet, raid_orig_packet, size);
+			size = Pack(tmp, raid_xor_packet, size, size, version);
+		}
+		
+		ret = new EQ2Packet(OP_UpdateRaidMsg, tmp, size);
+		safe_delete_array(tmp);
+		safe_delete(packet);
+		//DumpPacket(ret);
+	}
+	return ret;
+}
 
 PlayerInfo::~PlayerInfo(){
 	RemoveOldPackets();
@@ -3944,6 +4106,14 @@ void Player::SetCharSheetChanged(bool val){
 
 bool Player::GetCharSheetChanged(){
 	return charsheet_changed;
+}
+
+void Player::SetRaidSheetChanged(bool val){
+	raidsheet_changed = val;
+}
+
+bool Player::GetRaidSheetChanged(){
+	return raidsheet_changed;
 }
 
 bool Player::AdventureXPEnabled(){
@@ -5828,6 +5998,11 @@ void Player::SetReturningFromLD(bool val){
 		spell_orig_packet=0;
 		spell_xor_packet=0;
 		spell_count = 0;
+		
+		safe_delete_array(raid_orig_packet);
+		safe_delete_array(raid_xor_packet);
+		raid_orig_packet=0;
+		raid_xor_packet=0;
 
 		reset_character_flag(CF_IS_SITTING);
 		if (GetActivityStatus() & ACTIVITY_STATUS_CAMPING)
@@ -5981,40 +6156,6 @@ void Player::DeleteMail(int32 mail_id, bool from_database) {
 	}
 }
 
-ZoneServer* Player::GetGroupMemberInZone(int32 zone_id) {
-	ZoneServer* ret = nullptr;
-
-	GroupMemberInfo* gmi = client->GetPlayer()->GetGroupMemberInfo();
-	// If the player has a group and destination zone id
-	if (gmi && zone_id) {
-		deque<GroupMemberInfo*>::iterator itr;
-
-		world.GetGroupManager()->GroupLock(__FUNCTION__, __LINE__);
-
-		PlayerGroup* group = world.GetGroupManager()->GetGroup(gmi->group_id);
-		if (group)
-		{
-			group->MGroupMembers.readlock(__FUNCTION__, __LINE__);
-			deque<GroupMemberInfo*>* members = group->GetMembers();
-			// Loop through the group members
-			for (itr = members->begin(); itr != members->end(); itr++) {
-				// If a group member matches a target
-				if ((*itr)->member && (*itr)->member != this && (*itr)->member->GetZone() && (*itr)->member->GetZone()->GetInstanceID() > 0 && 
-					(*itr)->member->GetZone()->GetZoneID() == zone_id) {
-					// toggle the flag and break the loop
-					ret = (*itr)->member->GetZone();
-					break;
-				}
-			}
-			group->MGroupMembers.releasereadlock(__FUNCTION__, __LINE__);
-		}
-		
-		world.GetGroupManager()->ReleaseGroupLock(__FUNCTION__, __LINE__);
-	}
-	return ret;
-}
-
-
 /*			CharacterInstances			*/
 
 CharacterInstances::CharacterInstances() {
@@ -6154,7 +6295,8 @@ void CharacterInstances::ProcessInstanceTimers(Player* player) {
 			
 			if (data->zone_instance_type == SOLO_PERSIST_INSTANCE || data->zone_instance_type == GROUP_PERSIST_INSTANCE || data->zone_instance_type == RAID_PERSIST_INSTANCE) {
 				// Check max duration (last success + success time)
-				if (Timer::GetUnixTimeStamp() >= (data->last_success_timestamp + data->success_lockout_time)) {
+				// if the zone does not have a success lockout time, we should not apply this logic
+				if (data->success_lockout_time > 0 && (Timer::GetUnixTimeStamp() >= (data->last_success_timestamp + data->success_lockout_time))) {
 					// Max duration has passed, instance has expired lets remove the player from it,
 					// this will also delete the instace if all players have been removed from it
 					database.DeleteCharacterFromInstance(player->GetCharacterID(), data->instance_id);
@@ -7117,8 +7259,8 @@ void Player::SaveSpellEffects()
 				target_char_id = ((Player*)spawn)->GetCharacterID();
 			else if (spawn && spawn->IsPet() && ((Entity*)spawn)->GetOwner() == (Entity*)this)
 				target_char_id = 0xFFFFFFFF;
-
-			int32 caster_char_id = (info->maintained_effects[i].spell->caster && info->maintained_effects[i].spell->caster->IsPlayer()) ? ((Player*)info->maintained_effects[i].spell->caster)->GetCharacterID() : 0;
+			
+			int32 caster_char_id = info->maintained_effects[i].spell->initial_caster_char_id;
 			
 			int32 timestamp = 0xFFFFFFFF;
 			if(info->maintained_effects[i].spell->spell->GetSpellData() && !info->maintained_effects[i].spell->spell->GetSpellData()->duration_until_cancel)

@@ -544,20 +544,30 @@ void Brain::AddToEncounter(Entity* entity) {
 		PlayerGroup* group = world.GetGroupManager()->GetGroup(group_id);
 		if (group)
 		{
-			group->MGroupMembers.readlock(__FUNCTION__, __LINE__);
-			deque<GroupMemberInfo*>* members = group->GetMembers();
-			for (itr = members->begin(); itr != members->end(); itr++) {
-				if ((*itr)->member)
-				{
-					bool success = AddToEncounter((*itr)->member->GetID());
-					if((*itr)->client && success) {
-						m_encounter_playerlist.insert(make_pair((*itr)->client->GetPlayer()->GetCharacterID(), (*itr)->client->GetPlayer()->GetID()));
+			std::vector<int32> raidGroups;
+			group->GetRaidGroups(&raidGroups);
+			if(raidGroups.size() < 1)
+				raidGroups.push_back(group_id);
+			
+			std::vector<int32>::iterator group_itr;
+			for(group_itr = raidGroups.begin(); group_itr != raidGroups.end(); group_itr++) {
+				group = world.GetGroupManager()->GetGroup((*group_itr));
+				if(group) {
+					group->MGroupMembers.readlock(__FUNCTION__, __LINE__);
+					deque<GroupMemberInfo*>* members = group->GetMembers();
+					for (itr = members->begin(); itr != members->end(); itr++) {
+						if ((*itr)->member)
+						{
+							bool success = AddToEncounter((*itr)->member->GetID());
+							if((*itr)->client && success) {
+								m_encounter_playerlist.insert(make_pair((*itr)->client->GetPlayer()->GetCharacterID(), (*itr)->client->GetPlayer()->GetID()));
+							}
+						}
 					}
+					group->MGroupMembers.releasereadlock(__FUNCTION__, __LINE__);
 				}
 			}
-			group->MGroupMembers.releasereadlock(__FUNCTION__, __LINE__);
 		}
-
 		world.GetGroupManager()->ReleaseGroupLock(__FUNCTION__, __LINE__);
 	}
 	else {

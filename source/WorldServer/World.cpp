@@ -52,6 +52,9 @@
 
 #include "Player.h"
 
+#include "Web/PeerManager.h"
+#include "Web/HTTPSClientPool.h"
+
 #include <boost/algorithm/string.hpp>
 #include <string>
 #include <iostream>
@@ -88,14 +91,17 @@ WorldDatabase database;
 GuildList guild_list;
 Chat chat;
 Player player;
-
+	
 extern ConfigReader configReader;
 extern LoginServer loginserver;
 extern World world;
 extern ZoneList zone_list;
 extern RuleManager rule_manager;
 extern LuaInterface* lua_interface;
+extern PeerManager peer_manager;
 extern sint32 numclients;
+extern PeerManager peer_manager;
+extern HTTPSClientPool peer_https_pool;
 
 World::World() : save_time_timer(300000), time_tick_timer(3000), vitality_timer(3600000), player_stats_timer(60000), server_stats_timer(60000), /*remove_grouped_player(30000),*/ guilds_timer(60000), lotto_players_timer(500), watchdog_timer(10000) {
 	save_time_timer.Start();
@@ -239,20 +245,67 @@ void World::init(std::string web_ipaddr, int16 web_port, std::string cert_file, 
 	//PopulateTOVStatMap();
 	group_buff_updates.Start(rule_manager.GetGlobalRule(R_Client, GroupSpellsTimer)->GetInt32());
 	
+	bool web_success = false;
 	if(web_ipaddr.size() > 0 && web_port > 0) {
 	try {
 			world_webserver = new WebServer(web_ipaddr, web_port, cert_file, key_file, key_password, hardcode_user, hardcode_password);
 			
+			// status providers
 			world_webserver->register_route("/status", World::Web_worldhandle_status);
 			world_webserver->register_route("/clients", World::Web_worldhandle_clients);
+			world_webserver->register_route("/zones", World::Web_worldhandle_zones);
+			
+			// administrative commands
 			world_webserver->register_route("/setadminstatus", World::Web_worldhandle_setadminstatus);
 			world_webserver->register_route("/reloadrules", World::Web_worldhandle_reloadrules);
+			world_webserver->register_route("/reloadcommand", World::Web_worldhandle_reloadcommand);
+			
+			// peering capabilities
+			world_webserver->register_route("/addpeer", World::Web_worldhandle_addpeer);
+			world_webserver->register_route("/addcharauth", World::Web_worldhandle_addcharauth);
+			world_webserver->register_route("/startzone", World::Web_worldhandle_startzone);
+			
+			world_webserver->register_route("/sendglobalmessage", World::Web_worldhandle_sendglobalmessage);
+			
+			world_webserver->register_route("/newgroup", World::Web_worldhandle_newgroup);
+			world_webserver->register_route("/addgroupmember", World::Web_worldhandle_addgroupmember);
+			world_webserver->register_route("/removegroupmember", World::Web_worldhandle_removegroupmember);
+			world_webserver->register_route("/disbandgroup", World::Web_worldhandle_disbandgroup);
+			
+			world_webserver->register_route("/createguild", World::Web_worldhandle_createguild);
+			world_webserver->register_route("/addguildmember", World::Web_worldhandle_addguildmember);
+			world_webserver->register_route("/removeguildmember", World::Web_worldhandle_removeguildmember);
+			world_webserver->register_route("/setguildpermission", World::Web_worldhandle_setguildpermission);
+			world_webserver->register_route("/setguildeventfilter", World::Web_worldhandle_setguildeventfilter);
 			world_webserver->run();
 			LogWrite(INIT__INFO, 0, "Init", "World Web Server is listening on %s:%u..", web_ipaddr.c_str(), web_port);
+			web_success = true;
 		}
 		catch (const std::exception& e) {
 			LogWrite(INIT__ERROR, 0, "Init", "World Web Server failed to listen on %s:%u due to reason %s", web_ipaddr.c_str(), web_port, e.what());
 		}
+	}
+	if(!web_success) {
+		LogWrite(INIT__WARNING, 0, "Init", "World Web Server not started/configured, cannot attempt peering.");
+		return;
+	}
+	try {
+		std::map<std::string, int16> peers = net.GetWebPeers();
+		std::map<std::string, int16>::iterator peer_itr;
+		if(peers.size() > 0) {
+			net.is_primary = false;
+			for(peer_itr = peers.begin(); peer_itr != peers.end(); peer_itr++) {
+				if(net.GetWebWorldAddress() == peer_itr->first && net.GetWebWorldPort() == peer_itr->second)
+					continue; // no good you can't add yourself
+				std::string portNum = std::to_string(peer_itr->second);
+				std::string peerName = "eq2emu_" + peer_itr->first + "_" + portNum;
+				peer_manager.addPeer(peerName, PeeringStatus::SECONDARY, "", "", 0, peer_itr->first, peer_itr->second);
+				peer_https_pool.addPeerClient(peerName, peer_itr->first, std::to_string(peer_itr->second), "/addpeer");
+			}
+		}
+	}
+	catch (const std::exception& e) {
+		LogWrite(INIT__ERROR, 0, "Init", "World Web Server failed to listen on %s:%u due to reason %s", web_ipaddr.c_str(), web_port, e.what());
 	}
 }
 
@@ -480,30 +533,59 @@ bool ZoneList::HandleGlobalChatMessage(Client* from, char* to, int16 channel, co
 	}
 	if(channel == CHANNEL_PRIVATE_TELL){
 		Client* find_client = zone_list.GetClientByCharName(to);
-		if(!find_client || find_client->GetPlayer()->IsIgnored(from->GetPlayer()->GetName()))
+		if(find_client && find_client->GetPlayer()->IsIgnored(from->GetPlayer()->GetName()))
 			return false;
-		else if(find_client == from)
+		
+		std::string peerId = peer_manager.GetCharacterPeerId(std::string(to));
+		if(peerId.size() > 0) {
+			std::shared_ptr<Peer> peer = peer_manager.getPeerById(peerId);
+			if(peer != nullptr) {
+				boost::property_tree::ptree root;
+				root.put("from_name", from->GetPlayer()->GetName());
+				root.put("to_name", to);
+				root.put("message", message);
+				root.put("from_language", current_language_id);
+				root.put("channel", channel);
+				std::ostringstream jsonStream;
+				boost::property_tree::write_json(jsonStream, root);
+				std::string jsonPayload = jsonStream.str();
+				LogWrite(PEERING__DEBUG, 0, "Peering", "%s: Notify Peer %s of Tell from %s to %s", __FUNCTION__, peerId.c_str(), from->GetPlayer()->GetName(), to);
+				peer_https_pool.sendPostRequestToPeerAsync(peer->id, peer->webAddr, std::to_string(peer->webPort), "/sendglobalmessage", jsonPayload);
+				return true;
+			}
+		}
+		
+		if(!find_client) {
+			return false;
+		}
+		
+		if(find_client == from)
 		{
 			from->Message(CHANNEL_COLOR_RED,"You must be very lonely...(ERROR: Cannot send tell to self)");
 		}
 		else
 		{
 			const char* whoto = find_client->GetPlayer()->GetName();
-			find_client->HandleTellMessage(from, message, whoto, from->GetPlayer()->GetCurrentLanguage());
-			from->HandleTellMessage(from, message, whoto, from->GetPlayer()->GetCurrentLanguage());
+			find_client->HandleTellMessage(from->GetPlayer()->GetName(), message, whoto, from->GetPlayer()->GetCurrentLanguage());
+			from->HandleTellMessage(from->GetPlayer()->GetName(), message, whoto, from->GetPlayer()->GetCurrentLanguage());
 			if (find_client->GetPlayer()->get_character_flag(CF_AFK)) {
-				find_client->HandleTellMessage(find_client, find_client->GetPlayer()->GetAwayMessage().c_str(),whoto, from->GetPlayer()->GetCurrentLanguage());
-				from->HandleTellMessage(find_client, find_client->GetPlayer()->GetAwayMessage().c_str(),whoto, from->GetPlayer()->GetCurrentLanguage());
+				find_client->HandleTellMessage(find_client->GetPlayer()->GetName(), find_client->GetPlayer()->GetAwayMessage().c_str(),whoto, from->GetPlayer()->GetCurrentLanguage());
+				from->HandleTellMessage(find_client->GetPlayer()->GetName(), find_client->GetPlayer()->GetAwayMessage().c_str(),whoto, from->GetPlayer()->GetCurrentLanguage());
 			}
 		}
 	}
 
 	else if(channel == CHANNEL_GROUP_SAY) {
 		GroupMemberInfo* gmi = from->GetPlayer()->GetGroupMemberInfo();
-		if(gmi)
+		if(gmi) {
 			world.GetGroupManager()->GroupMessage(gmi->group_id, message);
+			peer_manager.SendPeersChannelMessage(gmi->group_id, "", std::string(message), CHANNEL_GROUP_SAY, from->GetPlayer()->GetCurrentLanguage());
+		}
 	}
 	else{
+		if(channel == CHANNEL_OUT_OF_CHARACTER) {
+			peer_manager.SendPeersChannelMessage(0, std::string(from->GetPlayer()->GetName()), std::string(message), CHANNEL_OUT_OF_CHARACTER, from->GetPlayer()->GetCurrentLanguage());
+		}
 		list<ZoneServer*>::iterator zone_iter;
 		ZoneServer* zs = 0;
 		MZoneList.readlock(__FUNCTION__, __LINE__);
@@ -515,6 +597,18 @@ bool ZoneList::HandleGlobalChatMessage(Client* from, char* to, int16 channel, co
 		MZoneList.releasereadlock(__FUNCTION__, __LINE__);
 	}
 	return true;
+}
+
+void ZoneList::SendZoneWideChannelMessage(std::string fromName, const char* to, int16 channel, const char* message, float distance, const char* channel_name, int32 language) {
+	list<ZoneServer*>::iterator zone_iter;
+	ZoneServer* zs = 0;
+	MZoneList.readlock(__FUNCTION__, __LINE__);
+	for(zone_iter=zlist.begin(); zone_iter!=zlist.end();zone_iter++){
+		zs = *zone_iter;
+		if(zs)
+			zs->HandleChatMessage(fromName, to, channel, message, distance, channel_name, language);
+	}
+	MZoneList.releasereadlock(__FUNCTION__, __LINE__);
 }
 
 void ZoneList::LoadSpellProcess(){
@@ -580,82 +674,487 @@ void ZoneList::Remove(ZoneServer* zone) {
 	zlist.remove(zone);
 	MZoneList.releasewritelock(__FUNCTION__, __LINE__);
 	
-	ZoneServer* alternativeZone = Get(zoneName, false, false);
+	bool alternativeZone = GetZone(nullptr, 0, std::string(zoneName), false, false, false, false, true);
 	if(!alternativeZone && !rule_manager.GetZoneRule(zone->GetZoneID(), R_World, MemoryCacheZoneMaps)->GetBool()) {
 		world.RemoveMaps(std::string(zoneName));
 	}
 }
-ZoneServer* ZoneList::Get(const char* zone_name, bool loadZone, bool skip_existing_zones, bool increment_zone) {
-	list<ZoneServer*>::iterator zone_iter;
-	ZoneServer* tmp = 0;
-	ZoneServer* ret = 0;
 
-	if(!skip_existing_zones) {
-		MZoneList.readlock(__FUNCTION__, __LINE__);
-		for(zone_iter=zlist.begin(); zone_iter!=zlist.end(); zone_iter++){
-			tmp = *zone_iter;
-			if (!tmp->isZoneShuttingDown() && !tmp->IsInstanceZone() && strlen(zone_name) == strlen(tmp->GetZoneName()) && 
-				strncasecmp(tmp->GetZoneName(), zone_name, strlen(zone_name))==0){
-				if(tmp->NumPlayers() < 30 || tmp->IsCityZone()) {
-					ret = tmp;
-					if(increment_zone) {
-						ret->IncrementIncomingClients();
-					}
-					break;
-				}
-			}
-		}
-
-		MZoneList.releasereadlock(__FUNCTION__, __LINE__);
-	}
-
-	if(!ret )
-	{
-		if ( loadZone )
-		{
-			ret = new ZoneServer(zone_name);
-			database.LoadZoneInfo(ret);
-			ret->Init();
-		}
-	}
-	return ret;
-}
-
-ZoneServer* ZoneList::Get(int32 id, bool loadZone, bool skip_existing_zones, bool increment_zone) {
+bool ZoneList::GetZone(ZoneChangeDetails* zone_details, int32 opt_zone_id, std::string opt_zone_name, bool loadZone, bool skip_existing_zones, bool increment_zone, bool check_peers, bool check_instances, bool only_always_loaded, bool skip_self) {
 	list<ZoneServer*>::iterator zone_iter;
 	ZoneServer* tmp = 0;
 	ZoneServer* ret = 0;
 	if(!skip_existing_zones) {
-		MZoneList.readlock(__FUNCTION__, __LINE__);
-		for(zone_iter=zlist.begin(); zone_iter!=zlist.end(); zone_iter++){
-			tmp = *zone_iter;
-			if(!tmp->isZoneShuttingDown() && !tmp->IsInstanceZone() && tmp->GetZoneID() == id){
-				if(tmp->NumPlayers() < 30 || tmp->IsCityZone()) {
-					ret = tmp;
-					if(increment_zone) {
-						ret->IncrementIncomingClients();
+		if(!skip_self) {
+			MZoneList.readlock(__FUNCTION__, __LINE__);
+			for(zone_iter=zlist.begin(); zone_iter!=zlist.end(); zone_iter++){
+				tmp = *zone_iter;
+				if(!check_instances && tmp->IsInstanceZone())
+					continue;
+				
+				if(!tmp->isZoneShuttingDown() && ((opt_zone_id > 0 && tmp->GetZoneID() == opt_zone_id) || (opt_zone_name.length() > 0 && strncasecmp(tmp->GetZoneName(), opt_zone_name.c_str(), opt_zone_name.length())==0))){
+					if(tmp->NumPlayers() < 30 || tmp->IsCityZone()) {
+						ret = tmp;
+						if(increment_zone) {
+							ret->IncrementIncomingClients();
+						}
+						break;
 					}
-					break;
 				}
 			}
+			tmp = nullptr;
+			MZoneList.releasereadlock(__FUNCTION__, __LINE__);
 		}
-		MZoneList.releasereadlock(__FUNCTION__, __LINE__);
+		
+		if(!ret && check_peers) {
+			std::string peerId = peer_manager.getZonePeerId(opt_zone_name, opt_zone_id, 0, zone_details, only_always_loaded);
+			if(peerId.size() > 0) {
+				LogWrite(WORLD__ERROR, 0, "World", "Peer %s is providing zone %s for zone %s id %u", peerId.c_str(), zone_details->zoneName.c_str(), opt_zone_name.c_str(), opt_zone_id);
+				return true;
+			}
+		}
 	}
 
 	if(ret) {
 		tmp = ret;
 	}
 	else if (loadZone) {
-		string zonename = database.GetZoneName(id);
-		if(zonename.length() >0){
-			tmp = new ZoneServer(zonename.c_str());
-			database.LoadZoneInfo(tmp);
-			tmp->Init();
+		if(opt_zone_name.length() < 1) {
+			opt_zone_name = database.GetZoneName(opt_zone_id);
+		}
+		if(opt_zone_name.length() > 0){
+			std::shared_ptr<Peer> peer = peer_manager.getHealthyPeerWithLeastClients();
+			if(check_peers && peer != nullptr) {
+				tmp = new ZoneServer(opt_zone_name.c_str());
+				database.LoadZoneInfo(tmp);
+				boost::property_tree::ptree root;
+				root.put("instance_id", 0);
+				root.put("zone_name", opt_zone_name);
+				root.put("zone_id", std::to_string(opt_zone_id));
+				root.put("always_loaded", only_always_loaded);
+				std::ostringstream jsonStream;
+				boost::property_tree::write_json(jsonStream, root);
+				std::string jsonPayload = jsonStream.str();
+				LogWrite(PEERING__DEBUG, 0, "Peering", "%s: Notify Peer %s StartZone %s (%u), always loaded %u", __FUNCTION__, peer->id.c_str(), opt_zone_name.c_str(), opt_zone_id, only_always_loaded);
+				peer_https_pool.sendPostRequestToPeerAsync(peer->id, peer->webAddr, std::to_string(peer->webPort), "/startzone", jsonPayload);
+				peer_manager.setZonePeerData(zone_details, peer->id, peer->worldAddr, peer->internalWorldAddr, peer->worldPort, peer->webAddr, peer->webPort, std::string(tmp->GetZoneFile()), std::string(tmp->GetZoneName()), tmp->GetZoneID(), 
+										 tmp->GetInstanceID(), tmp->GetSafeX(), tmp->GetSafeY(), tmp->GetSafeZ(), tmp->GetSafeHeading(), 
+										 tmp->GetZoneLockState(), tmp->GetMinimumStatus(), tmp->GetMinimumLevel(), tmp->GetMaximumLevel(), 
+										 tmp->GetMinimumVersion(), tmp->GetDefaultLockoutTime(), tmp->GetDefaultReenterTime(),
+										 tmp->GetInstanceType(), tmp->NumPlayers());
+				safe_delete(tmp);
+				return true;
+			}
+			else {
+				tmp = new ZoneServer(opt_zone_name.c_str());
+				database.LoadZoneInfo(tmp);
+				tmp->Init();
+				tmp->SetAlwaysLoaded(only_always_loaded);
+			}
 		}
 	}
-	return tmp;
+	
+	if(tmp) {
+		peer_manager.setZonePeerDataSelf(zone_details, std::string(tmp->GetZoneFile()), std::string(tmp->GetZoneName()), tmp->GetZoneID(), 
+										 tmp->GetInstanceID(), tmp->GetSafeX(), tmp->GetSafeY(), tmp->GetSafeZ(), tmp->GetSafeHeading(), 
+										 tmp->GetZoneLockState(), tmp->GetMinimumStatus(), tmp->GetMinimumLevel(), tmp->GetMaximumLevel(), 
+										 tmp->GetMinimumVersion(), tmp->GetDefaultLockoutTime(), tmp->GetDefaultReenterTime(),
+										 tmp->GetInstanceType(), tmp->NumPlayers(), tmp);
+		if(zone_details) {
+			zone_details->zonePtr = (void*)tmp;
+		}
+	}
+	return (tmp != nullptr) ? true : false;
 }
 
+bool ZoneList::GetZoneByInstance(ZoneChangeDetails* zone_details, int32 instance_id, int32 zone_id, bool loadZone, bool skip_existing_zones, bool increment_zone, bool check_peers) {
+	list<ZoneServer*>::iterator zone_iter;
+	ZoneServer* tmp = 0;
+	ZoneServer* ret = 0;
+	if(!skip_existing_zones) {
+		MZoneList.readlock(__FUNCTION__, __LINE__);
+		for(zone_iter=zlist.begin(); zone_iter!=zlist.end(); zone_iter++){
+			tmp = *zone_iter;
+			if(!tmp->isZoneShuttingDown() && tmp->IsInstanceZone() && tmp->GetInstanceID() == instance_id){
+				ret = tmp;
+				if(increment_zone) {
+					ret->IncrementIncomingClients();
+				}
+				break;
+			}
+		}
+		tmp = nullptr;
+		MZoneList.releasereadlock(__FUNCTION__, __LINE__);
+		
+		if(!ret && check_peers) {
+			std::string peerId = peer_manager.getZonePeerId("", 0, instance_id, zone_details);
+			if(peerId.size() > 0) {
+				LogWrite(WORLD__ERROR, 0, "World", "Peer %s is providing instanced zone %s for zone id %u instance id %u", peerId.c_str(), zone_details->zoneName, zone_id, instance_id);
+				return true;
+			}
+		}
+	}
+	
+	if(ret) {
+		tmp = ret;
+	}
+	else if ( loadZone && zone_id > 0 ){
+		string zonename = database.GetZoneName(zone_id);
+		if(zonename.length() > 0){
+			std::shared_ptr<Peer> peer = peer_manager.getHealthyPeerWithLeastClients();
+			if(check_peers && peer != nullptr && instance_id > 0) {
+				tmp = new ZoneServer(zonename.c_str());
+				database.LoadZoneInfo(tmp);
+				boost::property_tree::ptree root;
+				root.put("instance_id", instance_id);
+				root.put("zone_name", zonename);
+				root.put("zone_id", std::to_string(zone_id));
+				root.put("always_loaded", false);
+				std::ostringstream jsonStream;
+				boost::property_tree::write_json(jsonStream, root);
+				std::string jsonPayload = jsonStream.str();
+				LogWrite(PEERING__DEBUG, 0, "Peering", "%s: Notify Peer %s StartZone %s (%u), instance %u", __FUNCTION__, peer->id.c_str(), zonename.c_str(), zone_id, instance_id);
+				peer_https_pool.sendPostRequestToPeerAsync(peer->id, peer->webAddr, std::to_string(peer->webPort), "/startzone", jsonPayload);
+				peer_manager.setZonePeerData(zone_details, peer->id, peer->worldAddr, peer->internalWorldAddr, peer->worldPort, peer->webAddr, peer->webPort, std::string(tmp->GetZoneFile()), std::string(tmp->GetZoneName()), tmp->GetZoneID(), 
+										 instance_id, tmp->GetSafeX(), tmp->GetSafeY(), tmp->GetSafeZ(), tmp->GetSafeHeading(), 
+										 tmp->GetZoneLockState(), tmp->GetMinimumStatus(), tmp->GetMinimumLevel(), tmp->GetMaximumLevel(), 
+										 tmp->GetMinimumVersion(), tmp->GetDefaultLockoutTime(), tmp->GetDefaultReenterTime(),
+										 tmp->GetInstanceType(), tmp->NumPlayers());
+				safe_delete(tmp);
+				return true;
+			}
+			else {
+				tmp = new ZoneServer(zonename.c_str());
+
+				// the player is trying to preload an already existing instance but it isn't loaded
+				if ( instance_id > 0 )
+					tmp->SetupInstance(instance_id);
+
+				database.LoadZoneInfo(tmp);
+				tmp->Init();
+			}
+		}
+	}
+	if(tmp) {
+		peer_manager.setZonePeerDataSelf(zone_details, std::string(tmp->GetZoneFile()), std::string(tmp->GetZoneName()), tmp->GetZoneID(), 
+										 tmp->GetInstanceID(), tmp->GetSafeX(), tmp->GetSafeY(), tmp->GetSafeZ(), tmp->GetSafeHeading(), 
+										 tmp->GetZoneLockState(), tmp->GetMinimumStatus(), tmp->GetMinimumLevel(), 
+										 tmp->GetMaximumLevel(), tmp->GetMinimumVersion(), tmp->GetDefaultLockoutTime(), tmp->GetDefaultReenterTime(),
+										 tmp->GetInstanceType(), tmp->NumPlayers(), tmp);
+		zone_details->zonePtr = (void*)tmp;
+	}
+	return (tmp != nullptr) ? true : false;
+}
+
+bool PeerManager::IsClientConnectedPeer(int32 account_id) {
+    for (auto& [peerId, peer] : peers) {
+		if(peer->healthCheck.status != HealthStatus::OK)
+			continue;
+		try {
+        std::lock_guard<std::mutex> lock(peer->dataMutex);
+		for (const auto& zone : peer->client_tree->get_child("Clients")) {
+			// Access each field within the current zone
+			int32 client_acct_id = zone.second.get<int32>("account_id");
+			bool is_linkdead = zone.second.get<bool>("is_linkdead");
+			bool is_zoning = zone.second.get<bool>("is_zoning");
+			bool in_zone = zone.second.get<bool>("in_zone");
+			
+			if(client_acct_id == account_id) {
+				if(is_zoning)
+					return true;
+				else if(is_linkdead)
+					return false;
+				else if(in_zone)
+					return true;
+			}
+		}
+		} catch (const std::exception& e) {
+			LogWrite(PEERING__ERROR, 0, "Peering", "%s: Clients Parsing Error %s for %s:%u/%s", __FUNCTION__, e.what() ? e.what() : "??", peer->webAddr.c_str(), peer->webPort);
+		}
+    }
+	return false;
+}
+
+std::string PeerManager::GetCharacterPeerId(std::string charName) {
+    for (auto& [peerId, peer] : peers) {
+		if(peer->healthCheck.status != HealthStatus::OK)
+			continue;
+		try {
+			std::lock_guard<std::mutex> lock(peer->dataMutex);
+			for (const auto& zone : peer->client_tree->get_child("Clients")) {
+				// Access each field within the current zone
+				
+				std::string character_name = zone.second.get<std::string>("character_name");
+				
+				if(strncasecmp(character_name.c_str(), charName.c_str(), charName.length())==0) {
+					return peer->id;
+				}
+			}
+		} catch (const std::exception& e) {
+			LogWrite(PEERING__ERROR, 0, "Peering", "%s: Clients Parsing Error %s for %s:%u/%s", __FUNCTION__, e.what() ? e.what() : "??", peer->webAddr.c_str(), peer->webPort);
+		}
+    }
+	return "";
+}
+
+void PeerManager::SendPeersChannelMessage(int32 group_id, std::string fromName, std::string message, int16 channel, int32 language_id) {
+	boost::property_tree::ptree root;
+	root.put("message", message);
+	root.put("channel", channel);
+	root.put("group_id", group_id);
+	root.put("from_language", language_id);
+	root.put("from_name", fromName);
+	std::ostringstream jsonStream;
+	boost::property_tree::write_json(jsonStream, root);
+	std::string jsonPayload = jsonStream.str();
+	std::vector<int32> raidGroups;
+	world.GetGroupManager()->GetRaidGroups(group_id, &raidGroups);
+    for (auto& [peerId, peer] : peers) {
+		if(peer->healthCheck.status != HealthStatus::OK)
+			continue;
+		try {
+			std::lock_guard<std::mutex> lock(peer->dataMutex);
+			for (const auto& zone : peer->client_tree->get_child("Clients")) {
+				// Access each field within the current zone
+				
+				int32 player_group_id = zone.second.get<int32>("group_id");
+				
+				
+				if(group_id == 0 || group_id == player_group_id || (std::find(raidGroups.begin(), raidGroups.end(), player_group_id) != raidGroups.end())) {
+					peer_https_pool.sendPostRequestToPeerAsync(peer->id, peer->webAddr, std::to_string(peer->webPort), "/sendglobalmessage", jsonPayload);
+					break;
+				}
+			}
+		} catch (const std::exception& e) {
+			LogWrite(PEERING__ERROR, 0, "Peering", "%s: Clients Parsing Error %s for %s:%u/%s", __FUNCTION__, e.what() ? e.what() : "??", peer->webAddr.c_str(), peer->webPort);
+		}
+    }
+}
+
+void PeerManager::SendPeersGuildChannelMessage(int32 guild_id, std::string fromName, std::string message, int16 channel, int32 language_id) {
+	boost::property_tree::ptree root;
+	root.put("message", message);
+	root.put("channel", channel);
+	root.put("guild_id", guild_id);
+	root.put("from_language", language_id);
+	root.put("from_name", fromName);
+	std::ostringstream jsonStream;
+	boost::property_tree::write_json(jsonStream, root);
+	std::string jsonPayload = jsonStream.str();
+    for (auto& [peerId, peer] : peers) {
+		if(peer->healthCheck.status != HealthStatus::OK)
+			continue;
+		try {
+			std::lock_guard<std::mutex> lock(peer->dataMutex);
+			for (const auto& zone : peer->client_tree->get_child("Clients")) {
+				// Access each field within the current zone
+				
+				int32 player_guild_id = zone.second.get<int32>("guild_id");
+				
+				
+				if(guild_id == 0 || guild_id == player_guild_id) {
+					peer_https_pool.sendPostRequestToPeerAsync(peer->id, peer->webAddr, std::to_string(peer->webPort), "/sendglobalmessage", jsonPayload);
+					break;
+				}
+		}
+		}
+		catch (const std::exception& e) {
+			LogWrite(PEERING__ERROR, 0, "Peering", "%s: Clients Parsing Error %s for %s:%u/%s", __FUNCTION__, e.what() ? e.what() : "??", peer->webAddr.c_str(), peer->webPort);
+		}
+    }
+}
+
+void PeerManager::sendZonePeerList(Client* client) {
+    for (auto& [peerId, peer] : peers) {
+		if(peer->healthCheck.status != HealthStatus::OK)
+			continue;
+		try {
+        std::lock_guard<std::mutex> lock(peer->dataMutex);
+		for (const auto& zone : peer->zone_tree->get_child("Zones")) {
+			// Access each field within the current zone
+			std::string zone_name = zone.second.get<std::string>("zone_name");
+			std::string zone_file_name = zone.second.get<std::string>("zone_file_name");
+			int32 zone_id = zone.second.get<int32>("zone_id");
+			int32 instance_id = zone.second.get<int32>("instance_id");
+			bool shutting_down = zone.second.get<std::string>("shutting_down") == "true";
+			bool instance_zone = zone.second.get<std::string>("instance_zone") == "true";
+			int32 num_players = zone.second.get<int32>("num_players");
+			bool city_zone = zone.second.get<std::string>("city_zone") == "true";
+			float safe_x = zone.second.get<float>("safe_x");
+			float safe_y = zone.second.get<float>("safe_y");
+			float safe_z = zone.second.get<float>("safe_z");
+			float safe_heading = zone.second.get<float>("safe_heading");
+			bool lock_state = zone.second.get<bool>("lock_state");
+			sint16 min_status = zone.second.get<sint16>("min_status");
+			int16 min_level = zone.second.get<int16>("min_level");
+			int16 max_level = zone.second.get<int16>("max_level");
+			int16 min_version = zone.second.get<int16>("min_version");
+			int32 default_lockout_time = zone.second.get<int32>("default_lockout_time");
+			int32 default_reenter_time = zone.second.get<int32>("default_reenter_time");
+			int8 instance_type = zone.second.get<int8>("instance_type");
+			
+			client->Message(CHANNEL_COLOR_YELLOW,"Zone (ID) (InstanceID): %s (%u) (%u), Peer: %s, NumPlayers: %u, Locked: %s, ShuttingDown: %s.",zone_name.c_str(),zone_id,
+				instance_id,peer->id.c_str(), num_players, lock_state ? "true" : "false", shutting_down ? "true" : "false");	
+		}
+		} catch (const std::exception& e) {
+			LogWrite(PEERING__ERROR, 0, "Peering", "%s: Zones Parsing Error %s for %s:%u/%s", __FUNCTION__, e.what() ? e.what() : "??", peer->webAddr.c_str(), peer->webPort);
+		}
+    }
+}
+void PeerManager::sendZonePlayerList(std::vector<string>* queries, std::vector<WhoAllPeerPlayer>* peer_list, bool isGM) {
+    for (auto& [peerId, peer] : peers) {
+		if(peer->healthCheck.status != HealthStatus::OK)
+			continue;
+		try {
+			
+			bool add_player = true;
+			bool found_match = false;
+			int8 lower = 0;
+			int8 upper = 0;
+			std::lock_guard<std::mutex> lock(peer->dataMutex);
+			for (const auto& player : peer->client_tree->get_child("Clients")) {
+				std::string char_name = player.second.get<std::string>("character_name");
+				std::string subtitle = player.second.get<std::string>("subtitle");
+				std::string zone_name = player.second.get<std::string>("zonedescription");
+				int8 adventure_class = player.second.get<int8>("adventure_class");
+				int8 tradeskill_class = player.second.get<int8>("tradeskill_class");
+				int8 deity = player.second.get<int8>("deity");
+				int8 race = player.second.get<int8>("race");
+				sint16 status = player.second.get<sint16>("status");
+				int flags = player.second.get<int>("flags");
+				int flags2 = player.second.get<int>("flags2");
+				int16 level = player.second.get<int16>("level");
+					found_match = false;
+					add_player = true;
+					
+					for(int32 i=0;add_player && queries && i<queries->size();i++){
+					if(queries->at(i) == "ALL")
+						continue;
+					if(queries->at(i).length() > 3 && classes.GetClassID(queries->at(i).c_str()) > 0){
+						if(adventure_class != classes.GetClassID(queries->at(i).c_str()))
+							add_player = false;
+						found_match = true;
+					}
+					else if(queries->at(i).length() > 2 && races.GetRaceID(queries->at(i).c_str()) > 0){
+						if(race != races.GetRaceID(queries->at(i).c_str()))
+							add_player = false;
+						found_match = true;
+					}
+					if(!found_match && queries->at(i) == "GOOD"){
+						if(deity != 1)
+							add_player = false;
+						found_match = true;
+					}
+					else if(!found_match && queries->at(i) == "EVIL"){
+						if(deity == 1)
+							add_player = false;
+						found_match = true;
+					}
+					if((queries->at(i) == "GUIDE") && (status > 0) && ((status >> 4) < 5))
+						found_match = true;
+					else if((queries->at(i) == "GM") && ((status >> 4) > 4))
+						found_match = true;
+					else if((queries->at(i) == "LFG") && (flags & (1 << CF_LFG)))
+						found_match = true;
+					else if((queries->at(i) == "LFW") && (flags & (1 << CF_LFW)))
+						found_match = true;
+					else if((queries->at(i) == "ROLEPLAYING") && (flags & (1 << CF_ROLEPLAYING)))
+						found_match = true;
+					else if(strspn(queries->at(i).c_str(),"0123456789") == queries->at(i).length()){
+						try{
+							if(lower == 0)
+								lower = atoi(queries->at(i).c_str());
+							else
+								upper = atoi(queries->at(i).c_str());
+						}
+						catch(...){}
+						found_match = true;
+					}
+					if(!found_match){
+						std::string name = ToUpper(char_name);
+						if(name.find(queries->at(i)) == name.npos)
+							add_player = false;
+					}
+				}
+				if(lower > 0 && upper > 0){
+					if(level < lower || level > upper)
+						add_player = false;
+				}
+				else if(lower > 0){
+					if(level != lower)
+						add_player = false;
+				}
+				if((flags2 & (1 << (CF_GM_HIDDEN - 32))) && !isGM) {
+					add_player = false;
+					found_match = true;
+				}
+				if(add_player)
+					peer_list->push_back(WhoAllPeerPlayer(char_name, subtitle, zone_name, adventure_class, tradeskill_class, deity, race, 
+						 status, flags, flags2, level));
+			}
+		}
+		catch (const std::exception& e) {
+			LogWrite(PEERING__ERROR, 0, "Peering", "%s: Clients Parsing Error %s for %s:%u/%s", __FUNCTION__, e.what() ? e.what() : "??", peer->webAddr.c_str(), peer->webPort);
+		}
+	}
+}
+
+bool PeerManager::GetClientGuildDetails(int32 matchCharID, GuildMember* member_details) {
+	if(!member_details)
+		return false;
+	
+    for (auto& [peerId, peer] : peers) {
+		if(peer->healthCheck.status != HealthStatus::OK)
+			continue;
+		try {
+			std::lock_guard<std::mutex> lock(peer->dataMutex);
+			for (const auto& player : peer->client_tree->get_child("Clients")) {
+				std::string char_name = player.second.get<std::string>("character_name");
+				std::string subtitle = player.second.get<std::string>("subtitle");
+				std::string zone_name = player.second.get<std::string>("zonedescription");
+				int8 adventure_class = player.second.get<int8>("adventure_class");
+				int8 tradeskill_class = player.second.get<int8>("tradeskill_class");
+				int8 deity = player.second.get<int8>("deity");
+				int8 race = player.second.get<int8>("race");
+				sint16 status = player.second.get<sint16>("status");
+				int flags = player.second.get<int>("flags");
+				int flags2 = player.second.get<int>("flags2");
+				int16 level = player.second.get<int16>("level");
+				int16 tradeskill_level = player.second.get<int16>("tradeskill_level");
+				int32 character_id = player.second.get<int32>("character_id");
+				int32 account_id = player.second.get<int32>("account_id");
+				
+				if(character_id == matchCharID) {
+					member_details->account_id = account_id;
+					member_details->character_id = character_id;
+					strncpy(member_details->name, char_name.c_str(), sizeof(member_details->name));
+					member_details->guild_status = 0;
+					member_details->points = 0.0;
+					member_details->adventure_class = adventure_class;
+					member_details->adventure_level = level;
+					member_details->tradeskill_class = tradeskill_class;
+					member_details->tradeskill_level = tradeskill_level;
+					//gm->rank = rank; ?? not sure how yet
+					member_details->zone = zone_name;
+					//gm->join_date = Timer::GetUnixTimeStamp();
+					//gm->last_login_date = gm->join_date;
+					member_details->recruiter_id = 0;
+					member_details->member_flags = GUILD_MEMBER_FLAGS_NOTIFY_LOGINS;
+					member_details->recruiting_show_adventure_class = 1;
+					member_details->recruiter_picture_data_size = 0;
+					member_details->recruiter_picture_data = 0;
+					return true;
+				}
+			}
+		}
+		catch (const std::exception& e) {
+			LogWrite(PEERING__ERROR, 0, "Peering", "%s: Clients Parsing Error %s for %s:%u/%s", __FUNCTION__, e.what() ? e.what() : "??", peer->webAddr.c_str(), peer->webPort);
+		}
+	}
+	return false;
+}
+
+		
 
 void ZoneList::SendZoneList(Client* client) {
 	list<ZoneServer*>::iterator zone_iter;
@@ -664,57 +1163,12 @@ void ZoneList::SendZoneList(Client* client) {
 	int zonesListed = 0;
 	for(zone_iter=zlist.begin(); zone_iter!=zlist.end(); zone_iter++){
 		tmp = *zone_iter;
-		if ( zonesListed > 20 )
-		{
-			client->Message(CHANNEL_COLOR_YELLOW,"Reached max zone list of 20.");
-			break;
-		}
-		zonesListed++;
-		client->Message(CHANNEL_COLOR_YELLOW,"Zone(ID): %s(%i), Instance ID: %i, Description: %s.",tmp->GetZoneName(),tmp->GetZoneID(),
-			tmp->GetInstanceID(),tmp->GetZoneDescription());
+		client->Message(CHANNEL_COLOR_YELLOW,"Zone (ID) (InstanceID): %s (%u) (%u), Description: %s, NumPlayers: %u, Locked: %s, ShuttingDown: %s.",tmp->GetZoneName(),tmp->GetZoneID(),
+			tmp->GetInstanceID(),tmp->GetZoneDescription(), tmp->NumPlayers(), tmp->GetZoneLockState() ? "true" : "false", tmp->isZoneShuttingDown() ? "true" : "false");
 	}
 	MZoneList.releasereadlock(__FUNCTION__, __LINE__);
-}
-
-ZoneServer* ZoneList::GetByInstanceID(int32 id, int32 zone_id, bool skip_existing_zones, bool increment_zone) {
-	list<ZoneServer*>::iterator zone_iter;
-	ZoneServer* tmp = 0;
-	ZoneServer* ret = 0;
-	if(!skip_existing_zones) {
-		MZoneList.readlock(__FUNCTION__, __LINE__);
-		if ( id > 0 )
-		{
-			for(zone_iter=zlist.begin(); zone_iter!=zlist.end(); zone_iter++){
-				tmp = *zone_iter;
-				if(!tmp->isZoneShuttingDown() && tmp->GetInstanceID() == id){
-					ret = tmp;
-					if(increment_zone) {
-						ret->IncrementIncomingClients();
-					}
-					break;
-				}
-			}
-		}
-		MZoneList.releasereadlock(__FUNCTION__, __LINE__);
-	}
-
-	if(ret) {
-		tmp = ret;
-	}
-	else if ( zone_id > 0 ){
-		string zonename = database.GetZoneName(zone_id);
-		if(zonename.length() > 0){
-			tmp = new ZoneServer(zonename.c_str());
-
-			// the player is trying to preload an already existing instance but it isn't loaded
-			if ( id > 0 )
-				tmp->SetupInstance(id);
-
-			database.LoadZoneInfo(tmp);
-			tmp->Init();
-		}
-	}
-	return tmp;
+	
+	peer_manager.sendZonePeerList(client);
 }
 
 ZoneServer* ZoneList::GetByLowestPopulation(int32 zone_id) {
@@ -780,6 +1234,9 @@ bool ZoneList::ClientConnected(int32 account_id){
 			else
 				break;
 		}
+	}
+	if(!ret) {
+		ret = peer_manager.IsClientConnectedPeer(account_id);
 	}
 	MClientList.unlock();
 	return ret;
@@ -911,6 +1368,8 @@ void ZoneList::ProcessWhoQuery(vector<string>* queries, ZoneServer* zone, vector
 void ZoneList::ProcessWhoQuery(const char* query, Client* client){
 	list<ZoneServer*>::iterator zone_iter;
 	vector<Entity*> players;
+	vector<WhoAllPeerPlayer> peer_players;
+	vector<WhoAllPeerPlayer>::iterator peer_iter;
 	vector<Entity*>::iterator spawn_iter;
 	Entity* player = 0;
 	//for now display all clients
@@ -931,6 +1390,9 @@ void ZoneList::ProcessWhoQuery(const char* query, Client* client){
 			ProcessWhoQuery(queries, tmp, &players, isGM);
 		}
 		MZoneList.releasereadlock(__FUNCTION__, __LINE__);
+		if(queries) {
+			peer_manager.sendZonePlayerList(queries, &peer_players, isGM);
+		}
 	}
 	else{
 		ProcessWhoQuery(queries, client->GetCurrentZone(), &players, isGM);
@@ -940,7 +1402,9 @@ void ZoneList::ProcessWhoQuery(const char* query, Client* client){
 	if(packet){
 		packet->setDataByName("account_id", client->GetAccountID());
 		packet->setDataByName("unknown", 0xFFFFFFFF);
-		int8 num_characters = players.size();
+		int16 num_characters = players.size();
+		int16 num_players_peers = peer_players.size();
+		int16 total_results = num_characters + num_players_peers;
 		int8 max_who_results = 10;
 		int8 max_who_results_status_override = 100;
 
@@ -956,17 +1420,24 @@ void ZoneList::ProcessWhoQuery(const char* query, Client* client){
 
 		Variable* var1 = variables.FindVariable("max_who_results");
 		if ( var1 ){
-			max_who_results = atoi(var1->GetValue());
+			max_who_results = atoul(var1->GetValue());
 		}
 
-		if(num_characters > max_who_results && client->GetAdminStatus() < max_who_results_status_override){
-			num_characters = max_who_results;
+		if(total_results > max_who_results && client->GetAdminStatus() < max_who_results_status_override){
+			total_results = max_who_results;
+			if(num_characters > total_results)
+				num_characters = total_results;
+			if((num_characters+num_players_peers) > max_who_results) {
+				int16 max_num_players_peers = max_who_results - num_characters;
+				if(num_players_peers > max_num_players_peers)
+					num_players_peers = max_num_players_peers;
+			}
 			packet->setDataByName("response", 3);  //response 1 = error message, 3 == capped
 		}
 		else
 			packet->setDataByName("response", 2);
-		packet->setArrayLengthByName("num_characters", num_characters);
-		packet->setDataByName("unknown10", 1);
+		packet->setArrayLengthByName("num_characters", (int8)total_results);
+		packet->setDataByName("display_zone", 1);
 		int i=0;
 		for(spawn_iter = players.begin(); spawn_iter!=players.end(); spawn_iter++, i++){
 			if(i == num_characters)
@@ -1007,6 +1478,41 @@ void ZoneList::ProcessWhoQuery(const char* query, Client* client){
 				packet->setArrayDataByName("guild", tmp_title, i);
 			}
 		}
+		
+		int8 count = 0;
+		for(peer_iter = peer_players.begin(); peer_iter!=peer_players.end(); peer_iter++, i++, count++){
+			if(count == num_players_peers)
+				break;
+			int flags = (*peer_iter).flags;
+			int flags2 = (*peer_iter).flags2;
+			sint16 status = (*peer_iter).status;
+			packet->setArrayDataByName("char_name", (*peer_iter).name.c_str(), i);
+			packet->setArrayDataByName("level", (*peer_iter).level, i);
+			packet->setArrayDataByName("admin_level", ((flags2 & (1 << (CF_HIDE_STATUS - 32))) && !isGM)?0:(status >> 4), i);
+			packet->setArrayDataByName("class", (*peer_iter).adventureClass, i);
+			packet->setArrayDataByName("unknown4", 0xFF, i); //probably tradeskill class
+			packet->setArrayDataByName("flags", (((flags >> CF_ANONYMOUS) & 1) << 0 ) |
+									(((flags >> CF_LFG) & 1) << 1 ) |
+									(((flags >> CF_ANONYMOUS) & 1) << 2 ) |
+									/*(((flags >> CF_HIDDEN) & 1) << 3 ) |*/
+									(((flags >> CF_ROLEPLAYING) & 1) << 4 ) |
+									(((flags >> CF_AFK) & 1) << 5 ) |
+									(((flags >> CF_LFW) & 1) << 6 ) /*|
+									(((flags >> CF_NOTA) & 1) << 7 )*/, i);
+			packet->setArrayDataByName("race", (*peer_iter).race, i);
+			packet->setArrayDataByName("zone", (*peer_iter).zoneName.c_str(), i);
+			if((*peer_iter).subtitle.size() > 0) {
+				size_t start = (*peer_iter).subtitle.find('<');
+				size_t end = (*peer_iter).subtitle.find('>');
+				std::string result = (*peer_iter).subtitle;
+				// Check if both '<' and '>' are found and in the correct order
+				if (start != std::string::npos && end != std::string::npos && start < end) {
+					result = (*peer_iter).subtitle.substr(start + 1, end - start - 1);
+				}
+				packet->setArrayDataByName("guild", result.c_str(), i);
+			}
+		}
+		
 		client->QueuePacket(packet->serialize());
 		safe_delete(packet);
 	}
@@ -1595,7 +2101,7 @@ bool World::RejoinGroup(Client* client, int32 group_id){
 
 		info = *itr;
 
-		if (info && info->name == name)
+		if (info && info->name == name && info->is_client)
 		{
 			info->client = client;
 			info->member = client->GetPlayer();
@@ -1795,7 +2301,7 @@ void World::AddBonuses(Item* item, ItemStatsValues* values, int16 type, sint32 v
 	}
 }
 
-void World::CreateGuild(const char* guild_name, Client* leader, int32 group_id) {
+int32 World::CreateGuild(const char* guild_name, Client* leader, int32 group_id) {
 	deque<GroupMemberInfo*>::iterator itr;
 	GroupMemberInfo* gmi;
 	Guild *guild;
@@ -1807,7 +2313,7 @@ void World::CreateGuild(const char* guild_name, Client* leader, int32 group_id) 
 	guild->SetFormedDate(Timer::GetUnixTimeStamp());
 	database.LoadGuildDefaultRanks(guild);
 	database.LoadGuildDefaultEventFilters(guild);
-	database.SaveGuild(guild, true);
+	database.SaveGuild(guild, true); // sets the guild id
 	database.SaveGuildEvents(guild);
 	database.SaveGuildRanks(guild);
 	database.SaveGuildEventFilters(guild);
@@ -1834,6 +2340,8 @@ void World::CreateGuild(const char* guild_name, Client* leader, int32 group_id) 
 
 		GetGroupManager()->ReleaseGroupLock(__FUNCTION__, __LINE__);
 	}
+	
+	return guild->GetID();
 }
 
 void World::SaveGuilds() {
@@ -2988,4 +3496,40 @@ void World::PurgeNPCSpells() {
 	}
 	
 	npc_spell_list.clear();
+}
+
+void World::ClientAuthApproval(int32 success, std::string charName, int32 account_id, std::string zone_name, int32 zone_id, int32 instance_id, bool first_login) {
+	Client* find_client = zone_list.GetClientByCharName(charName.c_str());
+	if(find_client) {
+		if(success) {
+			find_client->ApproveZone();
+		}
+		else {
+			int32 zone_success = 0;
+			ZoneChangeDetails details;
+			if(instance_id || zone_id || zone_name.length() > 0) {
+				if(!instance_id) {
+					if((zone_list.GetZone(&details, zone_id, zone_name, true, true, false, false)))
+						zone_success = 1;
+				}
+				else {
+					if((zone_list.GetZoneByInstance(&details, instance_id, zone_id, true, true, false, false)))
+						zone_success = 1;
+				}
+			}
+			if(zone_success) {
+				LogWrite(CCLIENT__DEBUG, 0, "Client", "%s: Sending to zone_auth.AddAuth...", __FUNCTION__);
+				int32 key = static_cast<unsigned int>(MakeRandomFloat(0.01,1.0) * UINT32_MAX);
+				
+				details.zoneKey = key;
+				details.authDispatchedTime = key;
+				zone_auth.AddAuth(new ZoneAuthRequest(find_client->GetAccountID(), find_client->GetPlayer()->GetName(), key));
+				find_client->SetZoningDetails(&details);
+				find_client->ApproveZone();
+			}
+		}
+	}
+	else {
+		 // can't find client
+	}
 }

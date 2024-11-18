@@ -43,6 +43,8 @@
 #include "./Zone/region_map.h"
 #include "./Zone/map.h"
 
+#include "./Web/PeerManager.h"
+
 using namespace std;
 struct MerchantInfo{
 	vector<int32> inventory_ids;
@@ -381,6 +383,35 @@ struct VoiceOverStruct{
 	int8				garble_link_id;
 };
 
+struct WhoAllPeerPlayer {
+	std::string name;
+	std::string subtitle;
+	std::string zoneName;
+	int8 adventureClass;
+	int8 tradeskillClass;
+	int8 deity;
+	int8 race;
+	sint16 status;
+	int flags;
+	int flags2;
+	int16 level;
+	
+	WhoAllPeerPlayer(std::string inName, std::string inSubtitle, std::string inZoneName, int8 inAdvClass, int8 inTradeskillClass, int8 inDeity, int8 inRace, 
+					 sint16 inStatus, int inFlags, int inFlags2, int16 inLevel)
+					 {
+						 name = inName;
+						 subtitle = inSubtitle;
+						 zoneName = inZoneName;
+						 adventureClass = inAdvClass;
+						 tradeskillClass = inTradeskillClass;
+						 deity = inDeity;
+						 race = inRace;
+						 status = inStatus;
+						 flags = inFlags;
+						 flags2 = inFlags2;
+						 level = inLevel;
+					 }
+};
 class ZoneList {
 	public:
 	ZoneList();
@@ -388,9 +419,13 @@ class ZoneList {
 	
 	void Add(ZoneServer* zone);
 	void Remove(ZoneServer* zone);
-	ZoneServer*	Get(int32 id, bool loadZone = true, bool skip_existing_zones = false, bool increment_zone = true);
-	ZoneServer* Get(const char* zone_name, bool loadZone=true, bool skip_existing_zones = false, bool increment_zone = true);
-	ZoneServer* GetByInstanceID(int32 id, int32 zone_id=0, bool skip_existing_zones = false, bool increment_zone = true);
+	bool GetZone(ZoneChangeDetails* zone_details, int32 opt_zone_id, std::string opt_zone_name = "", bool loadZone = true, bool skip_existing_zones = false, bool increment_zone = true, bool check_peers = true, bool check_instances = false, bool only_always_loaded = false, bool skip_self = false);
+	bool GetZoneByInstance(ZoneChangeDetails* zone_details, int32 instance_id, int32 zone_id = 0, bool loadZone = true, bool skip_existing_zones = false, bool increment_zone = true, bool check_peers = true);
+	
+	bool IsClientConnectedPeer(int32 account_id);
+	//ZoneServer*	Get(int32 id, bool loadZone = true, bool skip_existing_zones = false, bool increment_zone = true);
+	//ZoneServer* Get(const char* zone_name, bool loadZone=true, bool skip_existing_zones = false, bool increment_zone = true);
+	//ZoneServer* GetByInstanceID(int32 id, int32 zone_id=0, bool skip_existing_zones = false, bool increment_zone = true);
 
 	/// <summary>Get the instance for the given zone id with the lowest population</summary>
 	/// <param name='zone_id'>The id of the zone to look up</param>
@@ -467,6 +502,7 @@ class ZoneList {
 	void Depop();
 	void Repop();	
 	void DeleteSpellProcess();
+	void SendZoneWideChannelMessage(std::string fromName, const char* to, int16 channel, const char* message, float distance, const char* channel_name, int32 language);
 	void LoadSpellProcess();
 	void ProcessWhoQuery(const char* query, Client* client);
 	void ProcessWhoQuery(vector<string>* queries, ZoneServer* zone, vector<Entity*>* players, bool isGM);
@@ -481,6 +517,7 @@ class ZoneList {
 	void SendTimeUpdate();
 	
 	void	PopulateClientList(http::response<http::string_body>& res);
+	void	PopulateZoneList(http::response<http::string_body>& res);
 private:
 	Mutex				MClientList;
 	Mutex				MZoneList;
@@ -564,7 +601,7 @@ public:
 	//bool MakeLeader(Client* leader, string new_leader);
 	
 	void AddBonuses(Item* item, ItemStatsValues* values, int16 type, sint32 value, Entity* entity);
-	void CreateGuild(const char* guild_name, Client* leader = 0, int32 group_id = 0);
+	int32 CreateGuild(const char* guild_name, Client* leader = 0, int32 group_id = 0);
 	void SaveGuilds();
 	void PickRandomLottoDigits(int32* digits);
 	void AddLottoPlayer(int32 character_id, int32 end_time);
@@ -648,12 +685,28 @@ public:
 	
 	void PurgeNPCSpells();
 	
+	void ClientAuthApproval(int32 success, std::string charName, int32 account_id, std::string zone_name, int32 zoning_id, int32 instance_id, bool first_login);
+	
 	
 	static void Web_worldhandle_status(const http::request<http::string_body>& req, http::response<http::string_body>& res);
 	static void Web_worldhandle_clients(const http::request<http::string_body>& req, http::response<http::string_body>& res);
 	static void Web_worldhandle_setadminstatus(const http::request<http::string_body>& req, http::response<http::string_body>& res);
 	static void Web_worldhandle_reloadrules(const http::request<http::string_body>& req, http::response<http::string_body>& res);
-	
+	static void Web_worldhandle_reloadcommand(const http::request<http::string_body>& req, http::response<http::string_body>& res);
+	static void Web_worldhandle_addpeer(const http::request<http::string_body>& req, http::response<http::string_body>& res);
+	static void Web_worldhandle_zones(const http::request<http::string_body>& req, http::response<http::string_body>& res);
+	static void Web_worldhandle_addcharauth(const http::request<http::string_body>& req, http::response<http::string_body>& res);
+	static void Web_worldhandle_startzone(const http::request<http::string_body>& req, http::response<http::string_body>& res);
+	static void Web_worldhandle_sendglobalmessage(const http::request<http::string_body>& req, http::response<http::string_body>& res);
+	static void Web_worldhandle_newgroup(const http::request<http::string_body>& req, http::response<http::string_body>& res);
+	static void Web_worldhandle_addgroupmember(const http::request<http::string_body>& req, http::response<http::string_body>& res);
+	static void Web_worldhandle_removegroupmember(const http::request<http::string_body>& req, http::response<http::string_body>& res);
+	static void Web_worldhandle_disbandgroup(const http::request<http::string_body>& req, http::response<http::string_body>& res);
+	static void Web_worldhandle_createguild(const http::request<http::string_body>& req, http::response<http::string_body>& res);
+	static void Web_worldhandle_addguildmember(const http::request<http::string_body>& req, http::response<http::string_body>& res);
+	static void Web_worldhandle_removeguildmember(const http::request<http::string_body>& req, http::response<http::string_body>& res);
+	static void Web_worldhandle_setguildpermission(const http::request<http::string_body>& req, http::response<http::string_body>& res);
+	static void Web_worldhandle_setguildeventfilter(const http::request<http::string_body>& req, http::response<http::string_body>& res);
 	Mutex MVoiceOvers;
 	
 	static sint64 newValue;

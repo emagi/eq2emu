@@ -888,6 +888,7 @@ public:
 		int32					status_rent_reduction;
 		float					coin_rent_reduction;
 		int8					house_only;
+		int8					house_location; // 0 = floor, 1 = ceiling, 2 = wall
 	};
 	struct HouseContainer_Info{
 		int64                   allowed_types;

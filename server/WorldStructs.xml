@@ -1613,11 +1613,14 @@ to zero and treated like placeholders." />
 <Data ElementName="level_max" Type="int16" Size="1" />
 <Data ElementName="race_id" Type="int8" Size="1" />
 <Data ElementName="class_id" Type="int8" Size="1" />
-<Data ElementName="hp_max" Type="sint32" Size="1" />
 <Data ElementName="hp_current" Type="sint32" Size="1" />
-<Data ElementName="power_max" Type="sint32" Size="1" />
+<Data ElementName="hp_max" Type="sint32" Size="1" />
 <Data ElementName="power_current" Type="sint32" Size="1" />
-<Data ElementName="unknown1" Type="int8" Size="1" />
+<Data ElementName="power_max" Type="sint32" Size="1" />
+<Data ElementName="trauma_count" Type="int8" Size="1" />
+<Data ElementName="arcane_count" Type="int8" Size="1" />
+<Data ElementName="noxious_count" Type="int8" Size="1" />
+<Data ElementName="elemental_count" Type="int8" Size="1" />
 </Struct>
 <Struct Name="Substruct_GroupMember" ClientVersion="546" >
 <Data ElementName="zone_status" Type="int8" Size="1" /> <!-- 0=not filled, 1=in_zone, 2=not in zone, 3=unavailable (probably zoning)-->
@@ -1784,6 +1787,190 @@ to zero and treated like placeholders." />
 <Data ElementName="unknown5" Type="int8" Size="2" />
 <Data ElementName="CoEunknown" Type="int8" Size="9" />
 </Struct>
+<Struct Name="Substruct_RaidMember" ClientVersion="1" >
+<Data ElementName="zone_status" Type="int8" Size="1" /> <!-- 0=not filled, 1=in_zone, 2=not in zone-->
+<Data ElementName="name" Type="char" Size="16" />
+<Data ElementName="spawn_id" Type="int32" Size="1" />
+<Data ElementName="pet_id" Type="int32" Size="1" />
+<Data ElementName="level_current" Type="int16" Size="1" />
+<Data ElementName="race_id" Type="int8" Size="1" />
+<Data ElementName="class_id" Type="int8" Size="1" />
+<Data ElementName="power_max" Type="sint32" Size="1" />
+<Data ElementName="power_current" Type="sint32" Size="1" />
+<Data ElementName="hp_max" Type="sint32" Size="1" />
+<Data ElementName="hp_current" Type="sint32" Size="1" />
+<Data ElementName="trauma_count" Type="int8" Size="1" />
+<Data ElementName="arcane_count" Type="int8" Size="1" />
+<Data ElementName="noxious_count" Type="int8" Size="1" />
+<Data ElementName="elemental_count" Type="int8" Size="1" />
+</Struct>
+<Struct Name="Substruct_RaidMember" ClientVersion="373" >
+<Data ElementName="zone_status" Type="int8" Size="1" /> <!-- 0=not filled, 1=in_zone, 2=not in zone-->
+<Data ElementName="name" Type="char" Size="16" />
+<Data ElementName="spawn_id" Type="int32" Size="1" />
+<Data ElementName="pet_id" Type="int32" Size="1" />
+<Data ElementName="level_current" Type="int16" Size="1" />
+<Data ElementName="level_max" Type="int16" Size="1" />
+<Data ElementName="race_id" Type="int8" Size="1" />
+<Data ElementName="class_id" Type="int8" Size="1" />
+<Data ElementName="hp_current" Type="sint32" Size="1" />
+<Data ElementName="hp_max" Type="sint32" Size="1" />
+<Data ElementName="power_current" Type="sint32" Size="1" />
+<Data ElementName="power_max" Type="sint32" Size="1" />
+<Data ElementName="trauma_count" Type="int8" Size="1" /> <!-- 73 -->
+<Data ElementName="arcane_count" Type="int8" Size="1" /> <!-- 74 -->
+<Data ElementName="noxious_count" Type="int8" Size="1" /> <!-- 75 -->
+<Data ElementName="elemental_count" Type="int8" Size="1" /> <!-- 76 -->
+</Struct>
+<Struct Name="Substruct_RaidMember" ClientVersion="546" >
+<Data ElementName="zone_status" Type="int8" Size="1" /> <!-- 0=not filled, 1=in_zone, 2=not in zone--> <!-- 1 -->
+<Data ElementName="name" Type="char" Size="41" /> <!-- 42 -->
+<Data ElementName="spawn_id" Type="int32" Size="1" /> <!-- 46 -->
+<Data ElementName="pet_id" Type="int32" Size="1" /> <!-- 50 -->
+<Data ElementName="level_current" Type="int16" Size="1" /> <!-- 52 -->
+<Data ElementName="level_max" Type="int16" Size="1" /> <!-- 54 -->
+<Data ElementName="race_id" Type="int8" Size="1" /> <!-- 55 -->
+<Data ElementName="class_id" Type="int8" Size="1" /> <!-- 56 -->
+<Data ElementName="hp_current" Type="sint32" Size="1" /> <!-- 60 -->
+<Data ElementName="hp_max" Type="sint32" Size="1" /> <!-- 64 -->
+<Data ElementName="power_current" Type="sint32" Size="1" /> <!-- 68 -->
+<Data ElementName="power_max" Type="sint32" Size="1" /> <!-- 72 -->
+<Data ElementName="trauma_count" Type="int8" Size="1" /> <!-- 73 -->
+<Data ElementName="arcane_count" Type="int8" Size="1" /> <!-- 74 -->
+<Data ElementName="noxious_count" Type="int8" Size="1" /> <!-- 75 -->
+<Data ElementName="elemental_count" Type="int8" Size="1" /> <!-- 76 -->
+<Data ElementName="zone" Type="char" Size="60" /> <!-- 136 -->
+<Data ElementName="instance" Type="int8" Size="1" /> <!-- 137 -->
+</Struct>
+<Struct Name="Substruct_RaidMember" ClientVersion="57048" >
+<Data ElementName="spawn_id" Type="int32" Size="1" />
+<Data ElementName="pet_id" Type="int32" Size="1" />
+<Data ElementName="hp_current" Type="sint64" Size="1" />
+<Data ElementName="hp_current2" Type="sint64" Size="1" />
+<Data ElementName="hp_max" Type="sint32" Size="1" />
+<Data ElementName="hp_max2" Type="sint32" Size="1" />
+<Data ElementName="power_current" Type="sint32" Size="1" />
+<Data ElementName="power_max" Type="sint32" Size="1" />
+<Data ElementName="level_current" Type="int16" Size="1" />
+<Data ElementName="level_max" Type="int16" Size="1" />
+<Data ElementName="name" Type="char" Size="41" />
+<Data ElementName="zone" Type="char" Size="60" />
+<Data ElementName="instance" Type="int8" Size="1" />
+<Data ElementName="zone_status" Type="int8" Size="1" />
+<Data ElementName="unknown4" Type="int16" Size="1" />
+<Data ElementName="race_id" Type="int8" Size="1" />
+<Data ElementName="class_id" Type="int8" Size="1" />
+<Data ElementName="trauma_count" Type="int8" Size="1" />
+<Data ElementName="arcane_count" Type="int8" Size="1" />
+<Data ElementName="noxious_count" Type="int8" Size="1" />
+<Data ElementName="elemental_count" Type="int8" Size="1" />
+<Data ElementName="curse_count" Type="int8" Size="1" />
+<Data ElementName="unknown5" Type="int8" Size="3" />
+</Struct>
+<Struct Name="WS_RaidUpdate" ClientVersion="1" OpcodeName="OP_UpdateRaidMsg" >
+  <Data ElementName="group_member0_0" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member1_0" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member2_0" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member3_0" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member4_0" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member5_0" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member0_1" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member1_1" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member2_1" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member3_1" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member4_1" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member5_1" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member0_2" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member1_2" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member2_2" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member3_2" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member4_2" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member5_2" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member0_3" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member1_3" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member2_3" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member3_3" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member4_3" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member5_3" Substruct="Substruct_RaidMember" Size="1" />
+</Struct>
+<Struct Name="WS_RaidUpdate" ClientVersion="373" OpcodeName="OP_UpdateRaidMsg" >
+  <Data ElementName="group_member0_0" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member1_0" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member2_0" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member3_0" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member4_0" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member5_0" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member0_1" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member1_1" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member2_1" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member3_1" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member4_1" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member5_1" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member0_2" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member1_2" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member2_2" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member3_2" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member4_2" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member5_2" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member0_3" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member1_3" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member2_3" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member3_3" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member4_3" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member5_3" Substruct="Substruct_RaidMember" Size="1" />
+</Struct>
+<Struct Name="WS_RaidUpdate" ClientVersion="546" OpcodeName="OP_UpdateRaidMsg" >
+  <Data ElementName="group_member0_0" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member1_0" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member2_0" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member3_0" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member4_0" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member5_0" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member0_1" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member1_1" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member2_1" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member3_1" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member4_1" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member5_1" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member0_2" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member1_2" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member2_2" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member3_2" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member4_2" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member5_2" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member0_3" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member1_3" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member2_3" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member3_3" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member4_3" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member5_3" Substruct="Substruct_RaidMember" Size="1" />
+</Struct>
+<Struct Name="WS_RaidUpdate" ClientVersion="57048" OpcodeName="OP_UpdateRaidMsg" >
+  <Data ElementName="group_member0_0" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member1_0" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member2_0" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member3_0" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member4_0" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member5_0" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member0_1" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member1_1" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member2_1" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member3_1" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member4_1" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member5_1" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member0_2" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member1_2" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member2_2" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member3_2" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member4_2" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member5_2" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member0_3" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member1_3" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member2_3" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member3_3" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member4_3" Substruct="Substruct_RaidMember" Size="1" />
+  <Data ElementName="group_member5_3" Substruct="Substruct_RaidMember" Size="1" />
+</Struct>
 <Struct Name="WS_CharacterSheet" ClientVersion="1" OpcodeName="OP_UpdateCharacterSheetMsg" Comment="1560 bytes">
 <Data ElementName="character_name" Type="char" Size="16" />
 <Data ElementName="race" Type="int8" Size="1" /> <!-- 0x10 -->
@@ -1917,7 +2104,7 @@ to zero and treated like placeholders." />
 <Data ElementName="spell_state_noaoe" Type="int8" Size="1" /> <!-- 0x4f6 -->
 <Data ElementName="current_PCA" Type="int32" Size="1" /> <!-- 0x4f7 -->
 <Data ElementName="group_members" Substruct="Substruct_GroupMember" Size="5" /> <!-- 0x4fb -->
-<Data ElementName="leader_index" Type="int32" Size="1" /> <!-- 0x5f0 -->
+<Data ElementName="group_leader_id" Type="int32" Size="1" /> <!-- 0x5f0 -->
 <Data ElementName="pet_id" Type="int32" Size="1" /> <!-- 0x5f4 -->
 <Data ElementName="pet_name" Type="char" Size="16" /> <!-- 0x5f8 -->
 <Data ElementName="pet_hp" Type="float" Size="1" /> <!-- 0x608 -->
@@ -2071,8 +2258,7 @@ to zero and treated like placeholders." />
 <Data ElementName="spell_state_noaoe" Type="int8" Size="1" /> <!-- 0x4f6 -->
 <Data ElementName="unknownstuff" Type="int8" Size="25" /> <!-- 3425 -->
 <Data ElementName="group_members" Substruct="Substruct_GroupMember" Size="5" /> <!-- 3665	 -->
-<Data ElementName="unknownafter" Type="int8" Size="15" /> <!-- 3425 -->
-<Data ElementName="leader_index" Type="int32" Size="1" /> <!-- 3669 -->
+<Data ElementName="group_leader_id" Type="int32" Size="1" /> <!-- 3669 -->
 <Data ElementName="pet_id" Type="int32" Size="1" /> <!-- 3673 -->
 <Data ElementName="pet_name" Type="char" Size="16" /> <!-- 3689 -->
 <Data ElementName="pet_health_pct" Type="float" Size="1" /> <!-- 3693 -->
@@ -2298,7 +2484,7 @@ to zero and treated like placeholders." />
 <Data ElementName="spell_state_always_crit_heal_spell" Type="int8" Size="1" /> <!-- 4007 -->
 <Data ElementName="current_PCA" Type="int32" Size="1" /> <!-- 4008, parental control alarm -->
 <Data ElementName="group_members" Substruct="Substruct_GroupMember" Size="5" /> <!-- 4012 -->
-<Data ElementName="leader_index" Type="int32" Size="1" /> <!-- 4697 -->
+<Data ElementName="group_leader_id" Type="int32" Size="1" /> <!-- 4697 -->
 <Data ElementName="pet_id" Type="int32" Size="1" /> <!-- 4701 -->
 <Data ElementName="pet_name" Type="char" Size="32" /> <!-- 4705 -->
 <Data ElementName="unknown6" Type="int8" Size="9" /><!-- 4745 -->
@@ -2531,7 +2717,7 @@ to zero and treated like placeholders." />
 <Data ElementName="rain2" Type="float" Size="1" /><!-- 4761 -->
 <Data ElementName="unknown6" Type="int8" Size="1" /> <!-- 4773 -->
 <Data ElementName="group_members" Substruct="Substruct_GroupMember" Size="5" /> <!-- 4012 -->
-<Data ElementName="leader_index" Type="int32" Size="1" /> <!-- 4697 -->
+<Data ElementName="group_leader_id" Type="int32" Size="1" /> <!-- 4697 -->
 <Data ElementName="pet_id" Type="int32" Size="1" /> <!-- 4701 -->
 <Data ElementName="pet_name" Type="char" Size="32" /> <!-- 4705 -->
 <Data ElementName="unknown6" Type="int8" Size="9" /><!-- 4745 -->
@@ -3243,7 +3429,7 @@ to zero and treated like placeholders." />
 <Data ElementName="vision" Type="int32" Size="1" />
 <Data ElementName="unknown525b" Type="int8" Size="986" />
 <Data ElementName="group_members" Substruct="Substruct_GroupMember" Size="5" />
-<Data ElementName="group_leader_index" Type="int32" Size="1" />
+<Data ElementName="group_leader_id" Type="int32" Size="1" />
 <Data ElementName="unknown183" Type="int8" Size="460" />
 <Data ElementName="pet_id" Type="int32" Size="1" />
 <Data ElementName="pet_name" Type="char" Size="32" />
@@ -7830,7 +8016,7 @@ to zero and treated like placeholders." />
 	<Data ElementName="char_account_id" Type="int32" />		
 	<Data ElementName="zone" Type="char" Size="80" />	
 </Data>
-<Data ElementName="unknown10" Type="int8" />
+<Data ElementName="display_zone" Type="int8" />
 </Struct>
 <Struct Name="WS_WhoQueryReply" ClientVersion="373" OpcodeName="OP_WhoQueryReplyMsg" >
 <Data ElementName="account_id" Type="int32" />
@@ -7851,7 +8037,7 @@ to zero and treated like placeholders." />
 	<Data ElementName="zone" Type="char" Size="80" />
 	<Data ElementName="unknown3" Type="int8" Size="28" />	
 </Data>
-<Data ElementName="unknown10" Type="int8" />
+<Data ElementName="display_zone" Type="int8" />
 </Struct>
 <Struct Name="WS_WhoQueryReply" ClientVersion="546" OpcodeName="OP_WhoQueryReplyMsg" >
 <Data ElementName="account_id" Type="int32" />
@@ -7871,7 +8057,7 @@ to zero and treated like placeholders." />
 	<Data ElementName="zone" Type="char" Size="80" />
 	<Data ElementName="unknown6" Type="int8" Size="28" />
 </Data>
-<Data ElementName="unknown10" Type="int8" />
+<Data ElementName="display_zone" Type="int8" />
 </Struct>
 <Struct Name="WS_WhoQueryReply" ClientVersion="1188" OpcodeName="OP_WhoQueryReplyMsg" >
 <Data ElementName="account_id" Type="int32" />
@@ -7892,7 +8078,7 @@ to zero and treated like placeholders." />
   <Data ElementName="guild" Type="char" Size="40" />
   <Data ElementName="unknown7" Type="int8" />
 </Data>
-<Data ElementName="unknown10" Type="int8" />
+<Data ElementName="display_zone" Type="int8" />
 </Struct>
 <Struct Name="WS_HearChat" ClientVersion="1" OpcodeName="OP_ClientCmdMsg" OpcodeType="OP_EqHearChatCmd" >
 <Data ElementName="understood" Type="int8" />
@@ -11132,7 +11318,34 @@ to zero and treated like placeholders." />
 <Data ElementName="type" Type="int32" Size="1" />
 <Data ElementName="description" Type="EQ2_16Bit_String" Size="1" />
 </Struct>
+<!-- KoS, DoF and earlier clients need to be structured properly here -->
 <Struct Name="WS_GuildMembershipResponse" ClientVersion="1" OpcodeName="OP_GuildMembershipResponseMsg">
+<Data ElementName="guild_id" Type="int32" Size="1" />
+<Data ElementName="character_id_to" Type="int32" Size="1" />
+<Data ElementName="num_membersx" Type="int32" Size="1" />
+<Data ElementName="member_array" Type="Array" ArraySizeVariable="num_members" >
+	<Data ElementName="character_id" Type="int32" Size="1" />
+	<Data ElementName="account_id" Type="int32" Size="1" />
+	<Data ElementName="name" Type="EQ2_16Bit_String" Size="1" />
+	<Data ElementName="adventure_class" Type="int32" Size="1" />
+	<Data ElementName="adventure_level" Type="int32" Size="1" />
+	<Data ElementName="tradeskill_class" Type="int32" Size="1" />
+	<Data ElementName="tradeskill_level" Type="int32" Size="1" />
+	<Data ElementName="rank" Type="int32" Size="1" />
+	<Data ElementName="member_flags" Type="int32" Size="1" />
+	<Data ElementName="join_date" Type="int32" Size="1" />
+	<Data ElementName="guild_status" Type="int32" Size="1" />
+	<Data ElementName="last_login" Type="int32" Size="1" />
+	<Data ElementName="recruiter_id" Type="int32" Size="1" />
+	<Data ElementName="points" Type="float" Size="1" />
+	<Data ElementName="zone" Type="EQ2_16Bit_String" Size="1" />
+	<Data ElementName="note" Type="EQ2_16Bit_String" Size="1" />
+	<Data ElementName="officer_note" Type="EQ2_16Bit_String" Size="1" />
+	<Data ElementName="unique_id" Type="int32" Size="1" />
+</Data>
+<Data ElementName="unknown7" Type="int16" Size="1" />
+</Struct>
+<Struct Name="WS_GuildMembershipResponse" ClientVersion="562" OpcodeName="OP_GuildMembershipResponseMsg">
 <Data ElementName="guild_id" Type="int32" Size="1" />
 <Data ElementName="character_id_to" Type="int32" Size="1" />
 <Data ElementName="num_members" Type="int32" Size="1" />

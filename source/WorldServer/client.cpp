@@ -28,7 +28,10 @@ along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 #include <zlib.h>
 #include <assert.h>
 #include <algorithm>
+#include <boost/property_tree/json_parser.hpp>
+
 #include "Player.h"
+#include "PlayerGroups.h"
 #include "Commands/Commands.h"
 #include "ClientPacketFunctions.h"
 #include "../common/ConfigReader.h"
@@ -40,6 +43,9 @@ along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 #include "SpellProcess.h"
 #include "Zone/ChestTrap.h"
 #include "../common/GlobalHeaders.h"
+
+#include "./Web/PeerManager.h"
+#include "./Web/HTTPSClientPool.h"
 
 //#include "Quests.h"
 
@@ -121,6 +127,8 @@ extern MasterAAList master_tree_nodes;
 extern ChestTrapList chest_trap_list;
 extern MasterRecipeBookList master_recipebook_list;
 extern VisualStates visual_states;
+extern PeerManager peer_manager;
+extern HTTPSClientPool peer_https_pool;
 
 using namespace std;
 
@@ -153,13 +161,14 @@ Client::Client(EQStream* ieqs) : underworld_cooldown_timer(5000), pos_update(125
 	camp_timer = 0;
 	linkdead_timer = 0;
 	client_zoning = false;
+	client_zoning_details_set = false;
 	zoning_id = 0;
 	zoning_x = 0;
 	zoning_y = 0;
 	zoning_z = 0;
 	zoning_instance_id = 0;
 	player_pos_changed = false;
-	player_pos_timer = Timer::GetCurrentTime2()+1000;
+	player_pos_timer = Timer::GetCurrentTime2() + 1000;
 	enabled_player_pos_timer = true;
 	++numclients;
 	if (world.GetServerStatisticValue(STAT_SERVER_MOST_CONNECTIONS) < numclients)
@@ -251,7 +260,7 @@ Client::~Client() {
 		safe_delete(queued_quest);
 	}
 	quest_queue.clear();
-	
+
 	vector<QuestRewardData*>::iterator rwd_itr;
 	QuestRewardData* quest_rwd_data = 0;
 	for (rwd_itr = quest_pending_reward.begin(); rwd_itr != quest_pending_reward.end(); rwd_itr++) {
@@ -259,7 +268,7 @@ Client::~Client() {
 		safe_delete(quest_rwd_data);
 	}
 	quest_pending_reward.clear();
-	
+
 	safe_delete(CLE_keepalive_timer);
 	safe_delete(connect);
 	--numclients;
@@ -268,9 +277,9 @@ Client::~Client() {
 
 
 void Client::RemoveClientFromZone() {
-	if(player && player->GetZone())
+	if (player && player->GetZone())
 		player->GetZone()->GetSpellProcess()->RemoveSpellTimersFromSpawn(player, true, false, true, true);
-	
+
 	if (GetTempPlacementSpawn() && GetCurrentZone()) {
 		Spawn* tmp = GetTempPlacementSpawn();
 		SetTempPlacementSpawn(nullptr);
@@ -279,7 +288,7 @@ void Client::RemoveClientFromZone() {
 
 	if (current_zone && player) {
 		if (player->GetGroupMemberInfo()) {
-				TempRemoveGroup();
+			TempRemoveGroup();
 		}
 		world.GetGroupManager()->ClearPendingInvite(player);
 	}
@@ -298,7 +307,7 @@ void Client::RemoveClientFromZone() {
 	MDeletePlayer.writelock(__FUNCTION__, __LINE__);
 	player = nullptr;
 	MDeletePlayer.releasewritelock(__FUNCTION__, __LINE__);
-	
+
 	deque<BuyBackItem*>::iterator itr;
 	MBuyBack.writelock(__FUNCTION__, __LINE__);
 	for (itr = buy_back_items.begin(); itr != buy_back_items.end();) {
@@ -336,7 +345,7 @@ void Client::PopulateSkillMap() {
 }
 
 void Client::SendLoginInfo() {
-	if(GetPlayer()->IsReturningFromLD())
+	if (GetPlayer()->IsReturningFromLD())
 		firstlogin = true;
 
 	if (firstlogin) {
@@ -353,7 +362,7 @@ void Client::SendLoginInfo() {
 
 	int32 count = 0;
 
-	if(!GetPlayer()->IsReturningFromLD())
+	if (!GetPlayer()->IsReturningFromLD())
 	{
 		count = database.LoadCharacterTitles(GetCharacterID(), player);
 		if (count == 0) {
@@ -363,7 +372,7 @@ void Client::SendLoginInfo() {
 		}
 	}
 
-	if(!GetPlayer()->IsReturningFromLD())
+	if (!GetPlayer()->IsReturningFromLD())
 	{
 		count = database.LoadCharacterLanguages(GetCharacterID(), player);
 		if (count == 0)
@@ -376,7 +385,7 @@ void Client::SendLoginInfo() {
 
 	ClientPacketFunctions::SendLoginAccepted(this);
 
-	ClientPacketFunctions::SendAbilities ( this );
+	ClientPacketFunctions::SendAbilities(this);
 
 	ClientPacketFunctions::SendCommandNamePacket(this);
 
@@ -389,7 +398,7 @@ void Client::SendLoginInfo() {
 		zone_list.CheckFriendList(this);
 	}
 
-	if(!GetPlayer()->IsReturningFromLD())
+	if (!GetPlayer()->IsReturningFromLD())
 	{
 		database.LoadCharacterItemList(GetAccountID(), GetCharacterID(), player, GetVersion());
 		if (firstlogin && player->item_list.GetNumberOfItems() == 0 && player->GetEquipmentList()->GetNumberOfItems() == 0) //re-add starting items if missing
@@ -456,7 +465,7 @@ void Client::SendLoginInfo() {
 	ClientPacketFunctions::SendCommandList(this);
 
 	LogWrite(CCLIENT__DEBUG, 0, "Client", "Send Language Updates...");
-	
+
 	// kos doesn't like one of these language or instance list
 	SendLanguagesUpdate(database.GetCharacterCurrentLang(GetCharacterID(), player));
 
@@ -528,7 +537,7 @@ void Client::DisplayDeadWindow()
 	player->SetPower(0);
 	GetCurrentZone()->TriggerCharSheetTimer();
 
-	if(GetVersion() <= 561) {
+	if (GetVersion() <= 561) {
 		ClientPacketFunctions::SendServerControlFlagsClassic(this, 8, 1);
 		ClientPacketFunctions::SendServerControlFlagsClassic(this, 16, 1);
 	}
@@ -551,7 +560,7 @@ void Client::DisplayDeadWindow()
 
 void Client::HandlePlayerRevive(int32 point_id)
 {
-	if(GetVersion() <= 561) {
+	if (GetVersion() <= 561) {
 		ClientPacketFunctions::SendServerControlFlagsClassic(this, 8, 0);
 		ClientPacketFunctions::SendServerControlFlagsClassic(this, 16, 0);
 	}
@@ -588,7 +597,7 @@ void Client::HandlePlayerRevive(int32 point_id)
 	player->SetResurrecting(true);
 	player->SetHP(player->GetTotalHP());
 	player->SetPower(player->GetTotalPower());
-	
+
 	//revive at zone safe coords
 	if (!revive_point)
 	{
@@ -647,7 +656,7 @@ void Client::HandlePlayerRevive(int32 point_id)
 			LogWrite(CCLIENT__DEBUG, 0, "Client", "Sending player to revive zone ID '%u', using current zone's safe coords.", revive_point->zone_id);
 			location_name = revive_point->location_name.c_str();
 			//player->ClearEverything();
-          	Save();
+			Save();
 			Zone(zone_name.c_str(), false);
 		}
 	}
@@ -683,19 +692,19 @@ void Client::HandlePlayerRevive(int32 point_id)
 		QueuePacket(packet->serialize());
 		safe_delete(packet);
 	}
-	
-	if(rule_manager.GetZoneRule(GetCurrentZoneID(), R_Combat, EnableSpiritShards)->GetBool())
+
+	if (rule_manager.GetZoneRule(GetCurrentZoneID(), R_Combat, EnableSpiritShards)->GetBool())
 	{
 		NPC* shard = player->InstantiateSpiritShard(origX, origY, origZ, origHeading, origGridID, originalZone);
 
-		if(shard->GetSpawnScript() && strlen(shard->GetSpawnScript()) > 0)
+		if (shard->GetSpawnScript() && strlen(shard->GetSpawnScript()) > 0)
 			originalZone->CallSpawnScript(shard, SPAWN_SCRIPT_PRESPAWN);
 
 		originalZone->RemoveSpawn(player, false, true, true, true, true);
 
 		originalZone->AddSpawn(shard);
-		
-		if(shard->GetSpawnScript() && strlen(shard->GetSpawnScript()) > 0)
+
+		if (shard->GetSpawnScript() && strlen(shard->GetSpawnScript()) > 0)
 			originalZone->CallSpawnScript(shard, SPAWN_SCRIPT_SPAWN);
 	}
 
@@ -721,7 +730,7 @@ void Client::SendControlGhost(int32 send_id, int8 unknown2) {
 
 void Client::SendCharInfo() {
 	EQ2Packet* app;
-	
+
 	player->SetEquippedItemAppearances();
 
 	ClientPacketFunctions::SendCharacterData(this);
@@ -729,13 +738,13 @@ void Client::SendCharInfo() {
 	SendCharPOVGhost();
 
 	SendControlGhost(player->GetIDWithPlayerSpawn(player), 255);
-	
+
 	//sending bad spawn packet?
 
 	//SendAchievementsList();
 	//if (version > 561)
 		//ClientPacketFunctions::SendHousingList(this);
-	
+
 	ClientPacketFunctions::SendCharacterSheet(this);
 	ClientPacketFunctions::SendTraitList(this);// moved from below
 	ClientPacketFunctions::SendAbilities(this);
@@ -749,14 +758,14 @@ void Client::SendCharInfo() {
 	}
 
 	GetCurrentZone()->AddSpawn(player);
-	if(IsReloadingZone() && (zoning_x || zoning_y || zoning_z)) {
-			GetPlayer()->SetX(zoning_x);
-			GetPlayer()->SetY(zoning_y);
-			GetPlayer()->SetZ(zoning_z);
-			GetPlayer()->SetHeading(zoning_h);
+	if (IsReloadingZone() && (zoning_x || zoning_y || zoning_z)) {
+		GetPlayer()->SetX(zoning_x);
+		GetPlayer()->SetY(zoning_y);
+		GetPlayer()->SetZ(zoning_z);
+		GetPlayer()->SetHeading(zoning_h);
 
-			EQ2Packet* packet = GetPlayer()->Move(zoning_x, zoning_y, zoning_z, GetVersion(), zoning_h);		
-			QueuePacket(packet);
+		EQ2Packet* packet = GetPlayer()->Move(zoning_x, zoning_y, zoning_z, GetVersion(), zoning_h);
+		QueuePacket(packet);
 	}
 	//SendCollectionList();
 	Guild* guild = player->GetGuild();
@@ -805,7 +814,7 @@ void Client::SendCharInfo() {
 	}
 
 	GetPlayer()->UpdateWeapons();
-	if(!GetPlayer()->IsReturningFromLD()) {
+	if (!GetPlayer()->IsReturningFromLD()) {
 		database.LoadBuyBacks(this);
 	}
 	if (version > 561)
@@ -820,10 +829,11 @@ void Client::SendCharInfo() {
 	if (zone_script && lua_interface)
 		lua_interface->RunZoneScript(zone_script, "player_entry", GetCurrentZone(), GetPlayer());
 	this->client_zoning = false;
+	this->client_zoning_details_set = false;
 	this->zoning_id = 0;
 	this->zoning_instance_id = 0;
 	SetZoningDestination(nullptr);
-	
+
 	if (player->GetHP() < player->GetTotalHP() || player->GetPower() < player->GetTotalPower())
 		GetCurrentZone()->AddDamagedSpawn(player);
 
@@ -861,40 +871,40 @@ void Client::SendCharInfo() {
 				SetHasOwnerOrEditAccess(true);
 		}
 	}
-	
+
 	bool groupMentor = false;
 	GetPlayer()->group_id = rejoin_group_id;
-	if(!world.RejoinGroup(this, rejoin_group_id))
+	if (!world.RejoinGroup(this, rejoin_group_id))
 		GetPlayer()->group_id = 0;
 	else
 	{
 		Entity* ent = world.GetGroupManager()->IsPlayerInGroup(rejoin_group_id, GetPlayer()->GetGroupMemberInfo()->mentor_target_char_id);
-		if(ent && ent->IsPlayer())
+		if (ent && ent->IsPlayer())
 		{
 			GetPlayer()->SetMentorStats(ent->GetLevel(), ent->GetID(), false);
 			groupMentor = true;
 		}
 	}
 
-	if(!groupMentor)
+	if (!groupMentor)
 		GetPlayer()->SetMentorStats(GetPlayer()->GetLevel(), 0, false);
 
-	if(!GetPlayer()->IsReturningFromLD()) {
+	if (!GetPlayer()->IsReturningFromLD()) {
 		database.LoadCharacterSpellEffects(GetCharacterID(), this, DB_TYPE_MAINTAINEDEFFECTS);
 		database.LoadCharacterSpellEffects(GetCharacterID(), this, DB_TYPE_SPELLEFFECTS);
 	}
 	else {
 		Spawn* pet_spawn = nullptr;
-		if(GetPlayer()->GetPet())
+		if (GetPlayer()->GetPet())
 			pet_spawn = GetPlayer()->GetPet();
-		else if(GetPlayer()->GetCharmedPet())
+		else if (GetPlayer()->GetCharmedPet())
 			pet_spawn = GetPlayer()->GetCharmedPet();
-		else if(GetPlayer()->GetCosmeticPet())
+		else if (GetPlayer()->GetCosmeticPet())
 			pet_spawn = GetPlayer()->GetCosmeticPet();
-		else if(GetPlayer()->GetDeityPet())
+		else if (GetPlayer()->GetDeityPet())
 			pet_spawn = GetPlayer()->GetDeityPet();
-		
-		if(pet_spawn) {
+
+		if (pet_spawn) {
 			GetPlayer()->GetInfoStruct()->set_pet_id(GetPlayer()->GetIDWithPlayerSpawn(pet_spawn));
 		}
 	}
@@ -922,15 +932,15 @@ void Client::SendCharPOVGhost() {
 	PacketStruct* set_pov = configReader.getStruct("WS_SetPOVGhostCmd", GetVersion());
 	int32 ghost_id = 0;
 	if (set_pov) {
-		if(pov_ghost_spawn_id) {
+		if (pov_ghost_spawn_id) {
 			Spawn* spawn = GetCurrentZone()->GetSpawnByID(pov_ghost_spawn_id);
 			ghost_id = player->GetIDWithPlayerSpawn(spawn);
-			if(spawn) {
+			if (spawn) {
 				use_ghost_pov = true;
 			}
 		}
-		if(use_ghost_pov) {
-		set_pov->setDataByName("spawn_id", ghost_id);
+		if (use_ghost_pov) {
+			set_pov->setDataByName("spawn_id", ghost_id);
 		}
 		else {
 			set_pov->setDataByName("spawn_id", player->GetIDWithPlayerSpawn(player));
@@ -1036,7 +1046,7 @@ void Client::SendDefaultGroupOptions() {
 		default_options->setDataByName("default_yell_method", GetPlayer()->GetInfoStruct()->get_group_default_yell());
 		default_options->setDataByName("group_autolock", GetPlayer()->GetInfoStruct()->get_group_autolock());
 		default_options->setDataByName("default_group_lock_method", GetPlayer()->GetInfoStruct()->get_group_lock_method());
-		if(GetVersion() > 561) {
+		if (GetVersion() > 561) {
 			default_options->setDataByName("solo_autolock", GetPlayer()->GetInfoStruct()->get_group_solo_autolock());
 			default_options->setDataByName("auto_loot_method", GetPlayer()->GetInfoStruct()->get_group_auto_loot_method());
 		}
@@ -1085,7 +1095,7 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
 		PacketStruct* request;
 		request = configReader.getStruct("LoginByNumRequest", 1);
 		if (request) {
-			if(request->LoadPacketData(app->pBuffer, app->size)) {
+			if (request->LoadPacketData(app->pBuffer, app->size)) {
 				// test the original location of Version for clients older than 1212
 				version = request->getType_int16_ByName("version");
 
@@ -1107,7 +1117,7 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
 				if (EQOpcodeManager.count(GetOpcodeVersion(version)) == 0) {
 					LogWrite(WORLD__ERROR, 0, "World", "Incompatible version: %i", version);
 					ClientPacketFunctions::SendLoginDenied(this);
-					
+
 					/* reset version and protect server from trying to send packets out to a bad client
 					** cause of Dec 6th/Dec 7th 2023 crash
 					** Client::MakeSpawnChangePacket
@@ -1136,6 +1146,9 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
 				packet->PrintPacket();
 				int8 loot_method = packet->getType_int8_ByName("loot_method");
 				int8 loot_items_rarity = packet->getType_int8_ByName("loot_items_rarity");
+				if (GetVersion() <= 561)
+					loot_items_rarity = 0;
+
 				int8 auto_split_coin = packet->getType_int8_ByName("auto_split_coin");
 				int8 default_yell_method = packet->getType_int8_ByName("default_yell_method");
 				int8 autolock = packet->getType_int8_ByName("group_autolock");
@@ -1172,15 +1185,32 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
 					PlayerGroup* group = world.GetGroupManager()->GetGroup(this->GetPlayer()->GetGroupMemberInfo()->group_id);
 					if (group)
 					{
-						GroupOptions goptions;
-						goptions.loot_method = loot_method;
-						goptions.loot_items_rarity = loot_items_rarity;
-						goptions.auto_split = auto_split_coin;
-						goptions.default_yell = default_yell_method;
-						goptions.group_autolock = autolock;
-						goptions.solo_autolock = solo_autolock;
-						goptions.auto_loot_method = auto_loot_method;
-						group->SetDefaultGroupOptions(&goptions);
+						bool isLeadGroup = group->IsInRaidGroup(group->GetID(), true);
+						bool isInRaid = group->IsInRaidGroup(group->GetID());
+						if (!isInRaid || isLeadGroup) {
+							GroupOptions goptions;
+							goptions.loot_method = loot_method;
+							goptions.loot_items_rarity = loot_items_rarity;
+							goptions.auto_split = auto_split_coin;
+							goptions.default_yell = default_yell_method;
+							goptions.group_autolock = autolock;
+							goptions.solo_autolock = solo_autolock;
+							goptions.auto_loot_method = auto_loot_method;
+							group->SetDefaultGroupOptions(&goptions);
+							// update group options with peers
+							std::vector<int32> raidGroups;
+							group->GetRaidGroups(&raidGroups);
+							std::vector<int32>::iterator group_itr;
+							for (group_itr = raidGroups.begin(); group_itr != raidGroups.end(); group_itr++) {
+								PlayerGroup* otherGroup = world.GetGroupManager()->GetGroup((*group_itr));
+								if (otherGroup)
+									otherGroup->SetDefaultGroupOptions(&goptions);
+							}
+							peer_manager.sendPeersNewGroupRequest("", 0, group->GetID(), "", "", &goptions, "", &raidGroups, true);
+						}
+						else {
+							SimpleMessage(CHANNEL_COLOR_YELLOW, "Group options may only be changed by raid leader.");
+						}
 					}
 					world.GetGroupManager()->ReleaseGroupLock(__FUNCTION__, __LINE__);
 				}
@@ -1193,7 +1223,7 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
 		LogWrite(OPCODE__DEBUG, 1, "Opcode", "Opcode 0x%X (%i): OP_MapRequest", opcode, opcode);
 		PacketStruct* packet = configReader.getStruct("WS_MapRequest", GetVersion());
 		if (packet && app->size > 2 && GetCurrentZone()) {
-			if(packet->LoadPacketData(app->pBuffer, app->size)) {
+			if (packet->LoadPacketData(app->pBuffer, app->size)) {
 				PacketStruct* fog_packet = configReader.getStruct("WS_FogInit", GetVersion());
 				if (fog_packet) {
 					LogWrite(PACKET__DEBUG, 0, "Packet", "In OP_MapRequest: Fog Packet");
@@ -1267,7 +1297,7 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
 						response->getType_int8_ByName("camp_desktop"),
 						response->getType_int8_ByName("camp_char_select"),
 						(response->getType_EQ2_16BitString_ByName("char_name").data.length() > 0) ? response->getType_EQ2_16BitString_ByName("char_name").data.c_str() : "");
-					
+
 					// JA: trying to recognize /camp vs LD (see ZoneServer::ClientProcess())
 					if ((player->GetActivityStatus() & ACTIVITY_STATUS_CAMPING) == 0)
 						player->SetActivityStatus(player->GetActivityStatus() + ACTIVITY_STATUS_CAMPING);
@@ -1334,7 +1364,7 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
 		LogWrite(OPCODE__DEBUG, 1, "Opcode", "Opcode 0x%X (%i): OP_QuestJournalSetVisibleMsg", opcode, opcode);
 		PacketStruct* packet = configReader.getStruct("WS_QuestJournalVisible", GetVersion());
 		if (packet) {
-			if(packet->LoadPacketData(app->pBuffer, app->size)) {
+			if (packet->LoadPacketData(app->pBuffer, app->size)) {
 				int32 quest_id = packet->getType_int32_ByName("quest_id");
 				bool hidden = packet->getType_int8_ByName("visible") == 1 ? false : true;
 				GetPlayer()->MPlayerQuests.readlock(__FUNCTION__, __LINE__);
@@ -1357,7 +1387,7 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
 		LogWrite(OPCODE__DEBUG, 1, "Opcode", "Opcode 0x%X (%i): OP_MacroUpdateMsg", opcode, opcode);
 		PacketStruct* macro_update = configReader.getStruct("WS_MacroUpdate", GetVersion());
 		if (macro_update) {
-			if(macro_update->LoadPacketData(app->pBuffer, app->size)) {
+			if (macro_update->LoadPacketData(app->pBuffer, app->size)) {
 				vector<string>* update = new vector<string>;
 				int8 number = macro_update->getType_int8_ByName("number");
 				int16 icon = macro_update->getType_int16_ByName("icon");
@@ -1388,13 +1418,13 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
 		LogWrite(OPCODE__DEBUG, 1, "Opcode", "Opcode 0x%X (%i): OP_DialogSelectMsg", opcode, opcode);
 		PacketStruct* packet = configReader.getStruct("WS_DialogSelect", GetVersion());
 		if (packet) {
-				if(packet->LoadPacketData(app->pBuffer, app->size)) {
-					int32 conversation_id = packet->getType_int32_ByName("conversation_id");
-					int32 response_index = packet->getType_int32_ByName("response");
-					HandleDialogSelectMsg(conversation_id, response_index);
-				}
+			if (packet->LoadPacketData(app->pBuffer, app->size)) {
+				int32 conversation_id = packet->getType_int32_ByName("conversation_id");
+				int32 response_index = packet->getType_int32_ByName("response");
+				HandleDialogSelectMsg(conversation_id, response_index);
 			}
-			safe_delete(packet);
+		}
+		safe_delete(packet);
 		break;
 	}
 	case OP_CancelMoveObjectModeMsg: {
@@ -1416,9 +1446,11 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
 		PacketStruct* place_object = configReader.getStruct("WS_PlaceMoveableObject", GetVersion());
 		if (place_object && place_object->LoadPacketData(app->pBuffer, app->size)) {
 			Spawn* spawn = 0;
-
-			if (GetTempPlacementSpawn())
+			bool was_temp_placement = false;
+			if (GetTempPlacementSpawn()) {
 				spawn = GetTempPlacementSpawn();
+				was_temp_placement = true;
+			}
 			else
 				spawn = GetPlayer()->GetSpawnWithPlayerID(place_object->getType_int32_ByName("spawn_id"));
 
@@ -1431,12 +1463,12 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
 				SimpleMessage(CHANNEL_COLOR_RED, "This is not your home!");
 				break;
 			}
-			
-			
+
+
 			int32 uniqueID = spawn->GetPickupUniqueItemID();
-			if(uniqueID) {
+			if (uniqueID) {
 				Item* uniqueItem = GetPlayer()->item_list.GetItemFromUniqueID(uniqueID);
-				if(uniqueItem && uniqueItem->CheckFlag2(HOUSE_LORE) && GetCurrentZone()->HouseItemSpawnExists(uniqueItem->details.item_id)) {
+				if (uniqueItem && uniqueItem->CheckFlag2(HOUSE_LORE) && GetCurrentZone()->HouseItemSpawnExists(uniqueItem->details.item_id)) {
 					Message(CHANNEL_COLOR_RED, "Item %s is house lore and you cannot place another.", uniqueItem->name.c_str());
 					break;
 				}
@@ -1502,10 +1534,14 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
 				spawn->SetSpawnOrigY(spawn->GetY());
 				spawn->SetSpawnOrigZ(spawn->GetZ());
 				spawn->SetSpawnOrigHeading(spawn->GetHeading());
-				if (spawn->GetSpawnLocationID() > 0 && database.UpdateSpawnLocationSpawns(spawn))
-					SimpleMessage(CHANNEL_COLOR_YELLOW, "Successfully saved spawn information.");
-				else if (spawn->GetSpawnLocationID() > 0)
+				if (spawn->GetSpawnLocationID() > 0 && database.UpdateSpawnLocationSpawns(spawn)) {
+					if (!was_temp_placement) {
+						SimpleMessage(CHANNEL_COLOR_YELLOW, "Successfully saved spawn information.");
+					}
+				}
+				else if (spawn->GetSpawnLocationID() > 0) {
 					SimpleMessage(CHANNEL_COLOR_YELLOW, "Error saving spawn information, see console window for details.");
+				}
 			}
 			}
 
@@ -1530,11 +1566,11 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
 		break;
 	}
 	case OP_DoneLoadingUIResourcesMsg: {
-		if(GetVersion() <= 561) {
+		if (GetVersion() <= 561) {
 			ClientPacketFunctions::SendUpdateSpellBook(this);
 		}
-			// need to quickly flash the DoF client the rest of their inventory
-		if(GetVersion() <= 561) {
+		// need to quickly flash the DoF client the rest of their inventory
+		if (GetVersion() <= 561) {
 			EQ2Packet* item_app = player->GetPlayerItemList()->serialize(GetPlayer(), GetVersion());
 			if (item_app) {
 				QueuePacket(item_app);
@@ -1543,7 +1579,7 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
 
 		EQ2Packet* app = new EQ2Packet(OP_DoneLoadingUIResourcesMsg, 0, 0);
 		QueuePacket(app);
-		if(!player_loading_complete)
+		if (!player_loading_complete)
 		{
 			const char* zone_script = world.GetZoneScript(GetCurrentZone()->GetZoneID());
 			if (zone_script && lua_interface)
@@ -1565,7 +1601,7 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
 	case OP_DoneLoadingEntityResourcesMsg: {
 		LogWrite(OPCODE__DEBUG, 1, "Opcode", "Opcode 0x%X (%i): OP_DoneLoadingEntityResourcesMsg", opcode, opcode);
 		if (!IsReadyForSpawns()) {
-			if(GetPlayer()->GetMap()) {
+			if (GetPlayer()->GetMap()) {
 				auto loc = glm::vec3(GetPlayer()->GetX(), GetPlayer()->GetZ(), GetPlayer()->GetY());
 				uint32 GridID = 0;
 				float new_z = GetPlayer()->FindBestZ(loc, nullptr, &GridID);
@@ -1589,11 +1625,11 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
 		LogWrite(OPCODE__DEBUG, 1, "Opcode", "Opcode 0x%X (%i): OP_StoppedLootingMsg", opcode, opcode);
 		if (app->size < sizeof(int32))
 			break;
-		
+
 		int32 loot_id = 0;
 		memcpy(&loot_id, app->pBuffer, sizeof(int32));
 		Spawn* spawn = GetCurrentZone()->GetSpawnByID(loot_id);
-		if(spawn) {
+		if (spawn) {
 			spawn->SetSpawnLootWindowCompleted(GetPlayer()->GetID());
 			spawn->SetLooterSpawnID(0);
 		}
@@ -1650,41 +1686,13 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
 		}
 		else
 		{
-			if(zoning_destination) {
+			if (zoning_destination) {
 				SetCurrentZone(zoning_destination);
 			}
 			LogWrite(OPCODE__DEBUG, 1, "Opcode", "Opcode 0x%X (%i): OP_ReadyToZoneMsg", opcode, opcode);
-			bool succeed_override_zone = true;
-			if(!GetCurrentZone()) {
-				LogWrite(WORLD__ERROR, 0, "World", "OP_ReadyToZone: Player %s attempting to zone and zone is not there!  Emergency boot!", player->GetName());
-				if(zoning_instance_id) {
-					ZoneServer* zone = zone_list.GetByInstanceID(zoning_instance_id, zoning_id, true);
-					if(!zone) {
-						LogWrite(WORLD__WARNING, 0, "World", "OP_ReadyToZone: Emergency boot failed for %s, unable to get zoneserver instance id %u zone id %u.", player->GetName(), zoning_instance_id, zoning_id);
-						succeed_override_zone = false;
-					}
-					else {
-					SetCurrentZone(zone);
-					LogWrite(WORLD__WARNING, 0, "World", "OP_ReadyToZone: Unique instance has been created for %s through emergency boot!", player->GetName());
 
-					}
-				}
-				else if(zoning_id) {
-					
-					ZoneServer* zone = zone_list.Get(zoning_id, true, true);
-					if(!zone) {
-						LogWrite(WORLD__WARNING, 0, "World", "OP_ReadyToZone: Emergency boot failed for %s, unable to get zoneserver zone id %u.", player->GetName(), zoning_id);
-						succeed_override_zone = false;
-					}
-					else {
-					SetCurrentZone(zone);
-					LogWrite(WORLD__WARNING, 0, "World", "OP_ReadyToZone: Unique zone has been created for %s through emergency boot!", player->GetName());
-					}
-				}
-			}
-			
 			if (client_zoning)
-				LogWrite(WORLD__INFO, 0, "World", "OP_ReadyToZone: Player %s zoning to %s", player->GetName(), GetCurrentZone()->GetZoneName());
+				LogWrite(WORLD__INFO, 0, "World", "OP_ReadyToZone: Player %s zoning to %u, instance id %u", player->GetName(), zoning_id, zoning_instance_id);
 			else
 				LogWrite(WORLD__ERROR, 0, "World", "OP_ReadyToZone: Player %s attempting to zone without server authorization.", player->GetName());
 			Disconnect();
@@ -1740,7 +1748,7 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
 	}
 	case OP_SendLatestRequestMsg: {
 		LogWrite(OPCODE__DEBUG, 1, "Opcode", "Opcode 0x%X (%i): OP_SendLatestRequestMsg", opcode, opcode);
-		if(GetVersion() < 60085) {
+		if (GetVersion() < 60085) {
 			// this does not exist in newer clients like AoM, confirmed to exist in DoF, other clients will need review at a later time
 			uchar blah25[] = { 0x01 };
 			EQ2Packet* app25 = new EQ2Packet(OP_ClearDataMsg, blah25, sizeof(blah25));
@@ -1751,7 +1759,7 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
 	case OP_RequestRecipeDetailsMsg: {
 		PacketStruct* packet = configReader.getStruct("WS_RequestRecipeDetail", GetVersion());
 		if (packet) {
-			if(packet->LoadPacketData(app->pBuffer, app->size)) {
+			if (packet->LoadPacketData(app->pBuffer, app->size)) {
 				vector<int32> recipes;
 				int32 recipe_id = 0;
 				char recipe_prop_name[30];
@@ -1761,13 +1769,13 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
 					memset(recipe_prop_name, 0, 30);
 					snprintf(recipe_prop_name, 30, "recipe_id_%i", i);
 					recipe_id = packet->getType_int32_ByName(recipe_prop_name);
-					if(recipe_id > 0) {
+					if (recipe_id > 0) {
 						recipes.push_back(recipe_id);
 					}
 				}
 				SendRecipeDetails(&recipes);
 			}
-			
+
 			safe_delete(packet);
 		}
 		break;
@@ -1808,14 +1816,14 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
 		//DumpPacket(app->pBuffer, app->size);
 		PacketStruct* packet = configReader.getStruct("WS_BeginItemCreation", GetVersion());
 		if (packet) {
-			if(packet->LoadPacketData(app->pBuffer, app->size)) {
-					Recipe* recipe = master_recipe_list.GetRecipe(GetPlayer()->GetCurrentRecipe());
-					if(recipe) {
+			if (packet->LoadPacketData(app->pBuffer, app->size)) {
+				Recipe* recipe = master_recipe_list.GetRecipe(GetPlayer()->GetCurrentRecipe());
+				if (recipe) {
 					int32 item = 0;
 					int8 qty = 0;
 					vector<pair<int32, int16>> items;
 					char tmp_item_id[30];
-					if(GetVersion() > 1193) {
+					if (GetVersion() > 1193) {
 						int8 num_primary_selected_items = packet->getType_int8_ByName("num_primary_selected_items");
 						for (int8 i = 0; i < num_primary_selected_items; i++) {
 							memset(tmp_item_id, 0, 30);
@@ -1824,26 +1832,26 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
 							sprintf(tmp_item_id, "primary_selected_item_qty_%i", i);
 							qty = packet->getType_int16_ByName(tmp_item_id);
 							if (item > 0)
-								items.push_back(make_pair(item,qty));
+								items.push_back(make_pair(item, qty));
 							item = 0;
 						}
 					}
 					else {
-							item = packet->getType_int32_ByName("primary_component_id");
-							qty = 1;
-							if (item > 0)
-								items.push_back(make_pair(item,qty));
+						item = packet->getType_int32_ByName("primary_component_id");
+						qty = 1;
+						if (item > 0)
+							items.push_back(make_pair(item, qty));
 					}
 					int8 build_components = packet->getType_int8_ByName("num_build_components");
-					
-					if(GetVersion() > 1193) {
+
+					if (GetVersion() > 1193) {
 						for (int8 i = 0; i < build_components; i++) {
 							memset(tmp_item_id, 0, 30);
 							sprintf(tmp_item_id, "num_selected_items_%i", i);
 							int8 num_selected_items = packet->getType_int8_ByName(tmp_item_id);
 							for (int8 j = 0; j < num_selected_items; j++) {
 								memset(tmp_item_id, 0, 30);
-								sprintf(tmp_item_id, "selected_id%i_%i", i,j);
+								sprintf(tmp_item_id, "selected_id%i_%i", i, j);
 								item = packet->getType_int32_ByName(tmp_item_id);
 								sprintf(tmp_item_id, "selected_qty%i_%i", i, j);
 								qty = packet->getType_int16_ByName(tmp_item_id);
@@ -1865,7 +1873,7 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
 								items.push_back(make_pair(item, qty));
 						}
 					}
-					if(GetVersion() > 1193) {
+					if (GetVersion() > 1193) {
 						int8 num_fuel_items = packet->getType_int8_ByName("num_fuel_items");
 						for (int8 i = 0; i < num_fuel_items; i++) {
 							memset(tmp_item_id, 0, 30);
@@ -1879,13 +1887,13 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
 						}
 					}
 					else {
-						
-							item = packet->getType_int32_ByName("fuel_id");
-							qty = packet->getType_int16_ByName("fuel_qty");
-							if (item > 0)
-								items.push_back(make_pair(item, qty));
+
+						item = packet->getType_int32_ByName("fuel_id");
+						qty = packet->getType_int16_ByName("fuel_qty");
+						if (item > 0)
+							items.push_back(make_pair(item, qty));
 					}
-					
+
 					GetCurrentZone()->GetTradeskillMgr()->BeginCrafting(this, items);
 				}
 				else {
@@ -1908,45 +1916,45 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
 
 		PacketStruct* packet = configReader.getStruct("WS_Signal", 1);
 		if (packet) {
-			if(packet->LoadPacketData(app->pBuffer, app->size)) {
+			if (packet->LoadPacketData(app->pBuffer, app->size) && player->GetZone()) {
 				EQ2_16BitString str = packet->getType_EQ2_16BitString_ByName("signal");
 				if (strcmp(str.data.c_str(), "sys_client_avatar_ready") == 0) {
-						LogWrite(CCLIENT__DEBUG, 0, "Client", "Client '%s' (%u) is ready for spawn updates.", GetPlayer()->GetName(), GetPlayer()->GetCharacterID());
-						SetReloadingZone(false);
-						if(GetPlayer()->IsDeletedSpawn()) {
-							GetPlayer()->SetDeletedSpawn(false);
-						}
-						ResetZoningCoords();
-						SetReadyForUpdates();
-						GetPlayer()->SendSpawnChanges(true);
-						ProcessStateCommands();
-						GetPlayer()->changed = true;
-						GetPlayer()->info_changed = true;
-						GetPlayer()->vis_changed = true;
-						player_pos_changed = true;
-						GetPlayer()->AddChangedZoneSpawn();
-						ProcessZoneIgnoreWidgets();
-						if (version <= 561) {
-							master_trait_list.ChooseNextTrait(this);
-						}
-						
-						const char* zone_script = world.GetZoneScript(GetPlayer()->GetZone()->GetZoneID());
+					LogWrite(CCLIENT__DEBUG, 0, "Client", "Client '%s' (%u) is ready for spawn updates.", GetPlayer()->GetName(), GetPlayer()->GetCharacterID());
+					SetReloadingZone(false);
+					if (GetPlayer()->IsDeletedSpawn()) {
+						GetPlayer()->SetDeletedSpawn(false);
+					}
+					ResetZoningCoords();
+					SetReadyForUpdates();
+					GetPlayer()->SendSpawnChanges(true);
+					ProcessStateCommands();
+					GetPlayer()->changed = true;
+					GetPlayer()->info_changed = true;
+					GetPlayer()->vis_changed = true;
+					player_pos_changed = true;
+					GetPlayer()->AddChangedZoneSpawn();
+					ProcessZoneIgnoreWidgets();
+					if (version <= 561) {
+						master_trait_list.ChooseNextTrait(this);
+					}
 
-						if (zone_script && lua_interface) {
-							lua_interface->RunZoneScript(zone_script, "enter_location", GetPlayer()->GetZone(), GetPlayer(), GetPlayer()->GetLocation());
-						}
-						
-						if (GetPlayer()->GetHP() < GetPlayer()->GetTotalHP() || GetPlayer()->GetPower() < GetPlayer()->GetTotalPower())
-							GetCurrentZone()->AddDamagedSpawn(GetPlayer());
+					const char* zone_script = world.GetZoneScript(GetPlayer()->GetZone()->GetZoneID());
+
+					if (zone_script && lua_interface) {
+						lua_interface->RunZoneScript(zone_script, "enter_location", GetPlayer()->GetZone(), GetPlayer(), GetPlayer()->GetLocation());
 					}
-					else {
-						LogWrite(CCLIENT__WARNING, 0, "Client", "Player %s reported SysClient/SignalMsg state %s.", GetPlayer()->GetName(), str.data.c_str());
-					}
-					const char* zone_script = world.GetZoneScript(player->GetZone()->GetZoneID());
-					if (zone_script && lua_interface)
-					{
-						lua_interface->RunZoneScript(zone_script, "signal_changed", player->GetZone(), player, 0, str.data.c_str());
-					}
+
+					if (GetPlayer()->GetHP() < GetPlayer()->GetTotalHP() || GetPlayer()->GetPower() < GetPlayer()->GetTotalPower())
+						GetCurrentZone()->AddDamagedSpawn(GetPlayer());
+				}
+				else {
+					LogWrite(CCLIENT__WARNING, 0, "Client", "Player %s reported SysClient/SignalMsg state %s.", GetPlayer()->GetName(), str.data.c_str());
+				}
+				const char* zone_script = world.GetZoneScript(player->GetZone()->GetZoneID());
+				if (zone_script && lua_interface)
+				{
+					lua_interface->RunZoneScript(zone_script, "signal_changed", player->GetZone(), player, 0, str.data.c_str());
+				}
 			}
 			safe_delete(packet);
 		}
@@ -1961,10 +1969,10 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
 		LogWrite(OPCODE__DEBUG, 1, "Opcode", "Opcode 0x%X (%i): OP_EntityVerbsVerbMsg", opcode, opcode);
 		PacketStruct* packet = configReader.getStruct("WS_EntityVerbsVerb", GetVersion());
 		if (packet) {
-			if(packet->LoadPacketData(app->pBuffer, app->size)) {
+			if (packet->LoadPacketData(app->pBuffer, app->size)) {
 				int32 spawn_id = packet->getType_int32_ByName("spawn_id");
-				player->SetTarget(player->GetSpawnWithPlayerID(spawn_id));
-				Spawn* spawn = player->GetTarget();
+				Spawn* spawn = player->GetSpawnWithPlayerID(spawn_id); // fixed using GetTarget and the target was never set causing commands not to work
+				player->SetTarget(spawn);
 				if (spawn && !spawn->IsNPC() && !spawn->IsPlayer()) {
 					string command = packet->getType_EQ2_16BitString_ByName("command").data;
 
@@ -1985,11 +1993,11 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
 				else {
 					EQ2_16BitString command = packet->getType_EQ2_16BitString_ByName("command");
 					if (command.size > 0) {
-						string command_name = command.data;					
+						string command_name = command.data;
 						if (command_name.find(" ") < 0xFFFFFFFF) {
 							if (GetVersion() <= 561) { //this version uses commands in the form "Buy From Merchant" instead of buy_from_merchant
 								string::size_type pos = command_name.find(" ");
-								while(pos != string::npos){
+								while (pos != string::npos) {
 									command_name.replace(pos, 1, "_");
 									pos = command_name.find(" ");
 								}
@@ -2048,10 +2056,10 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
 			GetPlayer()->SetTarget(0);
 		else {
 			Spawn* spawn = GetPlayer()->GetSpawnByIndex(index);
-			if(spawn)
+			if (spawn)
 				GetPlayer()->SetTarget(spawn);
 			else {
-		LogWrite(PLAYER__ERROR, 1, "Player", "Player %s tried to target %u index, but that index was not valid.", GetPlayer()->GetName(), index);
+				LogWrite(PLAYER__ERROR, 1, "Player", "Player %s tried to target %u index, but that index was not valid.", GetPlayer()->GetName(), index);
 			}
 		}
 		if (GetPlayer()->GetTarget())
@@ -2073,7 +2081,7 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
 	}
 	case OP_PredictionUpdateMsg: {
 		LogWrite(OPCODE__DEBUG, 7, "Opcode", "Opcode 0x%X (%i): OP_PredictionUpdateMsg from %s", opcode, opcode, GetPlayer()->GetName());
-		if (version <= 561) {
+		if (version <= 561 && GetPlayer() && GetPlayer()->GetZone()) {
 			int8 offset = 9;
 			if (app->pBuffer[0] == 0xFF)
 				offset += 2;
@@ -2091,7 +2099,7 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
 				else
 					player->PrepareIncomingMovementPacket(app->size - offset, app->pBuffer + offset, version);
 				player_pos_changed = true;
-				
+
 				GetPlayer()->changed = true;
 				GetPlayer()->info_changed = true;
 				GetPlayer()->vis_changed = true;
@@ -2146,7 +2154,7 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
 			else
 				player->PrepareIncomingMovementPacket(app->size - offset, app->pBuffer + offset, version);
 			player_pos_changed = true;
-			
+
 			GetPlayer()->changed = true;
 			GetPlayer()->info_changed = true;
 			GetPlayer()->vis_changed = true;
@@ -2170,7 +2178,7 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
 		LogWrite(OPCODE__DEBUG, 1, "Opcode", "Opcode 0x%X (%i): OP_BeginTrackingMsg", opcode, opcode);
 		PacketStruct* packet = configReader.getStruct("WS_BeginTracking", GetVersion());
 		if (packet) {
-			if(packet->LoadPacketData(app->pBuffer, app->size)) {
+			if (packet->LoadPacketData(app->pBuffer, app->size)) {
 				int32 spawn_id = packet->getType_int32_ByName("spawn_id");
 				Spawn* spawn = player->GetSpawnWithPlayerID(spawn_id);
 				if (spawn) {
@@ -2187,7 +2195,7 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
 		LogWrite(OPCODE__DEBUG, 1, "Opcode", "Opcode 0x%X (%i): OP_BioUpdateMsg", opcode, opcode);
 		PacketStruct* packet = configReader.getStruct("WS_BioUpdate", GetVersion());
 		if (packet) {
-			if(packet->LoadPacketData(app->pBuffer, app->size)) {
+			if (packet->LoadPacketData(app->pBuffer, app->size)) {
 				player->SetBiography(packet->getType_EQ2_16BitString_ByName("biography").data);
 			}
 			safe_delete(packet);
@@ -2207,7 +2215,7 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
 		//DumpPacket(app);
 		PacketStruct* packet = configReader.getStruct("WS_RewardPackMsg", GetVersion());
 		if (packet) {
-			if(packet->LoadPacketData(app->pBuffer, app->size)) {
+			if (packet->LoadPacketData(app->pBuffer, app->size)) {
 				string recruiter_name = packet->getType_EQ2_16BitString_ByName("recruiter_name").data;
 
 				/* Player has contacted a guild recruiter */
@@ -2253,7 +2261,7 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
 		PacketStruct* packet = configReader.getStruct("WS_PetOptions", GetVersion());
 		if (packet && target && (target == player->GetPet() || target == player->GetCharmedPet() || target == player->GetDeityPet() || target == player->GetCosmeticPet())) {
 			bool change = false;
-			if(packet->LoadPacketData(app->pBuffer, app->size)) {
+			if (packet->LoadPacketData(app->pBuffer, app->size)) {
 				string name = packet->getType_EQ2_16BitString_ByName("pet_name").data;
 				if (strlen(name.c_str()) != 0 && SetPetName(name.c_str())) {
 					target->SetName(name.c_str());
@@ -2326,9 +2334,9 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
 		int64 bank_money = GetPlayer()->GetBankCoinsPlat();
 		PacketStruct* packet = configReader.getStruct("WS_BuyHouse", GetVersion());
 		if (packet) {
-			if(packet->LoadPacketData(app->pBuffer, app->size)) {
+			if (packet->LoadPacketData(app->pBuffer, app->size)) {
 				int64 house_id = 0;
-				if(GetVersion() <= 561) {
+				if (GetVersion() <= 561) {
 					house_id = packet->getType_int32_ByName("house_id");
 				}
 				else {
@@ -2345,7 +2353,7 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
 						safe_delete(packet);
 						break;
 					}
-					if(disable_alignment_req && hz->alignment > 0 && hz->alignment != GetPlayer()->GetAlignment())
+					if (disable_alignment_req && hz->alignment > 0 && hz->alignment != GetPlayer()->GetAlignment())
 					{
 						std::string req = "You must be of ";
 						if (hz->alignment == 1)
@@ -2357,40 +2365,54 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
 						safe_delete(packet);
 						break;
 					}
+					ZoneChangeDetails zone_details;
 					int32 status_req = hz->cost_status;
 					int32 available_status = player->GetInfoStruct()->get_status_points();
-					if (status_req <= available_status && (!hz->cost_coin || (hz->cost_coin && player->RemoveCoins(hz->cost_coin)))) 
+					if (status_req <= available_status && (!hz->cost_coin || (hz->cost_coin && player->RemoveCoins(hz->cost_coin))))
 
 					{
 						player->GetInfoStruct()->subtract_status_points(status_req);
-						ZoneServer* instance_zone = zone_list.GetByInstanceID(0, hz->zone_id, false, false);
-						int32 upkeep_due = Timer::GetUnixTimeStamp() + 604800; // 604800 = 7 days
-						int64 unique_id = database.AddPlayerHouse(GetPlayer()->GetCharacterID(), hz->id, instance_zone->GetInstanceID(), upkeep_due);
-						world.AddPlayerHouse(GetPlayer()->GetCharacterID(), hz->id, unique_id, instance_zone->GetInstanceID(), upkeep_due, 0, 0, GetPlayer()->GetName());
-						//ClientPacketFunctions::SendHousingList(this);
-						PlayerHouse* ph = world.GetPlayerHouseByUniqueID(unique_id);
-						ClientPacketFunctions::SendBaseHouseWindow(this, hz, ph, GetVersion() <= 561 ? house_id : this->GetPlayer()->GetID());
-						PlaySound("coin_cha_ching");
-					}
-					else if (status_req <= available_status && got_bank_money == 1) {
-							player->GetInfoStruct()->subtract_status_points(status_req);
-							bool bankwithdrawl = BankWithdrawalNoBanker(hz->cost_coin);
-							
-							//this should NEVER happen since we check with got_bank_money, however adding it here should something go nutty.
-							if (bankwithdrawl == 0) {
-								PlaySound("buy_failed");
-								SimpleMessage(CHANNEL_COLOR_RED, "There was an error in bankwithdrawl function.");
-								safe_delete(packet);
-								break;
-							}
-
-							ZoneServer* instance_zone = zone_list.GetByInstanceID(0, hz->zone_id, false, false);
+						if (zone_list.GetZoneByInstance(&zone_details, 0, hz->zone_id, true, true)) {
 							int32 upkeep_due = Timer::GetUnixTimeStamp() + 604800; // 604800 = 7 days
-							int64 unique_id = database.AddPlayerHouse(GetPlayer()->GetCharacterID(), hz->id, instance_zone->GetInstanceID(), upkeep_due);
-							world.AddPlayerHouse(GetPlayer()->GetCharacterID(), hz->id, unique_id, instance_zone->GetInstanceID(), upkeep_due, 0, 0, GetPlayer()->GetName());
+							int64 unique_id = database.AddPlayerHouse(GetPlayer()->GetCharacterID(), hz->id, zone_details.instanceId, upkeep_due);
+							int32 db_id = database.AddCharacterInstance(GetPlayer()->GetCharacterID(), zone_details.instanceId, zone_details.zoneName, zone_details.instanceType, Timer::GetUnixTimeStamp(), 0, zone_details.defaultLockoutTime, zone_details.defaultReenterTime);
+
+							if (db_id > 0)
+								GetPlayer()->GetCharacterInstances()->AddInstance(db_id, zone_details.instanceId, 0, 0, zone_details.defaultLockoutTime, zone_details.defaultReenterTime, zoneID, zone_details.instanceType, zone_details.zoneName);
+
+							world.AddPlayerHouse(GetPlayer()->GetCharacterID(), hz->id, unique_id, zone_details.instanceId, upkeep_due, 0, 0, GetPlayer()->GetName());
+							//ClientPacketFunctions::SendHousingList(this);
 							PlayerHouse* ph = world.GetPlayerHouseByUniqueID(unique_id);
 							ClientPacketFunctions::SendBaseHouseWindow(this, hz, ph, GetVersion() <= 561 ? house_id : this->GetPlayer()->GetID());
 							PlaySound("coin_cha_ching");
+						}
+					}
+					else if (status_req <= available_status && got_bank_money == 1) {
+						player->GetInfoStruct()->subtract_status_points(status_req);
+						bool bankwithdrawl = BankWithdrawalNoBanker(hz->cost_coin);
+
+						//this should NEVER happen since we check with got_bank_money, however adding it here should something go nutty.
+						if (bankwithdrawl == 0) {
+							PlaySound("buy_failed");
+							SimpleMessage(CHANNEL_COLOR_RED, "There was an error in bankwithdrawl function.");
+							safe_delete(packet);
+							break;
+						}
+
+						if (zone_list.GetZoneByInstance(&zone_details, 0, hz->zone_id, true, true)) {
+							int32 upkeep_due = Timer::GetUnixTimeStamp() + 604800; // 604800 = 7 days
+							int64 unique_id = database.AddPlayerHouse(GetPlayer()->GetCharacterID(), hz->id, zone_details.instanceId, upkeep_due);
+
+							int32 db_id = database.AddCharacterInstance(GetPlayer()->GetCharacterID(), zone_details.instanceId, zone_details.zoneName, zone_details.instanceType, Timer::GetUnixTimeStamp(), 0, zone_details.defaultLockoutTime, zone_details.defaultReenterTime);
+
+							if (db_id > 0)
+								GetPlayer()->GetCharacterInstances()->AddInstance(db_id, zone_details.instanceId, 0, 0, zone_details.defaultLockoutTime, zone_details.defaultReenterTime, zoneID, zone_details.instanceType, zone_details.zoneName);
+
+							world.AddPlayerHouse(GetPlayer()->GetCharacterID(), hz->id, unique_id, zone_details.instanceId, upkeep_due, 0, 0, GetPlayer()->GetName());
+							PlayerHouse* ph = world.GetPlayerHouseByUniqueID(unique_id);
+							ClientPacketFunctions::SendBaseHouseWindow(this, hz, ph, GetVersion() <= 561 ? house_id : this->GetPlayer()->GetID());
+							PlaySound("coin_cha_ching");
+						}
 					}
 					else
 					{
@@ -2409,22 +2431,21 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
 		//DumpPacket(app);
 		PacketStruct* packet = configReader.getStruct("WS_EnterHouse", GetVersion());
 		if (packet) {
-			if(packet->LoadPacketData(app->pBuffer, app->size)) {
+			if (packet->LoadPacketData(app->pBuffer, app->size)) {
 				PlayerHouse* ph = nullptr;
 				HouseZone* hz = nullptr;
 				int64 house_id = 0;
 				int32 spawn_index = 0;
-				
-				if(GetVersion() <= 561) {
+
+				if (GetVersion() <= 561) {
 					spawn_index = packet->getType_int32_ByName("house_id");
 				}
 				else {
 					house_id = packet->getType_int64_ByName("house_id");
 				}
-				
-				ZoneServer* house = GetHouseZoneServer(spawn_index, house_id);
-				if (house) {
-					Zone(house, true);
+				ZoneChangeDetails zone_details;
+				if (GetHouseZoneServer(&zone_details, spawn_index, house_id)) {
+					Zone(&zone_details, (ZoneServer*)zone_details.zonePtr, true);
 				}
 			}
 		}
@@ -2434,14 +2455,14 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
 	}
 	case OP_PayHouseUpkeepMsg: {
 		LogWrite(OPCODE__DEBUG, 1, "Opcode", "Opcode 0x%X (%i): OP_PayHouseUpkeepMsg", opcode, opcode);
-		
+
 		PacketStruct* packet = configReader.getStruct("WS_PayUpkeep", GetVersion());
 
 		if (packet) {
-			if(packet->LoadPacketData(app->pBuffer, app->size)) {
+			if (packet->LoadPacketData(app->pBuffer, app->size)) {
 				int64 house_id = 0;
-				
-				if(GetVersion() <= 561) {
+
+				if (GetVersion() <= 561) {
 					house_id = packet->getType_int32_ByName("house_id");
 				}
 				else {
@@ -2474,7 +2495,7 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
 					bool escrowChange = false;
 					int64 statusReq = hz->upkeep_status;
 					int64 tmpRecoverStatus = 0;
-					if(ph->escrow_status && statusReq >= ph->escrow_status )
+					if (ph->escrow_status && statusReq >= ph->escrow_status)
 					{
 						escrowChange = true;
 						tmpRecoverStatus = ph->escrow_status;
@@ -2508,12 +2529,12 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
 					}
 
 					int32 available_status_points = player->GetInfoStruct()->get_status_points();
-					if(!statusReq || (statusReq && statusReq <= available_status_points))
+					if (!statusReq || (statusReq && statusReq <= available_status_points))
 					{
-						if(coinReq && player->RemoveCoins(coinReq))
+						if (coinReq && player->RemoveCoins(coinReq))
 							coinReq = 0;
-						
-						if(!coinReq && statusReq && player->GetInfoStruct()->subtract_status_points(statusReq))
+
+						if (!coinReq && statusReq && player->GetInfoStruct()->subtract_status_points(statusReq))
 							statusReq = 0;
 					}
 					bool got_bank_money = BankHasCoin(hz->upkeep_coin);
@@ -2556,7 +2577,7 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
 						// recover the escrow we were going to use but could not spend due to lack of funds
 						if (tmpRecoverCoins)
 							ph->escrow_coins += tmpRecoverCoins;
-						if(tmpRecoverStatus)
+						if (tmpRecoverStatus)
 							ph->escrow_status += tmpRecoverStatus;
 
 						SimpleMessage(CHANNEL_COLOR_YELLOW, "You do not have enough money  or status to pay for upkeep.");
@@ -2579,19 +2600,27 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
 			if (ph) {
 				HouseZone* hz = world.GetHouseZone(ph->house_id);
 				if (hz) {
-					ZoneServer* new_zone = zone_list.Get(hz->exit_zone_id);
-
 					// determine if this is an instanced zone that already exists
-					ZoneServer* instance_zone = GetPlayer()->GetGroupMemberInZone(hz->exit_zone_id);
-					if (instance_zone || new_zone) {
+					ZoneChangeDetails zone_details;
+					bool foundZone = world.GetGroupManager()->IdentifyMemberInGroupOrRaid(&zone_details, this, hz->exit_zone_id);
+					if (foundZone) {
 						GetPlayer()->SetX(hz->exit_x);
 						GetPlayer()->SetY(hz->exit_y);
 						GetPlayer()->SetZ(hz->exit_z);
 						GetPlayer()->SetHeading(hz->exit_heading);
-						if (instance_zone)
-							Zone(instance_zone->GetInstanceID(), false, true);
-						else
-							Zone(new_zone, false);
+						Zone(&zone_details, (ZoneServer*)zone_details.zonePtr, false, true);
+					}
+					else {
+						if (zone_list.GetZone(&zone_details, hz->exit_zone_id)) {
+							GetPlayer()->SetX(hz->exit_x);
+							GetPlayer()->SetY(hz->exit_y);
+							GetPlayer()->SetZ(hz->exit_z);
+							GetPlayer()->SetHeading(hz->exit_heading);
+							Zone(&zone_details, (ZoneServer*)zone_details.zonePtr, false);
+						}
+						else {
+							LogWrite(CCLIENT__ERROR, 0, "Client", "Failed to OP_ExitHouseMsg(exit_zone_id = %u) for Player %s.", hz->exit_zone_id, GetPlayer()->GetName());
+						}
 					}
 				}
 			}
@@ -2603,16 +2632,16 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
 		LogWrite(OPCODE__DEBUG, 1, "Opcode", "Opcode 0x%X (%i): OP_QuestJournalWaypointMsg", opcode, opcode);
 		PacketStruct* packet = configReader.getStruct("WS_QuestJournalWaypoint", GetVersion());
 		if (packet) {
-			if(packet->LoadPacketData(app->pBuffer, app->size)) {
-				if(GetVersion() <= 561) {
+			if (packet->LoadPacketData(app->pBuffer, app->size)) {
+				if (GetVersion() <= 561) {
 					int32 quest_id = packet->getType_int32_ByName("quest_id");
 					GetPlayer()->MPlayerQuests.writelock(__FUNCTION__, __LINE__);
 					if (player->player_quests.count(quest_id) > 0 && player->player_quests[quest_id]) {
-						if(player->player_quests[quest_id]->GetTracked())
+						if (player->player_quests[quest_id]->GetTracked())
 							player->player_quests[quest_id]->SetTracked(false);
 						else
 							player->player_quests[quest_id]->SetTracked(true);
-					
+
 						player->player_quests[quest_id]->SetSaveNeeded(true);
 					}
 					GetPlayer()->MPlayerQuests.releasewritelock(__FUNCTION__, __LINE__);
@@ -2649,84 +2678,84 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
 		break;
 	}
 	case OP_PaperdollImage: {
-/*		PacketStruct* packet = configReader.getStruct("WS_PaperdollImage", version);
-		if (packet && packet->LoadPacketData(app->pBuffer, app->size)) {
+		/*		PacketStruct* packet = configReader.getStruct("WS_PaperdollImage", version);
+				if (packet && packet->LoadPacketData(app->pBuffer, app->size)) {
 
-			//First check if this is a new image... delete an existing partial image if one exists
-			int8 packet_index = packet->getType_int8_ByName("packetIndex");
-			if (packet_index == 0) {
-				safe_delete_array(incoming_paperdoll.image_bytes);
-				incoming_paperdoll.last_received_packet_index = 0;
-				incoming_paperdoll.current_size_bytes = 0;
-			}
-			//return if this packet is not the one we are expecting...
-			else if (packet_index != incoming_paperdoll.last_received_packet_index + 1) {
+					//First check if this is a new image... delete an existing partial image if one exists
+					int8 packet_index = packet->getType_int8_ByName("packetIndex");
+					if (packet_index == 0) {
+						safe_delete_array(incoming_paperdoll.image_bytes);
+						incoming_paperdoll.last_received_packet_index = 0;
+						incoming_paperdoll.current_size_bytes = 0;
+					}
+					//return if this packet is not the one we are expecting...
+					else if (packet_index != incoming_paperdoll.last_received_packet_index + 1) {
+						safe_delete(packet);
+						break;
+					}
+
+					//Check how many packets we're supposed to be receiving for this/these images
+					incoming_paperdoll.image_num_packets = packet->getType_int8_ByName("totalNumPackets");
+
+					//Check the image type, if this is a new type in the same series of packets we have a new image
+					int8 img_type = packet->getType_int8_ByName("image_type");
+					if (packet_index != 0 && img_type != incoming_paperdoll.image_type) {
+						//We have a new image. Save the old data and clear before continuing
+						SavePlayerImages();
+					}
+					incoming_paperdoll.image_type = img_type;
+
+					//Get the size of the image data in this packet
+					sint64 image_size = packet->getType_int32_ByName("imageSize");
+					if (image_size <= 0 || image_size > 1048576) {
+						//If this packet is saying that the array is size <= 0 or > 1 MiB return out... it shouldn't be those sizes ever
+						safe_delete(packet);
+						break;
+					}
+
+					//Create a new array
+					int32 new_image_size = image_size;
+					uchar* new_image = new uchar[incoming_paperdoll.current_size_bytes + new_image_size];
+					if (incoming_paperdoll.image_bytes) {
+						memcpy(new_image, incoming_paperdoll.image_bytes, incoming_paperdoll.current_size_bytes);
+						safe_delete_array(incoming_paperdoll.image_bytes);
+					}
+
+					//variable i should be the index in the packet of the first PNG file byte
+					vector<DataStruct*>* d_structs = packet->getStructs();
+					vector<DataStruct*>::iterator itr;
+					int32 i = 0;
+					for (itr = d_structs->begin(); itr != d_structs->end(); itr++) {
+						DataStruct* ds = (*itr);
+						if (strcmp(ds->GetName(), "pngData_0") != 0)
+							i += ds->GetDataSizeInBytes();
+						else
+							break;
+					}
+
+					//Return if this packet is bad and we would read out of bounds
+					if (app->size - i < new_image_size) {
+						safe_delete(packet);
+						safe_delete_array(new_image);
+						break;
+					}
+
+					uchar* tmp = new_image + incoming_paperdoll.current_size_bytes;
+					memcpy(tmp, app->pBuffer + i, new_image_size);
+
+					incoming_paperdoll.current_size_bytes += new_image_size;
+					incoming_paperdoll.image_bytes = new_image;
+
+					//Check if this is the last packet we're expecting for this image. Create a final image if so
+					if (incoming_paperdoll.image_num_packets == 1 ||
+						incoming_paperdoll.last_received_packet_index + 2 == incoming_paperdoll.image_num_packets) {
+						SavePlayerImages();
+					}
+
+					incoming_paperdoll.last_received_packet_index = packet_index;
+				}
 				safe_delete(packet);
-				break;
-			}
-
-			//Check how many packets we're supposed to be receiving for this/these images
-			incoming_paperdoll.image_num_packets = packet->getType_int8_ByName("totalNumPackets");
-
-			//Check the image type, if this is a new type in the same series of packets we have a new image
-			int8 img_type = packet->getType_int8_ByName("image_type");
-			if (packet_index != 0 && img_type != incoming_paperdoll.image_type) {
-				//We have a new image. Save the old data and clear before continuing
-				SavePlayerImages();
-			}
-			incoming_paperdoll.image_type = img_type;
-
-			//Get the size of the image data in this packet
-			sint64 image_size = packet->getType_int32_ByName("imageSize");
-			if (image_size <= 0 || image_size > 1048576) {
-				//If this packet is saying that the array is size <= 0 or > 1 MiB return out... it shouldn't be those sizes ever
-				safe_delete(packet);
-				break;
-			}
-
-			//Create a new array
-			int32 new_image_size = image_size;
-			uchar* new_image = new uchar[incoming_paperdoll.current_size_bytes + new_image_size];
-			if (incoming_paperdoll.image_bytes) {
-				memcpy(new_image, incoming_paperdoll.image_bytes, incoming_paperdoll.current_size_bytes);
-				safe_delete_array(incoming_paperdoll.image_bytes);
-			}
-
-			//variable i should be the index in the packet of the first PNG file byte
-			vector<DataStruct*>* d_structs = packet->getStructs();
-			vector<DataStruct*>::iterator itr;
-			int32 i = 0;
-			for (itr = d_structs->begin(); itr != d_structs->end(); itr++) {
-				DataStruct* ds = (*itr);
-				if (strcmp(ds->GetName(), "pngData_0") != 0)
-					i += ds->GetDataSizeInBytes();
-				else
-					break;
-			}
-
-			//Return if this packet is bad and we would read out of bounds
-			if (app->size - i < new_image_size) {
-				safe_delete(packet);
-				safe_delete_array(new_image);
-				break;
-			}
-
-			uchar* tmp = new_image + incoming_paperdoll.current_size_bytes;
-			memcpy(tmp, app->pBuffer + i, new_image_size);
-
-			incoming_paperdoll.current_size_bytes += new_image_size;
-			incoming_paperdoll.image_bytes = new_image;
-
-			//Check if this is the last packet we're expecting for this image. Create a final image if so
-			if (incoming_paperdoll.image_num_packets == 1 ||
-				incoming_paperdoll.last_received_packet_index + 2 == incoming_paperdoll.image_num_packets) {
-				SavePlayerImages();
-			}
-
-			incoming_paperdoll.last_received_packet_index = packet_index;
-		}
-		safe_delete(packet);
-*/
+		*/
 		break;
 	}
 
@@ -2784,8 +2813,8 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
 					current_zone->SendSpawnChanges(player->custNPCTarget);
 				}
 				else {*/
-					player->CustomizeAppearance(packet);
-					current_zone->SendSpawnChanges(player);
+				player->CustomizeAppearance(packet);
+				current_zone->SendSpawnChanges(player);
 				//}
 			}
 		}
@@ -2845,14 +2874,24 @@ bool Client::HandleLootItem(Spawn* entity, Item* item, Spawn* target, bool overr
 
 	// needs to only be checked before expiration of loot restrictions
 	if (entity && !overrideLootRestrictions) {
-		if (entity->GetLootGroupID() > 0 && (!lootingPlayer->GetGroupMemberInfo() || lootingPlayer->GetGroupMemberInfo()->group_id != entity->GetLootGroupID())) {
+		std::vector<int32> raidGroups;
+		if (lootingPlayer && lootingPlayer->GetGroupMemberInfo())
+			world.GetGroupManager()->GetRaidGroups(lootingPlayer->GetGroupMemberInfo()->group_id, &raidGroups);
+
+		if (entity->GetLootGroupID() > 0 && std::find(raidGroups.begin(), raidGroups.end(), entity->GetLootGroupID()) == raidGroups.end() && (!lootingPlayer->GetGroupMemberInfo() || lootingPlayer->GetGroupMemberInfo()->group_id != entity->GetLootGroupID())) {
 			LogWrite(LOOT__ERROR, 0, "Loot", "%s: Loot Group ID from %s did not match Item: %s (%u), expected group id %u.", entity->GetName(), lootingPlayer->GetName(), item->name.c_str(), item->details.item_id, entity->GetLootGroupID());
 			return false;
 		}
 		if (entity->GetLootMethod() != GroupLootMethod::METHOD_FFA) {
 			switch (entity->GetLootMethod()) {
 			case GroupLootMethod::METHOD_LEADER: {
-				if (entity->GetLootGroupID() > 0 && (!lootingPlayer->GetGroupMemberInfo() || (lootingPlayer->GetGroupMemberInfo() && (lootingPlayer->GetGroupMemberInfo()->group_id != entity->GetLootGroupID() || !lootingPlayer->GetGroupMemberInfo()->leader)))) {
+				bool inRaid = false;
+				bool isLeaderRaid = false;
+				if (GetPlayer()->GetGroupMemberInfo()) {
+					inRaid = world.GetGroupManager()->IsInRaidGroup(GetPlayer()->GetGroupMemberInfo()->group_id, GetPlayer()->GetGroupMemberInfo()->group_id, false);
+					isLeaderRaid = world.GetGroupManager()->IsInRaidGroup(GetPlayer()->GetGroupMemberInfo()->group_id, GetPlayer()->GetGroupMemberInfo()->group_id, true);
+				}
+				if (entity->GetLootGroupID() > 0 && (!GetPlayer()->GetGroupMemberInfo() || !lootingPlayer->GetGroupMemberInfo() || (inRaid && !isLeaderRaid) || ((std::find(raidGroups.begin(), raidGroups.end(), GetPlayer()->GetGroupMemberInfo()->group_id) == raidGroups.end()) && lootingPlayer->GetGroupMemberInfo()->group_id != entity->GetLootGroupID()) || !GetPlayer()->GetGroupMemberInfo()->leader)) {
 					LogWrite(LOOT__ERROR, 0, "Loot", "%s: Loot Attempt from %s was not allowed with Item: %s (%u), must be group leader.", entity->GetName(), lootingPlayer->GetName(), item->name.c_str(), item->details.item_id);
 					return false;
 				}
@@ -2984,7 +3023,7 @@ void Client::HandleLootItemRequestPacket(EQApplicationPacket* app) {
 			int32 target_id = packet->getType_int32_ByName("target_id");
 			int8 button_clicked = packet->getType_int8_ByName("button_clicked");
 			Spawn* spawn = GetCurrentZone()->GetSpawnByID(loot_id);
-			if(!spawn) {
+			if (!spawn) {
 				safe_delete(packet);
 				return;
 			}
@@ -3007,7 +3046,7 @@ void Client::HandleLootItemRequestPacket(EQApplicationPacket* app) {
 									if (outapp)
 										QueuePacket(outapp);
 								}
-								if(master_item->details.item_id == item_id) {
+								if (master_item->details.item_id == item_id) {
 									break;
 								}
 							}
@@ -3017,7 +3056,7 @@ void Client::HandleLootItemRequestPacket(EQApplicationPacket* app) {
 							break;
 					}
 				}
-				if(((loot_all && !item_id) || (loot_all && item_id && items->size() == 1)) || items->size() < 1) {
+				if (((loot_all && !item_id) || (loot_all && item_id && items->size() == 1)) || items->size() < 1) {
 					CloseLoot(loot_id);
 				}
 				else {
@@ -3068,7 +3107,10 @@ void Client::HandleLootItemRequestPacket(EQApplicationPacket* app) {
 						Spawn* target = this->GetPlayer();
 						if (target_id != 0xFFFFFFFF && GetPlayer()->GetGroupMemberInfo()) {
 							Spawn* destTarget = GetPlayer()->GetSpawnWithPlayerID(target_id);
-							if (destTarget && (!destTarget->IsPlayer() || !world.GetGroupManager()->IsInGroup(GetPlayer()->GetGroupMemberInfo()->group_id, ((Player*)destTarget)))) {
+							std::vector<int32> raidGroups;
+							if (destTarget && destTarget->IsEntity() && ((Entity*)destTarget)->GetGroupMemberInfo())
+								world.GetGroupManager()->GetRaidGroups(((Entity*)destTarget)->GetGroupMemberInfo()->group_id, &raidGroups);
+							if (destTarget && (!destTarget->IsPlayer() || (std::find(raidGroups.begin(), raidGroups.end(), GetPlayer()->GetGroupMemberInfo()->group_id) == raidGroups.end() && !world.GetGroupManager()->IsInGroup(GetPlayer()->GetGroupMemberInfo()->group_id, ((Player*)destTarget))))) {
 								SimpleMessage(CHANNEL_COMMAND_TEXT, "HACKS!!");
 								safe_delete(packet);
 								spawn->UnlockLoot();
@@ -3163,7 +3205,7 @@ void Client::HandleSkillInfoRequest(EQApplicationPacket* app) {
 	case 0: { //items
 		request = configReader.getStruct("WS_SkillInfoItemRequest", GetVersion());
 		if (request) {
-			if(request->LoadPacketData(app->pBuffer, app->size)) {
+			if (request->LoadPacketData(app->pBuffer, app->size)) {
 				Item* item = GetPlayer()->GetEquipmentList()->GetItemFromUniqueID(request->getType_int32_ByName("unique_id"));
 				if (!item)
 					item = GetPlayer()->item_list.GetItemFromUniqueID(request->getType_int32_ByName("unique_id"), true);
@@ -3187,7 +3229,7 @@ void Client::HandleSkillInfoRequest(EQApplicationPacket* app) {
 	case 2: {//spells
 		request = configReader.getStruct("WS_SkillInfoSpellRequest", GetVersion());
 		if (request) {
-			if(request->LoadPacketData(app->pBuffer, app->size)) {
+			if (request->LoadPacketData(app->pBuffer, app->size)) {
 				int32 id = request->getType_int32_ByName("id");
 				int8 tier = request->getType_int32_ByName("unique_id"); //on live this is really unique_id, but I'm going to make it tier instead :)
 				Spell* spell = master_spell_list.GetSpell(id, tier);
@@ -3236,21 +3278,21 @@ void Client::HandleExamineInfoRequest(EQApplicationPacket* app) {
 	if (type == 3) {
 		Spell* spell = 0;
 		bool trait_display;
-		
+
 		request = configReader.getStruct((GetVersion() <= 373) ? "WS_ExamineInfoRequest" : "WS_ExamineInfoRequestMsg", GetVersion());
 		if (!request) {
 			return;
 		}
-		if(!request->LoadPacketData(app->pBuffer, app->size)) {
+		if (!request->LoadPacketData(app->pBuffer, app->size)) {
 			safe_delete(request);
 			return;
 		}
-		
+
 		int32 id = request->getType_int32_ByName("id");
 		int32 tier = request->getType_int32_ByName("tier");
 		int32 trait_tier = request->getType_int32_ByName("unknown_id");
-		
-		if(GetVersion() > 373 && GetVersion() <= 561) {
+
+		if (GetVersion() > 373 && GetVersion() <= 561) {
 			trait_tier = request->getType_int32_ByName("unique_id");
 		}
 		bool display = true;
@@ -3260,8 +3302,8 @@ void Client::HandleExamineInfoRequest(EQApplicationPacket* app) {
 			display = request->getType_int8_ByName("display");
 		else if (version > 561)
 			display = false; // clients default is false otherwise it pops up a window when hovering over the knowledge book abilities
-		
-		LogWrite(CCLIENT__DEBUG, 5, "Client", "Client::HandleExamineInfoRequest from %s: Type: (%i) Tier: (%u) Unknown ID: (%u) Item ID: (%u)",GetPlayer()->GetName(),type,tier,trait_tier,id);
+
+		LogWrite(CCLIENT__DEBUG, 5, "Client", "Client::HandleExamineInfoRequest from %s: Type: (%i) Tier: (%u) Unknown ID: (%u) Item ID: (%u)", GetPlayer()->GetName(), type, tier, trait_tier, id);
 
 		if (trait_tier != 0xFFFFFFFF) {
 			spell = master_spell_list.GetSpell(id, trait_tier);
@@ -3284,13 +3326,13 @@ void Client::HandleExamineInfoRequest(EQApplicationPacket* app) {
 				spell = tmpSpell->spell;
 			lua_interface->FindCustomSpellUnlock();
 		}
-		
-		if(!spell) { // fix ui timeout for classic, isle of refuge, dof, kos clients
+
+		if (!spell) { // fix ui timeout for classic, isle of refuge, dof, kos clients
 			int8 playerTier = GetPlayer()->GetSpellTier(id);
 			spell = master_spell_list.GetSpell(id, playerTier);
-			LogWrite(CCLIENT__WARNING, 0, "Client", "Client::HandleExamineInfoRequest from %s: Failed to find tier 1 spell.  Last resort try to get the spell from the player book, spell %u, tier %u", GetPlayer()->GetName(),id,playerTier);
+			LogWrite(CCLIENT__WARNING, 0, "Client", "Client::HandleExamineInfoRequest from %s: Failed to find tier 1 spell.  Last resort try to get the spell from the player book, spell %u, tier %u", GetPlayer()->GetName(), id, playerTier);
 		}
-		
+
 		if (spell && !CountSentSpell(spell->GetSpellID(), spell->GetSpellTier())) {
 			if (!spell->IsCopiedSpell())
 				SetSentSpell(spell->GetSpellID(), spell->GetSpellTier());
@@ -3299,13 +3341,13 @@ void Client::HandleExamineInfoRequest(EQApplicationPacket* app) {
 			//DumpPacket(app);
 			QueuePacket(app);
 		}
-		else if(spell && GetVersion() <=561 && CountSentSpell(spell->GetSpellID(), spell->GetSpellTier())) {
+		else if (spell && GetVersion() <= 561 && CountSentSpell(spell->GetSpellID(), spell->GetSpellTier())) {
 			EQ2Packet* app = spell->SerializeSpell(this, display, trait_display, GetVersion() <= 561 ? true : false);
 			//DumpPacket(app);
 			QueuePacket(app);
 		}
 		else {
-				LogWrite(CCLIENT__ERROR, 0, "Client", "Client::HandleExamineInfoRequest from %s: Failed to successfully send Type: (%i) Tier: (%u) Unknown ID: (%u) Item ID: (%u)",GetPlayer()->GetName(),type,tier,trait_tier,id);
+			LogWrite(CCLIENT__ERROR, 0, "Client", "Client::HandleExamineInfoRequest from %s: Failed to successfully send Type: (%i) Tier: (%u) Unknown ID: (%u) Item ID: (%u)", GetPlayer()->GetName(), type, tier, trait_tier, id);
 		}
 	}
 	else if (type == 0) {
@@ -3313,7 +3355,7 @@ void Client::HandleExamineInfoRequest(EQApplicationPacket* app) {
 		if (!request) {
 			return;
 		}
-		if(!request->LoadPacketData(app->pBuffer, app->size)) {
+		if (!request->LoadPacketData(app->pBuffer, app->size)) {
 			safe_delete(request);
 			return;
 		}
@@ -3350,7 +3392,7 @@ void Client::HandleExamineInfoRequest(EQApplicationPacket* app) {
 			sent_item_details[id] = true;
 			MItemDetails.releasewritelock(__FUNCTION__, __LINE__);
 			EQ2Packet* app = item->serialize(GetVersion(), false, GetPlayer());
-			
+
 			QueuePacket(app);
 			if (wasSpawn)
 				delete item;
@@ -3365,7 +3407,7 @@ void Client::HandleExamineInfoRequest(EQApplicationPacket* app) {
 		if (!request) {
 			return;
 		}
-		if(!request->LoadPacketData(app->pBuffer, app->size)) {
+		if (!request->LoadPacketData(app->pBuffer, app->size)) {
 			safe_delete(request);
 			return;
 		}
@@ -3397,13 +3439,13 @@ void Client::HandleExamineInfoRequest(EQApplicationPacket* app) {
 			return;
 		}
 
-		if(!request->LoadPacketData(app->pBuffer, app->size)) {
+		if (!request->LoadPacketData(app->pBuffer, app->size)) {
 			safe_delete(request);
 			return;
 		}
 		int32 id = request->getType_int32_ByName("item_id");
 
-		LogWrite(CCLIENT__DEBUG, 5, "Client", "Client::HandleExamineInfoRequest from %s: Found Type: (%i) Item ID: (%u)",GetPlayer()->GetName(),type,id);
+		LogWrite(CCLIENT__DEBUG, 5, "Client", "Client::HandleExamineInfoRequest from %s: Found Type: (%i) Item ID: (%u)", GetPlayer()->GetName(), type, id);
 		//int32 unknown_0 = request->getType_int32_ByName("unknown",0);
 		//int32 unknown_1 = request->getType_int32_ByName("unknown",1);
 		//int8 unknown2 = request->getType_int8_ByName("unknown2");
@@ -3414,7 +3456,7 @@ void Client::HandleExamineInfoRequest(EQApplicationPacket* app) {
 		if (item) {
 			//only display popup for non merchant links
 			EQ2Packet* app = item->serialize(GetVersion(), (request->getType_int8_ByName("show_popup") != 0), GetPlayer(), true, 0, 0, GetVersion() > 561 ? true : false);
-			
+
 			QueuePacket(app);
 		}
 		else {
@@ -3427,7 +3469,7 @@ void Client::HandleExamineInfoRequest(EQApplicationPacket* app) {
 		if (!request) {
 			return;
 		}
-		if(!request->LoadPacketData(app->pBuffer, app->size)) {
+		if (!request->LoadPacketData(app->pBuffer, app->size)) {
 			safe_delete(request);
 			return;
 		}
@@ -3436,7 +3478,7 @@ void Client::HandleExamineInfoRequest(EQApplicationPacket* app) {
 		SpellEffects* effect = player->GetSpellEffect(id);
 		//printf("Type: (%i) Unknown5: (%i) Item ID: (%u)\n",type,unknown5,id);
 		if (effect) {
-			LogWrite(CCLIENT__DEBUG, 5, "Client", "Client::HandleExamineInfoRequest from %s: Found Type: (%i) Item ID: (%u)",GetPlayer()->GetName(),type,id);
+			LogWrite(CCLIENT__DEBUG, 5, "Client", "Client::HandleExamineInfoRequest from %s: Found Type: (%i) Item ID: (%u)", GetPlayer()->GetName(), type, id);
 			int8 tier = effect->tier;
 			Spell* spell = master_spell_list.GetSpell(id, tier);
 
@@ -3463,23 +3505,23 @@ void Client::HandleExamineInfoRequest(EQApplicationPacket* app) {
 			}
 		}
 		else {
-			LogWrite(CCLIENT__ERROR, 0, "Client", "Client::HandleExamineInfoRequest from %s: Cannot Find Type: (%i) Item ID: (%u)",GetPlayer()->GetName(),type,id);
+			LogWrite(CCLIENT__ERROR, 0, "Client", "Client::HandleExamineInfoRequest from %s: Cannot Find Type: (%i) Item ID: (%u)", GetPlayer()->GetName(), type, id);
 		}
 	}
 	else if (type == 5) { // recipe info
-	request = configReader.getStruct((GetVersion() <= 373) ? "WS_ExamineInfoRequest" : "WS_ExamineInfoRequestMsg", GetVersion());
+		request = configReader.getStruct((GetVersion() <= 373) ? "WS_ExamineInfoRequest" : "WS_ExamineInfoRequestMsg", GetVersion());
 		if (!request)
 			return;
-		if(!request->LoadPacketData(app->pBuffer, app->size)) {
+		if (!request->LoadPacketData(app->pBuffer, app->size)) {
 			safe_delete(request);
 			return;
 		}
-		
+
 		int32 id = 0;
-		if(GetVersion() < 546) {
+		if (GetVersion() < 546) {
 			id = request->getType_int32_ByName("id");
 		}
-		else if(GetVersion() <= 561) {
+		else if (GetVersion() <= 561) {
 			id = request->getType_int32_ByName("unique_id");
 		}
 		else {
@@ -3500,7 +3542,7 @@ void Client::HandleExamineInfoRequest(EQApplicationPacket* app) {
 		request = configReader.getStruct((GetVersion() <= 373) ? "WS_ExamineInfoRequest" : "WS_ExamineInfoRequestMsg", GetVersion());
 		if (!request)
 			return;
-		if(!request->LoadPacketData(app->pBuffer, app->size)) {
+		if (!request->LoadPacketData(app->pBuffer, app->size)) {
 			safe_delete(request);
 			return;
 		}
@@ -3535,7 +3577,7 @@ void Client::HandleExamineInfoRequest(EQApplicationPacket* app) {
 			SetSentSpell(spell->GetSpellID(), spell->GetSpellTier());
 		//	EQ2Packet* app = spell->SerializeAASpell(this,tier, data, false, GetItemPacketType(GetVersion()), 0x04);
 		LogWrite(WORLD__INFO, 0, "WORLD", "Examine Info Request-> Spell ID: %u", spell->GetSpellID());
-		if(GetVersion() > 561) {
+		if (GetVersion() > 561) {
 			EQ2Packet* app = master_spell_list.GetAASpellPacket(id, tier, this, false, 0x4F);//0x45 change version to match client
 			/////////////////////////////////////////GetAASpellPacket(int32 id, int8 tier, Client* client, bool display, int8 packet_type) {
 			//DumpPacket(app);
@@ -3554,7 +3596,7 @@ void Client::HandleExamineInfoRequest(EQApplicationPacket* app) {
 void Client::HandleQuickbarUpdateRequest(EQApplicationPacket* app) {
 	PacketStruct* request = configReader.getStruct("WS_QuickBarUpdateRequest", GetVersion());
 	if (request) {
-		if(request->LoadPacketData(app->pBuffer, app->size)) {
+		if (request->LoadPacketData(app->pBuffer, app->size)) {
 			int32 id = request->getType_int32_ByName("id");
 			int32 bar = request->getType_int32_ByName("hotbar_number");
 			int32 slot = request->getType_int32_ByName("hotkey_slot");
@@ -3579,18 +3621,18 @@ void Client::HandleQuickbarUpdateRequest(EQApplicationPacket* app) {
 }
 
 bool Client::Process(bool zone_process) {
-	
+
 	bool ret = true;
 	// EQS can become null if player is linkdead, we want to always be able to process the camp/linkdead timers when active
 	if ((camp_timer && camp_timer->Check()) || (linkdead_timer && linkdead_timer->Check())) {
 		ResetSendMail();
-		if(getConnection())
+		if (getConnection())
 			getConnection()->SendDisconnect(false);
 		safe_delete(camp_timer);
-		if(linkdead_timer) {
+		if (linkdead_timer) {
 			LogWrite(CCLIENT__DEBUG, 0, "Client", "Player %s triggered linkdead timer, disconnecting", GetPlayer()->GetName());
 			// we remove the linkdead status and force a camp out immediately
-			if((GetPlayer()->GetActivityStatus() & ACTIVITY_STATUS_LINKDEAD) > 0) {
+			if ((GetPlayer()->GetActivityStatus() & ACTIVITY_STATUS_LINKDEAD) > 0) {
 				GetPlayer()->SetActivityStatus(GetPlayer()->GetActivityStatus() - ACTIVITY_STATUS_LINKDEAD);
 			}
 			if ((GetPlayer()->GetActivityStatus() & ACTIVITY_STATUS_CAMPING) == 0) {
@@ -3600,7 +3642,13 @@ bool Client::Process(bool zone_process) {
 		safe_delete(linkdead_timer);
 		ret = false;
 	}
-	
+	if (client_zoning_details_set) {
+		if (!zoning_details.zoningPastAuth && (zoning_details.authDispatchedTime + 5) <= Timer::GetUnixTimeStamp()) {
+			zoning_details.zoningPastAuth = true; // don't repeat
+			world.ClientAuthApproval(0, std::string(player->GetName()), GetAccountID(), zoning_details.zoneName, zoning_details.zoneId, zoning_details.instanceId, false);
+		}
+	}
+
 	if (!eqs) {
 		return false;
 	}
@@ -3608,70 +3656,70 @@ bool Client::Process(bool zone_process) {
 		return true;
 	}
 
-	switch(new_client_login) {
-		case NewLoginState::LOGIN_SEND: {
-			LogWrite(CCLIENT__DEBUG, 0, "Client", "SendLoginInfo to new client...");
-			SendLoginInfo();
-			
-			new_client_login = NewLoginState::LOGIN_NONE;
-			break;
-		}
-		case NewLoginState::LOGIN_INITIAL_LOAD: {
-			bool isDBActive = database.IsActiveQuery(GetCharacterID());
-			
-			// wait for starting skills/spells to load and reload from DB.
-			if(!isDBActive) {
-				if (GetPlayer()->GetInfoStruct()->get_reload_player_spells()) {
-					database.LoadCharacterSpells(GetCharacterID(), GetPlayer());
-					GetPlayer()->GetInfoStruct()->set_reload_player_spells(0);
-				}
-				new_client_login = NewLoginState::LOGIN_SEND;
-			}
-			break;
-		}
-		case NewLoginState::LOGIN_ALLOWED: {
-			int32 count = 0;
+	switch (new_client_login) {
+	case NewLoginState::LOGIN_SEND: {
+		LogWrite(CCLIENT__DEBUG, 0, "Client", "SendLoginInfo to new client...");
+		SendLoginInfo();
 
-			if(!GetPlayer()->IsReturningFromLD())
-			{
-				LogWrite(CCLIENT__DEBUG, 0, "Client", "Loading Character Skills for player '%s'...", player->GetName());
-				count = database.LoadCharacterSkills(GetCharacterID(), player);
-
-				LogWrite(CCLIENT__DEBUG, 0, "Client", "Loading Character Spells for player '%s'...", player->GetName());
-				count = database.LoadCharacterSpells(GetCharacterID(), player);
-			}
-			else
-			{
-				LogWrite(CCLIENT__INFO, 0, "Client", "Player is returning from linkdead status (Player does not need reload) thus skipping database loading for '%s'...", player->GetName());
-			}
-			
-			// get the latest character starting skills / spells, may have been updated after character creation
-			if(GetPlayer()->GetInfoStruct()->get_first_world_login()) {
-				world.SyncCharacterAbilities(this);
-				Query query;
-				query.AddQueryAsync(GetCharacterID(), &database, Q_UPDATE, "UPDATE characters set first_world_login = 0 where id=%u", GetCharacterID());
-				GetPlayer()->GetInfoStruct()->set_first_world_login(0);
-			}
-			
-			new_client_login = NewLoginState::LOGIN_INITIAL_LOAD;
-			break;
-		}
-		case NewLoginState::LOGIN_DELAYED: {
-			if(!delay_msg_timer.Enabled() || delay_msg_timer.Check()) {
-				LogWrite(CCLIENT__INFO, 0, "Client", "Wait for zone %s to load for new client %s...", GetCurrentZone()->GetZoneName(), GetPlayer()->GetName());
-				delay_msg_timer.Start(1000, true);
-			}
-			if(!GetCurrentZone()->IsLoading()) {
-				new_client_login = NewLoginState::LOGIN_ALLOWED;
-			}
-			
-			return true;
-			break;	
-		}
+		new_client_login = NewLoginState::LOGIN_NONE;
+		break;
 	}
-	
+	case NewLoginState::LOGIN_INITIAL_LOAD: {
+		bool isDBActive = database.IsActiveQuery(GetCharacterID());
+
+		// wait for starting skills/spells to load and reload from DB.
+		if (!isDBActive) {
+			if (GetPlayer()->GetInfoStruct()->get_reload_player_spells()) {
+				database.LoadCharacterSpells(GetCharacterID(), GetPlayer());
+				GetPlayer()->GetInfoStruct()->set_reload_player_spells(0);
+			}
+			new_client_login = NewLoginState::LOGIN_SEND;
+		}
+		break;
+	}
+	case NewLoginState::LOGIN_ALLOWED: {
+		int32 count = 0;
+
+		if (!GetPlayer()->IsReturningFromLD())
+		{
+			LogWrite(CCLIENT__DEBUG, 0, "Client", "Loading Character Skills for player '%s'...", player->GetName());
+			count = database.LoadCharacterSkills(GetCharacterID(), player);
+
+			LogWrite(CCLIENT__DEBUG, 0, "Client", "Loading Character Spells for player '%s'...", player->GetName());
+			count = database.LoadCharacterSpells(GetCharacterID(), player);
+		}
+		else
+		{
+			LogWrite(CCLIENT__INFO, 0, "Client", "Player is returning from linkdead status (Player does not need reload) thus skipping database loading for '%s'...", player->GetName());
+		}
+
+		// get the latest character starting skills / spells, may have been updated after character creation
+		if (GetPlayer()->GetInfoStruct()->get_first_world_login()) {
+			world.SyncCharacterAbilities(this);
+			Query query;
+			query.AddQueryAsync(GetCharacterID(), &database, Q_UPDATE, "UPDATE characters set first_world_login = 0 where id=%u", GetCharacterID());
+			GetPlayer()->GetInfoStruct()->set_first_world_login(0);
+		}
+
+		new_client_login = NewLoginState::LOGIN_INITIAL_LOAD;
+		break;
+	}
+	case NewLoginState::LOGIN_DELAYED: {
+		if (!delay_msg_timer.Enabled() || delay_msg_timer.Check()) {
+			LogWrite(CCLIENT__INFO, 0, "Client", "Wait for zone %s to load for new client %s...", GetCurrentZone()->GetZoneName(), GetPlayer()->GetName());
+			delay_msg_timer.Start(1000, true);
+		}
+		if (!GetCurrentZone()->IsLoading()) {
+			new_client_login = NewLoginState::LOGIN_ALLOWED;
+		}
+
+		return true;
+		break;
+	}
+	}
+
 	delay_msg_timer.Disable();
-	
+
 	sockaddr_in to;
 
 	memset((char*)&to, 0, sizeof(to));
@@ -3706,7 +3754,7 @@ bool Client::Process(bool zone_process) {
 		should_load_spells = false;
 	}
 
-	if(spawn_removal_timer.Check() && GetPlayer()) {
+	if (spawn_removal_timer.Check() && GetPlayer()) {
 		GetPlayer()->ProcessSpawnRangeUpdates();
 		GetPlayer()->CheckSpawnStateQueue();
 	}
@@ -3722,7 +3770,7 @@ bool Client::Process(bool zone_process) {
 		ProcessQuestUpdates();
 	}
 	int32 queue_timer_delay = rule_manager.GetZoneRule(GetCurrentZoneID(), R_Client, QuestQueueTimer)->GetInt32();
-	if(queue_timer_delay < 10) {
+	if (queue_timer_delay < 10) {
 		queue_timer_delay = 10;
 	}
 	if (last_update_time > 0 && last_update_time < (Timer::GetCurrentTime2() - queue_timer_delay)) {
@@ -3731,7 +3779,7 @@ bool Client::Process(bool zone_process) {
 	}
 
 	MSaveSpellStateMutex.lock();
-	if(save_spell_state_timer.Check())
+	if (save_spell_state_timer.Check())
 	{
 		save_spell_state_timer.Disable();
 		GetPlayer()->SaveSpellEffects();
@@ -3739,70 +3787,75 @@ bool Client::Process(bool zone_process) {
 	MSaveSpellStateMutex.unlock();
 
 	if (temp_placement_timer.Check()) {
-		if(GetTempPlacementSpawn() && GetPlayer()->WasSentSpawn(GetTempPlacementSpawn()->GetID()) && !hasSentTempPlacementSpawn) {
-			SendMoveObjectMode(GetTempPlacementSpawn(), 0);
+		if (GetTempPlacementSpawn() && GetPlayer()->WasSentSpawn(GetTempPlacementSpawn()->GetID()) && !hasSentTempPlacementSpawn) {
+			int8 placement = 0;
+			int32 uniqueID = GetPlacementUniqueItemID();
+			Item* uniqueItem = GetPlayer()->item_list.GetItemFromUniqueID(uniqueID);
+			if (uniqueItem && uniqueItem->houseitem_info)
+				placement = uniqueItem->houseitem_info->house_location;
+			SendMoveObjectMode(GetTempPlacementSpawn(), placement);
 			hasSentTempPlacementSpawn = true;
 			temp_placement_timer.Disable();
 		}
 	}
-	if (pos_update.Check())
+	if (GetCurrentZone() && pos_update.Check())
 	{
 		ProcessStateCommands();
-		
+
 		GetPlayer()->ResetMentorship(); // check if we need to asynchronously reset mentorship
 
-		if(GetPlayer()->GetRegionMap())
+		if (GetPlayer()->GetRegionMap())
 			GetPlayer()->GetRegionMap()->TicRegionsNearSpawn(this->GetPlayer(), regionDebugMessaging ? this : nullptr);
-		
-		if(!player_pos_changed && IsReadyForUpdates() && player_pos_timer < Timer::GetCurrentTime2() && enabled_player_pos_timer) {
-			if(version > 373) {
-			GetPlayer()->info_changed = true;
-			GetPlayer()->vis_changed = true;
-			GetPlayer()->position_changed = true;
-			GetPlayer()->changed = true;
-			GetPlayer()->AddChangedZoneSpawn();
+
+		if (!player_pos_changed && IsReadyForUpdates() && player_pos_timer < Timer::GetCurrentTime2() && enabled_player_pos_timer) {
+			if (version > 373) {
+				GetPlayer()->info_changed = true;
+				GetPlayer()->vis_changed = true;
+				GetPlayer()->position_changed = true;
+				GetPlayer()->changed = true;
+				GetPlayer()->AddChangedZoneSpawn();
 			}
-			player_pos_timer = Timer::GetCurrentTime2()+5000;
+			player_pos_timer = Timer::GetCurrentTime2() + 5000;
 			enabled_player_pos_timer = false;
 		}
-		if(player_pos_changed && IsReadyForUpdates()) {
-			player_pos_timer = Timer::GetCurrentTime2()+500;
+		if (player_pos_changed && IsReadyForUpdates()) {
+			player_pos_timer = Timer::GetCurrentTime2() + 500;
 			enabled_player_pos_timer = true;
-			if(!underworld_cooldown_timer.Enabled() || (underworld_cooldown_timer.Enabled() && underworld_cooldown_timer.Check())) {
+			if (!underworld_cooldown_timer.Enabled() || (underworld_cooldown_timer.Enabled() && underworld_cooldown_timer.Check())) {
 				bool underworld = false;
-				if(rule_manager.GetZoneRule(GetCurrentZoneID(), R_Zone, UseMapUnderworldCoords)->GetBool()) {
-					if(GetCurrentZone()->GetUnderWorld() != -1000000.0f) {
-						if(GetPlayer()->GetY() < GetCurrentZone()->GetUnderWorld())
+				if (rule_manager.GetZoneRule(GetCurrentZoneID(), R_Zone, UseMapUnderworldCoords)->GetBool()) {
+					if (GetCurrentZone() && GetCurrentZone()->GetUnderWorld() != -1000000.0f) {
+						if (GetPlayer()->GetY() < GetCurrentZone()->GetUnderWorld())
 							underworld = true;
 					}
-					else if(GetPlayer()->GetMap() && GetPlayer()->GetMap()->GetMinY() != 9999999.0f && GetPlayer()->GetY() < (GetPlayer()->GetMap()->GetMinY() + rule_manager.GetZoneRule(GetCurrentZoneID(), R_Zone, MapUnderworldCoordOffset)->GetFloat())) {		
+					else if (GetPlayer()->GetMap() && GetPlayer()->GetMap()->GetMinY() != 9999999.0f && GetPlayer()->GetY() < (GetPlayer()->GetMap()->GetMinY() + rule_manager.GetZoneRule(GetCurrentZoneID(), R_Zone, MapUnderworldCoordOffset)->GetFloat())) {
 						underworld = true;
 					}
 				}
-				else if(GetPlayer()->GetMap() && GetPlayer()->GetY() < GetCurrentZone()->GetUnderWorld()) {		
-						underworld = true;
+				else if (GetPlayer()->GetMap() && GetPlayer()->GetY() < GetCurrentZone()->GetUnderWorld()) {
+					underworld = true;
 				}
-				if(underworld) {
-						player->SetX(GetCurrentZone()->GetSafeX());
-						player->SetY(GetCurrentZone()->GetSafeY());
-						player->SetZ(GetCurrentZone()->GetSafeZ());
-						player->SetHeading(GetCurrentZone()->GetSafeHeading());
-						EQ2Packet* app = GetPlayer()->Move(player->GetX(), player->GetY(), player->GetZ(), GetVersion(), player->GetHeading());
-						if(app){
-							QueuePacket(app);
-						}
-						SimpleMessage(CHANNEL_COLOR_RED, "You have been teleported to a safe location in the zone, because you appeared to have fallen through the world.");
+				if (underworld && GetCurrentZone()) {
+					player->SetX(GetCurrentZone()->GetSafeX());
+					player->SetY(GetCurrentZone()->GetSafeY());
+					player->SetZ(GetCurrentZone()->GetSafeZ());
+					player->SetHeading(GetCurrentZone()->GetSafeHeading());
+					EQ2Packet* app = GetPlayer()->Move(player->GetX(), player->GetY(), player->GetZ(), GetVersion(), player->GetHeading());
+					if (app) {
+						QueuePacket(app);
 					}
+					SimpleMessage(CHANNEL_COLOR_RED, "You have been teleported to a safe location in the zone, because you appeared to have fallen through the world.");
+				}
 				underworld_cooldown_timer.Start();
 			}
 			//GetPlayer()->CalculateLocation();
 			client_list.CheckPlayersInvisStatus(this);
-			
+
 			player_pos_changed = false;
-			
+
 			GetCurrentZone()->CheckTransporters(this);
-			
-			if(GetPlayer()->GetRegionMap())
+
+			if (GetPlayer()->GetRegionMap())
 			{
 				GetPlayer()->GetRegionMap()->MapRegionsNearSpawn(this->GetPlayer(), regionDebugMessaging ? this : nullptr);
 			}
@@ -4084,9 +4137,9 @@ void ClientList::Remove(Client* client, bool remove_data) {
 
 }
 
-void Client::SetCurrentZone(ZoneServer* zone) { 
+void Client::SetCurrentZone(ZoneServer* zone) {
 	current_zone = zone;
-	if(player) {
+	if (player) {
 		player->SetZone(zone, GetVersion());
 	}
 }
@@ -4096,8 +4149,10 @@ void Client::SetCurrentZone(int32 id) {
 		//current_zone->GetCombat()->RemoveHate(player);
 		current_zone->RemoveSpawn(player, false, true, true, true, true);
 	}
-	SetCurrentZone(zone_list.Get(id));
-
+	ZoneChangeDetails zone_details;
+	if (zone_list.GetZone(&zone_details, id, "", true, false, true, false)) {
+		SetCurrentZone((ZoneServer*)zone_details.zonePtr);
+	}
 }
 
 void Client::SetCurrentZoneByInstanceID(int32 id, int32 zoneid) {
@@ -4105,8 +4160,13 @@ void Client::SetCurrentZoneByInstanceID(int32 id, int32 zoneid) {
 		//current_zone->GetCombat()->RemoveHate(player);
 		current_zone->RemoveSpawn(player, false, true, true, true, true);
 	}
-	SetCurrentZone(zone_list.GetByInstanceID(id, zoneid));
-
+	ZoneChangeDetails zone_details;
+	if (zone_list.GetZoneByInstance(&zone_details, id, zoneid, true, false, true, false)) {
+		SetCurrentZone((ZoneServer*)zone_details.zonePtr);
+	}
+	else {
+		LogWrite(CCLIENT__ERROR, 0, "Client", "Failed to Client::SetCurrentZoneByInstanceID(id = %u, zoneid = %u) for Player %s.", id, zoneid, GetPlayer()->GetName());
+	}
 }
 
 ZoneServer* Client::GetCurrentZone() {
@@ -4127,277 +4187,277 @@ int8 Client::GetMessageChannelColor(int8 channel_type) {
 			return CHANNEL_COLOR_NEWEST_LOOT;
 	}
 	if (GetVersion() <= 283) {
-		if (channel_type <=12)
+		if (channel_type <= 12)
 			return channel_type;
 		switch (channel_type) {
-			case CHANNEL_GROUP_CHAT:
-			case CHANNEL_GROUP_SAY:
-			case CHANNEL_RAID_SAY:
-			case CHANNEL_GUILD_CHAT:
-			case CHANNEL_GUILD_SAY:
-			case CHANNEL_OFFICER_SAY:
-			case CHANNEL_GUILD_MOTD:
-				return channel_type - 1;
-			case CHANNEL_PRIVATE_CHAT:
-			case CHANNEL_NONPLAYER_TELL:
-				return channel_type - 5;
-			case CHANNEL_PRIVATE_TELL:
-			case CHANNEL_TELL_FROM_CS:
-				return channel_type - 6;
-			case CHANNEL_CHAT_CHANNEL_TEXT:
-			case CHANNEL_OUT_OF_CHARACTER:
-			case CHANNEL_AUCTION:
-			case CHANNEL_CUSTOM_CHANNEL:
-			case CHANNEL_CHARACTER_TEXT:
-			case CHANNEL_REWARD:
-			case CHANNEL_DEATH:
-			case CHANNEL_PET_CHAT:
-			case CHANNEL_SKILL:
-				return channel_type - 7;
-			case CHANNEL_SPELLS:
-			case CHANNEL_YOU_CAST:
-			case CHANNEL_YOU_FAIL:
-				return channel_type - 8;
-			case CHANNEL_FRIENDLY_CAST:
-			case CHANNEL_FRIENDLY_FAIL:
-			case CHANNEL_OTHER_CAST:
-			case CHANNEL_OTHER_FAIL:
-			case CHANNEL_HOSTILE_CAST:
-			case CHANNEL_HOSTILE_FAIL:
-			case CHANNEL_WORN_OFF:
-			case CHANNEL_SPELLS_OTHER:
-				return channel_type - 9;
-			case CHANNEL_COMBAT:
-				return channel_type - 15;
-			case CHANNEL_HEROIC_OPPORTUNITY:
-			case CHANNEL_NON_MELEE_DAMAGE:
-			case CHANNEL_DAMAGE_SHIELD:
-				return channel_type - 16;
-			case CHANNEL_MELEE_COMBAT:
-			case CHANNEL_WARNINGS:
-			case CHANNEL_YOU_HIT:
-			case CHANNEL_YOU_MISS:
-			case CHANNEL_ATTACKER_HITS:
-			case CHANNEL_ATTACKER_MISSES:
-				return channel_type - 18;
-			case CHANNEL_OTHER_HIT:
-			case CHANNEL_OTHER_MISSES:
-			case CHANNEL_CRITICAL_HIT:
-				return channel_type - 22;
-			case CHANNEL_OTHER:
-			case CHANNEL_MONEY_SPLIT:
-			case CHANNEL_LOOT:
-				return channel_type - 30;
-			case CHANNEL_COMMAND_TEXT:
-			case CHANNEL_BROADCAST:
-			case CHANNEL_WHO:
-			case CHANNEL_COMMANDS:
-			case CHANNEL_MERCHANT:
-			case CHANNEL_MERCHANT_BUY_SELL:
-			case CHANNEL_CONSIDER_MESSAGE:
-			case CHANNEL_CON_MINUS_2:
-			case CHANNEL_CON_MINUS_1:
-			case CHANNEL_CON_0:
-			case CHANNEL_CON_1:
-			case CHANNEL_CON_2:
-				return channel_type - 31;
-			default: {
-				return CHANNEL_DEFAULT;
-			}
+		case CHANNEL_GROUP_CHAT:
+		case CHANNEL_GROUP_SAY:
+		case CHANNEL_RAID_SAY:
+		case CHANNEL_GUILD_CHAT:
+		case CHANNEL_GUILD_SAY:
+		case CHANNEL_OFFICER_SAY:
+		case CHANNEL_GUILD_MOTD:
+			return channel_type - 1;
+		case CHANNEL_PRIVATE_CHAT:
+		case CHANNEL_NONPLAYER_TELL:
+			return channel_type - 5;
+		case CHANNEL_PRIVATE_TELL:
+		case CHANNEL_TELL_FROM_CS:
+			return channel_type - 6;
+		case CHANNEL_CHAT_CHANNEL_TEXT:
+		case CHANNEL_OUT_OF_CHARACTER:
+		case CHANNEL_AUCTION:
+		case CHANNEL_CUSTOM_CHANNEL:
+		case CHANNEL_CHARACTER_TEXT:
+		case CHANNEL_REWARD:
+		case CHANNEL_DEATH:
+		case CHANNEL_PET_CHAT:
+		case CHANNEL_SKILL:
+			return channel_type - 7;
+		case CHANNEL_SPELLS:
+		case CHANNEL_YOU_CAST:
+		case CHANNEL_YOU_FAIL:
+			return channel_type - 8;
+		case CHANNEL_FRIENDLY_CAST:
+		case CHANNEL_FRIENDLY_FAIL:
+		case CHANNEL_OTHER_CAST:
+		case CHANNEL_OTHER_FAIL:
+		case CHANNEL_HOSTILE_CAST:
+		case CHANNEL_HOSTILE_FAIL:
+		case CHANNEL_WORN_OFF:
+		case CHANNEL_SPELLS_OTHER:
+			return channel_type - 9;
+		case CHANNEL_COMBAT:
+			return channel_type - 15;
+		case CHANNEL_HEROIC_OPPORTUNITY:
+		case CHANNEL_NON_MELEE_DAMAGE:
+		case CHANNEL_DAMAGE_SHIELD:
+			return channel_type - 16;
+		case CHANNEL_MELEE_COMBAT:
+		case CHANNEL_WARNINGS:
+		case CHANNEL_YOU_HIT:
+		case CHANNEL_YOU_MISS:
+		case CHANNEL_ATTACKER_HITS:
+		case CHANNEL_ATTACKER_MISSES:
+			return channel_type - 18;
+		case CHANNEL_OTHER_HIT:
+		case CHANNEL_OTHER_MISSES:
+		case CHANNEL_CRITICAL_HIT:
+			return channel_type - 22;
+		case CHANNEL_OTHER:
+		case CHANNEL_MONEY_SPLIT:
+		case CHANNEL_LOOT:
+			return channel_type - 30;
+		case CHANNEL_COMMAND_TEXT:
+		case CHANNEL_BROADCAST:
+		case CHANNEL_WHO:
+		case CHANNEL_COMMANDS:
+		case CHANNEL_MERCHANT:
+		case CHANNEL_MERCHANT_BUY_SELL:
+		case CHANNEL_CONSIDER_MESSAGE:
+		case CHANNEL_CON_MINUS_2:
+		case CHANNEL_CON_MINUS_1:
+		case CHANNEL_CON_0:
+		case CHANNEL_CON_1:
+		case CHANNEL_CON_2:
+			return channel_type - 31;
+		default: {
+			return CHANNEL_DEFAULT;
+		}
 		}
 	}
 	else if (GetVersion() <= 373) {
-		if (channel_type <=18)
+		if (channel_type <= 18)
 			return channel_type;
 		switch (channel_type) {
-			case CHANNEL_PRIVATE_CHAT:
-			case CHANNEL_NONPLAYER_TELL:
-				return 22;
-			case CHANNEL_PRIVATE_TELL:
-			case CHANNEL_TELL_FROM_CS:
-				return 23;
-			case CHANNEL_CHAT_CHANNEL_TEXT:
-			case CHANNEL_OUT_OF_CHARACTER:
-			case CHANNEL_CUSTOM_CHANNEL:
-			case CHANNEL_CHARACTER_TEXT:
-			case CHANNEL_REWARD:
-			case CHANNEL_DEATH:
-			case CHANNEL_PET_CHAT:
-			case CHANNEL_SKILL:
-				return 26;
-			case CHANNEL_AUCTION:
-				return 27;
-			case CHANNEL_SPELLS:
-			case CHANNEL_YOU_CAST:
-			case CHANNEL_YOU_FAIL:
-				return channel_type - 8;
-			case CHANNEL_FRIENDLY_CAST:
-			case CHANNEL_FRIENDLY_FAIL:
-			case CHANNEL_OTHER_CAST:
-			case CHANNEL_OTHER_FAIL:
-			case CHANNEL_HOSTILE_CAST:
-			case CHANNEL_HOSTILE_FAIL:
-			case CHANNEL_WORN_OFF:
-			case CHANNEL_SPELLS_OTHER:
-				return channel_type - 9;
-			case CHANNEL_COMBAT:
-				return channel_type - 15;
-			case CHANNEL_HEROIC_OPPORTUNITY:
-			case CHANNEL_NON_MELEE_DAMAGE:
-			case CHANNEL_DAMAGE_SHIELD:
-				return channel_type - 16;
-			case CHANNEL_MELEE_COMBAT:
-			case CHANNEL_WARNINGS:
-			case CHANNEL_YOU_HIT:
-			case CHANNEL_YOU_MISS:
-			case CHANNEL_ATTACKER_HITS:
-			case CHANNEL_ATTACKER_MISSES:
-				return channel_type - 18;
-			case CHANNEL_OTHER_HIT:
-			case CHANNEL_OTHER_MISSES:
-			case CHANNEL_CRITICAL_HIT:
-				return channel_type - 22;
-			case CHANNEL_OTHER:
-			case CHANNEL_MONEY_SPLIT:
-			case CHANNEL_LOOT:
-				return channel_type - 30;
-			case CHANNEL_COMMAND_TEXT:
-			case CHANNEL_BROADCAST:
-			case CHANNEL_WHO:
-			case CHANNEL_COMMANDS:
-			case CHANNEL_MERCHANT:
-			case CHANNEL_MERCHANT_BUY_SELL:
-			case CHANNEL_CONSIDER_MESSAGE:
-			case CHANNEL_CON_MINUS_2:
-			case CHANNEL_CON_MINUS_1:
-			case CHANNEL_CON_0:
-			case CHANNEL_CON_1:
-			case CHANNEL_CON_2:
-				return 68;
-			default: {
-				return CHANNEL_DEFAULT;
-			}
+		case CHANNEL_PRIVATE_CHAT:
+		case CHANNEL_NONPLAYER_TELL:
+			return 22;
+		case CHANNEL_PRIVATE_TELL:
+		case CHANNEL_TELL_FROM_CS:
+			return 23;
+		case CHANNEL_CHAT_CHANNEL_TEXT:
+		case CHANNEL_OUT_OF_CHARACTER:
+		case CHANNEL_CUSTOM_CHANNEL:
+		case CHANNEL_CHARACTER_TEXT:
+		case CHANNEL_REWARD:
+		case CHANNEL_DEATH:
+		case CHANNEL_PET_CHAT:
+		case CHANNEL_SKILL:
+			return 26;
+		case CHANNEL_AUCTION:
+			return 27;
+		case CHANNEL_SPELLS:
+		case CHANNEL_YOU_CAST:
+		case CHANNEL_YOU_FAIL:
+			return channel_type - 8;
+		case CHANNEL_FRIENDLY_CAST:
+		case CHANNEL_FRIENDLY_FAIL:
+		case CHANNEL_OTHER_CAST:
+		case CHANNEL_OTHER_FAIL:
+		case CHANNEL_HOSTILE_CAST:
+		case CHANNEL_HOSTILE_FAIL:
+		case CHANNEL_WORN_OFF:
+		case CHANNEL_SPELLS_OTHER:
+			return channel_type - 9;
+		case CHANNEL_COMBAT:
+			return channel_type - 15;
+		case CHANNEL_HEROIC_OPPORTUNITY:
+		case CHANNEL_NON_MELEE_DAMAGE:
+		case CHANNEL_DAMAGE_SHIELD:
+			return channel_type - 16;
+		case CHANNEL_MELEE_COMBAT:
+		case CHANNEL_WARNINGS:
+		case CHANNEL_YOU_HIT:
+		case CHANNEL_YOU_MISS:
+		case CHANNEL_ATTACKER_HITS:
+		case CHANNEL_ATTACKER_MISSES:
+			return channel_type - 18;
+		case CHANNEL_OTHER_HIT:
+		case CHANNEL_OTHER_MISSES:
+		case CHANNEL_CRITICAL_HIT:
+			return channel_type - 22;
+		case CHANNEL_OTHER:
+		case CHANNEL_MONEY_SPLIT:
+		case CHANNEL_LOOT:
+			return channel_type - 30;
+		case CHANNEL_COMMAND_TEXT:
+		case CHANNEL_BROADCAST:
+		case CHANNEL_WHO:
+		case CHANNEL_COMMANDS:
+		case CHANNEL_MERCHANT:
+		case CHANNEL_MERCHANT_BUY_SELL:
+		case CHANNEL_CONSIDER_MESSAGE:
+		case CHANNEL_CON_MINUS_2:
+		case CHANNEL_CON_MINUS_1:
+		case CHANNEL_CON_0:
+		case CHANNEL_CON_1:
+		case CHANNEL_CON_2:
+			return 68;
+		default: {
+			return CHANNEL_DEFAULT;
+		}
 		}
 	}
 	else if (GetVersion() <= 561) {
 		if (channel_type < 20)
 			return channel_type;
 		switch (channel_type) {
-			case CHANNEL_GUILD_MOTD:
-			case CHANNEL_GUILD_MEMBER_ONLINE:
-			case CHANNEL_GUILD_EVENT:
-				return channel_type + 1;
-			case CHANNEL_PRIVATE_CHAT:
-			case CHANNEL_NONPLAYER_TELL:
-				return channel_type - 1;
-			case CHANNEL_PRIVATE_TELL:
-			case CHANNEL_TELL_FROM_CS:
-			case CHANNEL_ARENA:
-			case CHANNEL_CHAT_CHANNEL_TEXT:
-			case CHANNEL_OUT_OF_CHARACTER:
-			case CHANNEL_AUCTION:
-			case CHANNEL_CUSTOM_CHANNEL:
-			case CHANNEL_CHARACTER_TEXT:
-			case CHANNEL_REWARD:
-			case CHANNEL_DEATH:
-			case CHANNEL_PET_CHAT:
-			case CHANNEL_SKILL:
-			case CHANNEL_FACTION:
-			case CHANNEL_SPELLS:
-			case CHANNEL_YOU_CAST:
-			case CHANNEL_YOU_FAIL:
-				return channel_type - 2;			 
-			case CHANNEL_FRIENDLY_CAST:
-			case CHANNEL_FRIENDLY_FAIL:
-			case CHANNEL_OTHER_CAST:
-			case CHANNEL_OTHER_FAIL:
-			case CHANNEL_HOSTILE_CAST:
-			case CHANNEL_HOSTILE_FAIL:
-			case CHANNEL_WORN_OFF:
-			case CHANNEL_SPELLS_OTHER:
-			case CHANNEL_HEAL_SPELLS:
-			case CHANNEL_HEALS:
-			case CHANNEL_FRIENDLY_HEALS:
-			case CHANNEL_OTHER_HEALS:
-			case CHANNEL_HOSTILE_HEALS:
-				return channel_type - 3;
-			case CHANNEL_COMBAT:
-			case CHANNEL_GENERAL_COMBAT:
-			case CHANNEL_HEROIC_OPPORTUNITY:
-			case CHANNEL_NON_MELEE_DAMAGE:
-			case CHANNEL_DAMAGE_SHIELD:
-			case CHANNEL_WARD:
-				return channel_type - 4;
-			case CHANNEL_MELEE_COMBAT:
-			case CHANNEL_WARNINGS:
-			case CHANNEL_YOU_HIT:
-			case CHANNEL_YOU_MISS:
-			case CHANNEL_ATTACKER_HITS:
-			case CHANNEL_ATTACKER_MISSES:
-			case CHANNEL_YOUR_PET_HITS:
-			case CHANNEL_YOUR_PET_MISSES:
-			case CHANNEL_ATTACKER_HITS_PET:
-			case CHANNEL_ATTACKER_MISSES_PET:
-			case CHANNEL_OTHER_HIT:
-			case CHANNEL_OTHER_MISSES:
-				return channel_type - 5;
-			case CHANNEL_OTHER:
-			case CHANNEL_MONEY_SPLIT:
-			case CHANNEL_LOOT:
-				return channel_type - 14;
-			case CHANNEL_COMMAND_TEXT:
-			case CHANNEL_BROADCAST:
-			case CHANNEL_WHO:
-			case CHANNEL_COMMANDS:
-			case CHANNEL_MERCHANT:
-			case CHANNEL_MERCHANT_BUY_SELL:
-			case CHANNEL_CONSIDER_MESSAGE:
-			case CHANNEL_CON_MINUS_2:
-			case CHANNEL_CON_MINUS_1:
-			case CHANNEL_CON_0:
-			case CHANNEL_CON_1:
-			case CHANNEL_CON_2:
-			case CHANNEL_TRADESKILLS:
-			case CHANNEL_HARVESTING:
-			case CHANNEL_HARVESTING_WARNINGS:
-				return channel_type - 15;
-			default: {
-				return CHANNEL_DEFAULT;
-			}
+		case CHANNEL_GUILD_MOTD:
+		case CHANNEL_GUILD_MEMBER_ONLINE:
+		case CHANNEL_GUILD_EVENT:
+			return channel_type + 1;
+		case CHANNEL_PRIVATE_CHAT:
+		case CHANNEL_NONPLAYER_TELL:
+			return channel_type - 1;
+		case CHANNEL_PRIVATE_TELL:
+		case CHANNEL_TELL_FROM_CS:
+		case CHANNEL_ARENA:
+		case CHANNEL_CHAT_CHANNEL_TEXT:
+		case CHANNEL_OUT_OF_CHARACTER:
+		case CHANNEL_AUCTION:
+		case CHANNEL_CUSTOM_CHANNEL:
+		case CHANNEL_CHARACTER_TEXT:
+		case CHANNEL_REWARD:
+		case CHANNEL_DEATH:
+		case CHANNEL_PET_CHAT:
+		case CHANNEL_SKILL:
+		case CHANNEL_FACTION:
+		case CHANNEL_SPELLS:
+		case CHANNEL_YOU_CAST:
+		case CHANNEL_YOU_FAIL:
+			return channel_type - 2;
+		case CHANNEL_FRIENDLY_CAST:
+		case CHANNEL_FRIENDLY_FAIL:
+		case CHANNEL_OTHER_CAST:
+		case CHANNEL_OTHER_FAIL:
+		case CHANNEL_HOSTILE_CAST:
+		case CHANNEL_HOSTILE_FAIL:
+		case CHANNEL_WORN_OFF:
+		case CHANNEL_SPELLS_OTHER:
+		case CHANNEL_HEAL_SPELLS:
+		case CHANNEL_HEALS:
+		case CHANNEL_FRIENDLY_HEALS:
+		case CHANNEL_OTHER_HEALS:
+		case CHANNEL_HOSTILE_HEALS:
+			return channel_type - 3;
+		case CHANNEL_COMBAT:
+		case CHANNEL_GENERAL_COMBAT:
+		case CHANNEL_HEROIC_OPPORTUNITY:
+		case CHANNEL_NON_MELEE_DAMAGE:
+		case CHANNEL_DAMAGE_SHIELD:
+		case CHANNEL_WARD:
+			return channel_type - 4;
+		case CHANNEL_MELEE_COMBAT:
+		case CHANNEL_WARNINGS:
+		case CHANNEL_YOU_HIT:
+		case CHANNEL_YOU_MISS:
+		case CHANNEL_ATTACKER_HITS:
+		case CHANNEL_ATTACKER_MISSES:
+		case CHANNEL_YOUR_PET_HITS:
+		case CHANNEL_YOUR_PET_MISSES:
+		case CHANNEL_ATTACKER_HITS_PET:
+		case CHANNEL_ATTACKER_MISSES_PET:
+		case CHANNEL_OTHER_HIT:
+		case CHANNEL_OTHER_MISSES:
+			return channel_type - 5;
+		case CHANNEL_OTHER:
+		case CHANNEL_MONEY_SPLIT:
+		case CHANNEL_LOOT:
+			return channel_type - 14;
+		case CHANNEL_COMMAND_TEXT:
+		case CHANNEL_BROADCAST:
+		case CHANNEL_WHO:
+		case CHANNEL_COMMANDS:
+		case CHANNEL_MERCHANT:
+		case CHANNEL_MERCHANT_BUY_SELL:
+		case CHANNEL_CONSIDER_MESSAGE:
+		case CHANNEL_CON_MINUS_2:
+		case CHANNEL_CON_MINUS_1:
+		case CHANNEL_CON_0:
+		case CHANNEL_CON_1:
+		case CHANNEL_CON_2:
+		case CHANNEL_TRADESKILLS:
+		case CHANNEL_HARVESTING:
+		case CHANNEL_HARVESTING_WARNINGS:
+			return channel_type - 15;
+		default: {
+			return CHANNEL_DEFAULT;
+		}
 		}
 	}
 	else {
 		switch (channel_type) {
-			default: {
-				return channel_type;
-			}
+		default: {
+			return channel_type;
 		}
-	}	
+		}
+	}
 	return channel_type;
 }
 
-void Client::HandleTellMessage(Client* from, const char* message, const char* to, int32 current_language_id) {
-	if (!from || GetPlayer()->IsIgnored(from->GetPlayer()->GetName()))
+void Client::HandleTellMessage(const char* fromName, const char* message, const char* to, int32 current_language_id) {
+	if (!fromName || !to || GetPlayer()->IsIgnored(fromName))
 		return;
 	PacketStruct* packet = configReader.getStruct("WS_HearChat", GetVersion());
 	if (packet) {
-		packet->setDataByName("from", from->GetPlayer()->GetName());
+		packet->setDataByName("from", fromName);
 		packet->setDataByName("to", to);
 		packet->setDataByName("channel", GetMessageChannelColor(CHANNEL_PRIVATE_TELL));
 		packet->setDataByName("from_spawn_id", 0xFFFFFFFF);
 		packet->setDataByName("to_spawn_id", 0xFFFFFFFF);
 		packet->setDataByName("unknown2", 1, 1);
 		packet->setDataByName("show_bubble", 1);
-		
+
 		if (current_language_id == 0 || GetPlayer()->HasLanguage(current_language_id)) {
 			packet->setDataByName("understood", 1);
 		}
-		
+
 		packet->setDataByName("time", 2);
 		packet->setDataByName("language", current_language_id);
 		packet->setMediumStringByName("message", message);
 		EQ2Packet* outpacket = packet->serialize();
-		QueuePacket(outpacket);			
+		QueuePacket(outpacket);
 		safe_delete(packet);
 	}
 }
@@ -4422,9 +4482,9 @@ void Client::SendSpellUpdate(Spell* spell, bool add_silently, bool add_to_hotbar
 		packet->setDataByName("spell_id", spell->GetSpellID());
 		packet->setDataByName("unique_id", spell->GetSpellData()->spell_name_crc);
 		packet->setDataByName("spell_name", spell->GetName());
-		if(add_silently)
+		if (add_silently)
 			packet->setDataByName("add_silently", 1);
-		if(add_to_hotbar)
+		if (add_to_hotbar)
 			packet->setDataByName("add_to_hotbar", 1);
 		packet->setDataByName("unknown", xxx);
 		packet->setDataByName("display_spell_tier", 1);
@@ -4449,7 +4509,7 @@ void Client::Message(int8 type, const char* message, ...) {
 
 	va_start(argptr, message);
 	vsnprintf(buffer, sizeof(buffer), message, argptr);
-	va_end(argptr);	
+	va_end(argptr);
 	SimpleMessage(type, buffer);
 }
 
@@ -4495,8 +4555,8 @@ bool Client::Summon(const char* search_name) {
 				target->SetSpawnOrigHeading(target->GetHeading());
 			}
 			target->SetLocation(GetPlayer()->GetLocation());
-			if(target->IsNPC()) {
-					((NPC*)target)->HaltMovement();
+			if (target->IsNPC()) {
+				((NPC*)target)->HaltMovement();
 			}
 		}
 		else if (target)
@@ -4522,122 +4582,146 @@ bool Client::Summon(const char* search_name) {
 
 std::string Client::IdentifyInstanceLockout(int32 zoneID, bool displayClient) {
 	int8 instanceType = database.GetInstanceTypeByZoneID(zoneID);
-	if(instanceType < 1)
+	if (instanceType < 1)
 		return std::string("");
-	
+
 	ZoneServer* instance_zone = nullptr;
 	InstanceData* data = GetPlayer()->GetCharacterInstances()->FindInstanceByZoneID(zoneID);
-		if (data) {
-			// If lockout instances check to see if we are locked out
-			if (instanceType == SOLO_LOCKOUT_INSTANCE || instanceType == GROUP_LOCKOUT_INSTANCE || instanceType == RAID_LOCKOUT_INSTANCE) {
-				int32 time = 0;
-				// Check success timer
-				if (data->last_success_timestamp > 0) {
-					if (Timer::GetUnixTimeStamp() < data->last_success_timestamp + data->success_lockout_time) {
-						// Timer has not expired yet can't re enter
-						LogWrite(INSTANCE__DEBUG, 0, "Instance", "Success lockout not expired for character %s in zone %u", GetPlayer()->GetName(), zoneID);
-						time = (data->last_success_timestamp + data->success_lockout_time) - Timer::GetUnixTimeStamp();
-					}
-				}
-
-				// Check failure timer
-				if (data->last_failure_timestamp > 0) {
-					if (Timer::GetUnixTimeStamp() < data->last_failure_timestamp + data->failure_lockout_time) {
-						// Timer has not expired yet
-						LogWrite(INSTANCE__DEBUG, 0, "Instance", "Failure lockout not expired for character %s in zone %u", GetPlayer()->GetName(), zoneID);
-						time = (data->last_failure_timestamp + data->failure_lockout_time) - Timer::GetUnixTimeStamp();
-					}
-				}
-
-				// Time > 0 then we are locked out, make the message and send it and return true
-				if (time > 0) {
-					string time_msg = "";
-					int16 hour;
-					int8 min;
-					int8 sec;
-					hour = time / 3600;
-					time = time % 3600;
-					min = time / 60;
-					time = time % 60;
-					sec = time;
-
-					if (hour > 0) {
-						char temp[10];
-						snprintf(temp, 9," %i", hour);
-						time_msg.append(temp);
-						time_msg.append(" hour");
-						time_msg.append((hour > 1) ? "s" : "");
-					}
-					if (min > 0) {
-						char temp[5];
-						snprintf(temp, 4," %i", min);
-						time_msg.append(temp);
-						time_msg.append(" minute");
-						time_msg.append((min > 1) ? "s" : "");
-					}
-					// Only add seconds if minutes and hours are 0
-					if (hour == 0 && min == 0 && sec > 0) {
-						char temp[5];
-						snprintf(temp, 4," %i", sec);
-						time_msg.append(temp);
-						time_msg.append(" second");
-						time_msg.append((sec > 1) ? "s" : "");
-					}
-
-					if(displayClient)
-						Message(CHANNEL_COLOR_YELLOW, "You may not enter again for%s.", time_msg.c_str());
-					return time_msg;
+	if (data) {
+		// If lockout instances check to see if we are locked out
+		if (instanceType == SOLO_LOCKOUT_INSTANCE || instanceType == GROUP_LOCKOUT_INSTANCE || instanceType == RAID_LOCKOUT_INSTANCE) {
+			int32 time = 0;
+			// Check success timer
+			if (data->last_success_timestamp > 0) {
+				if (Timer::GetUnixTimeStamp() < data->last_success_timestamp + data->success_lockout_time) {
+					// Timer has not expired yet can't re enter
+					LogWrite(INSTANCE__DEBUG, 0, "Instance", "Success lockout not expired for character %s in zone %u", GetPlayer()->GetName(), zoneID);
+					time = (data->last_success_timestamp + data->success_lockout_time) - Timer::GetUnixTimeStamp();
 				}
 			}
+
+			// Check failure timer
+			if (data->last_failure_timestamp > 0) {
+				if (Timer::GetUnixTimeStamp() < data->last_failure_timestamp + data->failure_lockout_time) {
+					// Timer has not expired yet
+					LogWrite(INSTANCE__DEBUG, 0, "Instance", "Failure lockout not expired for character %s in zone %u", GetPlayer()->GetName(), zoneID);
+					time = (data->last_failure_timestamp + data->failure_lockout_time) - Timer::GetUnixTimeStamp();
+				}
+			}
+
+			// Time > 0 then we are locked out, make the message and send it and return true
+			if (time > 0) {
+				string time_msg = "";
+				int16 hour;
+				int8 min;
+				int8 sec;
+				hour = time / 3600;
+				time = time % 3600;
+				min = time / 60;
+				time = time % 60;
+				sec = time;
+
+				if (hour > 0) {
+					char temp[10];
+					snprintf(temp, 9, " %i", hour);
+					time_msg.append(temp);
+					time_msg.append(" hour");
+					time_msg.append((hour > 1) ? "s" : "");
+				}
+				if (min > 0) {
+					char temp[5];
+					snprintf(temp, 4, " %i", min);
+					time_msg.append(temp);
+					time_msg.append(" minute");
+					time_msg.append((min > 1) ? "s" : "");
+				}
+				// Only add seconds if minutes and hours are 0
+				if (hour == 0 && min == 0 && sec > 0) {
+					char temp[5];
+					snprintf(temp, 4, " %i", sec);
+					time_msg.append(temp);
+					time_msg.append(" second");
+					time_msg.append((sec > 1) ? "s" : "");
+				}
+
+				if (displayClient)
+					Message(CHANNEL_COLOR_YELLOW, "You may not enter again for%s.", time_msg.c_str());
+				return time_msg;
+			}
 		}
+	}
 	return std::string("");
 }
 
-ZoneServer* Client::IdentifyInstance(int32 zoneID) {
+bool Client::IdentifyInstance(ZoneChangeDetails* zone_details, int32 zoneID) {
 	int8 instanceType = database.GetInstanceTypeByZoneID(zoneID);
-	if(instanceType < 1)
-		return nullptr;
+	if (instanceType < 1)
+		return false;
 
-	ZoneServer* instance_zone = nullptr;
+	bool foundZone = false;
 	InstanceData* data = GetPlayer()->GetCharacterInstances()->FindInstanceByZoneID(zoneID);
-		if (data) {
-			std::string lockoutTime = IdentifyInstanceLockout(zoneID);
-			// If lockout instances check to see if we are locked out
-			if (lockoutTime.length() > 0) {
-					return nullptr;
-			}
-
-			// Need to update `character_instances` table with new timestamps (for persistent) and instance id's
-			instance_zone = zone_list.GetByInstanceID(data->instance_id, zoneID, false, false);
-
-			// if we got an instance_zone and the instance_id from the data is 0 or data instance id is not the same as the zone instance id then update values
-			if (instance_zone && (data->instance_id == 0 || data->instance_id != instance_zone->GetInstanceID())) {
-				if (instanceType == SOLO_PERSIST_INSTANCE || instanceType == GROUP_PERSIST_INSTANCE || instanceType == RAID_PERSIST_INSTANCE) {
-					database.UpdateCharacterInstance(GetCharacterID(), string(instance_zone->GetZoneName()), instance_zone->GetInstanceID(), 1, Timer::GetUnixTimeStamp());
-					data->last_success_timestamp = Timer::GetUnixTimeStamp();
-				}
-				else
-					database.UpdateCharacterInstance(GetCharacterID(), string(instance_zone->GetZoneName()), instance_zone->GetInstanceID());
-
-				data->instance_id = instance_zone->GetInstanceID();
-			}
+	if (data) {
+		std::string lockoutTime = IdentifyInstanceLockout(zoneID);
+		// If lockout instances check to see if we are locked out
+		if (lockoutTime.length() > 0) {
+			return false;
 		}
-	return instance_zone;
+
+		// Need to update `character_instances` table with new timestamps (for persistent) and instance id's
+		foundZone = zone_list.GetZoneByInstance(zone_details, data->instance_id, zoneID, true, false, false);
+
+		// if we got an instance_zone and the instance_id from the data is 0 or data instance id is not the same as the zone instance id then update values
+		if (foundZone && (data->instance_id == 0 || data->instance_id != zone_details->instanceId)) {
+			if (instanceType == SOLO_PERSIST_INSTANCE || instanceType == GROUP_PERSIST_INSTANCE || instanceType == RAID_PERSIST_INSTANCE) {
+				database.UpdateCharacterInstance(GetCharacterID(), zone_details->zoneName, zone_details->instanceId, 1, Timer::GetUnixTimeStamp());
+				data->last_success_timestamp = Timer::GetUnixTimeStamp();
+			}
+			else
+				database.UpdateCharacterInstance(GetCharacterID(), zone_details->zoneName, zone_details->instanceId);
+
+			data->instance_id = zone_details->instanceId;
+		}
+	}
+	return foundZone;
 }
 
 bool Client::TryZoneInstance(int32 zoneID, bool zone_coords_valid) {
 	ZoneServer* instance_zone = NULL;
 	int8 instanceType = 0;
 
+	bool foundZone = false;
+	ZoneChangeDetails zone_details;
 	// determine if this is a group instanced zone that already exists
-	instance_zone = GetPlayer()->GetGroupMemberInZone(zoneID);
+	foundZone = world.GetGroupManager()->IdentifyMemberInGroupOrRaid(&zone_details, this, zoneID);
 
-	if (instance_zone != NULL)
-		Zone(instance_zone->GetInstanceID(), zone_coords_valid);
+	if (foundZone) {
+		InstanceData* data = nullptr;
+		if (zone_details.instanceId)
+			data = GetPlayer()->GetCharacterInstances()->FindInstanceByInstanceID(zone_details.instanceId);
+
+		switch (zone_details.instanceType) {
+		case SOLO_LOCKOUT_INSTANCE:
+		case GROUP_LOCKOUT_INSTANCE:
+		case RAID_LOCKOUT_INSTANCE:
+		case SOLO_PERSIST_INSTANCE:
+		case GROUP_PERSIST_INSTANCE:
+		case RAID_PERSIST_INSTANCE:
+		{
+			if (!data && zone_details.instanceId) {
+				int32 db_id = database.AddCharacterInstance(GetPlayer()->GetCharacterID(), zone_details.instanceId, zone_details.zoneName, zone_details.instanceType, Timer::GetUnixTimeStamp(), 0, zone_details.defaultLockoutTime, zone_details.defaultReenterTime);
+
+				if (db_id > 0)
+					GetPlayer()->GetCharacterInstances()->AddInstance(db_id, zone_details.instanceId, Timer::GetUnixTimeStamp(), 0, zone_details.defaultLockoutTime, zone_details.defaultReenterTime, zoneID, zone_details.instanceType, zone_details.zoneName);
+			}
+			break;
+		}
+		}
+		Zone(&zone_details, instance_zone, zone_coords_valid);
+	}
 	else if ((instanceType = database.GetInstanceTypeByZoneID(zoneID)) > 0)
 	{
 		// best to check if we already have our own instance!
-		if((instance_zone = IdentifyInstance(zoneID)) == nullptr)
+		if (!(foundZone = IdentifyInstance(&zone_details, zoneID)))
 		{
 			switch (instanceType)
 			{
@@ -4645,14 +4729,13 @@ bool Client::TryZoneInstance(int32 zoneID, bool zone_coords_valid) {
 			case GROUP_LOCKOUT_INSTANCE:
 			case RAID_LOCKOUT_INSTANCE:
 			{
-				instance_zone = zone_list.GetByInstanceID(0, zoneID);
-				if (instance_zone) {
+				if ((foundZone = zone_list.GetZoneByInstance(&zone_details, 0, zoneID))) {
 					// once lockout instance zone shuts down you can't renenter if you have a lockout or if you don't you get a new zone
 					// so delete `instances` entry for the zone when it shuts down.
-					int32 db_id = database.AddCharacterInstance(GetPlayer()->GetCharacterID(), instance_zone->GetInstanceID(), string(instance_zone->GetZoneName()), instance_zone->GetInstanceType(), 0, 0, instance_zone->GetDefaultLockoutTime(), instance_zone->GetDefaultReenterTime());
+					int32 db_id = database.AddCharacterInstance(GetPlayer()->GetCharacterID(), zone_details.instanceId, zone_details.zoneName, zone_details.instanceType, 0, 0, zone_details.defaultLockoutTime, zone_details.defaultReenterTime);
 
 					if (db_id > 0)
-						GetPlayer()->GetCharacterInstances()->AddInstance(db_id, instance_zone->GetInstanceID(), 0, 0, instance_zone->GetDefaultLockoutTime(), instance_zone->GetDefaultReenterTime(), zoneID, instance_zone->GetInstanceType(), string(instance_zone->GetZoneName()));
+						GetPlayer()->GetCharacterInstances()->AddInstance(db_id, zone_details.instanceId, 0, 0, zone_details.defaultLockoutTime, zone_details.defaultReenterTime, zoneID, zone_details.instanceType, zone_details.zoneName);
 				}
 				break;
 			}
@@ -4660,12 +4743,11 @@ bool Client::TryZoneInstance(int32 zoneID, bool zone_coords_valid) {
 			case GROUP_PERSIST_INSTANCE:
 			case RAID_PERSIST_INSTANCE:
 			{
-				instance_zone = zone_list.GetByInstanceID(0, zoneID);
-				if (instance_zone) {
-					int32 db_id = database.AddCharacterInstance(GetPlayer()->GetCharacterID(), instance_zone->GetInstanceID(), string(instance_zone->GetZoneName()), instance_zone->GetInstanceType(), Timer::GetUnixTimeStamp(), 0, instance_zone->GetDefaultLockoutTime(), instance_zone->GetDefaultReenterTime());
+				if ((foundZone = zone_list.GetZoneByInstance(&zone_details, 0, zoneID))) {
+					int32 db_id = database.AddCharacterInstance(GetPlayer()->GetCharacterID(), zone_details.instanceId, zone_details.zoneName, zone_details.instanceType, Timer::GetUnixTimeStamp(), 0, zone_details.defaultLockoutTime, zone_details.defaultReenterTime);
 
 					if (db_id > 0)
-						GetPlayer()->GetCharacterInstances()->AddInstance(db_id, instance_zone->GetInstanceID(), Timer::GetUnixTimeStamp(), 0, instance_zone->GetDefaultLockoutTime(), instance_zone->GetDefaultReenterTime(), zoneID, instance_zone->GetInstanceType(), string(instance_zone->GetZoneName()));
+						GetPlayer()->GetCharacterInstances()->AddInstance(db_id, zone_details.instanceId, Timer::GetUnixTimeStamp(), 0, zone_details.defaultLockoutTime, zone_details.defaultReenterTime, zoneID, zone_details.instanceType, zone_details.zoneName);
 				}
 				break;
 			}
@@ -4676,11 +4758,21 @@ bool Client::TryZoneInstance(int32 zoneID, bool zone_coords_valid) {
 				instance_zone = zone_list.GetByLowestPopulation(zoneID);
 				if (instance_zone) {
 					// Check the current population against the max population, if greater or equal start a new version
-					if (instance_zone->GetClientCount() >= rule_manager.GetZoneRule(GetCurrentZoneID(), R_Zone, MaxPlayers)->GetInt32())
-						instance_zone = zone_list.GetByInstanceID(0, zoneID);
+					if (instance_zone->GetClientCount() >= rule_manager.GetZoneRule(GetCurrentZoneID(), R_Zone, MaxPlayers)->GetInt32()) {
+						foundZone = zone_list.GetZoneByInstance(&zone_details, 0, zoneID);
+					}
+					else {
+						peer_manager.setZonePeerDataSelf(&zone_details, std::string(instance_zone->GetZoneFile()), std::string(instance_zone->GetZoneName()),
+							instance_zone->GetZoneID(), instance_zone->GetInstanceID(), instance_zone->GetSafeX(), instance_zone->GetSafeY(),
+							instance_zone->GetSafeZ(), instance_zone->GetSafeHeading(), instance_zone->GetZoneLockState(),
+							instance_zone->GetMinimumStatus(), instance_zone->GetMinimumLevel(), instance_zone->GetMaximumLevel(),
+							instance_zone->GetMinimumVersion(), instance_zone->GetDefaultLockoutTime(), instance_zone->GetDefaultReenterTime(),
+							instance_zone->GetInstanceType(), instance_zone->NumPlayers(), instance_zone);
+					}
 				}
-				else
-					instance_zone = zone_list.GetByInstanceID(0, zoneID);
+				else {
+					foundZone = zone_list.GetZoneByInstance(&zone_details, 0, zoneID);
+				}
 
 				break;
 			}
@@ -4696,7 +4788,7 @@ bool Client::TryZoneInstance(int32 zoneID, bool zone_coords_valid) {
 
 			case QUEST_INSTANCE:
 			{
-				instance_zone = zone_list.GetByInstanceID(0, zoneID);
+				foundZone = zone_list.GetZoneByInstance(&zone_details, 0, zoneID);
 				break;
 				/*
 				ALTER TABLE `zones` CHANGE COLUMN `instance_type` `instance_type` ENUM('NONE','GROUP_LOCKOUT_INSTANCE','GROUP_PERSIST_INSTANCE','RAID_LOCKOUT_INSTANCE','RAID_PERSIST_INSTANCE','SOLO_LOCKOUT_INSTANCE','SOLO_PERSIST_INSTANCE','TRADESKILL_INSTANCE','PUBLIC_INSTANCE','PERSONAL_HOUSE_INSTANCE','GUILD_HOUSE_INSTANCE','QUEST_INSTANCE') NOT NULL DEFAULT 'NONE' COLLATE 'latin1_general_ci' AFTER `start_zone`;
@@ -4712,15 +4804,12 @@ bool Client::TryZoneInstance(int32 zoneID, bool zone_coords_valid) {
 
 		}
 
-		if (instance_zone != NULL)
-			Zone(instance_zone, zone_coords_valid);
+		if (foundZone)
+			Zone(&zone_details, (ZoneServer*)zone_details.zonePtr, zone_coords_valid);
 	}
 
 
-	if (instance_zone != NULL)
-		return true;
-	else
-		return false;
+	return foundZone;
 }
 
 bool Client::GotoSpawn(const char* search_name, bool forceTarget) {
@@ -4739,9 +4828,9 @@ bool Client::GotoSpawn(const char* search_name, bool forceTarget) {
 		}
 		else
 			target = GetPlayer()->GetTarget();
-		
+
 		float y = (target != nullptr) ? target->GetY() : 0.0f;
-		if(target && target->GetMap() != GetPlayer()->GetMap()) {
+		if (target && target->GetMap() != GetPlayer()->GetMap()) {
 			auto loc = glm::vec3(target->GetX(), target->GetZ(), target->GetY());
 			y = GetPlayer()->FindBestZ(loc, nullptr);
 		}
@@ -4774,21 +4863,23 @@ bool Client::CheckZoneAccess(const char* zoneName) {
 
 	LogWrite(CCLIENT__DEBUG, 0, "Client", "Zone access check for %s (%u), client: %u", zoneName, database.GetZoneID(zoneName), GetVersion());
 
-	ZoneServer* zone = zone_list.Get(zoneName, false, false, false);
-
-	// JA: implemented /zone lock|unlock commands (2012.07.28)
-	if (zone && zone->GetZoneLockState())
-	{
-		LogWrite(CCLIENT__DEBUG, 0, "Client", "Zone currently LOCKED: '%s' (%ul)", zoneName, zone->GetZoneID());
-		Message(CHANNEL_COLOR_RED, "This zone is locked, and you don't have the key! (%s).", zoneName);
-		return false;
+	bool zoneFound = false;
+	ZoneChangeDetails zone_details;
+	if (zoneFound = zone_list.GetZone(&zone_details, 0, std::string(zoneName), false, false, false)) {
+		// JA: implemented /zone lock|unlock commands (2012.07.28)
+		if (zone_details.lockState)
+		{
+			LogWrite(CCLIENT__DEBUG, 0, "Client", "Zone currently LOCKED: '%s' (%ul)", zoneName, zone_details.zoneId);
+			Message(CHANNEL_COLOR_RED, "This zone is locked, and you don't have the key! (%s).", zoneName);
+			return false;
+		}
 	}
 
 	sint16 zoneMinStatus = 0;
 	int16 zoneMinLevel = 0;
 	int16 zoneMaxLevel = 0;
 	int16 zoneMinVersion = 0;
-	if (!zone)
+	if (!zoneFound)
 	{
 		LogWrite(CCLIENT__DEBUG, 0, "Client", "Grabbing zone requirements for %s", zoneName);
 		bool success = database.GetZoneRequirements(zoneName, &zoneMinStatus, &zoneMinLevel, &zoneMaxLevel, &zoneMinVersion);
@@ -4799,10 +4890,10 @@ bool Client::CheckZoneAccess(const char* zoneName) {
 	}
 	else
 	{
-		zoneMinStatus = zone->GetMinimumStatus();
-		zoneMinLevel = zone->GetMinimumLevel();
-		zoneMaxLevel = zone->GetMaximumLevel();
-		zoneMinVersion = zone->GetMinimumVersion();
+		zoneMinStatus = zone_details.minStatus;
+		zoneMinLevel = zone_details.minLevel;
+		zoneMaxLevel = zone_details.maxLevel;
+		zoneMinVersion = zone_details.minVersion;
 	}
 
 	LogWrite(CCLIENT__DEBUG, 0, "Client", "Access Requirements: status %i, level %i - %i, req >= %i version", zoneMinStatus, zoneMinLevel, zoneMaxLevel, zoneMinVersion);
@@ -4855,54 +4946,75 @@ bool Client::CheckZoneAccess(const char* zoneName) {
 }
 
 void Client::Zone(int32 instanceid, bool set_coords, bool byInstanceID, bool is_spell) {
-	Zone(zone_list.GetByInstanceID(instanceid, 0, false, true), set_coords, is_spell);
+	ZoneChangeDetails zone_details;
+	if (zone_list.GetZoneByInstance(&zone_details, instanceid, 0)) {
+		Zone(&zone_details, (ZoneServer*)zone_details.zonePtr, set_coords, is_spell);
+	}
 
 }
 
-void Client::Zone(ZoneServer* new_zone, bool set_coords, bool is_spell) {
-	if (!new_zone) {
-		LogWrite(CCLIENT__DEBUG, 0, "Client", "Zone Request Denied! No 'new_zone' value");
-		return;
-	}
-	
-	if(GetVersion() == 373 && GetAdminStatus() == 0) {
-		if(strncasecmp(new_zone->GetZoneFile(),"boat_06p_tutorial02",19) && strncasecmp(new_zone->GetZoneFile(),"tutorial_island02",17) 
-			 && strncasecmp(new_zone->GetZoneFile(),"tutorial_island02_epic",22)) { // accounts for 01 and 02 zones
+void Client::Zone(ZoneChangeDetails* new_zone, ZoneServer* opt_zone, bool set_coords, bool is_spell) {
+	if (GetVersion() == 373 && GetAdminStatus() == 0) {
+		if (new_zone->zoneFileName.find("boat_06p_tutorial02") == std::string::npos && new_zone->zoneFileName.find("tutorial_island02") == std::string::npos
+			&& new_zone->zoneFileName.find("tutorial_island02_epic") == std::string::npos) { // accounts for 01 and 02 zones
 			SimpleMessage(CHANNEL_COLOR_RED, "This client does not currently support beyond the boat tutorial (farjourneyfreeport) or island of refuge (islerefuge1)");
 			return;
 		}
 	}
-	else if(GetVersion() < 546 && GetVersion() > 561) {
-		if(strncasecmp(new_zone->GetZoneFile(),"design_path_script",18) == 0) {
+	else if (GetVersion() < 546 && GetVersion() > 561) {
+		if (new_zone->zoneFileName.find("design_path_script") != std::string::npos) {
 			SimpleMessage(CHANNEL_COLOR_RED, "This zone is only available for KoS and earlier clients.");
 			return;
 		}
 	}
-	
+	if (client_zoning) {
+		return;
+	}
+
 	client_zoning = true;
-	zoning_id = new_zone->GetZoneID();
-	zoning_instance_id = new_zone->GetInstanceID();
-	
+	zoning_id = new_zone->zoneId;
+	zoning_instance_id = new_zone->instanceId;
+
 	LogWrite(CCLIENT__DEBUG, 0, "Client", "%s: Setting player Resurrecting to 'true'", __FUNCTION__);
 	player->SetResurrecting(true);
 
-	LogWrite(CCLIENT__DEBUG, 0, "Client", "%s: Removing player from fighting...", __FUNCTION__);
-	//GetCurrentZone()->GetCombat()->RemoveHate(player);
-	SaveSpells();
-	
+	if (set_coords)
+	{
+		LogWrite(CCLIENT__DEBUG, 0, "Client", "%s: Zoning player to coordinates x: %2f, y: %2f, z: %2f, heading: %2f in zone '%s'...",
+			__FUNCTION__,
+			new_zone->safeX,
+			new_zone->safeY,
+			new_zone->safeZ,
+			new_zone->safeHeading,
+			new_zone->zoneName.c_str()
+		);
+		player->SetX(new_zone->safeX);
+		player->SetY(new_zone->safeY);
+		player->SetZ(new_zone->safeZ);
+		player->SetHeading(new_zone->safeHeading);
+
+		SetZoningCoords(new_zone->safeX, new_zone->safeY,
+			new_zone->safeZ, new_zone->safeHeading);
+	}
+	else {
+		ResetZoningCoords();
+	}
+
+	Save();
+
 	ResetSendMail();
 	// Remove players pet from zone if there is one
 	((Entity*)player)->DismissAllPets();
 
 	LogWrite(CCLIENT__DEBUG, 0, "Client", "%s: Removing player from current zone...", __FUNCTION__);
 	GetCurrentZone()->RemoveSpawn(player, false, true, true, true, !is_spell);
-	
+
 	GetPlayer()->DeleteSpellEffects(true);
-		
-	LogWrite(CCLIENT__DEBUG, 0, "Client", "%s: Setting zone to '%s'...", __FUNCTION__, new_zone->GetZoneName());
-	SetZoningDestination(new_zone);
-	SetCurrentZone(new_zone);
-	
+
+	LogWrite(CCLIENT__DEBUG, 0, "Client", "%s: Setting zone to '%s'...", __FUNCTION__, new_zone->zoneName.c_str());
+	SetZoningDestination(opt_zone);
+	SetCurrentZone(opt_zone);
+
 	if (player->GetGroupMemberInfo())
 	{
 		LogWrite(CCLIENT__DEBUG, 0, "Client", "%s: Player in group, updating group info...", __FUNCTION__);
@@ -4915,44 +5027,69 @@ void Client::Zone(ZoneServer* new_zone, bool set_coords, bool is_spell) {
 
 	UpdateTimeStampFlag(ZONE_UPDATE_FLAG);
 
-	if (set_coords)
-	{
-		LogWrite(CCLIENT__DEBUG, 0, "Client", "%s: Zoning player to coordinates x: %2f, y: %2f, z: %2f, heading: %2f in zone '%s'...",
-			__FUNCTION__,
-			GetCurrentZone()->GetSafeX(),
-			GetCurrentZone()->GetSafeY(),
-			GetCurrentZone()->GetSafeZ(),
-			GetCurrentZone()->GetSafeHeading(),
-			new_zone->GetZoneName()
-		);
-		player->SetX(GetCurrentZone()->GetSafeX());
-		player->SetY(GetCurrentZone()->GetSafeY());
-		player->SetZ(GetCurrentZone()->GetSafeZ());
-		player->SetHeading(GetCurrentZone()->GetSafeHeading());
-			
-		SetZoningCoords(GetCurrentZone()->GetSafeX(), GetCurrentZone()->GetSafeY(), 
-						GetCurrentZone()->GetSafeZ(), GetCurrentZone()->GetSafeHeading());
-	}
-	else {
-		ResetZoningCoords();
-	}
-
-	LogWrite(CCLIENT__DEBUG, 0, "Client", "%s: Saving Player info...", __FUNCTION__);
-	Save();
-
-	char* new_zone_ip = 0;
-	if (IsPrivateAddress(this->GetIP()) && strlen(net.GetInternalWorldAddress()) > 0)
-		new_zone_ip = net.GetInternalWorldAddress();
+	const char* new_zone_ip = 0;
+	if (IsPrivateAddress(this->GetIP()) && new_zone->peerInternalWorldAddress.length() > 0)
+		new_zone_ip = new_zone->peerInternalWorldAddress.c_str();
 	else
-		new_zone_ip = net.GetWorldAddress();
+		new_zone_ip = new_zone->peerWorldAddress.c_str();
 	LogWrite(CCLIENT__DEBUG, 0, "Client", "%s: New Zone IP '%s'...", __FUNCTION__, new_zone_ip);
 
-	int32 key = Timer::GetUnixTimeStamp();
-	LogWrite(CCLIENT__DEBUG, 0, "Client", "%s: Sending ZoneChangeMsg...", __FUNCTION__);
-	ClientPacketFunctions::SendZoneChange(this, new_zone_ip, net.GetWorldPort(), key);
+	int32 key = static_cast<unsigned int>(MakeRandomFloat(0.01, 1.0) * UINT32_MAX);
 
-	LogWrite(CCLIENT__DEBUG, 0, "Client", "%s: Sending to zone_auth.AddAuth...", __FUNCTION__);
-	zone_auth.AddAuth(new ZoneAuthRequest(GetAccountID(), player->GetName(), key));
+	new_zone->zoneKey = key;
+	new_zone->authDispatchedTime = Timer::GetUnixTimeStamp();
+	zoning_details = ZoneChangeDetails(new_zone);
+	client_zoning_details_set = true;
+	if (new_zone->peerId.length() > 0 && new_zone->peerId != "self") {
+		if (new_zone->peerAuthorized) {
+			LogWrite(PEERING__INFO, 0, "Peering", "%s: Peer %s authorized us to zone...", __FUNCTION__, new_zone->peerId.c_str());
+		}
+		else {
+			boost::property_tree::ptree root;
+			struct in_addr  in;
+			in.s_addr = GetIP();
+			root.put("account_id", std::to_string(GetAccountID()));
+			root.put("character_name", std::string(player->GetName()));
+			root.put("zone_name", new_zone->zoneName);
+			root.put("zone_id", new_zone->zoneId);
+			root.put("instance_id", new_zone->instanceId);
+			root.put("login_key", std::to_string(key));
+			root.put("client_ip", std::string(inet_ntoa(in)));
+			root.put("first_login", false);
+			std::ostringstream jsonStream;
+			boost::property_tree::write_json(jsonStream, root);
+			std::string jsonPayload = jsonStream.str();
+			LogWrite(PEERING__INFO, 0, "Peering", "%s: Sending AddCharAuth for %s to peer %s:%u for zone %s", __FUNCTION__, player->GetName(), new_zone->peerWebAddress.c_str(), new_zone->peerWebPort, new_zone->zoneName.c_str());
+			peer_https_pool.sendPostRequestToPeerAsync(new_zone->peerId, new_zone->peerWebAddress, std::to_string(new_zone->peerWebPort), "/addcharauth", jsonPayload);
+
+		}
+	}
+	else {
+		LogWrite(CCLIENT__DEBUG, 0, "Client", "%s: Sending to zone_auth.AddAuth...", __FUNCTION__);
+		zone_auth.AddAuth(new ZoneAuthRequest(GetAccountID(), player->GetName(), key));
+		new_zone->peerAuthorized = true; // local, we can bypass (should technically already be true)
+		zoning_details = ZoneChangeDetails(new_zone);
+	}
+
+	if (new_zone->peerAuthorized) {
+		ApproveZone();
+	}
+}
+
+void Client::ApproveZone() {
+	if (!client_zoning_details_set) {
+		LogWrite(CCLIENT__DEBUG, 0, "Client", "%s: client zoning details not set to zone player %s...", __FUNCTION__, player->GetName());
+		return;
+	}
+	zoning_details.zoningPastAuth = true;
+	zoning_details.peerAuthorized = true;
+	const char* new_zone_ip = 0;
+	if (IsPrivateAddress(this->GetIP()) && zoning_details.peerInternalWorldAddress.length() > 0)
+		new_zone_ip = zoning_details.peerInternalWorldAddress.c_str();
+	else
+		new_zone_ip = zoning_details.peerWorldAddress.c_str();
+	LogWrite(CCLIENT__INFO, 0, "Client", "%s: Sending ZoneChangeMsg %s:%u with key %u...", player->GetName(), (char*)new_zone_ip, zoning_details.peerWorldPort, zoning_details.zoneKey);
+	ClientPacketFunctions::SendZoneChange(this, (char*)new_zone_ip, zoning_details.peerWorldPort, zoning_details.zoneKey);
 	if (version > 373) {
 		PacketStruct* packet = configReader.getStruct("WS_CancelMoveObjectMode", version);
 		if (packet)
@@ -4966,7 +5103,15 @@ void Client::Zone(ZoneServer* new_zone, bool set_coords, bool is_spell) {
 void Client::Zone(const char* new_zone, bool set_coords, bool is_spell)
 {
 	LogWrite(CCLIENT__DEBUG, 0, "Client", "Zone Request to '%s'", new_zone);
-	Zone(zone_list.Get(new_zone), set_coords, is_spell);
+	ZoneChangeDetails zone_details;
+
+	int32 zone_id = database.GetZoneID(new_zone);
+	std::string camelCaseName = database.GetZoneName(zone_id);
+
+	InstanceData* data = GetPlayer()->GetCharacterInstances()->FindInstanceByZoneID(zone_id);
+	if ((data && zone_list.GetZoneByInstance(&zone_details, data->instance_id, zone_id)) || zone_list.GetZone(&zone_details, 0, camelCaseName)) {
+		Zone(&zone_details, (ZoneServer*)zone_details.zonePtr, set_coords, is_spell);
+	}
 }
 
 float Client::DistanceFrom(Client* client) {
@@ -5100,7 +5245,7 @@ void Client::UpdateCharacterInstances() {
 void Client::HandleVerbRequest(EQApplicationPacket* app) {
 	PacketStruct* packet = configReader.getStruct("WS_EntityVerbsRequest", GetVersion());
 	if (packet) {
-		if(packet->LoadPacketData(app->pBuffer, app->size)) {
+		if (packet->LoadPacketData(app->pBuffer, app->size)) {
 			int32 spawn_id = packet->getType_int32_ByName("spawn_id");
 			PacketStruct* out = configReader.getStruct("WS_EntityVerbsResponse", GetVersion());
 			Spawn* spawn = GetPlayer()->GetSpawnWithPlayerID(spawn_id);
@@ -5144,9 +5289,34 @@ void Client::HandleVerbRequest(EQApplicationPacket* app) {
 							delete_commands.push_back(player->CreateEntityCommand("kick from group", 10000, "kickfromgroup", "", 0, 0));
 							delete_commands.push_back(player->CreateEntityCommand("make group leader", 10000, "makeleader", "", 0, 0));
 						}
-						if(spawn->IsPlayer() && player->GetGroupMemberInfo() && !player->GetGroupMemberInfo()->mentor_target_char_id)
+
+						world.GetGroupManager()->GroupLock(__FUNCTION__, __LINE__);
+						int32 spawn_group_id = ((Player*)spawn)->GetGroupMemberInfo()->group_id;
+						PlayerGroup* spawn_group = world.GetGroupManager()->GetGroup(spawn_group_id);
+
+						int32 player_group_id = player->GetGroupMemberInfo() ? player->GetGroupMemberInfo()->group_id : 0;
+						PlayerGroup* player_group = nullptr;
+						if (player_group_id)
+							player_group = world.GetGroupManager()->GetGroup(player_group_id);
+
+						if (spawn_group && !player->IsGroupMember((Player*)spawn) && !spawn_group->IsGroupRaid() && player_group && player->GetGroupMemberInfo()->leader
+							&& (!player_group->IsInRaidGroup(spawn_group_id) || player_group->IsInRaidGroup(player_group_id, true))) {
+							delete_commands.push_back(player->CreateEntityCommand("invite to raid", 10000, "raidinvite", "", 0, 0));
+						}
+						else if (spawn_group && player_group && player_group->IsInRaidGroup(player_group_id, true) && player->GetGroupMemberInfo()->leader && player_group->IsInRaidGroup(spawn_group_id)) {
+							if (((Player*)spawn)->GetGroupMemberInfo()->is_raid_looter) {
+								delete_commands.push_back(player->CreateEntityCommand("remove looter", 10000, "raid_looter", "", 0, 0));
+							}
+							else {
+								delete_commands.push_back(player->CreateEntityCommand("add looter", 10000, "raid_looter", "", 0, 0));
+							}
+							delete_commands.push_back(player->CreateEntityCommand("disband from raid", 10000, "raiddisband", "", 0, 0));
+						}
+						world.GetGroupManager()->ReleaseGroupLock(__FUNCTION__, __LINE__);
+
+						if (spawn->IsPlayer() && player->GetGroupMemberInfo() && !player->GetGroupMemberInfo()->mentor_target_char_id && player_group_id == spawn_group_id)
 							delete_commands.push_back(player->CreateEntityCommand("Mentor", 10000, "mentor", "", 0, 0));
-						else if(spawn->IsPlayer() && player->GetGroupMemberInfo() && player->GetGroupMemberInfo()->mentor_target_char_id == ((Player*)spawn)->GetCharacterID())
+						else if (spawn->IsPlayer() && player->GetGroupMemberInfo() && player->GetGroupMemberInfo()->mentor_target_char_id == ((Player*)spawn)->GetCharacterID())
 							delete_commands.push_back(player->CreateEntityCommand("Stop Mentoring", 10000, "unmentor", "", 0, 0));
 					}
 					else if (!player->GetGroupMemberInfo() || (player->GetGroupMemberInfo()->leader && world.GetGroupManager()->GetGroupSize(player->GetGroupMemberInfo()->group_id) < 6))
@@ -5229,7 +5399,7 @@ void Client::ChangeLevel(int16 old_level, int16 new_level) {
 		}
 	}
 
-	if (new_level > old_level) {		
+	if (new_level > old_level) {
 		player->UpdatePlayerHistory(HISTORY_TYPE_XP, HISTORY_SUBTYPE_ADVENTURE, new_level, player->GetAdventureClass());
 	}
 
@@ -5306,28 +5476,28 @@ void Client::ChangeLevel(int16 old_level, int16 new_level) {
 
 	player_skills->SetSkillCapsByType(SKILL_TYPE_ARMOR, new_skill_cap);
 	player_skills->SetSkillCapsByType(SKILL_TYPE_SHIELD, new_skill_cap);
-	
-	if(rule_manager.GetZoneRule(GetCurrentZoneID(), R_Player, AutoSkillUpBaseSkills)->GetBool()) {
+
+	if (rule_manager.GetZoneRule(GetCurrentZoneID(), R_Player, AutoSkillUpBaseSkills)->GetBool()) {
 		//SKILL_TYPE_ARMOR/SKILL_TYPE_SHIELD always has the same current / max values
 		player_skills->SetSkillValuesByType(SKILL_TYPE_ARMOR, new_skill_cap, false);
 		player_skills->SetSkillValuesByType(SKILL_TYPE_SHIELD, new_skill_cap, false);
 	}
-	
+
 	player_skills->SetSkillCapsByType(SKILL_TYPE_CLASS, new_skill_cap);
 	player_skills->SetSkillCapsByType(SKILL_TYPE_WEAPON, new_skill_cap);
-	
-	if(rule_manager.GetZoneRule(GetCurrentZoneID(), R_Player, AutoSkillUpBaseSkills)->GetBool()) {
+
+	if (rule_manager.GetZoneRule(GetCurrentZoneID(), R_Player, AutoSkillUpBaseSkills)->GetBool()) {
 		//SKILL_TYPE_CLASS/SKILL_TYPE_WEAPON always has the same current/max values
 		player_skills->SetSkillValuesByType(SKILL_TYPE_CLASS, new_skill_cap, false);
 		player_skills->SetSkillValuesByType(SKILL_TYPE_WEAPON, new_skill_cap, false);
 	}
-	
+
 	player_skills->SetSkillCapsByType(SKILL_TYPE_COMBAT, new_skill_cap);
 	player_skills->SetSkillCapsByType(SKILL_TYPE_GENERAL, new_skill_cap);
 	player_skills->SetSkillCapsByType(SKILL_TYPE_SPELLCASTING, new_skill_cap);
 	player_skills->SetSkillCapsByType(SKILL_TYPE_AVOIDANCE, new_skill_cap);
 	player_skills->SetSkillCapsByType(SKILL_TYPE_WEAPONRY, new_skill_cap);
-	
+
 	if (new_level > player->GetTSLevel())
 		player_skills->SetSkillCapsByType(SKILL_TYPE_HARVESTING, new_skill_cap);
 
@@ -5405,7 +5575,7 @@ void Client::ChangeLevel(int16 old_level, int16 new_level) {
 				((Bot*)bot)->ChangeLevel(old_level, new_level);
 		}
 	}
-	
+
 	if (GetPlayer()->GetHP() < GetPlayer()->GetTotalHP() || GetPlayer()->GetPower() < GetPlayer()->GetTotalPower())
 		GetPlayer()->GetZone()->AddDamagedSpawn(GetPlayer());
 }
@@ -5439,10 +5609,10 @@ void Client::ChangeTSLevel(int16 old_level, int16 new_level) {
 		QueuePacket(level_update->serialize());
 		safe_delete(level_update);
 	}
-	
+
 	// provide new spells upon levelling
 	SendNewTradeskillSpells();
-	
+
 	PacketStruct* command_packet = configReader.getStruct("WS_CannedEmote", GetVersion());
 	if (command_packet) {
 		command_packet->setDataByName("spawn_id", GetPlayer()->GetIDWithPlayerSpawn(GetPlayer()));
@@ -5618,8 +5788,8 @@ void Client::CloseLoot(int32 spawn_id) {
 			safe_delete(packet);
 		}
 	}
-	
-	if(spawn_id > 0){
+
+	if (spawn_id > 0) {
 		PacketStruct* packet = configReader.getStruct("WS_StoppedLooting", GetVersion());
 		if (packet) {
 			packet->setDataByName("spawn_id", spawn_id);
@@ -5628,9 +5798,9 @@ void Client::CloseLoot(int32 spawn_id) {
 				QueuePacket(outapp);
 			safe_delete(packet);
 		}
-		
+
 		Spawn* spawn = GetPlayer()->GetSpawnWithPlayerID(spawn_id);
-		if(spawn) {
+		if (spawn) {
 			spawn->CloseLoot(GetPlayer());
 		}
 	}
@@ -5830,16 +6000,17 @@ void Client::SendLootResponsePacket(int32 total_coins, vector<Item*>* items, Spa
 		}
 		safe_delete_array(data);
 		safe_delete(packet);
-		
+
 		if (!items || items->size() == 0)
 			CloseLoot(entity->GetID());
-		
+
 	}
 
 }
 
 bool Client::LootSpawnByMethod(Spawn* entity) {
 	bool sentLoot = false;
+	bool startWithLooter = true;
 	world.GetGroupManager()->GroupLock(__FUNCTION__, __LINE__);
 	GroupMemberInfo* gmi = GetPlayer()->GetGroupMemberInfo();
 	if (gmi && gmi->group_id)
@@ -5848,15 +6019,61 @@ bool Client::LootSpawnByMethod(Spawn* entity) {
 		if (group)
 		{
 			int8 auto_split_coin = group->GetGroupOptions()->auto_split;
-			group->MGroupMembers.readlock(__FUNCTION__, __LINE__);
-			deque<GroupMemberInfo*>* members = group->GetMembers();
+
+			bool isLeadGroup = group->IsInRaidGroup(group->GetID(), true);
+			bool isInRaid = group->IsInRaidGroup(group->GetID());
+			std::vector<int32> raidGroups;
+			group->GetRaidGroups(&raidGroups);
+
+			if (!isInRaid && raidGroups.size() < 1) {
+				raidGroups.push_back(group->GetID());
+			}
+			std::vector<int32>::iterator group_itr;
+
+
 			int32 split_coin_per_player = 0;
 			int32 coins_remain_after_split = entity->GetLootCoins();
 			int32 total_coins = entity->GetLootCoins();
 
-			if (auto_split_coin) {
-				int8 members_in_zone = 0;
+			bool foundLooterResetRaidRun = false;
+			int8 members_in_zone = 0;
+			for (group_itr = raidGroups.begin(); group_itr != raidGroups.end(); group_itr++) {
+				group = world.GetGroupManager()->GetGroup((*group_itr));
+				if (!group)
+					continue;
 
+				group->MGroupMembers.readlock(__FUNCTION__, __LINE__);
+				deque<GroupMemberInfo*>* members = group->GetMembers();
+				for (int8 i = 0; i < members->size(); i++) {
+					Entity* member = members->at(i)->member;
+					if (!member || !member->IsPlayer())
+						continue;
+					if (member->GetZone() != GetPlayer()->GetZone())
+						continue;
+
+					members_in_zone++;
+				}
+				group->MGroupMembers.releasereadlock(__FUNCTION__, __LINE__);
+			}
+			if (auto_split_coin) {
+				if (members_in_zone < 1) // this should not happen, but divide by zero checked
+					members_in_zone = 1;
+				split_coin_per_player = entity->GetLootCoins() / members_in_zone;
+				coins_remain_after_split = entity->GetLootCoins() - (split_coin_per_player * members_in_zone);
+				entity->SetLootCoins(0, false);
+			}
+			int32 lootGroup = 0;
+			for (group_itr = raidGroups.begin(); group_itr != raidGroups.end();) {
+				group = world.GetGroupManager()->GetGroup((*group_itr));
+				if (!group)
+					continue;
+
+				isLeadGroup = group->IsInRaidGroup((*group_itr), true);
+
+				group->MGroupMembers.readlock(__FUNCTION__, __LINE__);
+				deque<GroupMemberInfo*>* members = group->GetMembers();
+
+				LogWrite(LOOT__INFO, 0, "Loot", "%s: Group LootSpawnByMethod %u, auto coin split %u, split coin per player %u, remaining coin after split %u", entity->GetName(), entity->GetLootMethod(), auto_split_coin, split_coin_per_player, coins_remain_after_split);
 				for (int8 i = 0; i < members->size(); i++) {
 					Entity* member = members->at(i)->member;
 					if (!member || !member->IsPlayer())
@@ -5865,97 +6082,94 @@ bool Client::LootSpawnByMethod(Spawn* entity) {
 					if (member->GetZone() != GetPlayer()->GetZone())
 						continue;
 
-					members_in_zone++;
-				}
+					// this will make sure we properly send the loot window to the initial requester if there is no item rarity matches
+					if (startWithLooter && member != GetPlayer())
+						continue;
+					else if (!startWithLooter && member == GetPlayer())
+						continue;
 
-				if (members_in_zone < 1) // this should not happen, but divide by zero checked
-					members_in_zone = 0;
-
-				split_coin_per_player = entity->GetLootCoins() / members_in_zone;
-				coins_remain_after_split = entity->GetLootCoins() - (split_coin_per_player * members_in_zone);
-				entity->SetLootCoins(0, false);
-			}
-
-			LogWrite(LOOT__INFO, 0, "Loot", "%s: Group LootSpawnByMethod %u, auto coin split %u, split coin per player %u, remaining coin after split %u", entity->GetName(), entity->GetLootMethod(), auto_split_coin, split_coin_per_player, coins_remain_after_split);
-			bool startWithLooter = true;
-
-			for (int8 i = 0; i < members->size(); i++) {
-				Entity* member = members->at(i)->member;
-				if (!member || !member->IsPlayer())
-					continue;
-
-				if (member->GetZone() != GetPlayer()->GetZone())
-					continue;
-
-				// this will make sure we properly send the loot window to the initial requester if there is no item rarity matches
-				if (startWithLooter && member != GetPlayer())
-					continue;
-				else if (!startWithLooter && member == GetPlayer())
-					continue;
-				else if (startWithLooter) {
-					i = 0;
-					startWithLooter = false;
-				}
-
-				if (auto_split_coin && (split_coin_per_player + coins_remain_after_split) > 0) {
-					player->AddCoins(split_coin_per_player + coins_remain_after_split);
-					if (((Player*)member)->GetClient()) {
-						((Player*)member)->GetClient()->Message(CHANNEL_MONEY_SPLIT, "Your share of %s from the corpse of %s is %s.", GetCoinMessage(total_coins).c_str(), entity->GetLootName(), GetCoinMessage(split_coin_per_player + coins_remain_after_split).c_str());
+					if (auto_split_coin) {
+						int32 coin_recv = 0;
+						if (member == GetPlayer() && auto_split_coin && (split_coin_per_player + coins_remain_after_split) > 0) {
+							coin_recv = split_coin_per_player + coins_remain_after_split;
+							player->AddCoins(split_coin_per_player + coins_remain_after_split);
+							if (coins_remain_after_split > 0) // overflow of coin division went to the first player
+								coins_remain_after_split = 0;
+						}
+						else if (split_coin_per_player > 0) {
+							coin_recv = split_coin_per_player;
+							player->AddCoins(split_coin_per_player);
+						}
+						if (coin_recv && ((Player*)member)->GetClient()) {
+							((Player*)member)->GetClient()->Message(CHANNEL_MONEY_SPLIT, "Your share of %s from the corpse of %s is %s.", GetCoinMessage(total_coins).c_str(), entity->GetLootName(), GetCoinMessage(coin_recv).c_str());
+						}
 					}
-					if (coins_remain_after_split > 0) // overflow of coin division went to the first player
-						coins_remain_after_split = 0;
-				}
-				switch (entity->GetLootMethod()) {
-				case GroupLootMethod::METHOD_LOTTO:
-				case GroupLootMethod::METHOD_NEED_BEFORE_GREED: {
-					if (((Player*)member)->GetClient()) {
-						switch (member->GetInfoStruct()->get_group_auto_loot_method()) {
-						case 1: { // lotto, need
-							if (entity->GetLootMethod() == GroupLootMethod::METHOD_LOTTO) {
-								entity->AddLottoItemRequest(0xFFFFFFFF, GetPlayer()->GetID());
+					switch (entity->GetLootMethod()) {
+					case GroupLootMethod::METHOD_LOTTO:
+					case GroupLootMethod::METHOD_NEED_BEFORE_GREED: {
+						if (((Player*)member)->GetClient()) {
+							switch (member->GetInfoStruct()->get_group_auto_loot_method()) {
+							case 1: { // lotto, need
+								if (entity->GetLootMethod() == GroupLootMethod::METHOD_LOTTO) {
+									entity->AddLottoItemRequest(0xFFFFFFFF, GetPlayer()->GetID());
+								}
+								else { // *need* before greed
+									entity->AddNeedGreedItemRequest(0xFFFFFFFF, GetPlayer()->GetID(), true);
+								}
+								entity->AddSpawnLootWindowCompleted(member->GetID(), true);
+								// if it already exists we have to override the setting
+								entity->SetSpawnLootWindowCompleted(GetPlayer()->GetID());
+								break;
 							}
-							else { // *need* before greed
-								entity->AddNeedGreedItemRequest(0xFFFFFFFF, GetPlayer()->GetID(), true);
+							case 2: { // decline
+								entity->AddSpawnLootWindowCompleted(member->GetID(), true);
+								// if it already exists we have to override the setting
+								entity->SetSpawnLootWindowCompleted(GetPlayer()->GetID());
+								break;
 							}
-							entity->AddSpawnLootWindowCompleted(member->GetID(), true);
-							// if it already exists we have to override the setting
-							entity->SetSpawnLootWindowCompleted(GetPlayer()->GetID());
-							break;
+							default: { // presume 0 or higher than 2	
+								((Player*)member)->GetClient()->SendLootResponsePacket((!auto_split_coin && member == GetPlayer()) ? entity->GetLootCoins() : 0, entity->GetLootItems(), entity, true);
+								break;
+							}
+							}
+							sentLoot = true;
 						}
-						case 2: { // decline
-							entity->AddSpawnLootWindowCompleted(member->GetID(), true);
-							// if it already exists we have to override the setting
-							entity->SetSpawnLootWindowCompleted(GetPlayer()->GetID());
-							break;						
-						}
-						default: { // presume 0 or higher than 2	
-							((Player*)member)->GetClient()->SendLootResponsePacket((!auto_split_coin && member == GetPlayer()) ? entity->GetLootCoins() : 0, entity->GetLootItems(), entity, true);
-							break;
-						}
-						}
+						break;
+					}
+					case GroupLootMethod::METHOD_ROUND_ROBIN: {
+						entity->AddSpawnLootWindowCompleted(member->GetID(), true);
 						sentLoot = true;
+						break;
 					}
-					break;
-				}
-				case GroupLootMethod::METHOD_ROUND_ROBIN: {
-					entity->AddSpawnLootWindowCompleted(member->GetID(), true);
-					sentLoot = true;
-					break;
-				}
-				case GroupLootMethod::METHOD_LEADER: {
-					if (member->GetGroupMemberInfo()->leader)
-						((Player*)member)->GetClient()->SendLootResponsePacket((!auto_split_coin && member == GetPlayer()) ? entity->GetLootCoins() : 0, entity->GetLootItems(), entity);
-					break;
-				}
-				case GroupLootMethod::METHOD_FFA: {
-					if(member == GetPlayer()) {
-						((Player*)member)->GetClient()->SendLootResponsePacket((!auto_split_coin && member == GetPlayer()) ? entity->GetLootCoins() : 0, entity->GetLootItems(), entity);
+					case GroupLootMethod::METHOD_LEADER: {
+						if ((!isInRaid || (isInRaid && isLeadGroup)) && member->GetGroupMemberInfo()->leader)
+							((Player*)member)->GetClient()->SendLootResponsePacket((!auto_split_coin && member == GetPlayer()) ? entity->GetLootCoins() : 0, entity->GetLootItems(), entity);
+						break;
 					}
-					break;
+					case GroupLootMethod::METHOD_FFA: {
+						if (member == GetPlayer()) {
+							((Player*)member)->GetClient()->SendLootResponsePacket((!auto_split_coin && member == GetPlayer()) ? entity->GetLootCoins() : 0, entity->GetLootItems(), entity);
+						}
+						break;
+					}
+					}
+
+					if (startWithLooter) {
+						startWithLooter = false;
+						foundLooterResetRaidRun = true; // we got it, shouldn't hit this again
+						break;
+					}
 				}
+				group->MGroupMembers.releasereadlock(__FUNCTION__, __LINE__);
+				if (foundLooterResetRaidRun) {
+					group_itr = raidGroups.begin();
+					foundLooterResetRaidRun = false; // disable running it again
+					if (entity->GetLootMethod() == GroupLootMethod::METHOD_LEADER)
+						break;
 				}
+				else
+					group_itr++;
 			}
-			group->MGroupMembers.releasereadlock(__FUNCTION__, __LINE__);
 		}
 	}
 	world.GetGroupManager()->ReleaseGroupLock(__FUNCTION__, __LINE__);
@@ -6101,9 +6315,9 @@ void Client::CastGroupOrSelf(Entity* source, uint32 spellID, uint32 spellTier, f
 
 				for (int8 i = 0; i < members->size(); i++) {
 					Entity* member = members->at(i)->member;
-					if(!member)
+					if (!member)
 						continue;
-					
+
 					if (!member->Alive() || (member->GetZone() != source->GetZone()))
 						continue;
 					// if we have a radius provided then check if the group member is outside the radius or not
@@ -6158,26 +6372,26 @@ void Client::Bank(Spawn* banker, bool cancel) {
 
 }
 
-bool Client::BankHasCoin(int64 amount){
+bool Client::BankHasCoin(int64 amount) {
 	int32 tmp = 0;
-		
-	if(amount <= 0)
+
+	if (amount <= 0)
 		return 0;
 
 	//plat
 	if (amount >= 1000000) {
 		tmp = amount / 1000000;
 		int32 bank_coins_plat = GetPlayer()->GetBankCoinsPlat();
-	
-		if(bank_coins_plat >= tmp)
+
+		if (bank_coins_plat >= tmp)
 			return 1;
 	}
 	//gold
-	if (amount >= 10000) {		
+	if (amount >= 10000) {
 		tmp = amount / 10000;
 		int32 bank_coins_gold = GetPlayer()->GetBankCoinsGold();
-		
-		if(bank_coins_gold >= tmp)
+
+		if (bank_coins_gold >= tmp)
 			return 1;
 	}
 	//silver
@@ -6185,18 +6399,18 @@ bool Client::BankHasCoin(int64 amount){
 		tmp = amount / 100;
 		int32 bank_coins_silver = GetPlayer()->GetBankCoinsSilver();
 
-		if(bank_coins_silver >= tmp)
+		if (bank_coins_silver >= tmp)
 			return 1;
 	}
 	//copper
 	if (amount > 0) {
 		int32 bank_coins_copper = GetPlayer()->GetBankCoinsCopper();
-		
-		if(bank_coins_copper >= amount)
+
+		if (bank_coins_copper >= amount)
 			return 1;
 	}
 
-return 0;
+	return 0;
 }
 
 bool Client::BankWithdrawalNoBanker(int64 amount) {
@@ -6240,7 +6454,7 @@ bool Client::BankWithdrawalNoBanker(int64 amount) {
 		}
 		if (!cheater && amount >= 100) {
 			tmp = amount / 100;
-				int32 bank_coins_silver = GetPlayer()->GetBankCoinsSilver();
+			int32 bank_coins_silver = GetPlayer()->GetBankCoinsSilver();
 			if (tmp > bank_coins_silver)
 				cheater = true;
 			else {
@@ -6282,7 +6496,7 @@ bool Client::BankWithdrawalNoBanker(int64 amount) {
 		}
 		else
 			Message(CHANNEL_COLOR_RED, "Stop trying to cheat!");
-			return 0;
+		return 0;
 	}
 	return 0;
 }
@@ -6328,7 +6542,7 @@ void Client::BankWithdrawal(int64 amount) {
 		}
 		if (!cheater && amount >= 100) {
 			tmp = amount / 100;
-				int32 bank_coins_silver = GetPlayer()->GetBankCoinsSilver();
+			int32 bank_coins_silver = GetPlayer()->GetBankCoinsSilver();
 			if (tmp > bank_coins_silver)
 				cheater = true;
 			else {
@@ -6465,19 +6679,19 @@ void Client::AddPendingQuestAcceptReward(Quest* quest)
 }
 
 void Client::AddPendingQuestReward(Quest* quest, bool update, bool is_temporary, std::string description) {
-	QueueQuestReward(quest->GetQuestID(), is_temporary, false, false, (is_temporary ? quest->GetCoinTmpReward() : 0), 
-	(is_temporary ? quest->GetStatusTmpReward() : 0), description, false, 0);
+	QueueQuestReward(quest->GetQuestID(), is_temporary, false, false, (is_temporary ? quest->GetCoinTmpReward() : 0),
+		(is_temporary ? quest->GetStatusTmpReward() : 0), description, false, 0);
 	quest_updates = update;
-	if(quest_updates) {
+	if (quest_updates) {
 		SaveQuestRewardData(true);
 	}
 
 }
 
 void Client::QueueQuestReward(int32 quest_id, bool is_temporary, bool is_collection, bool has_displayed, int64 tmp_coin, int32 tmp_status, std::string description, bool db_saved, int32 index) {
-	if(HasQuestRewardQueued(quest_id, is_temporary, is_collection))
+	if (HasQuestRewardQueued(quest_id, is_temporary, is_collection))
 		return;
-	
+
 	QuestRewardData* data = new QuestRewardData;
 	data->quest_id = quest_id;
 	data->is_temporary = is_temporary;
@@ -6494,42 +6708,42 @@ void Client::QueueQuestReward(int32 quest_id, bool is_temporary, bool is_collect
 }
 
 bool Client::HasQuestRewardQueued(int32 quest_id, bool is_temporary, bool is_collection) {
-	
+
 	bool success = false;
 	MQuestPendingUpdates.readlock(__FUNCTION__, __LINE__);
 	if (quest_pending_reward.size() > 0) {
 		vector<QuestRewardData*>::iterator itr;
-		
+
 		for (itr = quest_pending_reward.begin(); itr != quest_pending_reward.end(); itr++) {
 			int32 questID = (*itr)->quest_id;
 			bool temporary = (*itr)->is_temporary;
 			bool collection = (*itr)->is_collection;
-			if( questID == quest_id && is_temporary == temporary && is_collection == collection ) {
+			if (questID == quest_id && is_temporary == temporary && is_collection == collection) {
 				success = true;
 				break;
 			}
 		}
 	}
 	MQuestPendingUpdates.releasereadlock(__FUNCTION__, __LINE__);
-	
+
 	return success;
 }
 
 void Client::RemoveQueuedQuestReward() {
 	MQuestPendingUpdates.writelock(__FUNCTION__, __LINE__);
-	if(quest_pending_reward.size() > 0) {
+	if (quest_pending_reward.size() > 0) {
 		QuestRewardData* data = quest_pending_reward.at(0);
-		if(data->db_saved) {
+		if (data->db_saved) {
 			Query query;
 			query.AddQueryAsync(GetCharacterID(), &database, Q_DELETE, "delete FROM character_quest_rewards where char_id = %u and indexed = %u", GetCharacterID(), data->db_index);
-			if(data->is_temporary && data->quest_id) {
+			if (data->is_temporary && data->quest_id) {
 				query.AddQueryAsync(GetCharacterID(), &database, Q_DELETE, "delete FROM character_quest_temporary_rewards where char_id = %u and quest_id = %u", GetCharacterID(), data->quest_id);
 			}
 		}
 		quest_pending_reward.erase(quest_pending_reward.begin());
 	}
 	MQuestPendingUpdates.releasewritelock(__FUNCTION__, __LINE__);
-	
+
 	SaveQuestRewardData(true);
 }
 
@@ -6542,7 +6756,7 @@ void Client::AddPendingQuestUpdate(int32 quest_id, int32 step_id, int32 progress
 }
 
 void Client::ProcessQuestUpdates() {
-	if(!IsReadyForUpdates())
+	if (!IsReadyForUpdates())
 		return;
 
 	if (quest_pending_updates.size() > 0) {
@@ -6567,48 +6781,50 @@ void Client::ProcessQuestUpdates() {
 	MQuestPendingUpdates.readlock(__FUNCTION__, __LINE__);
 	if (quest_pending_reward.size() > 0) {
 		MQuestPendingUpdates.releasereadlock(__FUNCTION__, __LINE__);
-		
+
 		// only able to display one reward at a time
-		if(GetPlayer()->IsActiveReward())
+		if (GetPlayer()->IsActiveReward())
 			return;
-		
+
 		Query query;
 		vector<QuestRewardData*>::iterator itr;
 		vector<QuestRewardData*> tmp_quest_rewards;
 		MQuestPendingUpdates.writelock(__FUNCTION__, __LINE__);
-		tmp_quest_rewards.insert(tmp_quest_rewards.begin(), quest_pending_reward.begin(), quest_pending_reward.begin()+1);
+		tmp_quest_rewards.insert(tmp_quest_rewards.begin(), quest_pending_reward.begin(), quest_pending_reward.begin() + 1);
 		MQuestPendingUpdates.releasewritelock(__FUNCTION__, __LINE__);
-		
+
 		bool delete_first = false;
 		for (itr = tmp_quest_rewards.begin(); itr != tmp_quest_rewards.end();) {
 			int32 questID = (*itr)->quest_id;
-			if((*itr)->is_collection && GetPlayer()->GetPendingCollectionReward()) {
+			if ((*itr)->is_collection && GetPlayer()->GetPendingCollectionReward()) {
 				DisplayCollectionComplete(GetPlayer()->GetPendingCollectionReward());
 				GetPlayer()->SetActiveReward(true);
 				(*itr)->has_displayed = true;
-				
+
 				UpdateCharacterRewardData((*itr));
 				break;
 			}
-			else if(questID > 0 && GetPlayer()->UpdateQuestReward(questID, (*itr))) {
+			else if (questID > 0 && GetPlayer()->UpdateQuestReward(questID, (*itr))) {
 				(*itr)->has_displayed = true;
 				UpdateCharacterRewardData((*itr));
 				// only able to display one reward at a time
 				break;
-			} else {
+			}
+			else {
 				delete_first = true;
 				LogWrite(CCLIENT__ERROR, 0, "Client", "Quest ID %u missing for Player %s, deleting quest id from tmp_quest_rewards.", questID, GetPlayer()->GetName());
 				break;
 			}
 		}
-			
-		if(delete_first) {
+
+		if (delete_first) {
 			RemoveQueuedQuestReward();
 		}
-	} else {
+	}
+	else {
 		MQuestPendingUpdates.releasereadlock(__FUNCTION__, __LINE__);
 	}
-	
+
 	MQuestPendingUpdates.readlock(__FUNCTION__, __LINE__);
 	if (quest_pending_reward.size() > 0) {
 		quest_updates = true;
@@ -6625,7 +6841,7 @@ void Client::CheckQuestQueue() {
 	last_update_time = 0;
 	vector<QueuedQuest*>::iterator itr;
 	for (itr = quest_queue.begin(); itr != quest_queue.end(); itr++) {
-		if(!GetPlayer()->SendQuestStepUpdate((*itr)->quest_id, (*itr)->step, (*itr)->display_quest_helper)) {
+		if (!GetPlayer()->SendQuestStepUpdate((*itr)->quest_id, (*itr)->step, (*itr)->display_quest_helper)) {
 			LogWrite(CCLIENT__ERROR, 0, "Client", "Queued Quest ID %u missing for Player %s, cannot send quest step update.", (*itr)->quest_id, GetPlayer()->GetName());
 		}
 		safe_delete((*itr));
@@ -6747,7 +6963,7 @@ void Client::AcceptQuest(int32 quest_id) {
 	MPendingQuestAccept.lock_shared();
 	if (player->pending_quests.count(quest_id) > 0) {
 		Quest* quest = player->pending_quests[quest_id];
-		if(quest) {
+		if (quest) {
 			MPendingQuestAccept.unlock_shared();
 			MPendingQuestAccept.lock();
 			player->pending_quests.erase(quest->GetQuestID());
@@ -6765,28 +6981,28 @@ void Client::AcceptQuest(int32 quest_id) {
 void Client::RemovePendingQuest(int32 quest_id) {
 	bool send_updates = false;
 	MPendingQuestAccept.lock_shared();
-	
+
 	if (player->pending_quests.count(quest_id) > 0) {
 		Quest* quest = player->pending_quests[quest_id];
 		MPendingQuestAccept.unlock_shared();
 		MPendingQuestAccept.lock();
 		player->pending_quests.erase(quest_id);
 		MPendingQuestAccept.unlock();
-		
-		if(lua_interface) {
+
+		if (lua_interface) {
 			lua_interface->CallQuestFunction(quest, "Declined", GetPlayer());
 			lua_interface->SetLuaUserDataStale(quest);
 		}
-		
+
 		safe_delete(quest);
-		
+
 		send_updates = true;
 	}
 	else {
 		MPendingQuestAccept.unlock_shared();
 	}
 
-	if(send_updates) {
+	if (send_updates) {
 		GetCurrentZone()->SendQuestUpdates(this);
 	}
 }
@@ -6807,7 +7023,7 @@ void Client::SetPlayerQuest(Quest* quest, map<int32, int32>* progress) {
 	}
 	if (lua_interface && step)
 		lua_interface->CallQuestFunction(quest, "CurrentStep", player, step->GetStepID());
-	else if(!step) {
+	else if (!step) {
 		LogWrite(QUEST__ERROR, 0, "Client", "Missing step for quest %s (ID %u), cannot CallQuestFunction for CurrentStep", quest->GetName(), quest->GetQuestID());
 	}
 }
@@ -6824,13 +7040,13 @@ void Client::AddPlayerQuest(Quest* quest, bool call_accepted, bool send_packets)
 		RemovePlayerQuest(questID, false, false);
 	}
 	player->player_quests[quest->GetQuestID()] = quest;
-	
-	if(!lockCleared)
+
+	if (!lockCleared)
 		GetPlayer()->MPlayerQuests.releasewritelock(__FUNCTION__, __LINE__);
-	
+
 	quest->SetPlayer(player);
 	quest->SetSaveNeeded(true);
-	
+
 	current_quest_id = quest->GetQuestID();
 	if (send_packets && quest->GetQuestGiver() > 0)
 		GetCurrentZone()->SendSpawnChangesByDBID(quest->GetQuestGiver(), this, false, true);
@@ -6941,7 +7157,7 @@ void Client::SendQuestUpdate(Quest* quest) {
 			if (step->WasUpdated()) {
 				// reversing the order of SendQuestJournal and QueuePacket QuestJournalReply causes AoM client to crash!
 				SendQuestJournal(false, 0, true);
-				if(!updated)
+				if (!updated)
 					QueuePacket(quest->QuestJournalReply(GetVersion(), GetNameCRC(), player, step));
 				updated = true;
 			}
@@ -7005,11 +7221,11 @@ Quest* Client::GetPendingQuestAcceptance(int32 item_id) {
 	Quest* quest = nullptr;
 	for (itr = pending_quest_accept.begin(); itr != pending_quest_accept.end();) {
 		questID = *itr;
-		
+
 		bool quest_exists = false;
 		quest = GetPlayer()->PendingQuestAcceptance(questID, item_id, &quest_exists);
-		
-		if(!quest_exists) {
+
+		if (!quest_exists) {
 			LogWrite(CCLIENT__ERROR, 0, "Client", "Quest ID %u missing for Player %s, removing quest id from pending_quest_accept.", questID, GetPlayer()->GetName());
 			itr = pending_quest_accept.erase(itr);
 			quest = nullptr;
@@ -7019,7 +7235,7 @@ Quest* Client::GetPendingQuestAcceptance(int32 item_id) {
 			pending_quest_accept.erase(itr);
 			break;
 		}
-		
+
 		itr++;
 	}
 
@@ -7039,10 +7255,10 @@ void Client::AcceptQuestReward(Quest* quest, int32 item_id) {
 
 	vector<Item*>* items = 0;
 	vector<Item*>* tmpItems = 0;
-	
+
 	bool isTempState = quest->GetQuestTemporaryState();
-	
-	if(isTempState)
+
+	if (isTempState)
 	{
 		tmpItems = quest->GetTmpRewardItems();
 		if (tmpItems && tmpItems->size() > 0)
@@ -7060,11 +7276,11 @@ void Client::AcceptQuestReward(Quest* quest, int32 item_id) {
 			totalItems += items->size();
 		}
 	}
-	
+
 	RemoveQueuedQuestReward();
-	
+
 	GetPlayer()->SetActiveReward(false);
-		
+
 	if (free_slots >= num_slots_needed || (player->item_list.HasFreeBagSlot() && master_item && master_item->IsBag() && master_item->bag_info->num_slots >= totalItems)) {
 		if (master_item)
 			AddItem(item_id);
@@ -7089,8 +7305,8 @@ void Client::AcceptQuestReward(Quest* quest, int32 item_id) {
 			else
 				player->GetFactions()->DecreaseFaction(faction_id, (amount * -1));
 		}
-		
-		if(quest->GetQuestTemporaryState())
+
+		if (quest->GetQuestTemporaryState())
 		{
 			int64 total_coins = quest->GetCoinTmpReward();
 			if (total_coins > 0)
@@ -7099,9 +7315,9 @@ void Client::AcceptQuestReward(Quest* quest, int32 item_id) {
 			player->GetInfoStruct()->add_status_points(quest->GetStatusTmpReward());
 		}
 		else {
-			player->GetInfoStruct()->add_status_points(quest->GetStatusPoints());		
+			player->GetInfoStruct()->add_status_points(quest->GetStatusPoints());
 		}
-		
+
 		quest->SetQuestTemporaryState(false);
 		player->SetCharSheetChanged(true);
 	}
@@ -7121,10 +7337,10 @@ void Client::DisplayQuestRewards(Quest* quest, int64 coin, vector<Item*>* reward
 		else*/
 		return;//nothing to give
 	}
-	
+
 	GetPlayer()->ClearPendingSelectableItemRewards(0, true);
 	GetPlayer()->ClearPendingItemRewards();
-	
+
 	PacketStruct* packet2 = configReader.getStruct("WS_QuestRewardPackMsg", GetVersion());
 	if (packet2) {
 		int32 source_id = 0;
@@ -7158,38 +7374,38 @@ void Client::DisplayQuestRewards(Quest* quest, int64 coin, vector<Item*>* reward
 			}
 			packet2->setSubstructDataByName("reward_data", "status_points", status_points);
 		}
-		if(text)
+		if (text)
 			packet2->setSubstructDataByName("reward_data", "text", text);
-		
-		
+
+
 		std::vector<Item*> items;
 		quest->GetTmpRewardItemsByID(&items);
-		if(rewards || items.size() > 0){
+		if (rewards || items.size() > 0) {
 			int32 item_count = items.size();
 			item_count += rewards ? rewards->size() : 0;
 			packet2->setSubstructArrayLengthByName("reward_data", "num_rewards", item_count);
 			int i = 0;
-			if(rewards) {
+			if (rewards) {
 				for (i = 0; i < rewards->size(); i++) {
 					Item* item = rewards->at(i);
 					if (item) {
 						packet2->setArrayDataByName("reward_id", item->details.item_id, i);
 						packet2->setItemArrayDataByName("item", item, player, i, 0, GetClientItemPacketOffset());
 					}
-					if(!quest) //this entire function is either for version <=561 or for quest rewards in middle of quest, so quest should be 0, otherwise quest will handle the rewards
+					if (!quest) //this entire function is either for version <=561 or for quest rewards in middle of quest, so quest should be 0, otherwise quest will handle the rewards
 						player->AddPendingItemReward(item); //item reference will be deleted after the player accepts it
 				}
 			}
-			
+
 			for (int j = 0; j < items.size(); j++) {
 				Item* item = items.at(j);
 				if (item) {
 					packet2->setArrayDataByName("reward_id", item->details.item_id, i);
 					packet2->setItemArrayDataByName("item", item, player, i, 0, GetClientItemPacketOffset());
 				}
-				if(!quest) //this entire function is either for version <=561 or for quest rewards in middle of quest, so quest should be 0, otherwise quest will handle the rewards
+				if (!quest) //this entire function is either for version <=561 or for quest rewards in middle of quest, so quest should be 0, otherwise quest will handle the rewards
 					player->AddPendingItemReward(item); //item reference will be deleted after the player accepts it
-				
+
 				i++;
 			}
 		}
@@ -7234,17 +7450,17 @@ void Client::DisplayQuestRewards(Quest* quest, int64 coin, vector<Item*>* reward
 	}
 }
 
-void Client::PopulateQuestRewardItems(vector <Item*>* items, PacketStruct* packet, 
-										std::string num_rewards_str, std::string reward_id_str, std::string item_str) {
-	if(!items || !packet)
+void Client::PopulateQuestRewardItems(vector <Item*>* items, PacketStruct* packet,
+	std::string num_rewards_str, std::string reward_id_str, std::string item_str) {
+	if (!items || !packet)
 		return;
-	
+
 	if (items) {
 		int32 total_item_count = 0;
-		for(int s=0;s<items->size();s++) {
+		for (int s = 0; s < items->size(); s++) {
 			Item* tmpItem = items->at(s);
-			if(tmpItem) {
-				if(tmpItem->details.count > 1) {
+			if (tmpItem) {
+				if (tmpItem->details.count > 1) {
 					total_item_count += tmpItem->details.count;
 				}
 				else {
@@ -7263,25 +7479,25 @@ void Client::PopulateQuestRewardItems(vector <Item*>* items, PacketStruct* packe
 				packet->setItemArrayDataByName(item_str.c_str(), items->at(i), player, pos);
 			else
 				packet->setItemArrayDataByName(item_str.c_str(), items->at(i), player, pos, 0, 2);
-			
+
 			pos++;
-			
-			if(count >= items->at(i)->details.count-1) {
+
+			if (count >= items->at(i)->details.count - 1) {
 				count = 0;
 			}
-			else if(items->at(i)->details.count > 1) {
+			else if (items->at(i)->details.count > 1) {
 				count++;
 				continue;
 			}
-			
+
 			i++;
 		}
 	}
 }
-void Client::DisplayQuestComplete(Quest* quest, bool tempReward, std::string customDescription, bool was_displayed) {	
+void Client::DisplayQuestComplete(Quest* quest, bool tempReward, std::string customDescription, bool was_displayed) {
 	if (!quest)
 		return;
-	
+
 	if (GetVersion() <= 561) {
 		DisplayQuestRewards(quest, 0, quest->GetRewardItems(), quest->GetSelectableRewardItems(), quest->GetRewardFactions(), "Quest Complete!", quest->GetStatusPoints(), tempReward ? customDescription.c_str() : quest->GetCompletedDescription(), was_displayed);
 		return;
@@ -7290,13 +7506,13 @@ void Client::DisplayQuestComplete(Quest* quest, bool tempReward, std::string cus
 	if (packet) {
 		packet->setDataByName("title", "Quest Reward!");
 		packet->setDataByName("name", quest->GetName());
-		if(tempReward)
+		if (tempReward)
 		{
 			packet->setDataByName("description", customDescription.c_str());
 		}
 		else
 			packet->setDataByName("description", quest->GetCompletedDescription());
-		
+
 		packet->setDataByName("level", quest->GetLevel());
 		packet->setDataByName("encounter_level", quest->GetEncounterLevel());
 		int8 difficulty = 0;
@@ -7306,7 +7522,7 @@ void Client::DisplayQuestComplete(Quest* quest, bool tempReward, std::string cus
 			difficulty = player->GetArrowColor(quest->GetLevel());
 		packet->setDataByName("difficulty", difficulty);
 
-		if(tempReward)
+		if (tempReward)
 		{
 			packet->setDataByName("max_coin", quest->GetCoinTmpReward());
 			packet->setDataByName("min_coin", quest->GetCoinTmpReward());
@@ -7327,16 +7543,16 @@ void Client::DisplayQuestComplete(Quest* quest, bool tempReward, std::string cus
 			packet->setDataByName("status_points", quest->GetStatusPoints());
 		}
 
-		if(tempReward) {
+		if (tempReward) {
 			PopulateQuestRewardItems(quest->GetTmpRewardItems(), packet);
 		}
 		else
 		{
 			vector<Item*>* items2 = quest->GetSelectableRewardItems();
 			PopulateQuestRewardItems(quest->GetRewardItems(), packet);
-			PopulateQuestRewardItems(quest->GetSelectableRewardItems(), packet, std::string("num_select_rewards"), 
-										std::string("select_reward_id"), std::string("select_item"));
-			
+			PopulateQuestRewardItems(quest->GetSelectableRewardItems(), packet, std::string("num_select_rewards"),
+				std::string("select_reward_id"), std::string("select_item"));
+
 			map<int32, sint32>* reward_factions = quest->GetRewardFactions();
 			if (reward_factions && reward_factions->size() > 0) {
 				packet->setArrayLengthByName("num_factions", reward_factions->size());
@@ -7424,23 +7640,23 @@ void Client::DisplayRandomizeFeatures(int32 flags) {
 void Client::GiveQuestReward(Quest* quest, bool has_displayed) {
 	current_quest_id = 0;
 
-	if(!quest->GetQuestTemporaryState() && !has_displayed)
+	if (!quest->GetQuestTemporaryState() && !has_displayed)
 	{
 		quest->IncrementCompleteCount();
 		player->AddCompletedQuest(quest);
 	}
-	
+
 	AddPendingQuestAcceptReward(quest);
-		
+
 	DisplayQuestComplete(quest, quest->GetQuestTemporaryState(), quest->GetQuestTemporaryDescription());
 	LogWrite(CCLIENT__DEBUG, 0, "Client", "Send Quest Journal...");
 	SendQuestJournal();
-	
-	if(quest->GetQuestTemporaryState()) {
+
+	if (quest->GetQuestTemporaryState()) {
 		return;
 	}
 
-	if(!has_displayed) {
+	if (!has_displayed) {
 		if (quest->GetExpReward() > 0) {
 			int32 xp = quest->GetExpReward();
 			player->AddXP(xp);
@@ -7458,15 +7674,15 @@ void Client::GiveQuestReward(Quest* quest, bool has_displayed) {
 		int64 total_coins = quest->GetGeneratedCoin();
 		if (total_coins > 0)
 			AwardCoins(total_coins, std::string("for completing ").append(quest->GetName()));
-		
+
 		player->RemoveQuest(quest->GetQuestID(), false);
 	}
-	
+
 	if (quest->GetQuestGiver() > 0)
 		GetCurrentZone()->SendSpawnChangesByDBID(quest->GetQuestGiver(), this, false, true);
-	
-	if(!has_displayed) {
-		RemovePlayerQuest(quest->GetQuestID(), true, false);	
+
+	if (!has_displayed) {
+		RemovePlayerQuest(quest->GetQuestID(), true, false);
 	}
 }
 
@@ -7554,14 +7770,14 @@ void Client::CloseDialog(int32 conversation_id) {
 	}
 
 	std::map<int32, Item*>::iterator itr;
-	while((itr = conversation_items.find(conversation_id)) != conversation_items.end())
+	while ((itr = conversation_items.find(conversation_id)) != conversation_items.end())
 	{
 		conversation_items.erase(itr);
 	}
-	
+
 	std::map<int32, int32>::iterator itr2 = conversation_spawns.find(conversation_id);
 
-	while((itr2 = conversation_spawns.find(conversation_id)) != conversation_spawns.end())
+	while ((itr2 = conversation_spawns.find(conversation_id)) != conversation_spawns.end())
 	{
 		conversation_spawns.erase(itr2);
 	}
@@ -7680,7 +7896,7 @@ bool Client::AddItem(int32 item_id, int16 quantity, AddItemType type) {
 	if (item) {
 		if (quantity > 0)
 			item->details.count = quantity;
-		
+
 		return AddItem(item, nullptr, type);
 	}
 	else
@@ -7717,7 +7933,7 @@ bool Client::AddItem(Item* item, bool* item_deleted, AddItemType type) {
 		lua_interface->SetLuaUserDataStale(item);
 		// likely lore conflict
 
-		if(item_deleted)
+		if (item_deleted)
 			*item_deleted = true;
 
 		return false;
@@ -7776,11 +7992,11 @@ void Client::UnequipItem(int16 index, sint32 bag_id, int8 to_slot, int8 appearan
 	vector<EQ2Packet*> packets = GetPlayer()->UnequipItem(index, bag_id, to_slot, GetVersion(), appearance_equip);
 	EQ2Packet* outapp = 0;
 
-	for(int32 i=0;i<packets.size();i++)
+	for (int32 i = 0; i < packets.size(); i++)
 	{
 		outapp = packets[i];
 
-		if(outapp)
+		if (outapp)
 			QueuePacket(outapp);
 	}
 
@@ -7804,9 +8020,9 @@ bool Client::RemoveItem(Item* item, int16 quantity, bool force_override_no_delet
 		delete_item = true;
 	}
 
-	if(force_override_no_delete)
+	if (force_override_no_delete)
 		delete_item = false;
-	
+
 	if ((outapp = player->SendInventoryUpdate(version))) {
 		QueuePacket(outapp);
 		if (item->GetItemScript() && lua_interface)
@@ -7909,7 +8125,7 @@ float Client::CalculateSellMultiplier(int32 merchant_id) {
 void Client::SellItem(int32 item_id, int16 quantity, int32 unique_id) {
 	Spawn* spawn = GetMerchantTransaction();
 	Guild* guild = GetPlayer()->GetGuild();
-	if (spawn && spawn->GetMerchantID() > 0 && (!(spawn->GetMerchantType() & MERCHANT_TYPE_NO_BUY)) && 
+	if (spawn && spawn->GetMerchantID() > 0 && (!(spawn->GetMerchantType() & MERCHANT_TYPE_NO_BUY)) &&
 		spawn->IsClientInMerchantLevelRange(this)) {
 		int32 total_sell_price = 0;
 		int32 total_status_sell_price = 0; //for status
@@ -7926,12 +8142,12 @@ void Client::SellItem(int32 item_id, int16 quantity, int32 unique_id) {
 		if (!item)
 			item = player->item_list.GetItemFromID(item_id);
 		if (item && master_item) {
-			if(item->details.item_locked || item->details.equip_slot_id)
+			if (item->details.item_locked || item->details.equip_slot_id)
 			{
 				SimpleMessage(CHANNEL_COLOR_RED, "You cannot sell the item in use.");
 				return;
 			}
-			else if(item->CheckFlag(NO_VALUE))
+			else if (item->CheckFlag(NO_VALUE))
 			{
 				SimpleMessage(CHANNEL_COLOR_RED, "This item has no value.");
 				return;
@@ -7961,7 +8177,7 @@ void Client::SellItem(int32 item_id, int16 quantity, int32 unique_id) {
 
 			total_status_sell_price = status_sell_price * quantity;
 
-			if(total_status_sell_price > 0 && (!(spawn->GetMerchantType() & MERCHANT_TYPE_CITYMERCHANT)))
+			if (total_status_sell_price > 0 && (!(spawn->GetMerchantType() & MERCHANT_TYPE_CITYMERCHANT)))
 				total_status_sell_price = 0;
 
 			player->GetInfoStruct()->add_status_points(total_status_sell_price);
@@ -7975,21 +8191,21 @@ void Client::SellItem(int32 item_id, int16 quantity, int32 unique_id) {
 			}
 			if (quantity > 1)
 			{
-				if(total_status_sell_price)
+				if (total_status_sell_price)
 					Message(CHANNEL_MERCHANT_BUY_SELL, "You sell %i %s to %s for %s and %u Status Points.", quantity, master_item->CreateItemLink(GetVersion()).c_str(), spawn->GetName(), GetCoinMessage(total_sell_price).c_str(), status_sell_price);
 				else
 					Message(CHANNEL_MERCHANT_BUY_SELL, "You sell %i %s to %s for %s.", quantity, master_item->CreateItemLink(GetVersion()).c_str(), spawn->GetName(), GetCoinMessage(total_sell_price).c_str());
 			}
 			else
 			{
-				if(total_status_sell_price)
+				if (total_status_sell_price)
 					Message(CHANNEL_MERCHANT_BUY_SELL, "You sell %s to %s for %s and %u Status Points.", master_item->CreateItemLink(GetVersion()).c_str(), spawn->GetName(), GetCoinMessage(total_sell_price).c_str(), status_sell_price);
 				else
 					Message(CHANNEL_MERCHANT_BUY_SELL, "You sell %s to %s for %s.", master_item->CreateItemLink(GetVersion()).c_str(), spawn->GetName(), GetCoinMessage(total_sell_price).c_str());
 			}
 			player->AddCoins(total_sell_price);
 
-			if(!item->no_buy_back && (total_status_sell_price == 0 || (total_status_sell_price > 0 && (!(spawn->GetMerchantType() & MERCHANT_TYPE_CITYMERCHANT)))))
+			if (!item->no_buy_back && (total_status_sell_price == 0 || (total_status_sell_price > 0 && (!(spawn->GetMerchantType() & MERCHANT_TYPE_CITYMERCHANT)))))
 				AddBuyBack(unique_id, item_id, quantity, sell_price);
 
 			if (quantity >= item->details.count) {
@@ -8003,7 +8219,7 @@ void Client::SellItem(int32 item_id, int16 quantity, int32 unique_id) {
 			EQ2Packet* outapp = player->SendInventoryUpdate(GetVersion());
 			if (outapp)
 				QueuePacket(outapp);
-			
+
 			if (!(spawn->GetMerchantType() & MERCHANT_TYPE_NO_BUY_BACK))
 				SendBuyBackList();
 		}
@@ -8013,7 +8229,7 @@ void Client::SellItem(int32 item_id, int16 quantity, int32 unique_id) {
 
 void Client::BuyBack(int32 item_id, int16 quantity) {
 	Spawn* spawn = GetMerchantTransaction();
-	if (spawn && spawn->GetMerchantID() > 0 && (!(spawn->GetMerchantType() & MERCHANT_TYPE_NO_BUY_BACK)) && 
+	if (spawn && spawn->GetMerchantID() > 0 && (!(spawn->GetMerchantType() & MERCHANT_TYPE_NO_BUY_BACK)) &&
 		spawn->IsClientInMerchantLevelRange(this)) {
 		deque<BuyBackItem*>::iterator itr;
 		BuyBackItem* buyback = 0;
@@ -8063,19 +8279,19 @@ void Client::BuyBack(int32 item_id, int16 quantity) {
 					closest->save_needed = true;
 				}
 				itemAdded = AddItem(item, &itemDeleted);
-				
+
 				if (removed) {
 					database.DeleteBuyBack(GetCharacterID(), closest->item_id, closest->quantity, closest->price);
 					safe_delete(closest);
 				}
-				
+
 				if (!(spawn->GetMerchantType() & MERCHANT_TYPE_NO_BUY_BACK))
 					SendBuyBackList();
 			}
 			else
 				SimpleMessage(CHANNEL_COLOR_RED, "You cannot afford this item.");
 
-			if(!itemAdded && !itemDeleted) {
+			if (!itemAdded && !itemDeleted) {
 				lua_interface->SetLuaUserDataStale(item);
 				safe_delete(item);
 			}
@@ -8126,7 +8342,7 @@ void Client::BuyItem(int32 item_id, int16 quantity) {
 				SimpleMessage(CHANNEL_NARRATIVE, "You do not meet all the requirements to buy this item.");
 				return;
 			}
-			if(quantity < 1)
+			if (quantity < 1)
 			{
 				SimpleMessage(CHANNEL_COLOR_RED, "Merchant does not have item for purchase (quantity < 1).");
 				return;
@@ -8151,13 +8367,13 @@ void Client::BuyItem(int32 item_id, int16 quantity) {
 							Message(CHANNEL_MERCHANT_BUY_SELL, "You buy %s from %s for%s.", master_item->CreateItemLink(GetVersion()).c_str(), spawn->GetName(), GetCoinMessage(total_buy_price).c_str());
 						bool itemDeleted = false;
 						AddItem(item, &itemDeleted);
-						if(!itemDeleted) {
+						if (!itemDeleted) {
 							CheckPlayerQuestsItemUpdate(item);
 							if (item && total_available < 0xFF) {
 								world.DecreaseMerchantQuantity(spawn->GetMerchantID(), item_id, quantity);
 								SendBuyMerchantList();
 							}
-							
+
 							if (spawn->GetMerchantType() & MERCHANT_TYPE_LOTTO)
 								PlayLotto(total_buy_price, item->details.item_id);
 						}
@@ -8248,13 +8464,13 @@ void Client::BuyItem(int32 item_id, int16 quantity) {
 								Message(CHANNEL_MERCHANT_BUY_SELL, "You buy %s from %s for%s.", master_item->CreateItemLink(GetVersion()).c_str(), spawn->GetName(), GetCoinMessage(ItemInfo->price_coins * quantity).c_str());
 							bool itemDeleted = false;
 							AddItem(item, &itemDeleted);
-							if(!itemDeleted) {
+							if (!itemDeleted) {
 								CheckPlayerQuestsItemUpdate(item);
 								if (item && total_available < 0xFF) {
 									world.DecreaseMerchantQuantity(spawn->GetMerchantID(), item_id, quantity);
 									SendBuyMerchantList();
 								}
-								
+
 								SendSellMerchantList();
 								if (spawn->GetMerchantType() & MERCHANT_TYPE_LOTTO)
 									PlayLotto(total_buy_price, item->details.item_id);
@@ -8286,7 +8502,7 @@ void Client::RepairItem(int32 item_id) {
 		if (!item)
 			item = player->GetEquipmentList()->GetItemFromItemID(item_id);
 		if (item) {
-			if(item->CheckFlag2(NO_REPAIR)) {
+			if (item->CheckFlag2(NO_REPAIR)) {
 				Message(CHANNEL_MERCHANT, "The mender was unable to repair your items.");
 				PlaySound("buy_failed");
 			}
@@ -8495,7 +8711,7 @@ void Client::SendBuyMerchantList(bool sell) {
 					else
 						tmp_level = item->generic_info.tradeskill_default_level;
 					packet->setArrayDataByName("level", tmp_level, i);
-					if(rule_manager.GetZoneRule(GetCurrentZoneID(), R_World, DisplayItemTiers)->GetBool()) {
+					if (rule_manager.GetZoneRule(GetCurrentZoneID(), R_World, DisplayItemTiers)->GetBool()) {
 						packet->setArrayDataByName("tier", item->details.tier, i);
 					}
 					packet->setArrayDataByName("item_id2", item->details.item_id, i);
@@ -8510,7 +8726,7 @@ void Client::SendBuyMerchantList(bool sell) {
 					item_difficulty -= 6;
 					if (item_difficulty < 0)
 						item_difficulty *= -1;
-					
+
 					packet->setArrayDataByName("item_difficulty", item_difficulty, i);
 					packet->setArrayDataByName("quantity", ItemInfo.quantity, i);
 					packet->setArrayDataByName("unknown5", 255, i);
@@ -8519,12 +8735,12 @@ void Client::SendBuyMerchantList(bool sell) {
 					sint64 dispFlags = 0;
 					if (item->GetItemScript() && lua_interface && lua_interface->RunItemScript(item->GetItemScript(), "buy_display_flags", item, player, nullptr, &dispFlags))
 						packet->setArrayDataByName("display_flags", (int8)dispFlags, i);
-					
+
 					std::string overrideValueStr;
 					// classic client isn't properly tracking this field, DoF we don't have it identified yet, but no field to cause any issues (can add later if identified)
 					if (GetVersion() >= 546 && item->GetItemScript() && lua_interface && lua_interface->RunItemScriptWithReturnString(item->GetItemScript(), "item_description", item, player, &overrideValueStr))
 						packet->setArrayDataByName("description", overrideValueStr.c_str(), i);
-					
+
 					// If no price set in the merchant_inventory table then use the old method
 					if (ItemInfo.price_item_id == 0 && ItemInfo.price_item2_id == 0 && ItemInfo.price_coins == 0 && ItemInfo.price_status == 0 && ItemInfo.price_stationcash == 0) {
 						sell_price = (int32)(item->sell_price * multiplier);
@@ -8616,7 +8832,7 @@ void Client::SendSellMerchantList(bool sell) {
 	Spawn* spawn = GetMerchantTransaction();
 	if (!spawn || (spawn->GetMerchantType() & MERCHANT_TYPE_NO_BUY) || (spawn->GetMerchantType() & MERCHANT_TYPE_LOTTO))
 		return;
-	
+
 	if (spawn && spawn->GetMerchantID() > 0 && spawn->IsClientInMerchantLevelRange(this)) {
 		map<int32, Item*>* items = player->GetItemList();
 		if (items) {
@@ -8628,7 +8844,7 @@ void Client::SendSellMerchantList(bool sell) {
 					bool isbagwithitems = false;
 					if (test_itr->second && test_itr->second->IsBag() && (test_itr->second->details.num_slots - test_itr->second->details.num_free_slots != test_itr->second->details.num_slots))
 						isbagwithitems = true;
-					
+
 					if (test_itr->second && !test_itr->second->CheckFlag(NO_VALUE) && (isbagwithitems == false) && (test_itr->second->details.inv_slot_id != -3) && (test_itr->second->details.inv_slot_id != -4))
 						sellable_items.push_back(test_itr->second);
 				}
@@ -8660,7 +8876,7 @@ void Client::SendSellMerchantList(bool sell) {
 					int8 dispFlags = 0;
 
 					// only city merchants allow selling for status
-					if(item->sell_status > 0 && (spawn->GetMerchantType() & MERCHANT_TYPE_CITYMERCHANT))
+					if (item->sell_status > 0 && (spawn->GetMerchantType() & MERCHANT_TYPE_CITYMERCHANT))
 					{
 						packet->setArrayDataByName("status2", item->sell_status, i); //this one is the main status
 						int32 guildMaxLevel = 5 + item->details.recommended_level; // client hard codes +5 to the level
@@ -8669,17 +8885,17 @@ void Client::SendSellMerchantList(bool sell) {
 						}
 
 					}
-					if(item->no_buy_back || (item->sell_status > 0 && (spawn->GetMerchantType() & MERCHANT_TYPE_CITYMERCHANT)))
+					if (item->no_buy_back || (item->sell_status > 0 && (spawn->GetMerchantType() & MERCHANT_TYPE_CITYMERCHANT)))
 					{
-						if(GetVersion() < 1188)
+						if (GetVersion() < 1188)
 							dispFlags += DISPLAY_FLAG_RED_TEXT; // for older clients it isn't "no buy back", you can either have 1 for red text or 255 for 'not for sale' to be checked
 						else
 							dispFlags += DISPLAY_FLAG_NO_BUYBACK;
 					}
 
-					if(item->no_sale)
+					if (item->no_sale)
 						dispFlags += DISPLAY_FLAG_NOT_FOR_SALE;
-					
+
 					packet->setArrayDataByName("display_flags", dispFlags, i);
 					packet->setArrayDataByName("item_id", item->details.item_id, i);
 					packet->setArrayDataByName("unique_item_id", item->details.unique_id, i);
@@ -8690,19 +8906,19 @@ void Client::SendSellMerchantList(bool sell) {
 					else
 						tmp_level = item->generic_info.tradeskill_default_level;
 					packet->setArrayDataByName("level", item->details.recommended_level, i);
-					
-					if(rule_manager.GetZoneRule(GetCurrentZoneID(), R_World, DisplayItemTiers)->GetBool()) {
+
+					if (rule_manager.GetZoneRule(GetCurrentZoneID(), R_World, DisplayItemTiers)->GetBool()) {
 						packet->setArrayDataByName("tier", item->details.tier, i);
 					}
 					packet->setArrayDataByName("item_id2", item->details.item_id, i);
 					item_difficulty = player->GetArrowColor(tmp_level);
 					if (item_difficulty != ARROW_COLOR_WHITE && item_difficulty != ARROW_COLOR_RED && item_difficulty != ARROW_COLOR_GRAY)
 						item_difficulty = ARROW_COLOR_WHITE;
-					
+
 					sint64 overrideValue = 0;
 					if (item->GetItemScript() && lua_interface && lua_interface->RunItemScript(item->GetItemScript(), "item_difficulty", item, player, nullptr, &overrideValue))
 						item_difficulty = (sint8)overrideValue;
-					
+
 					item_difficulty -= 6;
 					if (item_difficulty < 0)
 						item_difficulty *= -1;
@@ -8719,8 +8935,8 @@ void Client::SendSellMerchantList(bool sell) {
 				if (GetVersion() < 561) {
 					packet->setDataByName("type", 1);
 				}
-				else if(GetVersion() == 561) {
-						packet->setDataByName("type", 1);
+				else if (GetVersion() == 561) {
+					packet->setDataByName("type", 1);
 				}
 				else {
 					if (sell)
@@ -8773,14 +8989,14 @@ void Client::SendBuyBackList(bool sell) {
 					else
 						tmp_level = master_item->generic_info.tradeskill_default_level;
 					packet->setArrayDataByName("level", tmp_level, i);
-					if(rule_manager.GetZoneRule(GetCurrentZoneID(), R_World, DisplayItemTiers)->GetBool()) {
+					if (rule_manager.GetZoneRule(GetCurrentZoneID(), R_World, DisplayItemTiers)->GetBool()) {
 						packet->setArrayDataByName("tier", master_item->details.tier, i);
 					}
 					packet->setArrayDataByName("item_id2", master_item->details.item_id, i);
 					item_difficulty = player->GetArrowColor(tmp_level);
 					if (item_difficulty != ARROW_COLOR_WHITE && item_difficulty != ARROW_COLOR_RED && item_difficulty != ARROW_COLOR_GRAY)
 						item_difficulty = ARROW_COLOR_WHITE;
-					
+
 					sint64 overrideValue = 0;
 					if (master_item->GetItemScript() && lua_interface && lua_interface->RunItemScript(master_item->GetItemScript(), "item_difficulty", master_item, player, nullptr, &overrideValue))
 						item_difficulty = (sint8)overrideValue;
@@ -8793,7 +9009,7 @@ void Client::SendBuyBackList(bool sell) {
 					sint64 dispFlags = 0;
 					if (master_item->GetItemScript() && lua_interface && lua_interface->RunItemScript(master_item->GetItemScript(), "buyback_display_flags", master_item, player, nullptr, &dispFlags))
 						packet->setArrayDataByName("display_flags", (int8)dispFlags, i);
-					
+
 					if (buyback->quantity == 1)
 						packet->setArrayDataByName("quantity", 0xFFFF, i);
 					else
@@ -8831,21 +9047,21 @@ void Client::SendRepairList() {
 			vector<Item*>::iterator itr;
 			for (itr = repairable_items->begin(); itr != repairable_items->end(); itr++, i++) {
 				item = *itr;
-				
+
 				packet->setArrayDataByName("item_name", item->name.c_str(), i);
 				packet->setArrayDataByName("price", item->CalculateRepairCost(), i);
 				packet->setArrayDataByName("item_id", item->details.item_id, i);
 				packet->setArrayDataByName("stack_size", item->details.count, i);
 				packet->setArrayDataByName("icon", item->GetIcon(GetVersion()), i);
-				
+
 				/*if (item->generic_info.adventure_default_level > 0)
 					tmp_level = item->generic_info.adventure_default_level;
 				else
 					tmp_level = item->generic_info.tradeskill_default_level;
 				packet->setArrayDataByName("level", tmp_level, i);*/
 				packet->setArrayDataByName("level", item->generic_info.adventure_default_level, i);
-				
-				if(rule_manager.GetZoneRule(GetCurrentZoneID(), R_World, DisplayItemTiers)->GetBool()) {
+
+				if (rule_manager.GetZoneRule(GetCurrentZoneID(), R_World, DisplayItemTiers)->GetBool()) {
 					packet->setArrayDataByName("tier", item->details.tier, i);
 				}
 				packet->setArrayDataByName("item_id2", item->details.item_id, i);
@@ -8871,16 +9087,16 @@ void Client::SendRepairList() {
 				packet->setDataByName("type", 96);
 			}
 			EQ2Packet* outapp = packet->serialize();
-			
+
 			//DumpPacket(outapp);
 			QueuePacket(outapp);
-			
+
 			/*if (GetVersion() <= 561) {
 				packet->setDataByName("type", 16);
 				EQ2Packet* outapp2 = packet->serialize();
 				QueuePacket(outapp2);
 			}*/
-			
+
 			safe_delete(packet);
 		}
 		safe_delete(repairable_items);
@@ -8889,7 +9105,7 @@ void Client::SendRepairList() {
 }
 
 void Client::ShowLottoWindow() {
-	if(GetVersion() <= 373) {
+	if (GetVersion() <= 373) {
 		SimpleMessage(CHANNEL_COLOR_RED, "This client does not support the gambler UI, only Desert of Flames or later client.");
 		return;
 	}
@@ -8930,8 +9146,8 @@ void Client::ShowLottoWindow() {
 			packet->setArrayDataByName("stack_size", item->details.count);
 			packet->setArrayDataByName("icon", item->GetIcon(GetVersion()));
 			packet->setArrayDataByName("level", item->generic_info.adventure_default_level);
-			
-			if(rule_manager.GetZoneRule(GetCurrentZoneID(), R_World, DisplayItemTiers)->GetBool()) {
+
+			if (rule_manager.GetZoneRule(GetCurrentZoneID(), R_World, DisplayItemTiers)->GetBool()) {
 				packet->setArrayDataByName("tier", item->details.tier);
 			}
 			packet->setArrayDataByName("item_id2", item->details.item_id);
@@ -9122,9 +9338,9 @@ vector<Item*>* Client::GetRepairableItems() {
 
 
 vector<Item*>* Client::GetItemsByEffectType(ItemEffectType type, ItemEffectType type2) {
-	if(type == NO_EFFECT_TYPE)
+	if (type == NO_EFFECT_TYPE)
 		return nullptr;
-	
+
 	vector<Item*>* return_items = new vector<Item*>;
 	vector<Item*>* equipped_items = player->GetEquipmentList()->GetAllEquippedItems();
 	map<int32, Item*>* items = player->GetItemList();
@@ -9166,11 +9382,11 @@ void Client::SendMailList() {
 				p->setArrayDataByName("player_from", mail->player_from.c_str(), i);
 				p->setArrayDataByName("subject", mail->subject.c_str(), i);
 				p->setArrayDataByName("already_read", mail->already_read, i);
-				if(mail->expire_time)
+				if (mail->expire_time)
 					p->setArrayDataByName("mail_deletion", mail->expire_time - mail->time_sent, i);
 				else
 					p->setArrayDataByName("mail_deletion", 0, i);
-				
+
 				p->setArrayDataByName("mail_type", mail->mail_type, i);
 				p->setArrayDataByName("mail_expire", 0xFFFFFFFF, i);
 				p->setArrayDataByName("unknown1a", 0xFFFFFFFF, i);
@@ -9182,10 +9398,10 @@ void Client::SendMailList() {
 				//p->setArrayDataByName("unknown2", 0, i);
 
 				bool successItemAdd = false;
-				if(mail->stack || mail->char_item_id)
+				if (mail->stack || mail->char_item_id)
 				{
 					Item* item = master_item_list.GetItem(mail->char_item_id);
-					if(item)
+					if (item)
 					{
 						item->stack_count = mail->stack > 1 ? mail->stack : 0;
 						if (version < 860)
@@ -9194,12 +9410,12 @@ void Client::SendMailList() {
 							p->setItemArrayDataByName("item", item, player, i);
 						else
 							p->setItemArrayDataByName("item", item, player, i, 0, 2);
-						
+
 						successItemAdd = true;
 					}
 				}
 
-				if(!successItemAdd)
+				if (!successItemAdd)
 				{
 					p->setArrayDataByName("end_tag2", GetItemPacketType(GetVersion()), i);
 					p->setArrayDataByName("end_tag3", 0xFF, i);
@@ -9244,7 +9460,7 @@ void Client::DisplayMailMessage(int32 mail_id) {
 				QueuePacket(update->serialize());
 				safe_delete(update);
 			}
-			if(!mail->already_read) {
+			if (!mail->already_read) {
 				mail->already_read = true;
 				SendMailList();
 			}
@@ -9265,7 +9481,7 @@ void Client::DisplayMailMessage(int32 mail_id) {
 				packet->setDataByName("coin_silver", mail->coin_silver);
 				packet->setDataByName("coin_gold", mail->coin_gold);
 				packet->setDataByName("coin_plat", mail->coin_plat);
-				if(mail->stack || mail->char_item_id)
+				if (mail->stack || mail->char_item_id)
 				{
 					Item* item = master_item_list.GetItem(mail->char_item_id);
 					item->stack_count = mail->stack > 1 ? mail->stack : 0;
@@ -9300,7 +9516,7 @@ void Client::DisplayMailMessage(int32 mail_id) {
 void Client::HandleSentMail(EQApplicationPacket* app) {
 	PacketStruct* packet = configReader.getStruct("WS_MailSendMessage", GetVersion());
 	if (packet) {
-		if(packet->LoadPacketData(app->pBuffer, app->size)) {
+		if (packet->LoadPacketData(app->pBuffer, app->size)) {
 			string player_to = packet->getType_EQ2_16BitString_ByName("player_to").data;
 			PacketStruct* reply_packet = configReader.getStruct("WS_MailSendMessageReply", GetVersion());
 			vector<int32>* ids = 0;
@@ -9357,7 +9573,7 @@ void Client::HandleSentMail(EQApplicationPacket* app) {
 								}
 								mail->time_sent = Timer::GetUnixTimeStamp();
 								mail->expire_time = mail->time_sent + 2592000;	//30 days in seconds
-								
+
 								mail->save_needed = false;
 								database.SavePlayerMail(mail);
 								Client* to_client = zone_list.GetClientByCharID(player_to_id);
@@ -9407,15 +9623,15 @@ void Client::DeleteMail(int32 mail_id, bool from_database) {
 }
 bool Client::AddMailItem(Item* item)
 {
-	if(item && (item->CheckFlag(LORE) || item->CheckFlag(STACK_LORE))) {
+	if (item && (item->CheckFlag(LORE) || item->CheckFlag(STACK_LORE))) {
 		Message(CHANNEL_COLOR_CHAT_RELATIONSHIP, "Lore items cannot be mailed.");
 		return false;
 	}
-	
+
 	bool ret = false;
 	if (GetMailTransaction()) {
 		MMailWindowMutex.lock();
-		if(mail_window.char_item_id == 0)
+		if (mail_window.char_item_id == 0)
 		{
 			mail_window.item = item;
 			mail_window.char_item_id = item->details.item_id;
@@ -9426,8 +9642,8 @@ bool Client::AddMailItem(Item* item)
 			packet->setDataByName("coin_silver", mail_window.coin_silver);
 			packet->setDataByName("coin_gold", mail_window.coin_gold);
 			packet->setDataByName("coin_plat", mail_window.coin_plat);
-			
-			if(item)
+
+			if (item)
 			{
 				packet->setDataByName("stack", mail_window.stack);
 				item->stack_count = mail_window.stack;
@@ -9453,7 +9669,7 @@ bool Client::AddMailCoin(int32 copper, int32 silver, int32 gold, int32 plat) {
 
 	bool ret = false;
 	if (GetMailTransaction()) {
-	MMailWindowMutex.lock();
+		MMailWindowMutex.lock();
 		PacketStruct* packet = configReader.getStruct("WS_UpdatePlayerMail", GetVersion());
 		if (packet) {
 			if (copper > 0) {
@@ -9489,9 +9705,9 @@ bool Client::AddMailCoin(int32 copper, int32 silver, int32 gold, int32 plat) {
 				packet->setDataByName("coin_silver", mail_window.coin_silver);
 				packet->setDataByName("coin_gold", mail_window.coin_gold);
 				packet->setDataByName("coin_plat", mail_window.coin_plat);
-					Item* item = master_item_list.GetItem(mail_window.char_item_id);
-					if(item)
-					{
+				Item* item = master_item_list.GetItem(mail_window.char_item_id);
+				if (item)
+				{
 					packet->setDataByName("stack", mail_window.stack);
 					item->stack_count = mail_window.stack;
 					if (version < 860)
@@ -9500,12 +9716,12 @@ bool Client::AddMailCoin(int32 copper, int32 silver, int32 gold, int32 plat) {
 						packet->setItemByName("item", item, player, 0, 0);
 					else
 						packet->setItemByName("item", item, player, 0, 2);
-					}
-					else
-					{
-						packet->setDataByName("end_tag2", GetItemPacketType(GetVersion()));
-						packet->setDataByName("end_tag3", 0xFF);
-					}
+				}
+				else
+				{
+					packet->setDataByName("end_tag2", GetItemPacketType(GetVersion()));
+					packet->setDataByName("end_tag3", 0xFF);
+				}
 				//packet->PrintPacket();
 				QueuePacket(packet->serialize());
 			}
@@ -9629,13 +9845,13 @@ void Client::TakeMailAttachments(int32 mail_id) {
 }
 
 void Client::ResetSendMail(bool cancel, bool needslock) {
-	if(cancel && mail_transaction)
+	if (cancel && mail_transaction)
 		SimpleMessage(CHANNEL_NARRATIVE, "You cancel sending a letter.");
-	if(needslock)
+	if (needslock)
 		MMailWindowMutex.lock();
-	if(cancel)
+	if (cancel)
 		player->AddCoins(mail_window.coin_copper + (mail_window.coin_silver * 100) + (mail_window.coin_gold * 10000) + (mail_window.coin_plat * 1000000));
-	if(!cancel)
+	if (!cancel)
 		mail_transaction = 0;
 	mail_window.coin_copper = 0;
 	mail_window.coin_silver = 0;
@@ -9644,43 +9860,43 @@ void Client::ResetSendMail(bool cancel, bool needslock) {
 	mail_window.char_item_id = 0;
 	mail_window.stack = 0;
 
-	if(mail_window.item){
-		if(cancel)
+	if (mail_window.item) {
+		if (cancel)
 			AddItem(mail_window.item);
 		else
 			safe_delete(mail_window.item);
 	}
 	mail_window.item = nullptr;
-	if(needslock)
+	if (needslock)
 		MMailWindowMutex.unlock();
 }
 
 bool Client::GateAllowed() {
 	ZoneServer* zone = GetCurrentZone();
-	if (zone){ 
-	bool cangate = zone->GetCanGate();
-	return cangate;
+	if (zone) {
+		bool cangate = zone->GetCanGate();
+		return cangate;
 	}
-		
+
 	return false;
 }
 
 bool Client::BindAllowed() {
 	ZoneServer* zone = GetCurrentZone();
-	if (zone){
-	bool canbind = zone->GetCanBind();
-	return canbind;
-    }
-  return false;
+	if (zone) {
+		bool canbind = zone->GetCanBind();
+		return canbind;
+	}
+	return false;
 }
 
 bool Client::Bind() {
 	int canbind = BindAllowed();
-	
-	if(canbind == 0) {
-		Message(CHANNEL_MERCHANT, "You cannot bind at this location.");		
+
+	if (canbind == 0) {
+		Message(CHANNEL_MERCHANT, "You cannot bind at this location.");
 		return false;
-	} 
+	}
 	player->GetPlayerInfo()->SetBindZone(GetCurrentZone()->GetZoneID());
 	player->GetPlayerInfo()->SetBindX(player->GetX());
 	player->GetPlayerInfo()->SetBindY(player->GetY());
@@ -9696,10 +9912,10 @@ bool Client::Gate(bool is_spell) {
 		return false;
 	}
 
-	ZoneServer* zone = zone_list.Get(player->GetPlayerInfo()->GetBindZoneID());
-	if (zone) {
+	ZoneChangeDetails zone_details;
+	if (zone_list.GetZone(&zone_details, player->GetPlayerInfo()->GetBindZoneID())) {
 		int cangate = GateAllowed();
-		if(cangate == 0) {
+		if (cangate == 0) {
 			SimpleMessage(CHANNEL_MERCHANT, "You can not cast recall spells in this zone.");
 			return false;
 		}
@@ -9707,7 +9923,7 @@ bool Client::Gate(bool is_spell) {
 		player->SetY(player->GetPlayerInfo()->GetBindZoneY());
 		player->SetZ(player->GetPlayerInfo()->GetBindZoneZ());
 		player->SetHeading(player->GetPlayerInfo()->GetBindZoneHeading());
-		Zone(zone, false, is_spell);
+		Zone(&zone_details, (ZoneServer*)zone_details.zonePtr, false, is_spell);
 
 		return true;
 	}
@@ -9746,20 +9962,29 @@ void Client::ProcessTeleport(Spawn* spawn, vector<TransportDestination*>* destin
 			}
 		}
 		else {
-			ZoneServer* new_zone = zone_list.Get(destination->destination_zone_id);
 
 			// determine if this is an instanced zone that already exists
-			ZoneServer* instance_zone = GetPlayer()->GetGroupMemberInZone(destination->destination_zone_id);
-
-			if (instance_zone || new_zone) {
+			ZoneChangeDetails zone_details;
+			bool foundZone = world.GetGroupManager()->IdentifyMemberInGroupOrRaid(&zone_details, this, destination->destination_zone_id);
+			if (foundZone) {
 				GetPlayer()->SetX(destination->destination_x);
 				GetPlayer()->SetY(destination->destination_y);
 				GetPlayer()->SetZ(destination->destination_z);
 				GetPlayer()->SetHeading(destination->destination_heading);
-				if (instance_zone)
-					Zone(instance_zone->GetInstanceID(), false, true, is_spell);
-				else
-					Zone(new_zone, false, is_spell);
+				Zone(&zone_details, (ZoneServer*)zone_details.zonePtr, false, is_spell);
+			}
+			else {
+				bool isZone = zone_list.GetZone(&zone_details, destination->destination_zone_id);
+				if (isZone) {
+					GetPlayer()->SetX(destination->destination_x);
+					GetPlayer()->SetY(destination->destination_y);
+					GetPlayer()->SetZ(destination->destination_z);
+					GetPlayer()->SetHeading(destination->destination_heading);
+					Zone(&zone_details, (ZoneServer*)zone_details.zonePtr, false, is_spell);
+				}
+				else {
+					SimpleMessage(CHANNEL_COLOR_RED, "Error establishing a zone destination");
+				}
 			}
 		}
 		if (destination->message.length() > 0)
@@ -9878,8 +10103,10 @@ void Client::ProcessTeleportLocation(EQApplicationPacket* app) {
 						// Test if where we're going is an Instanced zone
 						if (!TryZoneInstance(destination->destination_zone_id, false)) {
 							LogWrite(INSTANCE__DEBUG, 0, "Instance", "Attempting to zone normally");
-							ZoneServer* new_zone = zone_list.Get(destination->destination_zone_id);
-							Zone(new_zone, false);
+							ZoneChangeDetails zone_details;
+							if (zone_list.GetZone(&zone_details, destination->destination_zone_id)) {
+								Zone(&zone_details, (ZoneServer*)zone_details.zonePtr, false);
+							}
 						}
 					}
 					if (destination->message.length() > 0)
@@ -9967,7 +10194,7 @@ void Client::SearchStore(int32 page) {
 				for (int32 i = 0; i < limit; i++, x++) {
 					if (x >= search_items->size())
 						break;
-					
+
 					item = search_items->at(x);
 					std::string teststr("test ");
 					teststr.append(std::to_string(i));
@@ -9984,7 +10211,7 @@ void Client::SearchStore(int32 page) {
 					else
 						packet->setArrayDataByName("quantity", item->stack_count, i);
 					packet->setArrayDataByName("stack_size", item->stack_count, i);
-					
+
 					packet->setArrayDataByName("sell_price", item->sell_price, i);
 
 
@@ -10015,8 +10242,8 @@ void Client::SetReadyForUpdates() {
 	}
 
 	ready_for_updates = true;
-	
-	if(GetVersion() <= 561) {
+
+	if (GetVersion() <= 561) {
 		SendRecipeList();
 	}
 }
@@ -10111,10 +10338,10 @@ void Client::SendIgnoreList() {
 
 }
 
-void Client::AddWaypoint(string name, int8 type) { 
+void Client::AddWaypoint(string name, int8 type) {
 	waypoint_id++;
 	WaypointInfo info;
-	info.id = waypoint_id; 
+	info.id = waypoint_id;
 	info.type = type;
 	waypoints[name] = info;
 }
@@ -10128,7 +10355,7 @@ void Client::SendWaypoints() {
 		for (itr = waypoints.begin(); itr != waypoints.end(); itr++) {
 			packet->setArrayDataByName("waypoint_name", itr->first.c_str(), i);
 			packet->setArrayDataByName("waypoint_category", itr->second.type, i);
-			packet->setArrayDataByName("spawn_id", itr->second.id, i);			
+			packet->setArrayDataByName("spawn_id", itr->second.id, i);
 			i++;
 		}
 		packet->setDataByName("unknown", 0xFFFFFFFF);
@@ -10162,7 +10389,7 @@ void Client::AddWaypoint(const char* waypoint_name, int8 waypoint_category, int3
 			packet->setArrayDataByName("spawn_id", spawn_id, 0);
 			packet->setArrayDataByName("waypoint_category2", waypoint_category, 0);
 			packet->setArrayDataByName("spawn_id2", spawn_id, 0);
-			packet->setDataByName("unknown", 0xFFFFFFFF); 
+			packet->setDataByName("unknown", 0xFFFFFFFF);
 			QueuePacket(packet->serialize());
 			safe_delete(packet);
 		}
@@ -10173,7 +10400,7 @@ void Client::ClearWaypoint() {
 	PacketStruct* packet = configReader.getStruct("WS_GlowPath", GetVersion());
 	if (packet) {
 		QueuePacket(packet->serialize());
-		safe_delete(packet);		
+		safe_delete(packet);
 	}
 }
 
@@ -10222,7 +10449,7 @@ bool Client::ShowPathToTarget(float x, float y, float z, float y_offset) {
 
 bool Client::ShowPathToTarget(Spawn* spawn) {
 	if (spawn) {
-		return ShowPathToTarget(spawn->GetX(), spawn->GetY(), spawn->GetZ(), spawn->GetYOffset());	
+		return ShowPathToTarget(spawn->GetX(), spawn->GetY(), spawn->GetZ(), spawn->GetYOffset());
 	}
 	return false;
 }
@@ -10252,13 +10479,13 @@ void Client::InspectPlayer(Player* player_to_inspect) {
 	int target_pvp_alignment = player_to_inspect->GetPVPAlignment();
 	bool pvp_allowed = rule_manager.GetZoneRule(GetCurrentZoneID(), R_PVP, AllowPVP)->GetBool();
 
-	if(pvp_allowed == true){
-		if(source_pvp_alignment != target_pvp_alignment){
+	if (pvp_allowed == true) {
+		if (source_pvp_alignment != target_pvp_alignment) {
 			Message(CHANNEL_COLOR_RED, "You can not inspect players of different alignments.");
 			return;
 		}
 	}
-	
+
 	if (player_to_inspect && player_to_inspect->GetClient()) {
 		PacketStruct* packet = configReader.getStruct("WS_InspectPlayer", GetVersion());
 		if (packet) {
@@ -10281,7 +10508,7 @@ void Client::InspectPlayer(Player* player_to_inspect) {
 			packet->setDataByName("power_base", player_to_inspect->GetTotalPowerBase());
 			packet->setDataByName("mitigation", player_to_inspect->GetInfoStruct()->get_cur_mitigation());
 			packet->setDataByName("unknown1", 0);
-			packet->setDataByName("avoidance", player_to_inspect->GetInfoStruct()->get_avoidance_display()*10.0f);
+			packet->setDataByName("avoidance", player_to_inspect->GetInfoStruct()->get_avoidance_display() * 10.0f);
 			packet->setDataByName("unknown2", 0);
 			packet->setDataByName("mitigation_percentage", 0);
 			packet->setDataByName("strength", player_to_inspect->GetStr());
@@ -10328,43 +10555,43 @@ void Client::InspectPlayer(Player* player_to_inspect) {
 			string biography = player_to_inspect->GetBiography();
 			for (size_t i = 0; i < biography.length(); i++)
 				packet->setArrayDataByName("biography_char", biography[i], i);
-			
-			if(GetVersion() <= 373) {
-				for(int32 s=0;s<20;s++) {
+
+			if (GetVersion() <= 373) {
+				for (int32 s = 0; s < 20; s++) {
 					int32 slot = s;
-					
+
 					char item_slot_name[64], item_slot_name_appearance[64];
-					_snprintf(item_slot_name,64,"slot_%u",slot);
+					_snprintf(item_slot_name, 64, "slot_%u", slot);
 					Item* pw = player_to_inspect->GetEquipmentList()->GetItem(GetPlayer()->ConvertSlotFromClient(s, GetVersion()));
 					packet->setItemByName(item_slot_name, pw, this->GetPlayer(), 0, 7, true, true, true);
 				}
 			}
-			else if(GetVersion() <= 561) {
-				for(int32 s=0;s<22;s++) {
+			else if (GetVersion() <= 561) {
+				for (int32 s = 0; s < 22; s++) {
 					int32 slot = s;
-					
+
 					char item_slot_name[64], item_slot_name_appearance[64];
-					_snprintf(item_slot_name,64,"slot_%u",slot);
+					_snprintf(item_slot_name, 64, "slot_%u", slot);
 					Item* pw = player_to_inspect->GetEquipmentList()->GetItem(GetPlayer()->ConvertSlotFromClient(s, GetVersion()));
 					packet->setItemByName(item_slot_name, pw, this->GetPlayer(), 0, 5, true, true);
 				}
 			}
 			else {
-				for(int32 s=0;s<NUM_SLOTS;s++) {
-					int32 slot = s*2;
-					
+				for (int32 s = 0; s < NUM_SLOTS; s++) {
+					int32 slot = s * 2;
+
 					char item_slot_name[64], item_slot_name_appearance[64];
-					_snprintf(item_slot_name,64,"slot_%u",slot);
-					int32 slot_appearance = (s*2)+1;
-					_snprintf(item_slot_name_appearance,64,"slot_%u",slot_appearance);
+					_snprintf(item_slot_name, 64, "slot_%u", slot);
+					int32 slot_appearance = (s * 2) + 1;
+					_snprintf(item_slot_name_appearance, 64, "slot_%u", slot_appearance);
 					Item* pw = player_to_inspect->GetEquipmentList()->GetItem(GetPlayer()->ConvertSlotFromClient(s, player_to_inspect->GetClient()->GetVersion()));
 					packet->setItemByName(item_slot_name, pw, this->GetPlayer(), 0, 13, false, true);
-					if(s <= EQ2_FEET_SLOT || s == EQ2_RANGE_SLOT || s == EQ2_CLOAK_SLOT) {
+					if (s <= EQ2_FEET_SLOT || s == EQ2_RANGE_SLOT || s == EQ2_CLOAK_SLOT) {
 						pw = player_to_inspect->GetAppearanceEquipmentList()->GetItem(s);
-						packet->setItemByName(item_slot_name_appearance, pw, this->GetPlayer(), 0, 13, false, true);	
+						packet->setItemByName(item_slot_name_appearance, pw, this->GetPlayer(), 0, 13, false, true);
 					}
 					else {
-						packet->setItemByName(item_slot_name_appearance, nullptr, this->GetPlayer(), 0, 13, false, true);	
+						packet->setItemByName(item_slot_name_appearance, nullptr, this->GetPlayer(), 0, 13, false, true);
 					}
 				}
 			}
@@ -10749,55 +10976,55 @@ void Client::DisplayCollectionComplete(Collection* collection) {
 	int32 i;
 
 	assert(collection);
-	
+
 	reward_items = collection->GetRewardItems();
 	selectable_reward_items = collection->GetSelectableRewardItems();
 
 	if (GetVersion() <= 561) {
-			int32 source_id = collection->GetID();
-			PacketStruct* packet2 = configReader.getStruct("WS_QuestRewardPackMsg", GetVersion());
-			if (packet2) {
-				packet2->setSubstructDataByName("reward_data", "unknown1", 255);
-				packet2->setSubstructDataByName("reward_data", "reward", "Quest Reward!");
-				packet2->setSubstructDataByName("reward_data", "max_coin", collection->GetRewardCoin());
-				packet2->setSubstructDataByName("reward_data", "exp_bonus", collection->GetRewardXP());
-				
-				if(reward_items){
-					int32 item_count = reward_items->size();
-					packet2->setSubstructArrayLengthByName("reward_data", "num_rewards", item_count);
-					i = 0;
-					if(reward_items) {
-						for (i = 0; i < reward_items->size(); i++) {
-							Item* item = reward_items->at(i)->item;
-							if (item) {
-								packet2->setArrayDataByName("reward_id", item->details.item_id, i);
-								packet2->setItemArrayDataByName("item", item, player, i, 0, GetClientItemPacketOffset());
-							}
-						}
-					}
-				}
-				if (selectable_reward_items) {
-					packet2->setSubstructArrayLengthByName("reward_data", "num_select_rewards", selectable_reward_items->size());
-					for (i = 0; i < selectable_reward_items->size(); i++) {
-						Item* item = selectable_reward_items->at(i)->item;
+		int32 source_id = collection->GetID();
+		PacketStruct* packet2 = configReader.getStruct("WS_QuestRewardPackMsg", GetVersion());
+		if (packet2) {
+			packet2->setSubstructDataByName("reward_data", "unknown1", 255);
+			packet2->setSubstructDataByName("reward_data", "reward", "Quest Reward!");
+			packet2->setSubstructDataByName("reward_data", "max_coin", collection->GetRewardCoin());
+			packet2->setSubstructDataByName("reward_data", "exp_bonus", collection->GetRewardXP());
+
+			if (reward_items) {
+				int32 item_count = reward_items->size();
+				packet2->setSubstructArrayLengthByName("reward_data", "num_rewards", item_count);
+				i = 0;
+				if (reward_items) {
+					for (i = 0; i < reward_items->size(); i++) {
+						Item* item = reward_items->at(i)->item;
 						if (item) {
-							packet2->setArrayDataByName("select_reward_id", item->details.item_id, i);
-							packet2->setItemArrayDataByName("select_item", item, player, i, 0, GetClientItemPacketOffset());
+							packet2->setArrayDataByName("reward_id", item->details.item_id, i);
+							packet2->setItemArrayDataByName("item", item, player, i, 0, GetClientItemPacketOffset());
 						}
 					}
 				}
 			}
+			if (selectable_reward_items) {
+				packet2->setSubstructArrayLengthByName("reward_data", "num_select_rewards", selectable_reward_items->size());
+				for (i = 0; i < selectable_reward_items->size(); i++) {
+					Item* item = selectable_reward_items->at(i)->item;
+					if (item) {
+						packet2->setArrayDataByName("select_reward_id", item->details.item_id, i);
+						packet2->setItemArrayDataByName("select_item", item, player, i, 0, GetClientItemPacketOffset());
+					}
+				}
+			}
+		}
 
 		EQ2Packet* app = packet2->serialize();
 		QueuePacket(app);
 		safe_delete(packet2);
 		return;
 	}
-	
+
 	if (!(packet = configReader.getStruct("WS_QuestComplete", version))) {
 		return;
 	}
-	
+
 	packet->setDataByName("title", "Quest Reward!");
 	packet->setDataByName("name", collection->GetName());
 	packet->setDataByName("description", collection->GetCategory());
@@ -10808,7 +11035,7 @@ void Client::DisplayCollectionComplete(Collection* collection) {
 	packet->setArrayLengthByName("num_rewards", reward_items->size());
 	for (i = 0; i < reward_items->size(); i++) {
 		reward_item = reward_items->at(i);
-		if(!reward_item->item)
+		if (!reward_item->item)
 		{
 			LogWrite(DATABASE__ERROR, 0, "Database", "DisplayCollectionComplete Collection %s (%u) num_rewards has missing item in slot %u", collection->GetName(), collection->GetID(), i);
 			Message(CHANNEL_COLOR_RED, "DisplayCollectionComplete Collection %s (%u) num_rewards has missing item in slot %u", collection->GetName(), collection->GetID(), i);
@@ -10826,7 +11053,7 @@ void Client::DisplayCollectionComplete(Collection* collection) {
 	packet->setArrayLengthByName("num_select_rewards", selectable_reward_items->size());
 	for (i = 0; i < selectable_reward_items->size(); i++) {
 		reward_item = selectable_reward_items->at(i);
-		if(!reward_item->item)
+		if (!reward_item->item)
 		{
 			LogWrite(DATABASE__ERROR, 0, "Database", "DisplayCollectionComplete Collection %s (%u) num_select_rewards has missing item in slot %u", collection->GetName(), collection->GetID(), i);
 			Message(CHANNEL_COLOR_RED, "DisplayCollectionComplete Collection %s (%u) num_select_rewards has missing item in slot %u", collection->GetName(), collection->GetID(), i);
@@ -10882,7 +11109,7 @@ void Client::HandInCollections() {
 			break;
 		}
 	}
-	if(quest_updates) {
+	if (quest_updates) {
 		SaveQuestRewardData(true);
 	}
 }
@@ -10940,28 +11167,28 @@ void Client::AcceptCollectionRewards(Collection* collection, int32 selectable_it
 
 	/* reset the pending collection reward and check for my collections that the player needs to hand in */
 	player->SetPendingCollectionReward(0);
-	
+
 	RemoveQueuedQuestReward();
-	
+
 	GetPlayer()->SetActiveReward(false);
-	
+
 	HandInCollections();
 
 	GetPlayer()->GetZone()->SendSubSpawnUpdates(SUBSPAWN_TYPES::COLLECTOR);
 }
 
 void Client::SendRecipeList() {
-	if(GetRecipeListSent()) {
+	if (GetRecipeListSent()) {
 		return;
 	}
-	
+
 	PacketStruct* packet = 0;
 	map<int32, Recipe*>* recipes = player->GetRecipeList()->GetRecipes();
 	map<int32, Recipe*>::iterator itr;
 	int16 i = 0;
 	Recipe* recipe;
-	
-	if(version <= 561) {
+
+	if (version <= 561) {
 		PacketStruct* packet = 0;
 		if (!(packet = configReader.getStruct("WS_UpdateRecipeBook", GetVersion()))) {
 			return;
@@ -11006,7 +11233,7 @@ void Client::SendRecipeList() {
 		int8 even = level - level * .05 + .5;
 		int8 easymin = level - level * .25 + .5;
 		int8 veasymin = level - level * .35 + .5;
-		if (rlevel > level )
+		if (rlevel > level)
 			packet->setArrayDataByName("tier", 4, i);
 		else if ((rlevel <= level) & (rlevel >= even))
 			packet->setArrayDataByName("tier", 3, i);
@@ -11026,7 +11253,7 @@ void Client::SendRecipeList() {
 		packet->setArrayDataByName("technique", recipe->GetTechnique(), i);
 		packet->setArrayDataByName("knowledge", recipe->GetKnowledge(), i);
 
-		
+
 		auto recipe_device = std::find(devices.begin(), devices.end(), recipe->GetDevice());
 		if (recipe_device != devices.end())
 			packet->setArrayDataByName("device_type", recipe_device - devices.begin(), i);
@@ -11066,15 +11293,15 @@ void Client::ShowRecipeBook() {
 	packet->setDataByName("device", target->GetName());
 	packet->setDataByName("unknown1", 1);
 	auto res = std::find(devices.begin(), devices.end(), target->GetName());
-	if (res != devices.end()){
+	if (res != devices.end()) {
 		index = res - devices.begin();
 		int32 deviceID = 0;
-		deviceID  |= 1UL << index;
+		deviceID |= 1UL << index;
 		//LogWrite(TRADESKILL__ERROR, 0, "Tradeskills", "GetDeviceID() = %u, deviceID = %u", ((Object*)target)->GetDeviceID(), deviceID);
 		packet->setDataByName("unknown2", devices.size());
 		packet->setDataByName("unknown3", deviceID);
 	}
-	else 
+	else
 		packet->setDataByName("unknown2", devices.size());
 	QueuePacket(packet->serialize());
 	safe_delete(packet);
@@ -11117,14 +11344,14 @@ void Client::SendUpdateTitles(sint32 prefix, sint32 suffix) {
 	Title* prefix_title = 0;
 	if (suffix != -1) {
 		suffix_title = player->GetPlayerTitles()->GetTitle(suffix);
-		if(suffix_title)
+		if (suffix_title)
 			strcpy(player->appearance.suffix_title, suffix_title->GetName());
 	}
 	else
 		memset(player->appearance.suffix_title, 0, strlen(player->appearance.suffix_title));
 	if (prefix != -1) {
 		prefix_title = player->GetPlayerTitles()->GetTitle(prefix);
-		if(prefix_title)
+		if (prefix_title)
 			strcpy(player->appearance.prefix_title, prefix_title->GetName());
 	}
 	else
@@ -11139,8 +11366,8 @@ void Client::SendLanguagesUpdate(int32 id, bool setlang) {
 	Language* language;
 	int32 i = 0;
 
-	if(setlang==1){
-	        GetPlayer()->SetCurrentLanguage(id);
+	if (setlang == 1) {
+		GetPlayer()->SetCurrentLanguage(id);
 	}
 
 	PacketStruct* packet = configReader.getStruct("WS_Languages", GetVersion());
@@ -11190,7 +11417,7 @@ void Client::SendBiography() {
 	PacketStruct* packet = configReader.getStruct("WS_BioUpdate", GetVersion());
 	if (packet) {
 		char biography[512];
-		if(player->GetInfoStruct()->get_biography().size() < 1)
+		if (player->GetInfoStruct()->get_biography().size() < 1)
 		{
 			safe_delete(packet);
 			return;
@@ -11198,9 +11425,9 @@ void Client::SendBiography() {
 		else
 		{
 			int16 size = player->GetInfoStruct()->get_biography().size();
-			if(size>511)
+			if (size > 511)
 				size = 511;
-			
+
 			strncpy(biography, player->GetInfoStruct()->get_biography().c_str(), player->GetInfoStruct()->get_biography().size());
 			biography[player->GetInfoStruct()->get_biography().size()] = '\0';
 		}
@@ -11425,7 +11652,6 @@ int32 Client::GetTransmuteID() {
 
 bool Client::HandleNewLogin(int32 account_id, int32 access_code)
 {
-	printf("HandleNewLogin: AcctID: %i AccessCode: %i\n", account_id, access_code);
 	ZoneAuthRequest* zar = zone_auth.GetAuth(account_id, access_code);
 
 	if (zar)
@@ -11453,7 +11679,7 @@ bool Client::HandleNewLogin(int32 account_id, int32 access_code)
 			GetPlayer()->CalculateOfflineDebtRecovery(GetLastSavedTimeStamp());
 			GetPlayer()->vis_changed = false;
 			GetPlayer()->info_changed = false;
-			
+
 			bool pvp_allowed = rule_manager.GetZoneRule(GetCurrentZoneID(), R_PVP, AllowPVP)->GetBool();
 			if (pvp_allowed)
 				this->GetPlayer()->SetAttackable(1);
@@ -11461,7 +11687,7 @@ bool Client::HandleNewLogin(int32 account_id, int32 access_code)
 			if (client) {
 				if (client->getConnection())
 					client->getConnection()->SendDisconnect(true);
-				
+
 				bool restore_ld_success = false;
 				if (client->GetCurrentZone() && !client->IsZoning()) {
 					//swap players, allowing the client to resume his LD'd player (ONLY if same version of the client)
@@ -11472,7 +11698,7 @@ bool Client::HandleNewLogin(int32 account_id, int32 access_code)
 						SetPlayer(client->GetPlayer());
 						GetPlayer()->SetClient(this);
 						GetPlayer()->SetReturningFromLD(true);
-										
+
 						SetCharacterID(client->GetCharacterID());
 						SetAccountID(client->GetAccountID());
 						SetAdminStatus(client->GetAdminStatus());
@@ -11480,15 +11706,15 @@ bool Client::HandleNewLogin(int32 account_id, int32 access_code)
 						client->SetPlayer(current_player);
 						GetPlayer()->ResetSavedSpawns();
 						restore_ld_success = true;
-						
+
 						char tmpldname[128];
-						snprintf(tmpldname, 128, "%s Linkdead",GetPlayer()->GetName());
+						snprintf(tmpldname, 128, "%s Linkdead", GetPlayer()->GetName());
 						client->GetPlayer()->SetName(tmpldname, false);
 					}
 					ZoneServer* tmpZone = client->GetCurrentZone();
 					tmpZone->RemoveClientImmediately(client);
 				}
-				if(!restore_ld_success && !database.loadCharacter(zar->GetCharacterName(), zar->GetAccountID(), this)) {
+				if (!restore_ld_success && !database.loadCharacter(zar->GetCharacterName(), zar->GetAccountID(), this)) {
 					LogWrite(ZONE__ERROR, 0, "Zone", "Error reloading LD character and loading DB character: %s", player->GetName());
 					ClientPacketFunctions::SendLoginDenied(this);
 					Disconnect();
@@ -11510,7 +11736,7 @@ bool Client::HandleNewLogin(int32 account_id, int32 access_code)
 				GetCurrentZone()->AddClient(this); //add to zones client list
 				zone_list.AddClientToMap(player->GetName(), this);
 				// this initiates additional DB loading and client offloading within the Zone the player resides, need the client already added in zone and to the map above.
-				if(GetCurrentZone()->IsLoading()) {
+				if (GetCurrentZone()->IsLoading()) {
 					new_client_login = NewLoginState::LOGIN_DELAYED;
 				}
 				else {
@@ -11569,10 +11795,10 @@ void Client::SendSpawnChanges(set<Spawn*>& spawns) {
 		if (index == 0 || !GetPlayer()->WasSentSpawn(spawn->GetID()))
 			continue;
 
-		if(GetPlayer() == spawn && GetVersion() <= 284) { // stopped self client/player warping in the EQ2 release disc (Beta), don't send yourself in bulk spawn updates
+		if (GetPlayer() == spawn && GetVersion() <= 284) { // stopped self client/player warping in the EQ2 release disc (Beta), don't send yourself in bulk spawn updates
 			continue;
 		}
-		
+
 		int16 tmp_info_size = 0;
 		int16 tmp_pos_size = 0;
 		int16 tmp_vis_size = 0;
@@ -11614,7 +11840,7 @@ void Client::SendSpawnChanges(set<Spawn*>& spawns) {
 				}
 
 				MakeSpawnChangePacket(tmp_info_changes, tmp_pos_changes, tmp_vis_changes, tmp_info_size, tmp_pos_size, data.size);
-				
+
 				for (auto& kv : tmp_info_changes) {
 					safe_delete_array(kv.second.data);
 				}
@@ -11700,8 +11926,8 @@ void Client::MakeSpawnChangePacket(map<int32, SpawnData> info_changes, map<int32
 {
 	static const int8 oversized = 255;
 	int16 opcode_val = 0;
-	
-	if (EQOpcodeManager.count(GetOpcodeVersion(version)) != 0) {	
+
+	if (EQOpcodeManager.count(GetOpcodeVersion(version)) != 0) {
 		opcode_val = EQOpcodeManager[GetOpcodeVersion(version)]->EmuToEQ(OP_EqUpdateGhostCmd);
 	}
 	int32 size = info_size + pos_size + vis_size + 8;
@@ -11790,18 +12016,18 @@ void Client::SendHailCommand(Spawn* spawn)
 	// hardcoded 'hail' entity commands
 	switch (spawn->secondary_command_list_id)
 	{
-		case 9:
-		case 1262:
-		case 1265:
-		case 1267:
-		{
-			EQ2_16BitString* command = new EQ2_16BitString();
-			command->data = "";
-			command->size = 0;
-			commands.Process(COMMAND_HAIL, command, this, spawn);
-			safe_delete(command);
-			break;
-		}
+	case 9:
+	case 1262:
+	case 1265:
+	case 1267:
+	{
+		EQ2_16BitString* command = new EQ2_16BitString();
+		command->data = "";
+		command->size = 0;
+		commands.Process(COMMAND_HAIL, command, this, spawn);
+		safe_delete(command);
+		break;
+	}
 	}
 }
 
@@ -11880,7 +12106,7 @@ bool Client::PopulateHouseSpawn(PacketStruct* place_object)
 		tmp->SetSpawnOrigY(tmp->GetY());
 		tmp->SetSpawnOrigZ(tmp->GetZ());
 		tmp->SetSpawnOrigHeading(tmp->GetHeading());
-		
+
 		database.SaveSpawnInfo(tmp);
 		database.SaveSpawnEntry(tmp, "houseplacement", 100, 0, 0, 0);
 
@@ -11888,7 +12114,7 @@ bool Client::PopulateHouseSpawn(PacketStruct* place_object)
 		{
 			GetCurrentZone()->house_object_database_lookup.Put(tmp->GetModelType(), tmp->GetDatabaseID());
 			// we need to copy as to not delete the ZoneServer object_list entry this on house item pickup
-			GetCurrentZone()->AddObject(tmp->GetDatabaseID(), ((Object*)tmp)->Copy()); 
+			GetCurrentZone()->AddObject(tmp->GetDatabaseID(), ((Object*)tmp)->Copy());
 		}
 
 		return true;
@@ -11918,18 +12144,18 @@ bool Client::PopulateHouseSpawnFinalize()
 				query.RunQuery2(Q_INSERT, "insert into spawn_instance_data set spawn_id = %u, spawn_location_id = %u, pickup_item_id = %u, pickup_unique_item_id = %u", tmp->GetDatabaseID(), tmp->GetSpawnLocationID(), tmp->GetPickupItemID(), uniqueID);
 			}
 
-			if(uniqueItem->GetItemScript() && 
+			if (uniqueItem->GetItemScript() &&
 				lua_interface->RunItemScript(uniqueItem->GetItemScript(), "placed", uniqueItem, GetPlayer(), tmp))
 			{
 				uniqueItem = GetPlayer()->item_list.GetItemFromUniqueID(uniqueID);
 			}
-			
-			if(uniqueItem) {
+
+			if (uniqueItem) {
 				database.DeleteItem(GetCharacterID(), uniqueItem, 0);
 				GetPlayer()->item_list.RemoveItem(uniqueItem, true);
 				QueuePacket(GetPlayer()->SendInventoryUpdate(GetVersion()));
 			}
-			
+
 			SetPlacementUniqueItemID(0);
 		}
 		return true;
@@ -11990,9 +12216,9 @@ void Client::SendShowBook(Spawn* sender, string title, int8 language, int8 num_p
 	packet->setDataByName("book_title", title.c_str());
 	packet->setDataByName("book_type", "simple");
 	packet->setDataByName("unknown2", 1);
-	if(language > 0 && !GetPlayer()->HasLanguage(language))
+	if (language > 0 && !GetPlayer()->HasLanguage(language))
 		packet->setDataByName("language", language);
-	
+
 	if (GetVersion() > 561)
 		packet->setDataByName("unknown5", 1, 4);
 
@@ -12007,28 +12233,28 @@ void Client::SendShowBook(Spawn* sender, string title, int8 language, int8 num_p
 		switch (GetVersion())
 		{
 			// release client
-			case 283:
-			case 373: // trial isle client
-			{
-				endString.append(page);
-				break;
-			}
-			// DoF trial
-			case 546:
-			case 561:
-			{
-				if (p == 0)
-					packet->setDataByName("cover_page", page.c_str());
-				else
-					packet->setArrayDataByName("page_text", page.c_str(), p - 1);
-				break;
-			}
-			// all other clients
-			default:
-			{
-				packet->setArrayDataByName("page_text", page.c_str(), p);
-				break;
-			}
+		case 283:
+		case 373: // trial isle client
+		{
+			endString.append(page);
+			break;
+		}
+		// DoF trial
+		case 546:
+		case 561:
+		{
+			if (p == 0)
+				packet->setDataByName("cover_page", page.c_str());
+			else
+				packet->setArrayDataByName("page_text", page.c_str(), p - 1);
+			break;
+		}
+		// all other clients
+		default:
+		{
+			packet->setArrayDataByName("page_text", page.c_str(), p);
+			break;
+		}
 		}
 	}
 
@@ -12060,8 +12286,8 @@ void Client::SendShowBook(Spawn* sender, string title, int8 language, vector<Ite
 	packet->setDataByName("book_title", title.c_str());
 	packet->setDataByName("book_type", "simple");
 	packet->setDataByName("unknown2", 1);
-	
-	if(language > 0 && !GetPlayer()->HasLanguage(language))
+
+	if (language > 0 && !GetPlayer()->HasLanguage(language))
 		packet->setDataByName("language", language);
 
 	if (GetVersion() > 561)
@@ -12121,7 +12347,7 @@ void Client::ReplaceGroupClient(Client* new_client)
 	{
 		world.GetGroupManager()->GroupLock(__FUNCTION__, __LINE__);
 		PlayerGroup* group = world.GetGroupManager()->GetGroup(this->GetPlayer()->GetGroupMemberInfo()->group_id);
-		if(group)
+		if (group)
 		{
 			group->MGroupMembers.writelock();
 			rejoin_group_id = this->GetPlayer()->GetGroupMemberInfo()->group_id;
@@ -12146,7 +12372,7 @@ void Client::TempRemoveGroup()
 	{
 		world.GetGroupManager()->GroupLock(__FUNCTION__, __LINE__);
 		PlayerGroup* group = world.GetGroupManager()->GetGroup(this->GetPlayer()->GetGroupMemberInfo()->group_id);
-		if(group)
+		if (group)
 		{
 			group->MGroupMembers.writelock();
 			rejoin_group_id = this->GetPlayer()->GetGroupMemberInfo()->group_id;
@@ -12167,8 +12393,8 @@ void Client::TempRemoveGroup()
 	}
 }
 
-void Client::CreateMail(int32 charID, std::string fromName, std::string subjectName, std::string mailBody, 
-int8 mailType, int32 copper, int32 silver, int32 gold, int32 platinum, int32 item_id, int16 stack_size, int32 time_sent, int32 expire_time)
+void Client::CreateMail(int32 charID, std::string fromName, std::string subjectName, std::string mailBody,
+	int8 mailType, int32 copper, int32 silver, int32 gold, int32 platinum, int32 item_id, int16 stack_size, int32 time_sent, int32 expire_time)
 {
 	Mail mail;
 	mail.mail_id = 0;
@@ -12196,11 +12422,11 @@ int8 mailType, int32 copper, int32 silver, int32 gold, int32 platinum, int32 ite
 	mail.time_sent = time_sent;
 	mail.expire_time = expire_time;
 
-	database.SavePlayerMail(&mail);	
+	database.SavePlayerMail(&mail);
 }
 
-void Client::CreateAndUpdateMail(std::string fromName, std::string subjectName, std::string mailBody, 
-int8 mailType, int32 copper, int32 silver, int32 gold, int32 platinum, int32 item_id, int16 stack_size, int32 time_sent, int32 expire_time)
+void Client::CreateAndUpdateMail(std::string fromName, std::string subjectName, std::string mailBody,
+	int8 mailType, int32 copper, int32 silver, int32 gold, int32 platinum, int32 item_id, int16 stack_size, int32 time_sent, int32 expire_time)
 {
 	Mail* mail = new Mail();
 	mail->player_to_id = GetCharacterID();
@@ -12230,7 +12456,7 @@ int8 mailType, int32 copper, int32 silver, int32 gold, int32 platinum, int32 ite
 
 void Client::SendEquipOrInvUpdateBySlot(int8 slot)
 {
-	if(slot < NUM_SLOTS)
+	if (slot < NUM_SLOTS)
 	{
 		EQ2Packet* app = GetPlayer()->GetEquipmentList()->serialize(GetVersion(), GetPlayer());
 		if (app)
@@ -12239,14 +12465,14 @@ void Client::SendEquipOrInvUpdateBySlot(int8 slot)
 	else
 	{
 		EQ2Packet* outapp = GetPlayer()->SendInventoryUpdate(GetVersion());
-			if (outapp)
-				QueuePacket(outapp);
+		if (outapp)
+			QueuePacket(outapp);
 	}
 }
 
 void Client::QueueStateCommand(int32 spawn_player_id, int32 state)
 {
-	if(spawn_player_id < 1)
+	if (spawn_player_id < 1)
 		return;
 
 	MQueueStateCmds.writelock();
@@ -12256,12 +12482,12 @@ void Client::QueueStateCommand(int32 spawn_player_id, int32 state)
 
 void Client::ProcessStateCommands()
 {
-	if(!IsReadyForUpdates())
+	if (!IsReadyForUpdates())
 		return;
 
 	MQueueStateCmds.writelock();
 	map<int32, int32>::iterator itr = queued_state_commands.begin();
-	for(; itr != queued_state_commands.end(); itr++)
+	for (; itr != queued_state_commands.end(); itr++)
 		ClientPacketFunctions::SendStateCommand(this, itr->first, itr->second);
 
 	queued_state_commands.clear();
@@ -12272,9 +12498,9 @@ void Client::PurgeItem(Item* item)
 {
 	std::unique_lock lock(MConversation);
 	map<int32, Item*>::iterator itr;
-	for(itr = conversation_items.begin(); itr != conversation_items.end(); itr++)
+	for (itr = conversation_items.begin(); itr != conversation_items.end(); itr++)
 	{
-		if ( itr->second == item )
+		if (itr->second == item)
 		{
 			conversation_items.erase(itr);
 			break;
@@ -12284,26 +12510,26 @@ void Client::PurgeItem(Item* item)
 
 void Client::ConsumeFoodDrink(Item* item, int32 slot)
 {
-	if(GetPlayer()->StopSaveSpellEffects())
+	if (GetPlayer()->StopSaveSpellEffects())
 		return;
 
-		if(item) {
-			LogWrite(MISC__INFO, 1, "Command", "ItemID: %u, ItemName: %s ItemCount: %i ", item->details.item_id, item->name.c_str(), item->details.count);
-			if(item->GetItemScript() && lua_interface){
-				lua_interface->RunItemScript(item->GetItemScript(), "cast", item, GetPlayer());
-				if (slot == 22) {
-					Message(CHANNEL_NARRATIVE, "You eat a %s.", item->name.c_str());
-					GetPlayer()->SetActiveFoodUniqueID(item->details.unique_id);
-				}
-				else {
-					Message(CHANNEL_NARRATIVE, "You drink a %s.", item->name.c_str());
-					GetPlayer()->SetActiveDrinkUniqueID(item->details.unique_id);
-				}
+	if (item) {
+		LogWrite(MISC__INFO, 1, "Command", "ItemID: %u, ItemName: %s ItemCount: %i ", item->details.item_id, item->name.c_str(), item->details.count);
+		if (item->GetItemScript() && lua_interface) {
+			lua_interface->RunItemScript(item->GetItemScript(), "cast", item, GetPlayer());
+			if (slot == 22) {
+				Message(CHANNEL_NARRATIVE, "You eat a %s.", item->name.c_str());
+				GetPlayer()->SetActiveFoodUniqueID(item->details.unique_id);
 			}
 			else {
-					Message(CHANNEL_NARRATIVE, "SERVER BUG! Item Script not assigned for consuming '%s'.", item->name.c_str());
-					return;
+				Message(CHANNEL_NARRATIVE, "You drink a %s.", item->name.c_str());
+				GetPlayer()->SetActiveDrinkUniqueID(item->details.unique_id);
 			}
+		}
+		else {
+			Message(CHANNEL_NARRATIVE, "SERVER BUG! Item Script not assigned for consuming '%s'.", item->name.c_str());
+			return;
+		}
 
 		if (item->details.count > 1) {
 			item->details.count -= 1;
@@ -12312,11 +12538,11 @@ void Client::ConsumeFoodDrink(Item* item, int32 slot)
 		else {
 			database.DeleteItem(GetPlayer()->GetCharacterID(), item, "EQUIPPED");
 			GetPlayer()->GetEquipmentList()->RemoveItem(slot, true);
-			
+
 		}
 		GetPlayer()->SetCharSheetChanged(true);
 		QueuePacket(player->GetEquipmentList()->serialize(GetVersion(), player));
-		if(GetVersion() <= 373) {
+		if (GetVersion() <= 373) {
 			EQ2Packet* outapp = GetPlayer()->SendInventoryUpdate(GetVersion());
 			QueuePacket(outapp);
 		}
@@ -12325,7 +12551,7 @@ void Client::ConsumeFoodDrink(Item* item, int32 slot)
 
 void Client::AwardCoins(int64 total_coins, std::string reason)
 {
-		if (total_coins > 0) {
+	if (total_coins > 0) {
 		player->AddCoins(total_coins);
 		PlaySound("coin_cha_ching");
 		char tmp[64] = { 0 };
@@ -12359,18 +12585,18 @@ void Client::AwardCoins(int64 total_coins, std::string reason)
 		message.append(reason);
 		int8 type = CHANNEL_LOOT;
 		SimpleMessage(type, message.c_str());
-		}
+	}
 }
 
 void Client::TriggerSpellSave()
 {
 	int32 interval = rule_manager.GetZoneRule(GetCurrentZoneID(), R_Spells, PlayerSpellSaveStateWaitInterval)->GetInt32();
 	// default to not have some bogus value in the rule
-	if(interval < 1)
+	if (interval < 1)
 		interval = 100;
-	
+
 	MSaveSpellStateMutex.lock();
-	if(!save_spell_state_timer.Enabled())
+	if (!save_spell_state_timer.Enabled())
 	{
 		save_spell_state_time_bucket = 0;
 		save_spell_state_timer.Start(interval, true);
@@ -12381,12 +12607,12 @@ void Client::TriggerSpellSave()
 		save_spell_state_time_bucket += elapsed_time;
 
 		int32 save_wait_cap = rule_manager.GetZoneRule(GetCurrentZoneID(), R_Spells, PlayerSpellSaveStateCap)->GetInt32();
-		
+
 		// default to not have some bogus value in the rule
-		if(save_wait_cap < interval)
-			save_wait_cap = interval+1;
-		
-		if(save_spell_state_time_bucket >= save_wait_cap)
+		if (save_wait_cap < interval)
+			save_wait_cap = interval + 1;
+
+		if (save_spell_state_time_bucket >= save_wait_cap)
 		{
 			save_spell_state_timer.Trigger();
 		}
@@ -12397,7 +12623,7 @@ void Client::TriggerSpellSave()
 void Client::UpdateSentSpellList() {
 	MSpellDetails.readlock(__FUNCTION__, __LINE__);
 	std::map<int32, int32>::iterator itr;
-	for(itr = sent_spell_details.begin(); itr != sent_spell_details.end(); itr++) {
+	for (itr = sent_spell_details.begin(); itr != sent_spell_details.end(); itr++) {
 		Spell* spell = master_spell_list.GetSpell(itr->first, itr->second);
 		EQ2Packet* app = spell->SerializeSpell(this, false, false);
 		QueuePacket(app);
@@ -12405,10 +12631,10 @@ void Client::UpdateSentSpellList() {
 	MSpellDetails.releasereadlock(__FUNCTION__, __LINE__);
 }
 
-void Client::SetTempPlacementSpawn(Spawn* tmp) { 
+void Client::SetTempPlacementSpawn(Spawn* tmp) {
 	tempPlacementSpawn = tmp;
 	hasSentTempPlacementSpawn = false;
-	if(tempPlacementSpawn)
+	if (tempPlacementSpawn)
 		temp_placement_timer.Start();
 	else
 		temp_placement_timer.Disable();
@@ -12425,7 +12651,7 @@ void Client::SetPlayer(Player* new_player) {
 bool Client::UseItem(Item* item, Spawn* target) {
 	if (item && item->GetItemScript()) {
 		int16 item_index = item->details.index;
-		if(!item->CheckFlag2(INDESTRUCTABLE) && item->generic_info.condition == 0) {
+		if (!item->CheckFlag2(INDESTRUCTABLE) && item->generic_info.condition == 0) {
 			SimpleMessage(CHANNEL_COLOR_RED, "This item is broken and must be repaired at a mender before it can be used");
 		}
 		else if (item->CheckFlag(EVIL_ONLY) && GetPlayer()->GetAlignment() != ALIGNMENT_EVIL) {
@@ -12443,15 +12669,15 @@ bool Client::UseItem(Item* item, Spawn* target) {
 				std::string itemName = string(item->name);
 				int32 item_id = item->details.item_id;
 				sint64 flags = 0;
-				if(lua_interface->RunItemScript(item->GetItemScript(), "used", item, player, target, &flags) && flags >= 0)
+				if (lua_interface->RunItemScript(item->GetItemScript(), "used", item, player, target, &flags) && flags >= 0)
 				{
 					//reobtain item make sure it wasn't removed
 					item = player->item_list.GetItemFromIndex(item_index);
-					if(!item) {
+					if (!item) {
 						LogWrite(PLAYER__WARNING, 0, "Command", "%s: Item %s (%i) was used, however after the item looks to be removed.", GetPlayer()->GetName(), itemName.c_str(), item_id);
 						return true;
 					}
-					else if(!item->generic_info.display_charges && item->generic_info.max_charges == 1) {
+					else if (!item->generic_info.display_charges && item->generic_info.max_charges == 1) {
 						Message(CHANNEL_NARRATIVE, "%s is out of charges.  It has been removed.", item->name.c_str());
 						RemoveItem(item, 1); // end of a set of charges OR an item that uses a stack count of actual item quantity
 						return true;
@@ -12461,7 +12687,7 @@ bool Client::UseItem(Item* item, Spawn* target) {
 						item->details.count--; // charges
 						item->save_needed = true;
 						QueuePacket(item->serialize(GetVersion(), false, GetPlayer()));
-						if(!item->details.count) {
+						if (!item->details.count) {
 							Message(CHANNEL_NARRATIVE, "%s is out of charges.  It has been removed.", item->name.c_str());
 							RemoveItem(item, 1); // end of a set of charges OR an item that uses a stack count of actual item quantity
 						}
@@ -12478,7 +12704,7 @@ bool Client::UseItem(Item* item, Spawn* target) {
 				//reobtain item make sure it wasn't removed
 				item = player->item_list.GetItemFromIndex(item_index);
 				SimpleMessage(CHANNEL_COLOR_YELLOW, "Item is out of charges.");
-				if(item) {
+				if (item) {
 					LogWrite(PLAYER__ERROR, 0, "Command", "%s: Item %s (%i) attempted to be used, however details.count is 0.", GetPlayer()->GetName(), item->name.c_str(), item->details.item_id);
 				}
 			}
@@ -12487,80 +12713,80 @@ bool Client::UseItem(Item* item, Spawn* target) {
 	return false;
 }
 
-void Client::SendPlayFlavor(Spawn* spawn, int8 language, VoiceOverStruct* non_garble, 
-								VoiceOverStruct* garble, bool success, bool garble_success) {
-		VoiceOverStruct* resStruct = nullptr;
-		
-		if(language == 0 || GetPlayer()->HasLanguage(language)) {
-			if(success) {
-				resStruct = non_garble;
-			}
+void Client::SendPlayFlavor(Spawn* spawn, int8 language, VoiceOverStruct* non_garble,
+	VoiceOverStruct* garble, bool success, bool garble_success) {
+	VoiceOverStruct* resStruct = nullptr;
+
+	if (language == 0 || GetPlayer()->HasLanguage(language)) {
+		if (success) {
+			resStruct = non_garble;
 		}
-		else if(garble_success) {
-			resStruct = garble;
-		}
-		
-		if(resStruct) {
-			GetPlayer()->GetZone()->PlayFlavor(this, spawn, resStruct->mp3_string.c_str(), resStruct->text_string.c_str(), resStruct->emote_string.c_str(), resStruct->key1, resStruct->key2, language);
-		}
+	}
+	else if (garble_success) {
+		resStruct = garble;
+	}
+
+	if (resStruct) {
+		GetPlayer()->GetZone()->PlayFlavor(this, spawn, resStruct->mp3_string.c_str(), resStruct->text_string.c_str(), resStruct->emote_string.c_str(), resStruct->key1, resStruct->key2, language);
+	}
 }
 
 void Client::SaveQuestRewardData(bool force_refresh) {
-		Query query;
-		if(force_refresh) {
-			query.AddQueryAsync(GetCharacterID(), &database, Q_DELETE, "delete from character_quest_rewards where char_id = %u", 
-							GetCharacterID());
-							
-			query.AddQueryAsync(GetCharacterID(), &database, Q_DELETE, "delete from character_quest_temporary_rewards where char_id = %u", 
-							GetCharacterID());
-		}
-		vector<QuestRewardData*>::iterator itr;
-		vector<QuestRewardData*> tmp_quest_rewards;
-		MQuestPendingUpdates.writelock(__FUNCTION__, __LINE__);
-		int index = 0;
-		for (itr = quest_pending_reward.begin(); itr != quest_pending_reward.end(); itr++) {
-			int32 questID = (*itr)->quest_id;
-			if(!(*itr)->db_saved || force_refresh) {
-				query.AddQueryAsync(GetCharacterID(), &database, Q_REPLACE, "replace into character_quest_rewards (char_id, indexed, quest_id, is_temporary, is_collection, has_displayed, tmp_coin, tmp_status, description) values(%u, %u, %u, %u, %u, %u, %llu, %u, '%s')", 
-					GetCharacterID(), index, questID, (*itr)->is_temporary, (*itr)->is_collection, (*itr)->has_displayed, (*itr)->tmp_coin, (*itr)->tmp_status, database.getSafeEscapeString((*itr)->description.c_str()).c_str());
-				(*itr)->db_saved = true;
-				(*itr)->db_index = index;
-				if(questID && (*itr)->is_temporary) {
-					std::vector<Item*> items;
-					GetPlayer()->GetQuestTemporaryRewards(questID, &items);
-					if(!force_refresh && items.size() > 0) {
-						query.AddQueryAsync(GetCharacterID(), &database, Q_REPLACE, "delete from character_quest_temporary_rewards where char_id = %u and quest_id = %u", 
-							GetCharacterID(), questID);
-					}
-					for(int i=0;i<items.size();i++) {
-						query.AddQueryAsync(GetCharacterID(), &database, Q_REPLACE, "replace into character_quest_temporary_rewards (char_id, quest_id, item_id, count) values(%u, %u, %u, %u)", 
-							GetCharacterID(), questID, items[i]->details.item_id, items[i]->details.count);
-					}
+	Query query;
+	if (force_refresh) {
+		query.AddQueryAsync(GetCharacterID(), &database, Q_DELETE, "delete from character_quest_rewards where char_id = %u",
+			GetCharacterID());
+
+		query.AddQueryAsync(GetCharacterID(), &database, Q_DELETE, "delete from character_quest_temporary_rewards where char_id = %u",
+			GetCharacterID());
+	}
+	vector<QuestRewardData*>::iterator itr;
+	vector<QuestRewardData*> tmp_quest_rewards;
+	MQuestPendingUpdates.writelock(__FUNCTION__, __LINE__);
+	int index = 0;
+	for (itr = quest_pending_reward.begin(); itr != quest_pending_reward.end(); itr++) {
+		int32 questID = (*itr)->quest_id;
+		if (!(*itr)->db_saved || force_refresh) {
+			query.AddQueryAsync(GetCharacterID(), &database, Q_REPLACE, "replace into character_quest_rewards (char_id, indexed, quest_id, is_temporary, is_collection, has_displayed, tmp_coin, tmp_status, description) values(%u, %u, %u, %u, %u, %u, %llu, %u, '%s')",
+				GetCharacterID(), index, questID, (*itr)->is_temporary, (*itr)->is_collection, (*itr)->has_displayed, (*itr)->tmp_coin, (*itr)->tmp_status, database.getSafeEscapeString((*itr)->description.c_str()).c_str());
+			(*itr)->db_saved = true;
+			(*itr)->db_index = index;
+			if (questID && (*itr)->is_temporary) {
+				std::vector<Item*> items;
+				GetPlayer()->GetQuestTemporaryRewards(questID, &items);
+				if (!force_refresh && items.size() > 0) {
+					query.AddQueryAsync(GetCharacterID(), &database, Q_REPLACE, "delete from character_quest_temporary_rewards where char_id = %u and quest_id = %u",
+						GetCharacterID(), questID);
+				}
+				for (int i = 0; i < items.size(); i++) {
+					query.AddQueryAsync(GetCharacterID(), &database, Q_REPLACE, "replace into character_quest_temporary_rewards (char_id, quest_id, item_id, count) values(%u, %u, %u, %u)",
+						GetCharacterID(), questID, items[i]->details.item_id, items[i]->details.count);
 				}
 			}
-			index++;
 		}
-		MQuestPendingUpdates.releasewritelock(__FUNCTION__, __LINE__);
+		index++;
+	}
+	MQuestPendingUpdates.releasewritelock(__FUNCTION__, __LINE__);
 }
 
 void Client::UpdateCharacterRewardData(QuestRewardData* data) {
-	
-	if(!data)
+
+	if (!data)
 		return;
-	if(data->db_saved) {
+	if (data->db_saved) {
 		Query query;
-		query.AddQueryAsync(GetCharacterID(), &database, Q_INSERT, "update character_quest_rewards set is_temporary = %u, is_collection = %u, has_displayed = %u, tmp_coin = %llu, tmp_status = %u, description = '%s' where char_id=%u and indexed=%u and quest_id=%u", 
+		query.AddQueryAsync(GetCharacterID(), &database, Q_INSERT, "update character_quest_rewards set is_temporary = %u, is_collection = %u, has_displayed = %u, tmp_coin = %llu, tmp_status = %u, description = '%s' where char_id=%u and indexed=%u and quest_id=%u",
 			data->is_temporary, data->is_collection, data->has_displayed, data->tmp_coin, data->tmp_status, database.getSafeEscapeString(data->description.c_str()).c_str(), GetCharacterID(), data->db_index, data->quest_id);
 	}
 }
 
 void Client::AddRecipeToPlayerPack(Recipe* recipe, PacketStruct* packet, int16* i) {
-	
-	
+
+
 	int  index = 0;
-	if(recipe == nullptr)
+	if (recipe == nullptr)
 		return;
-	
+
 	PlayerRecipeList* prl = GetPlayer()->GetRecipeList();
 	if (prl->GetRecipe(recipe->GetID())) {
 		delete recipe;
@@ -12597,26 +12823,26 @@ void Client::AddRecipeToPlayerPack(Recipe* recipe, PacketStruct* packet, int16* 
 		packet->setArrayDataByName("recipe_name", recipe->GetName(), *i);
 		packet->setArrayDataByName("recipe_book", recipe->GetBook(), *i);
 		packet->setArrayDataByName("unknown3", recipe->GetUnknown3(), *i);
-		if(i) {
+		if (i) {
 			(*i)++;
 		}
 	}
 }
 
 bool Client::SetPlayerPOVGhost(Spawn* spawn) {
-	if(!spawn) {
+	if (!spawn) {
 		pov_ghost_spawn_id = 0;
 		SendCharPOVGhost();
 		return true;
 	}
-	
+
 	int32 ghost_id = player->GetIDWithPlayerSpawn(spawn);
-	if(ghost_id) {
+	if (ghost_id) {
 		pov_ghost_spawn_id = spawn->GetID();
 		SendCharPOVGhost();
 		return true;
 	}
-	
+
 	return false;
 }
 
@@ -12628,21 +12854,21 @@ void Client::HandleDialogSelectMsg(int32 conversation_id, int32 response_index) 
 		conversation = std::string(conversation_map[conversation_id][response_index].c_str());
 		conv_established = true;
 	}
-	
+
 	int32 spawn_id = conversation_spawns[conversation_id];
-	
+
 	Item* item = conversation_items[conversation_id];
 	MConversation.unlock_shared();
-	
+
 	if (GetCurrentZone()) {
 		Spawn* spawn = nullptr;
-		if(spawn_id) {
+		if (spawn_id) {
 			spawn = GetCurrentZone()->GetSpawnByID(spawn_id);
 		}
-		
+
 		if (conv_established) {
 			if (spawn) {
-				if(conversation == "CloseItemConversation") {
+				if (conversation == "CloseItemConversation") {
 					LogWrite(LUA__ERROR, 0, "LUA", "CloseItemConversation is an invalid function call for this conversation with spawn id %u", spawn_id);
 				}
 				else {
@@ -12656,12 +12882,12 @@ void Client::HandleDialogSelectMsg(int32 conversation_id, int32 response_index) 
 		}
 		else
 			CloseDialog(conversation_id);
-	}				
+	}
 }
 
 
 bool Client::SetPetName(const char* petName) {
-	int8 result = database.CheckNameFilter(petName,4,31);
+	int8 result = database.CheckNameFilter(petName, 4, 31);
 	if (result == BADNAMELENGTH_REPLY) {
 		SimpleMessage(CHANNEL_COLOR_YELLOW, "Name length is invalid, must be greater then 3 characters and less then 31.");
 		return false;
@@ -12688,67 +12914,67 @@ bool Client::SetPetName(const char* petName) {
 }
 
 bool Client::CheckConsumptionAllowed(int16 slot, bool send_message) {
-	switch(slot) {
-		case EQ2_FOOD_SLOT: {
-			if(GetPlayer()->GetSpellEffectBySpellType(SPELL_TYPE_FOOD)) {
-				if(send_message) {
-					Message(CHANNEL_NARRATIVE, "If you ate anymore you would explode!");
-				}
-				return false;
-			}
-			break;
-		}
-		case EQ2_DRINK_SLOT: {
-			if (GetPlayer()->GetSpellEffectBySpellType(SPELL_TYPE_DRINK))
-			{
-				if(send_message) {
-					Message(CHANNEL_NARRATIVE, "If you drank anymore you would explode!");
-				}
-				return false;
-			}
-			break;
-		}
-		default: {
-			if (GetVersion() <= 373) {
-				Item* item = GetPlayer()->item_list.GetItemFromIndex(slot);
-				if(item->IsFood()) {
-					if(item->IsFoodFood()) {
-						if(GetPlayer()->GetSpellEffectBySpellType(SPELL_TYPE_FOOD)) {
-							if(send_message) {
-								Message(CHANNEL_NARRATIVE, "If you ate anymore you would explode!");
-							}
-							return false;
-						}
-						return true;
-					}
-					else if(item->IsFoodDrink()) {
-						if (GetPlayer()->GetSpellEffectBySpellType(SPELL_TYPE_DRINK))
-						{
-							if(send_message) {
-								Message(CHANNEL_NARRATIVE, "If you drank anymore you would explode!");
-							}
-							return false;
-						}
-						return true;
-					}
-				}
+	switch (slot) {
+	case EQ2_FOOD_SLOT: {
+		if (GetPlayer()->GetSpellEffectBySpellType(SPELL_TYPE_FOOD)) {
+			if (send_message) {
+				Message(CHANNEL_NARRATIVE, "If you ate anymore you would explode!");
 			}
 			return false;
-			break;
 		}
+		break;
 	}
-	
+	case EQ2_DRINK_SLOT: {
+		if (GetPlayer()->GetSpellEffectBySpellType(SPELL_TYPE_DRINK))
+		{
+			if (send_message) {
+				Message(CHANNEL_NARRATIVE, "If you drank anymore you would explode!");
+			}
+			return false;
+		}
+		break;
+	}
+	default: {
+		if (GetVersion() <= 373) {
+			Item* item = GetPlayer()->item_list.GetItemFromIndex(slot);
+			if (item->IsFood()) {
+				if (item->IsFoodFood()) {
+					if (GetPlayer()->GetSpellEffectBySpellType(SPELL_TYPE_FOOD)) {
+						if (send_message) {
+							Message(CHANNEL_NARRATIVE, "If you ate anymore you would explode!");
+						}
+						return false;
+					}
+					return true;
+				}
+				else if (item->IsFoodDrink()) {
+					if (GetPlayer()->GetSpellEffectBySpellType(SPELL_TYPE_DRINK))
+					{
+						if (send_message) {
+							Message(CHANNEL_NARRATIVE, "If you drank anymore you would explode!");
+						}
+						return false;
+					}
+					return true;
+				}
+			}
+		}
+		return false;
+		break;
+	}
+	}
+
 	return true;
 }
 
 void Client::StartLinkdeadTimer() {
-	if(!linkdead_timer) {
+	if (!linkdead_timer) {
 		int32 LD_Timer = rule_manager.GetZoneRule(GetCurrentZoneID(), R_World, LinkDeadTimer)->GetInt32();
-		LogWrite(CCLIENT__DEBUG, 0, "Client", "Starting linkdead timer for %s (timer %u seconds)", GetPlayer()->GetName(), (LD_Timer/1000));
+		LogWrite(CCLIENT__DEBUG, 0, "Client", "Starting linkdead timer for %s (timer %u seconds)", GetPlayer()->GetName(), (LD_Timer / 1000));
 		linkdead_timer = new Timer(LD_Timer);
 		linkdead_timer->Enable();
-		
-		if(GetPlayer()->GetGroupMemberInfo()) {
+
+		if (GetPlayer()->GetGroupMemberInfo()) {
 			LogWrite(CCLIENT__DEBUG, 0, "Client", "Telling player %s group they are disconnecting", GetPlayer()->GetName());
 			world.GetGroupManager()->GroupMessage(GetPlayer()->GetGroupMemberInfo()->group_id, "%s has gone Linkdead.", GetPlayer()->GetName());
 		}
@@ -12756,10 +12982,10 @@ void Client::StartLinkdeadTimer() {
 }
 
 bool Client::IsLinkdeadTimerEnabled() {
-	if(linkdead_timer) {
+	if (linkdead_timer) {
 		return linkdead_timer->Enabled();
 	}
-	
+
 	return false;
 }
 
@@ -12767,10 +12993,10 @@ void Client::SendNewAdventureSpells() {
 	SendNewSpells(player->GetAdventureClass());
 	int8 base_class = classes.GetBaseClass(player->GetAdventureClass());
 	int secondary_class = classes.GetSecondaryBaseClass(player->GetAdventureClass());
-	if(base_class != player->GetAdventureClass()) {
+	if (base_class != player->GetAdventureClass()) {
 		SendNewSpells(base_class);
 	}
-	if(secondary_class != player->GetAdventureClass() && secondary_class != base_class) {
+	if (secondary_class != player->GetAdventureClass() && secondary_class != base_class) {
 		SendNewSpells(secondary_class);
 	}
 }
@@ -12778,33 +13004,33 @@ void Client::SendNewAdventureSpells() {
 void Client::SendNewTradeskillSpells() {
 	SendNewTSSpells(player->GetTradeskillClass());
 	int8 secondary_class = classes.GetSecondaryTSBaseClass(player->GetTradeskillClass());
-	if(secondary_class != player->GetTradeskillClass()) { 
+	if (secondary_class != player->GetTradeskillClass()) {
 		SendNewTSSpells(secondary_class);
 	}
 }
 
 bool Client::AddRecipeBookToPlayer(int32 recipe_book_id, Item* item) {
 	Recipe* master_recipe = master_recipebook_list.GetRecipeBooks(recipe_book_id);
-	
-	if(master_recipe) {
+
+	if (master_recipe) {
 		Recipe* recipe_book = new Recipe(master_recipe);
 		// if valid recipe book and the player doesn't have it
 		if (recipe_book && recipe_book->GetLevel() > GetPlayer()->GetTSLevel()) {
-			if(item) {
+			if (item) {
 				Message(CHANNEL_NARRATIVE, "Your tradeskill level is not high enough to scribe this book.");
 			}
 			safe_delete(recipe_book);
 		}
-		else if(recipe_book && item && !recipe_book->CanUseRecipeByClass(item, GetPlayer()->GetTradeskillClass())) {
-			if(item) {
+		else if (recipe_book && item && !recipe_book->CanUseRecipeByClass(item, GetPlayer()->GetTradeskillClass())) {
+			if (item) {
 				Message(CHANNEL_NARRATIVE, "Your tradeskill class cannot use this recipe.");
 			}
 			safe_delete(recipe_book);
 		}
-		else if (recipe_book && (!item || !(GetPlayer()->GetRecipeBookList()->HasRecipeBook(recipe_book_id)))){
+		else if (recipe_book && (!item || !(GetPlayer()->GetRecipeBookList()->HasRecipeBook(recipe_book_id)))) {
 			LogWrite(PLAYER__DEBUG, 0, "Recipe", "Valid recipe book that the player doesn't have");
 			// Add recipe book to the players list
-			if(!GetPlayer()->GetRecipeBookList()->HasRecipeBook(recipe_book_id)) {
+			if (!GetPlayer()->GetRecipeBookList()->HasRecipeBook(recipe_book_id)) {
 				GetPlayer()->GetRecipeBookList()->AddRecipeBook(recipe_book);
 			}
 
@@ -12823,7 +13049,7 @@ bool Client::AddRecipeBookToPlayer(int32 recipe_book_id, Item* item) {
 			else {
 				LogWrite(PLAYER__ERROR, 0, "Recipe", "no recipes found for %s book", recipe_book->GetBookName());
 			}
-			
+
 			//Filter out duplicate recipes the player already has
 			for (auto itr = recipes.begin(); itr != recipes.end();) {
 				Recipe* recipe = *itr;
@@ -12853,7 +13079,7 @@ bool Client::AddRecipeBookToPlayer(int32 recipe_book_id, Item* item) {
 
 			LogWrite(TRADESKILL__DEBUG, 0, "Recipe", "Done adding recipes");
 			database.SavePlayerRecipeBook(GetPlayer(), recipe_book->GetBookID());
-			if(item) {
+			if (item) {
 				database.DeleteItem(GetCharacterID(), item, 0);
 				GetPlayer()->item_list.RemoveItem(item, true);
 			}
@@ -12872,7 +13098,7 @@ bool Client::AddRecipeBookToPlayer(int32 recipe_book_id, Item* item) {
 		}
 	}
 	else {
-			LogWrite(PLAYER__ERROR, 0, "Player", "%u recipe book id does not exist.  Cannot AddRecipeToPlayer.", recipe_book_id);
+		LogWrite(PLAYER__ERROR, 0, "Player", "%u recipe book id does not exist.  Cannot AddRecipeToPlayer.", recipe_book_id);
 	}
 	return false;
 }
@@ -12880,11 +13106,11 @@ bool Client::AddRecipeBookToPlayer(int32 recipe_book_id, Item* item) {
 
 bool Client::RemoveRecipeFromPlayer(int32 recipe_id) {
 	PlayerRecipeList* prl = GetPlayer()->GetRecipeList();
-	
+
 	PacketStruct* packet = configReader.getStruct("WS_RecipeList", version);
 	Recipe* recipe = prl->GetRecipe(recipe_id);
 	int8 level = player->GetTSLevel();
-	if(packet && recipe) {
+	if (packet && recipe) {
 		packet->setDataByName("command_type", 1);
 		packet->setArrayLengthByName("num_recipes", 1);
 		int32 myid = recipe->GetID();
@@ -12892,7 +13118,7 @@ bool Client::RemoveRecipeFromPlayer(int32 recipe_id) {
 		int8 even = level - level * .05 + .5;
 		int8 easymin = level - level * .25 + .5;
 		int8 veasymin = level - level * .35 + .5;
-		if (rlevel > level )
+		if (rlevel > level)
 			packet->setArrayDataByName("tier", 4, 0);
 		else if ((rlevel <= level) & (rlevel >= even))
 			packet->setArrayDataByName("tier", 3, 0);
@@ -12912,7 +13138,7 @@ bool Client::RemoveRecipeFromPlayer(int32 recipe_id) {
 		packet->setArrayDataByName("technique", recipe->GetTechnique(), 0);
 		packet->setArrayDataByName("knowledge", recipe->GetKnowledge(), 0);
 
-		
+
 		auto recipe_device = std::find(devices.begin(), devices.end(), recipe->GetDevice());
 		if (recipe_device != devices.end())
 			packet->setArrayDataByName("device_type", recipe_device - devices.begin(), 0);
@@ -12923,12 +13149,12 @@ bool Client::RemoveRecipeFromPlayer(int32 recipe_id) {
 		packet->setArrayDataByName("recipe_name", recipe->GetName(), 0);
 		packet->setArrayDataByName("recipe_book", recipe->GetBook(), 0);
 		packet->setArrayDataByName("unknown3", recipe->GetUnknown3(), 0);
-	QueuePacket(packet->serialize());
+		QueuePacket(packet->serialize());
 	}
 	safe_delete(packet);
-	
+
 	bool res = prl->RemoveRecipe(recipe_id);
-	if(res) {
+	if (res) {
 		Query query;
 		query.AddQueryAsync(GetCharacterID(), &database, Q_DELETE, "DELETE FROM character_recipes where char_id=%u and recipe_id=%u", GetCharacterID(), recipe_id);
 	}
@@ -12939,7 +13165,7 @@ void Client::SaveSpells() {
 	MSaveSpellStateMutex.lock();
 	player->SaveSpellEffects();
 	player->SetSaveSpellEffects(true);
-	MSaveSpellStateMutex.unlock();	
+	MSaveSpellStateMutex.unlock();
 }
 
 void Client::SendReplaceWidget(int32 widget_id, bool delete_widget, float x, float y, float z, int32 grid_id) {
@@ -12955,90 +13181,90 @@ void Client::SendReplaceWidget(int32 widget_id, bool delete_widget, float x, flo
 
 	EQ2Packet* ret = new_spawn->serialize(GetPlayer(), GetVersion());
 	QueuePacket(ret);
-	
+
 	// we have to delete spawn* references anyway, we don't keep this widget live in the spawn list
 	GetPlayer()->RemoveSpawn(new_spawn, delete_widget);
-	
+
 	safe_delete(new_spawn);
 }
 
 void Client::ProcessZoneIgnoreWidgets() {
 	GetPlayer()->MIgnoredWidgets.lock_shared();
 	std::map<int32, bool>::iterator itr;
-	for(itr = GetPlayer()->ignored_widgets.begin(); itr != GetPlayer()->ignored_widgets.end(); itr++) {
+	for (itr = GetPlayer()->ignored_widgets.begin(); itr != GetPlayer()->ignored_widgets.end(); itr++) {
 		SendReplaceWidget(itr->first, true);
 	}
 	GetPlayer()->MIgnoredWidgets.unlock_shared();
 }
 
 void Client::PopulateRecipeData(Recipe* recipe, PacketStruct* packet, int i) {
-	if(!recipe || !packet)
+	if (!recipe || !packet)
 		return;
-	
-		int8 level = player->GetTSLevel();
-		int32 myid = recipe->GetID();
-		int8 rlevel = recipe->GetLevel();
-		int8 even = level - level * .05 + .5;
-		int8 easymin = level - level * .25 + .5;
-		int8 veasymin = level - level * .35 + .5;
-		if (rlevel > level )
-			packet->setArrayDataByName("tier", 4, i);
-		else if ((rlevel <= level) & (rlevel >= even))
-			packet->setArrayDataByName("tier", 3, i);
-		else if ((rlevel <= even) & (rlevel >= easymin))
-			packet->setArrayDataByName("tier", 2, i);
-		else if ((rlevel <= easymin) & (rlevel >= veasymin))
-			packet->setArrayDataByName("tier", 1, i);
-		else if ((rlevel <= veasymin) & (rlevel >= 0))
-			packet->setArrayDataByName("tier", 0, i);
-		if (rlevel == 2)
-			int xxx = 1;
-		packet->setArrayDataByName("recipe_id", myid, i);
-		packet->setArrayDataByName("level", recipe->GetLevel(), i);
-		packet->setArrayDataByName("icon", recipe->GetIcon(), i);
-		packet->setArrayDataByName("classes", recipe->GetClasses(), i);
-		packet->setArrayDataByName("technique", recipe->GetTechnique(), i);
-		packet->setArrayDataByName("knowledge", recipe->GetKnowledge(), i);
-		packet->setArrayDataByName("device", recipe->GetDevice(), i);
-		packet->setArrayDataByName("device_sub_type", recipe->GetDevice_Sub_Type(), i);
-		packet->setArrayDataByName("recipe_name", recipe->GetName(), i);
-		packet->setArrayDataByName("recipe_book", recipe->GetBook(), i);
-		packet->setArrayDataByName("unknown3", recipe->GetUnknown3(), i);
-		
-		packet->setArrayDataByName("book_volume", 0x01, i);
-		packet->setArrayDataByName("device_id", 0x01, i);
+
+	int8 level = player->GetTSLevel();
+	int32 myid = recipe->GetID();
+	int8 rlevel = recipe->GetLevel();
+	int8 even = level - level * .05 + .5;
+	int8 easymin = level - level * .25 + .5;
+	int8 veasymin = level - level * .35 + .5;
+	if (rlevel > level)
+		packet->setArrayDataByName("tier", 4, i);
+	else if ((rlevel <= level) & (rlevel >= even))
+		packet->setArrayDataByName("tier", 3, i);
+	else if ((rlevel <= even) & (rlevel >= easymin))
+		packet->setArrayDataByName("tier", 2, i);
+	else if ((rlevel <= easymin) & (rlevel >= veasymin))
+		packet->setArrayDataByName("tier", 1, i);
+	else if ((rlevel <= veasymin) & (rlevel >= 0))
+		packet->setArrayDataByName("tier", 0, i);
+	if (rlevel == 2)
+		int xxx = 1;
+	packet->setArrayDataByName("recipe_id", myid, i);
+	packet->setArrayDataByName("level", recipe->GetLevel(), i);
+	packet->setArrayDataByName("icon", recipe->GetIcon(), i);
+	packet->setArrayDataByName("classes", recipe->GetClasses(), i);
+	packet->setArrayDataByName("technique", recipe->GetTechnique(), i);
+	packet->setArrayDataByName("knowledge", recipe->GetKnowledge(), i);
+	packet->setArrayDataByName("device", recipe->GetDevice(), i);
+	packet->setArrayDataByName("device_sub_type", recipe->GetDevice_Sub_Type(), i);
+	packet->setArrayDataByName("recipe_name", recipe->GetName(), i);
+	packet->setArrayDataByName("recipe_book", recipe->GetBook(), i);
+	packet->setArrayDataByName("unknown3", recipe->GetUnknown3(), i);
+
+	packet->setArrayDataByName("book_volume", 0x01, i);
+	packet->setArrayDataByName("device_id", 0x01, i);
 }
 
 int32 Client::GetRecipeCRC(Recipe* recipe) {
-	
+
 	PacketStruct* packet = 0;
 	if (!(packet = configReader.getStruct("WS_RecipeDetailList", GetVersion()))) {
 		return 0;
 	}
 	packet->setArrayLengthByName("num_recipes", 1);
-	
+
 	PopulateRecipeData(recipe, packet);
-	
+
 	string* generic_string_data = packet->serializeString();
 	int32 size = generic_string_data->length();
-	
-	if(size < 5)
+
+	if (size < 5)
 		return 0;
-	
-	uchar* out_data = new uchar[size+1];
+
+	uchar* out_data = new uchar[size + 1];
 	uchar* out_ptr = out_data;
-	memcpy(out_ptr, (uchar*)generic_string_data->c_str()+4, generic_string_data->length()-4);
-	uint32 out_crc = GenerateCRCRecipe(0, (void*)out_ptr, size-4);
+	memcpy(out_ptr, (uchar*)generic_string_data->c_str() + 4, generic_string_data->length() - 4);
+	uint32 out_crc = GenerateCRCRecipe(0, (void*)out_ptr, size - 4);
 	safe_delete(packet);
 	safe_delete_array(out_data);
-	
+
 	return out_crc;
 }
 
 void Client::SendRecipeDetails(vector<int32>* recipes) {
-	if(!recipes || recipes->size() == 0)
+	if (!recipes || recipes->size() == 0)
 		return;
-	
+
 	PacketStruct* packet = 0;
 	if (!(packet = configReader.getStruct("WS_RecipeDetailList", GetVersion()))) {
 		return;
@@ -13048,12 +13274,12 @@ void Client::SendRecipeDetails(vector<int32>* recipes) {
 	int16 i = 0;
 	int32 count = 0;
 	vector<int32>::iterator recipe_itr;
-	for(recipe_itr = recipes->begin(); recipe_itr != recipes->end(); recipe_itr++) {
+	for (recipe_itr = recipes->begin(); recipe_itr != recipes->end(); recipe_itr++) {
 		Recipe* recipe = player->GetRecipeList()->GetRecipe(*recipe_itr);
-		if(!recipe) {
+		if (!recipe) {
 			continue;
 		}
-		else if(i > 99) {
+		else if (i > 99) {
 			QueuePacket(packet->serialize());
 			safe_delete(packet);
 			packet = configReader.getStruct("WS_RecipeDetailList", GetVersion());
@@ -13065,41 +13291,44 @@ void Client::SendRecipeDetails(vector<int32>* recipes) {
 		PopulateRecipeData(recipe, packet, i);
 		i++;
 	}
-	
+
 	//packet->PrintPacket();
-	
+
 	QueuePacket(packet->serialize());
 	safe_delete(packet);
 }
 
-ZoneServer* Client::GetHouseZoneServer(int32 spawn_id, int64 house_id) {
+bool Client::GetHouseZoneServer(ZoneChangeDetails* zone_details, int32 spawn_id, int64 house_id) {
 	PlayerHouse* ph = nullptr;
 	HouseZone* hz = nullptr;
-	if(spawn_id) {
+	if (spawn_id) {
 		Spawn* houseWidget = GetPlayer()->GetSpawnByIndex(spawn_id);
-		if(houseWidget && houseWidget->IsWidget() && ((Widget*)houseWidget)->GetHouseID()) {
+		if (houseWidget && houseWidget->IsWidget() && ((Widget*)houseWidget)->GetHouseID()) {
 			hz = world.GetHouseZone(((Widget*)houseWidget)->GetHouseID());
 			if (hz) {
 				ph = world.GetPlayerHouseByHouseID(GetPlayer()->GetCharacterID(), hz->id);
-			} else {
+			}
+			else {
 				Message(CHANNEL_COLOR_YELLOW, "HouseWidget spawn index %u house zone could not be found.", spawn_id);
 			}
 		}
 	}
-	
-	if(!ph && house_id) {
+
+	if (!ph && house_id) {
 		ph = world.GetPlayerHouseByUniqueID(house_id);
 		if (ph) {
 			hz = world.GetHouseZone(ph->house_id);
 		}
 	}
-	
+
 	if (ph && hz) {
-		ZoneServer* house = zone_list.GetByInstanceID(ph->instance_id, hz->zone_id, false, true);
-		return house;
+		if (zone_list.GetZoneByInstance(zone_details, ph->instance_id, hz->zone_id)) {
+			return true;
+		}
+		return false;
 	}
-	
-	return nullptr;
+
+	return false;
 }
 
 void Client::SendHearCast(Spawn* caster, Spawn* target, int32 spell_visual, int16 cast_time) {
@@ -13107,21 +13336,21 @@ void Client::SendHearCast(Spawn* caster, Spawn* target, int32 spell_visual, int1
 	if (packet) {
 		int32 caster_id = GetPlayer()->GetIDWithPlayerSpawn(caster);
 		int32 target_id = GetPlayer()->GetIDWithPlayerSpawn(target);
-		
+
 		packet->setDataByName("spawn_id", caster_id);
 		packet->setArrayLengthByName("num_targets", 1);
 		packet->setArrayDataByName("target", target_id);
 		packet->setDataByName("num_targets", 1);
 
 		int32 visual = GetSpellVisualOverride(spell_visual);
-		
+
 		packet->setDataByName("spell_visual", visual); //result
-		packet->setDataByName("cast_time", cast_time*.01f); //delay
+		packet->setDataByName("cast_time", cast_time * .01f); //delay
 		packet->setDataByName("spell_id", 1);
 		packet->setDataByName("spell_level", 1);
 		packet->setDataByName("spell_tier", 1);
 		EQ2Packet* outapp = packet->serialize();
-		
+
 		//DumpPacket(outapp);
 		QueuePacket(outapp);
 		safe_delete(packet);
@@ -13130,15 +13359,50 @@ void Client::SendHearCast(Spawn* caster, Spawn* target, int32 spell_visual, int1
 
 int32 Client::GetSpellVisualOverride(int32 spell_visual) {
 	int32 visual = spell_visual;
-	if(GetVersion() <= 561) { // spell's spell_visual field is based on newer clients, DoF has to convert
+	if (GetVersion() <= 561) { // spell's spell_visual field is based on newer clients, DoF has to convert
 		Emote* spellVisualEmote = visual_states.FindSpellVisualByID(visual, 60085);
-		if(spellVisualEmote != nullptr && spellVisualEmote->GetMessageString().size() > 0) {
+		if (spellVisualEmote != nullptr && spellVisualEmote->GetMessageString().size() > 0) {
 			spellVisualEmote = visual_states.FindSpellVisual(spellVisualEmote->GetMessageString(), GetVersion());
-			if(spellVisualEmote) {
+			if (spellVisualEmote) {
 				visual = (int32)spellVisualEmote->GetVisualState();
 			}
 		}
 	}
-	
+
 	return visual;
+}
+
+void Client::HandleGroupAcceptResponse(int8 result) {
+	if (result == 0)
+		SimpleMessage(CHANNEL_GROUP_CHAT, "You have joined the group.");
+	else if (result == 1)
+		SimpleMessage(CHANNEL_GROUP_CHAT, "You do not have a pending invite.");
+	else if (result == 2)
+		SimpleMessage(CHANNEL_GROUP_CHAT, "Unable to join group - could not find leader.");
+	else
+		SimpleMessage(CHANNEL_GROUP_CHAT, "Unable to join group - unknown error.");
+}
+
+void Client::SetGroupOptionsReference(GroupOptions* options) {
+	if (options) {
+		options->loot_method = GetPlayer()->GetInfoStruct()->get_group_loot_method();
+		options->loot_items_rarity = GetPlayer()->GetInfoStruct()->get_group_loot_items_rarity();
+		options->auto_split = GetPlayer()->GetInfoStruct()->get_group_auto_split();
+		options->default_yell = GetPlayer()->GetInfoStruct()->get_group_default_yell();
+		options->group_autolock = GetPlayer()->GetInfoStruct()->get_group_autolock();
+		options->group_lock_method = GetPlayer()->GetInfoStruct()->get_group_lock_method();
+		options->solo_autolock = GetPlayer()->GetInfoStruct()->get_group_solo_autolock();
+		options->auto_loot_method = GetPlayer()->GetInfoStruct()->get_group_auto_loot_method();
+	}
+}
+
+void Client::SendReceiveOffer(Client* target_client, int8 type, std::string name, int8 unknown2) {
+	PacketStruct* packet = configReader.getStruct("WS_ReceiveOffer", target_client->GetVersion());
+	if (packet) {
+		packet->setDataByName("type", type);
+		packet->setDataByName("name", name.c_str());
+		packet->setDataByName("unknown2", unknown2);
+		target_client->QueuePacket(packet->serialize());
+	}
+	safe_delete(packet);
 }

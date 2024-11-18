@@ -660,4 +660,7 @@ int EQ2Emu_lua_ToggleCharacterFlag(lua_State* state);
 int EQ2Emu_lua_GetSpellInitialTarget(lua_State* state);
 
 int EQ2Emu_lua_DespawnByLocationID(lua_State* state);
+
+int EQ2Emu_lua_AddRespawn(lua_State* state);
+int EQ2Emu_lua_CreatePersistedRespawn(lua_State* state);
 #endif

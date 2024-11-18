@@ -34,6 +34,9 @@
 	#include <windows.h>
 #endif
 
+#include <atomic>
+#include <cstring>
+
 #include "../common/linked_list.h"
 #include "../common/types.h"
 
@@ -64,12 +67,14 @@ public:
 		LoginServerInfo = 0;//ReadLoginINI();
 		UpdateStats = false;
 		web_worldport = 0;
+		web_peerpriority = 0;
 	}
 	~NetConnection() { }
 
-	bool ReadLoginINI();
+	bool ReadLoginINI(int argc, char** argv);
 	void WelcomeHeader();
-
+	void SetPrimary(bool isprimary = true);
+	
 	bool LoginServerInfo;
 	bool UpdateStats;
 	char* GetLoginInfo(int16* oPort);
@@ -89,7 +94,12 @@ public:
 	std::string GetWebKeyPassword()		{ return web_keypassword; }
 	std::string GetWebHardcodeUser()		{ return web_hardcodeuser; }
 	std::string GetWebHardcodePassword()		{ return web_hardcodepassword; }
+	std::string GetCmdUser()		{ return web_cmduser; }
+	std::string GetCmdPassword()		{ return web_cmdpassword; }
+	std::map<std::string, int16> GetWebPeers() { std::map<std::string, int16> copied_map(web_peers); return copied_map; }
+	int16 GetPeerPriority() { return web_peerpriority; }
 	bool world_locked;
+	std::atomic<bool> is_primary;
 private:
 	int		listening_socket;
 	char	loginaddress[4][255];
@@ -107,7 +117,11 @@ private:
 	std::string	web_keypassword;
 	std::string	web_hardcodeuser;
 	std::string	web_hardcodepassword;
+	std::string	web_cmduser;
+	std::string	web_cmdpassword;
+	std::map<std::string, int16> web_peers;
 	int16	web_worldport;
+	int16	web_peerpriority;
 
 };
 

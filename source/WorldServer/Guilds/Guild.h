@@ -297,9 +297,9 @@ public:
 	int8 GetRecruitingPlayStyle() const {return recruiting_play_style;}
 	bool SetRecruitingDescTag(int8 index, int8 tag, bool send_packet = true);
 	int8 GetRecruitingDescTag(int8 index);
-	bool SetPermission(int8 rank, int8 permission, int8 value, bool send_packet = true);
+	bool SetPermission(int8 rank, int8 permission, int8 value, bool send_packet = true, bool save_needed = true);
 	int8 GetPermission(int8 rank, int8 permission);
-	bool SetEventFilter(int8 event_id, int8 category, int8 value, bool send_packet = true);
+	bool SetEventFilter(int8 event_id, int8 category, int8 value, bool send_packet = true, bool save_needed = true);
 	int8 GetEventFilter(int8 event_id, int8 category);
 	int32 GetNumUniqueAccounts();
 	int32 GetNumRecruiters();
@@ -321,12 +321,13 @@ public:
 	bool SetGuildMemberNote(const char* name, const char* note, bool send_packet = true);
 	bool SetGuildOfficerNote(const char* name, const char* note, bool send_packet = true);
 	bool AddNewGuildMember(Client* client, const char* invited_by = 0, int8 rank = GUILD_RANK_RECRUIT);
+	bool AddNewGuildMember(int32 characterID, const char *invited_by, int32 join_timestamp, int8 rank);
 	bool AddGuildMember(GuildMember* guild_member);
 	void RemoveGuildMember(int32 character_id, bool send_packet = true);
 	void RemoveAllGuildMembers();
 	bool DemoteGuildMember(Client* client, const char* name, bool send_packet = true);
 	bool PromoteGuildMember(Client* client, const char* name, bool send_packet = true);
-	bool KickGuildMember(Client* client, const char* name, bool send_packet = true);
+	int32 KickGuildMember(Client* client, const char* name, bool send_packet = true);
 	bool InvitePlayer(Client* client, const char* name, bool send_packet = true);
 	bool AddPointsToAll(Client* client, float points, const char* comment = 0, bool send_packet = true);
 	bool AddPointsToAllOnline(Client* client, float points, const char* comment = 0, bool send_packet = true);
@@ -372,9 +373,12 @@ public:
 	void SendGuildRecruitingDetails(Client* client);
 	void SendGuildRecruitingImages(Client* client);
 	void SendGuildRecruiterInfo(Client* client, Player* player);
-	void HandleGuildSay(Client* sender, const char* message);
-	void HandleOfficerSay(Client* sender, const char* message);
+	bool HandleGuildSay(Client* sender, const char* message);
+	void HandleGuildSay(std::string senderName, const char* message, int8 language);
+	bool HandleOfficerSay(Client* sender, const char* message);
+	void HandleOfficerSay(std::string senderName, const char* message, int8 language);
 	void SendMessageToGuild(int8 event_type, const char* message, ...);
+	void SendGuildChatMessage(const char* message, ...);
 	void SetSaveNeeded(bool val) {save_needed = val;}
 	bool GetSaveNeeded() {return save_needed;}
 	void SetMemberSaveNeeded(bool val) {member_save_needed = val;}

@@ -49,6 +49,7 @@ along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 #include "../classes.h"
 #include "../Transmute.h"
 #include "../Bots/Bot.h"
+#include "../Web/PeerManager.h"
 
 extern WorldDatabase database;
 extern MasterSpellList master_spell_list;
@@ -72,6 +73,7 @@ extern RuleManager rule_manager;
 extern MasterAAList master_aa_list;
 extern MasterRaceTypeList race_types_list;
 extern Classes classes;
+extern PeerManager peer_manager;
 
 //devn00b: Fix for linux builds since we dont use stricmp we use strcasecmp
 #if defined(__GNUC__)
@@ -1921,6 +1923,7 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 		world.SetReloadingSubsystem("Structs");
 		configReader.ReloadStructs();
 		world.RemoveReloadingSubSystem("Structs");
+		peer_manager.sendPeersMessage("/reloadcommand", command->handler);
 		client->SimpleMessage(CHANNEL_COLOR_YELLOW, "Done!");
 		break;
 	}
@@ -1931,6 +1934,7 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 		client_list.ReloadQuests();
 		zone_list.ReloadClientQuests();
 		world.RemoveReloadingSubSystem("Quests");
+		peer_manager.sendPeersMessage("/reloadcommand", command->handler);
 		client->SimpleMessage(CHANNEL_COLOR_YELLOW, "Done!");
 		break;
 	}
@@ -1943,6 +1947,7 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 			client->SimpleMessage(CHANNEL_COLOR_YELLOW, "Reloading NPC Spells Lists (Note: Must Reload Spawns/Repop to reset npc spells)...");
 			world.PurgeNPCSpells();
 			database.LoadNPCSpells();
+			peer_manager.sendPeersMessage("/reloadcommand", command->handler, 1);
 			client->SimpleMessage(CHANNEL_COLOR_YELLOW, "Done!");
 		}
 		else {
@@ -1957,6 +1962,7 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 			world.RemoveReloadingSubSystem("Spells");
 			world.PurgeNPCSpells();
 			database.LoadNPCSpells();
+			peer_manager.sendPeersMessage("/reloadcommand", command->handler);
 			client->SimpleMessage(CHANNEL_COLOR_YELLOW, "Done!");
 		}		
 		break;
@@ -1979,6 +1985,7 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 		if (lua_interface)
 			lua_interface->DestroyZoneScripts();
 		world.RemoveReloadingSubSystem("ZoneScripts");
+		peer_manager.sendPeersMessage("/reloadcommand", command->handler);
 		client->SimpleMessage(CHANNEL_COLOR_YELLOW, "Done!");
 		break;
 	}
@@ -1997,18 +2004,21 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 		master_faction_list.Clear();
 		database.LoadFactionList();
 		world.RemoveReloadingSubSystem("Factions");
+		peer_manager.sendPeersMessage("/reloadcommand", command->handler);
 		client->SimpleMessage(CHANNEL_COLOR_YELLOW, "Done!");
 		break;
 	}
 	case COMMAND_RELOAD_MAIL: {
 		client->SimpleMessage(CHANNEL_COLOR_YELLOW, "Reloading Mail...");
 		zone_list.ReloadMail();
+		peer_manager.sendPeersMessage("/reloadcommand", command->handler);
 		client->SimpleMessage(CHANNEL_COLOR_YELLOW, "Done!");
 		break;
 	}
 	case COMMAND_RELOAD_GUILDS: {
 		client->SimpleMessage(CHANNEL_COLOR_YELLOW, "Reloading Guilds...");
 		world.ReloadGuilds();
+		peer_manager.sendPeersMessage("/reloadcommand", command->handler);
 		client->SimpleMessage(CHANNEL_COLOR_YELLOW, "Done!");
 		break;
 	}
@@ -2022,6 +2032,7 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 	case COMMAND_RELOAD_RULES: {
 		client->SimpleMessage(CHANNEL_COLOR_YELLOW, "Reloading Rules...");
 		database.LoadRuleSets(true);
+		peer_manager.sendPeersMessage("/reloadcommand", command->handler);
 		client->SimpleMessage(CHANNEL_COLOR_YELLOW, "Done!");
 		break;
 	}
@@ -2035,6 +2046,7 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 		client->SimpleMessage(CHANNEL_COLOR_YELLOW, "Reloading Starting Skills/Spells...");
 		world.PurgeStartingLists();
 		world.LoadStartingLists();
+		peer_manager.sendPeersMessage("/reloadcommand", command->handler);
 		client->SimpleMessage(CHANNEL_COLOR_YELLOW, "Done!");
 		break;
 	}
@@ -2042,6 +2054,7 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 		client->SimpleMessage(CHANNEL_COLOR_YELLOW, "Reloading Voiceovers...");
 		world.PurgeVoiceOvers();
 		world.LoadVoiceOvers();
+		peer_manager.sendPeersMessage("/reloadcommand", command->handler);
 		client->SimpleMessage(CHANNEL_COLOR_YELLOW, "Done!");
 		break;
 	}
@@ -3178,8 +3191,10 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 		}
 		case COMMAND_GROUPSAY:{
 			GroupMemberInfo* gmi = client->GetPlayer()->GetGroupMemberInfo();
-			if(sep && sep->arg[0] && gmi)
+			if(sep && sep->arg[0] && gmi) {
 				world.GetGroupManager()->GroupChatMessage(gmi->group_id, client->GetPlayer(), client->GetPlayer()->GetCurrentLanguage(), sep->argplus[0]);
+				peer_manager.SendPeersChannelMessage(gmi->group_id, std::string(client->GetPlayer()->GetName()), std::string(sep->argplus[0]), CHANNEL_GROUP_SAY, client->GetPlayer()->GetCurrentLanguage());
+			}
 			break;
 		}
 		case COMMAND_GROUPINVITE: {
@@ -3211,18 +3226,11 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 			}
 
 			int8 result = world.GetGroupManager()->Invite(client->GetPlayer(), target);
-
-			if (result == 0) {
+			
+			if (target && result == 0) {
 				client->Message(CHANNEL_COMMANDS, "You invite %s to group with you.", target->GetName());
 				if (target_client) {
-					PacketStruct* packet = configReader.getStruct("WS_ReceiveOffer", target_client->GetVersion());
-					if (packet) {
-						packet->setDataByName("type", 1);
-						packet->setDataByName("name", client->GetPlayer()->GetName());
-						packet->setDataByName("unknown2", 1);
-						target_client->QueuePacket(packet->serialize());
-						safe_delete(packet);
-					}
+					client->SendReceiveOffer(target_client, 1, std::string(client->GetPlayer()->GetName()), 1);
 				}
 			}
 			else if (result == 1)
@@ -3245,9 +3253,10 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 		case COMMAND_GROUPDISBAND: {
 			GroupMemberInfo* gmi = client->GetPlayer()->GetGroupMemberInfo();
 
-			if (gmi) { // TODO: Leader check
+			if (gmi && gmi->leader) { // TODO: Leader check..DONE! :X
 				// world.GetGroupManager()->SimpleGroupMessage(gmi->group_id, "Your group has been disbanded.");
 				world.GetGroupManager()->RemoveGroup(gmi->group_id);
+				peer_manager.sendPeersDisbandGroup(gmi->group_id);
 			}
 
 			break;
@@ -3419,24 +3428,68 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 			break;
 		}
 		case COMMAND_GROUP_ACCEPT_INVITE: {
-			if((sep && sep->arg[0] && strcmp(sep->arg[0], "group") == 0) || (!sep && client->GetVersion() <= 561)) {
-				int8 result = world.GetGroupManager()->AcceptInvite(client->GetPlayer());
-
-				if (result == 0)
-					client->SimpleMessage(CHANNEL_GROUP_CHAT, "You have joined the group.");
-				else if (result == 1)
-					client->SimpleMessage(CHANNEL_GROUP_CHAT, "You do not have a pending invite.");
-				else if (result == 2)
-					client->SimpleMessage(CHANNEL_GROUP_CHAT, "Unable to join group - could not find leader.");
-				else
-					client->SimpleMessage(CHANNEL_GROUP_CHAT, "Unable to join group - unknown error.");
-			}
+				int8 result = 3;
+				std::string leader = world.GetGroupManager()->HasPendingInvite(client->GetPlayer());
+				std::string playerName(client->GetPlayer()->GetName());
+				Client* leader_client = client->GetCurrentZone()->GetClientByName((char*)leader.c_str());
+				bool group_existed = false;
+				if(leader_client && leader_client->GetPlayer()->GetGroupMemberInfo()) {
+					group_existed = true;
+				}
+				if(client->GetPlayer()->GetGroupMemberInfo() && client->GetPlayer()->GetGroupMemberInfo()->leader) {
+					int8 raid_result = world.GetGroupManager()->AcceptRaidInvite(std::string(client->GetPlayer()->GetName()), client->GetPlayer()->GetGroupMemberInfo()->group_id);
+					if(raid_result == 1) {
+						GroupOptions options;
+						if(world.GetGroupManager()->GetDefaultGroupOptions(client->GetPlayer()->GetGroupMemberInfo()->group_id, &options)) {
+							std::vector<int32> raidGroups;
+							world.GetGroupManager()->GetRaidGroups(client->GetPlayer()->GetGroupMemberInfo()->group_id, &raidGroups);
+							peer_manager.sendPeersNewGroupRequest("", 0, client->GetPlayer()->GetGroupMemberInfo()->group_id, "", "", &options, "", &raidGroups, true);
+						}
+						world.GetGroupManager()->ClearGroupRaidLooterFlag(client->GetPlayer()->GetGroupMemberInfo()->group_id);
+						world.GetGroupManager()->SendGroupUpdate(client->GetPlayer()->GetGroupMemberInfo()->group_id);
+						break;
+					}
+				}
+				if(net.is_primary) {
+					int32 group_id = 0;
+					result = world.GetGroupManager()->AcceptInvite(client->GetPlayer(), &group_id, false);
+					client->HandleGroupAcceptResponse(result);
+					if(result == 0) {
+						GroupOptions options;
+						if(leader_client) {
+							if(!group_existed) {
+								leader_client->SetGroupOptionsReference(&options);
+								peer_manager.sendPeersNewGroupRequest("", 0, group_id, leader, playerName, &options);
+							}
+							
+							world.GetGroupManager()->AddGroupMember(group_id, leader_client->GetPlayer(), true);
+							world.GetGroupManager()->GroupMessage(leader_client->GetPlayer()->GetGroupMemberInfo()->group_id, "%s has joined the group.", playerName.c_str());
+							world.GetGroupManager()->AddGroupMember(leader_client->GetPlayer()->GetGroupMemberInfo()->group_id, client->GetPlayer());
+						}
+					}
+				}
+				else {
+					if(leader.size() < 1) {
+						client->HandleGroupAcceptResponse(1);
+					}
+					else {
+						Client* leader_client = client->GetCurrentZone()->GetClientByName((char*)leader.c_str());
+						GroupOptions options;
+						if(leader_client) {
+							leader_client->SetGroupOptionsReference(&options);
+							world.GetGroupManager()->AddInvite(leader_client->GetPlayer(), client->GetPlayer());
+							peer_manager.sendPrimaryNewGroupRequest(leader, playerName, client->GetPlayer()->GetID(), &options);
+							
+						}
+						else {
+							client->HandleGroupAcceptResponse(2);
+						}
+					}
+				}
 			break;
 		}
 		case COMMAND_GROUP_DECLINE_INVITE: {
-			if(sep && sep->arg[0] && strcmp(sep->arg[0], "group") == 0) {
 				world.GetGroupManager()->DeclineInvite(client->GetPlayer()); // TODO: Add message to leader
-			}
 			break;
 		}
 		case COMMAND_SUMMON:{
@@ -3519,8 +3572,9 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 			int32 zone_id = 0;
 			bool listSearch = false;
 			bool isInstance = false;
+			bool notZoningCommand = false;
 			ZoneServer* zsZone = 0;
-			
+			ZoneChangeDetails zone_details;
 			if(sep && sep->arg[0][0])
 			{
 				if(strncasecmp(sep->arg[0], "list", 4) == 0)
@@ -3529,6 +3583,7 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 				else if(strncasecmp(sep->arg[0], "active", 6) == 0)
 				{
 					zone_list.SendZoneList(client);
+					notZoningCommand = true;
 					break;
 				}
 
@@ -3542,10 +3597,16 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 				{
 					PrintSep(sep, "ZONE LOCK");
 
-					if(sep->IsNumber(1))
-						zsZone = zone_list.Get(atoul(sep->arg[1]), false, false, false);
-					else
-						zsZone = zone_list.Get(sep->arg[1], false, false, false);
+					if(sep->IsNumber(1)) {
+						if(zone_list.GetZone(&zone_details, atoul(sep->arg[1]), "", false, false, false, false)) {
+							zsZone = (ZoneServer*)zone_details.zonePtr;
+						}
+					}
+					else {
+						if(zone_list.GetZone(&zone_details, 0, std::string(sep->arg[1]), false, false, false, false)) {
+							zsZone = (ZoneServer*)zone_details.zonePtr;
+						}
+					}
 
 					if( zsZone )
 					{
@@ -3554,17 +3615,23 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 					}
 					else
 						client->Message(CHANNEL_COLOR_RED, "Zone %s is not running and cannot be locked.", sep->arg[1]);
-
+					notZoningCommand = true;
 					break;
 				}
 				else if(strncasecmp(sep->arg[0], "unlock", 6) == 0)
 				{
 					PrintSep(sep, "ZONE UNLOCK");
 
-					if(sep->IsNumber(1))
-						zsZone = zone_list.Get(atoul(sep->arg[1]), false, false, false);
-					else
-						zsZone = zone_list.Get(sep->arg[1], false, false, false);
+					if(sep->IsNumber(1)) {
+						if(zone_list.GetZone(&zone_details, atoul(sep->arg[1]), "", false, false, false, false)) {
+							zsZone = (ZoneServer*)zone_details.zonePtr;
+						}
+					}
+					else {
+						if(zone_list.GetZone(&zone_details, 0, std::string(sep->arg[1]), false, false, false, false)) {
+							zsZone = (ZoneServer*)zone_details.zonePtr;
+						}
+					}
 
 					if( zsZone )
 					{
@@ -3573,6 +3640,7 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 					}
 					else
 						client->Message(CHANNEL_COLOR_RED, "Zone %s is not running and cannot be unlocked.", sep->arg[1]);
+					notZoningCommand = true;
 					break;
 				}
 				else
@@ -3590,15 +3658,12 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 				}
 				if(instanceID > 0)
 				{
-					ZoneServer* zsInstance = zone_list.GetByInstanceID(instanceID);
-
-					if(zsInstance != NULL)
-					{
-						instanceID = zsInstance->GetInstanceID();
-						zone = zsInstance->GetZoneName();
-						zone_id = zsInstance->GetZoneID();
-						isInstance = true;
+					if(zone_list.GetZoneByInstance(&zone_details, instanceID, 0, true)) {
+						instanceID = zone_details.instanceId;
+						zone = zone_details.zoneName;
+						zone_id = zone_details.zoneId;
 					}
+					isInstance = true;
 				}
 			}
 
@@ -3616,7 +3681,7 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 						{
 							client->Message(CHANNEL_COLOR_YELLOW,"Zoning to %s...", zonestr);
 							if(isInstance)
-								client->Zone(instanceID,true,true,false);
+								client->Zone(&zone_details,(ZoneServer*)zone_details.zonePtr,true,false);
 							else
 								client->Zone(zonestr);
 						}
@@ -3765,7 +3830,9 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 			if (!spawn || !client->HasOwnerOrEditAccess() || !spawn->GetPickupItemID())
 				break;
 
-			client->SendMoveObjectMode(spawn, 0);
+			Item* item = master_item_list.GetItem(spawn->GetPickupItemID());
+			
+			client->SendMoveObjectMode(spawn, (item && item->houseitem_info) ? item->houseitem_info->house_location : 0);
 			break;
 		}
 		case COMMAND_PICKUP:
@@ -5710,6 +5777,15 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 		case COMMAND_ASSIST: { Command_Assist(client, sep); break; }
 		case COMMAND_TARGET: { Command_Target(client, sep); break; }
 		case COMMAND_TARGET_PET: { Command_Target_Pet(client, sep); break; }
+		case COMMAND_WHOGROUP: { Command_WhoGroup(client, sep); break; }
+		case COMMAND_WHORAID: { Command_WhoRaid(client, sep); break; }
+		case COMMAND_RAIDINVITE: { Command_RaidInvite(client, sep); break; }
+		case COMMAND_RAID_LOOTER: { Command_Raid_Looter(client, sep); break; }
+		case COMMAND_KICKFROMGROUP: { Command_KickFromGroup(client, sep); break; }
+		case COMMAND_KICKFROMRAID: { Command_KickFromRaid(client, sep); break; }
+		case COMMAND_LEAVERAID: { Command_LeaveRaid(client, sep); break; }
+		case COMMAND_SPLIT: { Command_Split(client, sep); break; }
+		case COMMAND_RAIDSAY: { Command_RaidSay(client, sep); break; }
 		default: 
 		{
 			LogWrite(COMMAND__WARNING, 0, "Command", "Unhandled command: %s", command->command.data.c_str());
@@ -6263,12 +6339,20 @@ void Commands::Command_Guild(Client* client, Seperator* sep)
 
 		if (strncmp(command, "rank_name", length) == 0 && sep->arg[1] && sep->IsNumber(1) && sep->arg[2] && guild)
 			guild->SetRankName(atoi(sep->arg[1]), sep->argplus[2]);
-		else if (strncmp(command, "rank_permission", length) == 0 && sep->arg[1] && sep->IsNumber(1) && sep->arg[2] && sep->IsNumber(2) && sep->arg[3] && guild)
+		else if (strncmp(command, "rank_permission", length) == 0 && sep->arg[1] && sep->IsNumber(1) && sep->arg[2] && sep->IsNumber(2) && sep->arg[3] && guild) {
 			guild->SetPermission(atoi(sep->arg[1]), atoi(sep->arg[2]), strncmp(sep->arg[3], "true", 4) == 0 ? 1 : 0);
-		else if (strncmp(command, "filter_event", length) == 0 && sep->arg[1] && sep->IsNumber(1) && sep->arg[2] && sep->IsNumber(2) && sep->arg[3] && guild)
+			peer_manager.sendPeersGuildPermission(guild->GetID(), atoul(sep->arg[1]), atoul(sep->arg[2]), strncmp(sep->arg[3], "true", 4) == 0 ? 1 : 0);
+		}
+		else if (strncmp(command, "filter_event", length) == 0 && sep->arg[1] && sep->IsNumber(1) && sep->arg[2] && sep->IsNumber(2) && sep->arg[3] && guild) {
 			guild->SetEventFilter(atoi(sep->arg[1]), atoi(sep->arg[2]), strncmp(sep->arg[3], "true", 4) == 0 ? 1 : 0);
-		else if (strncmp(command, "kick", length) == 0 && sep->arg[1] && guild)
-			guild->KickGuildMember(client, sep->arg[1]);
+			peer_manager.sendPeersGuildEventFilter(guild->GetID(), atoul(sep->arg[1]), atoul(sep->arg[2]), strncmp(sep->arg[3], "true", 4) == 0 ? 1 : 0);
+		}
+		else if (strncmp(command, "kick", length) == 0 && sep->arg[1] && guild) {
+			int32 character_id = guild->KickGuildMember(client, sep->arg[1]);
+			if(character_id > 0) {
+				peer_manager.sendPeersRemoveGuildMember(character_id, guild->GetID(), std::string(client->GetPlayer()->GetName()));
+			}
+		}
 		else if (strncmp(command, "demote", length) == 0 && sep->arg[1] && guild)
 			guild->DemoteGuildMember(client, sep->arg[1]);
 		else if (strncmp(command, "promote", length) == 0 && sep->arg[1] && guild)
@@ -6381,9 +6465,19 @@ void Commands::Command_Guild(Client* client, Seperator* sep)
 		else if (strncmp(command, "create", length) == 0 && sep->arg[1]) 
 		{
 			const char* guild_name = sep->argplus[1];
-
-			if (!guild_list.GetGuild(guild_name))
-				world.CreateGuild(guild_name, client, client->GetPlayer()->GetGroupMemberInfo() ? client->GetPlayer()->GetGroupMemberInfo()->group_id : 0);
+			if(!guild_name || strlen(guild_name) < 4) {
+				client->SimpleMessage(CHANNEL_NARRATIVE, "Guild name is too short.");
+			}
+			else if (!guild_list.GetGuild(guild_name)) {
+				if(net.is_primary) {
+					int32 guildID = world.CreateGuild(guild_name, client, client->GetPlayer()->GetGroupMemberInfo() ? client->GetPlayer()->GetGroupMemberInfo()->group_id : 0);
+					if(guildID > 0)
+						peer_manager.sendPeersCreateGuild(guildID);
+				}
+				else {
+					peer_manager.sendPrimaryCreateGuildRequest(std::string(guild_name), std::string(client->GetPlayer()->GetName()));
+				}
+			}
 			else
 				client->SimpleMessage(CHANNEL_NARRATIVE, "A guild with that name already exists.");
 		}
@@ -6479,8 +6573,11 @@ void Commands::Command_GuildSay(Client* client, Seperator* sep)
 
 	if (guild) 
 	{
-		if (sep && sep->arg[0])
-			guild->HandleGuildSay(client, sep->argplus[0]);
+		if (sep && sep->arg[0]) {
+			bool success = guild->HandleGuildSay(client, sep->argplus[0]);
+			if(success)
+				peer_manager.SendPeersGuildChannelMessage(guild->GetID(), std::string(client->GetPlayer()->GetName()), std::string(sep->argplus[0]), CHANNEL_GUILD_SAY, client->GetPlayer()->GetCurrentLanguage());
+		}
 	}
 	else
 		client->SimpleMessage(CHANNEL_NARRATIVE, "You are not a member of a guild");
@@ -6497,8 +6594,11 @@ void Commands::Command_OfficerSay(Client* client, Seperator* sep)
 
 	if (guild) 
 	{
-		if (sep && sep->arg[0])
-			guild->HandleOfficerSay(client, sep->argplus[0]);
+		if (sep && sep->arg[0]) {
+			bool success = guild->HandleOfficerSay(client, sep->argplus[0]);
+			if(success)
+				peer_manager.SendPeersGuildChannelMessage(guild->GetID(), std::string(client->GetPlayer()->GetName()), std::string(sep->argplus[0]), CHANNEL_OFFICER_SAY, client->GetPlayer()->GetCurrentLanguage());
+		}
 	}
 	else
 		client->SimpleMessage(CHANNEL_NARRATIVE, "You are not a member of a guild");
@@ -6581,8 +6681,10 @@ void Commands::Command_GuildsCreate(Client* client, Seperator* sep)
 	if (sep && sep->arg[0]) 
 	{
 		const char* guild_name = sep->arg[0];
-
-		if (!guild_list.GetGuild(guild_name)) 
+		if(!guild_name || strlen(guild_name) < 4) {
+			client->Message(CHANNEL_COLOR_YELLOW, "Guild name is too short.");
+		}
+		else if (!guild_list.GetGuild(guild_name)) 
 		{
 			bool ret = false;
 
@@ -6592,7 +6694,14 @@ void Commands::Command_GuildsCreate(Client* client, Seperator* sep)
 
 				if (to_client) 
 				{
-					world.CreateGuild(guild_name, to_client);
+					if(net.is_primary) {
+						int32 guildID = world.CreateGuild(guild_name, to_client, to_client->GetPlayer()->GetGroupMemberInfo() ? to_client->GetPlayer()->GetGroupMemberInfo()->group_id : 0);
+						if(guildID > 0)
+							peer_manager.sendPeersCreateGuild(guildID);
+					}
+					else {
+						peer_manager.sendPrimaryCreateGuildRequest(std::string(guild_name), std::string(to_client->GetPlayer()->GetName()));
+					}
 					ret = true;
 				}
 				else
@@ -6604,13 +6713,27 @@ void Commands::Command_GuildsCreate(Client* client, Seperator* sep)
 
 				if (to_client) 
 				{
-					world.CreateGuild(guild_name, to_client);
+					if(net.is_primary) {
+						int32 guildID = world.CreateGuild(guild_name, to_client, to_client->GetPlayer()->GetGroupMemberInfo() ? to_client->GetPlayer()->GetGroupMemberInfo()->group_id : 0);
+						if(guildID > 0)
+							peer_manager.sendPeersCreateGuild(guildID);
+					}
+					else {
+						peer_manager.sendPrimaryCreateGuildRequest(std::string(guild_name), std::string(to_client->GetPlayer()->GetName()));
+					}
 					ret = true;
 				}
 			}
 			else 
 			{
-				world.CreateGuild(guild_name);
+				if(net.is_primary) {
+					int32 guildID = world.CreateGuild(guild_name);
+					if(guildID > 0)
+						peer_manager.sendPeersCreateGuild(guildID);
+				}
+				else {
+					peer_manager.sendPrimaryCreateGuildRequest(std::string(guild_name), "");
+				}
 				ret = true;
 			}
 
@@ -6734,29 +6857,21 @@ void Commands::Command_GuildsRemove(Client* client, Seperator* sep)
 		if (found) 
 		{
 			Client* to_client = 0;
-
-			if (sep->arg[1] && strlen(sep->arg[1]) > 0)
-				to_client = zone_list.GetClientByCharName(string(sep->arg[1]));
+			char* charName = nullptr;
+			if(sep->arg[1][0])
+				charName = sep->arg[1];
 			else if (client->GetPlayer()->GetTarget() && client->GetPlayer()->GetTarget()->IsPlayer())
-				to_client = ((Player*)client->GetPlayer()->GetTarget())->GetClient();
-
-			if (to_client) 
-			{
-				Player* to_player = to_client->GetPlayer();
-				if (to_player->GetGuild())
-				{
-					if (to_player->GetGuild() == guild) 
-					{
-						guild->KickGuildMember(client, to_player->GetName());
-					}
-					else
-						client->Message(CHANNEL_COLOR_YELLOW, "%s is not in the guild '%s'.", to_player->GetName(), guild->GetName());
-				}
-				else
-					client->Message(CHANNEL_COLOR_YELLOW, "%s is not in a guild.", to_player->GetName());
-			}
+				charName = ((Player*)client->GetPlayer()->GetTarget())->GetName();
 			else
-				client->Message(CHANNEL_COLOR_YELLOW, "Could not find player '%s' to invite to the guild.", sep->arg[1]);
+			{
+				client->Message(CHANNEL_COLOR_YELLOW, "Missing player name or not a valid target to remove from the guild.");
+				return;
+			}
+			int32 character_id = guild->KickGuildMember(client, charName);
+			if(character_id > 0)
+				peer_manager.sendPeersRemoveGuildMember(character_id, guild->GetID(), std::string(client->GetPlayer()->GetName()));
+			else
+				client->Message(CHANNEL_COLOR_YELLOW, "Could not find player '%s' to remove from the guild.", charName);
 		}
 	}
 	else
@@ -10775,6 +10890,31 @@ void Commands::Command_Test(Client* client, EQ2_16BitString* command_parms) {
 			client->QueuePacket(packet->serialize());
 			safe_delete(packet);
 		}
+		else if(atoi(sep->arg[0]) == 35) {
+			if(client->GetPlayer()->GetGroupMemberInfo() && client->GetPlayer()->GetTarget() && client->GetPlayer()->GetTarget()->IsEntity()) {
+				Entity* target = (Entity*)client->GetPlayer()->GetTarget();
+				if(target->GetGroupMemberInfo()) {
+					PlayerGroup* group = world.GetGroupManager()->GetGroup(client->GetPlayer()->GetGroupMemberInfo()->group_id);
+					PlayerGroup* group2 = world.GetGroupManager()->GetGroup(target->GetGroupMemberInfo()->group_id);
+					if(group && group2) {
+						group->AddGroupToRaid(group2->GetID());
+						group2->AddGroupToRaid(group->GetID());
+					}
+				}
+			}
+		}
+		else if(atoi(sep->arg[0]) == 36) {
+			EQ2Packet* packet = client->GetPlayer()->GetRaidUpdatePacket(client->GetVersion());
+			if(packet) {
+				client->QueuePacket(packet);
+			}
+		}
+		else if(atoi(sep->arg[0]) == 37) {
+			Guild* guild = client->GetPlayer()->GetGuild();
+			if(guild)
+				guild->SendGuildMemberList();
+		
+		}
 	}
 	else {
 			PacketStruct* packet2 = configReader.getStruct("WS_ExaminePartialSpellInfo", client->GetVersion());
@@ -11093,7 +11233,10 @@ void Commands::Command_ZoneSafeCoords(Client *client, Seperator *sep)
 
 	if (zone_id > 0)
 	{
-		zone = zone_list.Get(zone_id, false, false, false);
+		ZoneChangeDetails zone_details;
+		if(zone_list.GetZone(&zone_details, zone_id, "", false, false, false)) {
+			zone = (ZoneServer*)zone_details.zonePtr;
+		}
 		if (zone)
 		{
 			zone->SetSafeX(client->GetPlayer()->GetX());
@@ -11162,18 +11305,21 @@ void Commands::Command_ZoneSet(Client* client, Seperator* sep)
 	{
 		ZoneServer* zone = 0;
 		int32 zone_id = 0;
-
+		ZoneChangeDetails zone_details;
 		if (sep->IsNumber(0) && atoi(sep->arg[0]) > 0) 
 		{
-			zone_id = atoi(sep->arg[0]);
-			zone = zone_list.Get(atoi(sep->arg[0]), false, false, false);
+			zone_id = atoul(sep->arg[0]);
+			if(zone_list.GetZone(&zone_details, zone_id, "", false, false, false, false)) {
+				zone = (ZoneServer*)zone_details.zonePtr;
+			}
 		}
 		else 
 		{
 			zone_id = database.GetZoneID(sep->arg[0]);
 
-			if (zone_id > 0)
-				zone = zone_list.Get(sep->arg[0], false, false, false);
+			if(zone_list.GetZone(&zone_details, zone_id, "", false, false, false, false)) {
+				zone = (ZoneServer*)zone_details.zonePtr;
+			}
 		}
 
 		if (zone_id > 0) 
@@ -12379,3 +12525,245 @@ void Commands::Command_Target_Pet(Client* client, Seperator* sep) {
 	}
 }
 
+
+/* 
+	Function: Command_WhoGroup()
+	Purpose	: Lists all members of current group
+	Example	: /whogroup
+*/ 
+void Commands::Command_WhoGroup(Client* client, Seperator* sep) {
+	Entity* player = (Entity*)client->GetPlayer();
+	if(player->GetGroupMemberInfo()) {
+		world.GetGroupManager()->SendWhoGroupMembers(client, player->GetGroupMemberInfo()->group_id);
+	}
+	else {
+		client->SimpleMessage(CHANNEL_COLOR_RED, "You are not currently in a group.");
+	}
+}
+
+/* 
+	Function: Command_WhoRaid()
+	Purpose	: Lists all members of raid
+	Example	: /whoraid
+*/ 
+void Commands::Command_WhoRaid(Client* client, Seperator* sep) {
+	Entity* player = (Entity*)client->GetPlayer();
+	if(player->GetGroupMemberInfo()) {
+		world.GetGroupManager()->SendWhoRaidMembers(client, player->GetGroupMemberInfo()->group_id);
+	}
+	else {
+		client->SimpleMessage(CHANNEL_COLOR_RED, "You are not currently in a group or raid.");
+	}
+}
+
+/* 
+	Function: Command_RaidInvite()
+	Purpose	: Invites a group to the raid
+	Example	: /raidinvite
+*/ 
+void Commands::Command_RaidInvite(Client* client, Seperator* sep) {
+	Entity* target = nullptr;
+	if( sep && sep->arg[0] ) {
+		Client* target_client = zone_list.GetClientByCharName(sep->arg[0]);
+		if(target_client)
+			target = (Entity*)target_client->GetPlayer();
+	}
+	if(!target) {
+		if(client->GetPlayer()->GetTarget() && client->GetPlayer()->GetTarget()->IsEntity())
+			target = (Entity*)client->GetPlayer()->GetTarget();
+	}
+	world.GetGroupManager()->SendRaidInvite(client, target);
+}
+
+/* 
+	Function: Command_Raid_Looter()
+	Purpose	: Adds a looter to the raid loot list
+	Example	: /raid_looter <name>
+*/ 
+void Commands::Command_Raid_Looter(Client* client, Seperator* sep) {
+	if(!client->GetPlayer()->GetGroupMemberInfo() || client->GetPlayer()->GetGroupMemberInfo()->leader)
+		return;
+	Entity* target = nullptr;
+	if( sep && sep->arg[0] ) {
+		Client* target_client = zone_list.GetClientByCharName(sep->arg[0]);
+		if(target_client)
+			target = (Entity*)target_client->GetPlayer();
+	}
+	if(!target) {
+		if(client->GetPlayer()->GetTarget() && client->GetPlayer()->GetTarget()->IsEntity())
+			target = (Entity*)client->GetPlayer()->GetTarget();
+	}
+	
+	bool isLeaderRaid = world.GetGroupManager()->IsInRaidGroup(client->GetPlayer()->GetGroupMemberInfo()->group_id, client->GetPlayer()->GetGroupMemberInfo()->group_id, true);
+	if(isLeaderRaid && target && target->IsEntity()) {
+		if(((Entity*)target)->GetGroupMemberInfo() && world.GetGroupManager()->IsInRaidGroup(client->GetPlayer()->GetGroupMemberInfo()->group_id, ((Entity*)target)->GetGroupMemberInfo()->group_id, false)) {
+			if(((Entity*)target)->GetGroupMemberInfo()->is_raid_looter) {
+				client->Message(CHANNEL_COLOR_YELLOW, "%s removed as a raid looter.", target->GetName());
+				((Entity*)target)->GetGroupMemberInfo()->is_raid_looter = false;
+			}
+			else {
+				client->Message(CHANNEL_COLOR_YELLOW, "%s added as a raid looter.", target->GetName());
+				((Entity*)target)->GetGroupMemberInfo()->is_raid_looter = true;
+			}
+		}
+	}
+}
+
+/* 
+	Function: Command_KickFromGroup()
+	Purpose	: Kick a player from a group
+	Example	: /kickfromgroup <name>
+*/ 
+void Commands::Command_KickFromGroup(Client* client, Seperator* sep) {
+	Entity* target = nullptr;
+	Client* target_client = nullptr;
+	if( sep && sep->arg[0] ) {
+		target_client = zone_list.GetClientByCharName(sep->arg[0]);
+		if(target_client) {
+			target = target_client->GetPlayer();
+		}
+	}
+	if(!target) {
+		if(client->GetPlayer()->GetTarget() && client->GetPlayer()->GetTarget()->IsEntity())
+			target = (Entity*)client->GetPlayer()->GetTarget();
+		
+		if(target && target->IsPlayer())
+			target_client = ((Player*)target)->GetClient();
+	}
+	GroupMemberInfo* gmi = client->GetPlayer()->GetGroupMemberInfo();
+
+	if (gmi && gmi->leader && target && target->GetGroupMemberInfo() && gmi->group_id == target->GetGroupMemberInfo()->group_id) {
+		int32 group_id = gmi->group_id;
+		world.GetGroupManager()->RemoveGroupMember(group_id, target);
+		if (!world.GetGroupManager()->IsGroupIDValid(group_id)) {
+			// leader->Message(CHANNEL_COLOR_GROUP, "%s has left the group.", client->GetPlayer()->GetName());
+		}
+		else {
+			world.GetGroupManager()->GroupMessage(group_id, "%s has been removed from the group.", target->GetName());
+		}
+
+		if(target_client)
+			target_client->SimpleMessage(CHANNEL_GROUP_CHAT, "You have been kicked from the group");
+	}
+}
+
+/* 
+	Function: Command_KickFromRaid()
+	Purpose	: Kick a group from a raid
+	Example	: /kickfromraid <name>
+*/ 
+void Commands::Command_KickFromRaid(Client* client, Seperator* sep) {
+	Entity* target = nullptr;
+	Client* target_client = nullptr;
+	if( sep && sep->arg[0] ) {
+		target_client = zone_list.GetClientByCharName(sep->arg[0]);
+		if(target_client) {
+			target = target_client->GetPlayer();
+		}
+	}
+	if(!target) {
+		if(client->GetPlayer()->GetTarget() && client->GetPlayer()->GetTarget()->IsEntity())
+			target = (Entity*)client->GetPlayer()->GetTarget();
+		
+		if(target && target->IsPlayer())
+			target_client = ((Player*)target)->GetClient();
+	}
+	GroupMemberInfo* gmi = client->GetPlayer()->GetGroupMemberInfo();
+	if(gmi && gmi->leader && target && target->GetGroupMemberInfo() && world.GetGroupManager()->IsInRaidGroup(gmi->group_id, target->GetGroupMemberInfo()->group_id, false) && 
+		world.GetGroupManager()->IsInRaidGroup(gmi->group_id, gmi->group_id, true)) {
+		GroupOptions goptions;
+		world.GetGroupManager()->GetDefaultGroupOptions(gmi->group_id, &goptions);
+		world.GetGroupManager()->RemoveGroupFromRaid(gmi->group_id, target->GetGroupMemberInfo()->group_id);
+		std::vector<int32> raidGroups;
+		world.GetGroupManager()->GetRaidGroups(gmi->group_id, &raidGroups);
+		peer_manager.sendPeersNewGroupRequest("", 0, gmi->group_id, "", "", &goptions, "", &raidGroups, true);
+		std::vector<int32> emptyRaid;
+		peer_manager.sendPeersNewGroupRequest("", 0, target->GetGroupMemberInfo()->group_id, "", "", &goptions, "", &emptyRaid, true);
+	}
+}
+
+/* 
+	Function: Command_LeaveRaid()
+	Purpose	: Leave a raid
+	Example	: /leaveraid
+*/ 
+void Commands::Command_LeaveRaid(Client* client, Seperator* sep) {
+	GroupMemberInfo* gmi = client->GetPlayer()->GetGroupMemberInfo();
+	int32 orig_group_id = 0;
+	if(gmi && gmi->leader && world.GetGroupManager()->IsInRaidGroup(gmi->group_id, gmi->group_id, false)) {
+		orig_group_id = gmi->group_id;
+		GroupOptions goptions;
+		world.GetGroupManager()->GetDefaultGroupOptions(gmi->group_id, &goptions);
+		std::vector<int32> raidGroups;
+		world.GetGroupManager()->GetRaidGroups(gmi->group_id, &raidGroups);
+		std::vector<int32>::iterator cur_group_itr = std::find(raidGroups.begin(), raidGroups.end(), gmi->group_id);
+		if(cur_group_itr != raidGroups.end())
+			raidGroups.erase(cur_group_itr);
+		
+		bool sendEmpty = false;
+		std::vector<int32> emptyRaid;
+		if(raidGroups.size() < 2) {
+			sendEmpty = true;
+		}
+		
+		for(cur_group_itr = raidGroups.begin(); cur_group_itr != raidGroups.end(); cur_group_itr++) {
+			if(sendEmpty) {
+				world.GetGroupManager()->ClearGroupRaid((*cur_group_itr));
+				peer_manager.sendPeersNewGroupRequest("", 0, (*cur_group_itr), "", "", &goptions, "", &emptyRaid, true);
+				world.GetGroupManager()->SendGroupUpdate((*cur_group_itr), nullptr, true);
+			}
+			else {
+				world.GetGroupManager()->ReplaceRaidGroups((*cur_group_itr), &raidGroups);
+			}
+		}
+		
+		if(!sendEmpty) {
+			peer_manager.sendPeersNewGroupRequest("", 0, orig_group_id, "", "", &goptions, "", &raidGroups, true);
+		}
+	
+		world.GetGroupManager()->ClearGroupRaid(orig_group_id);
+		world.GetGroupManager()->SendGroupUpdate(orig_group_id, nullptr, true);
+		
+		peer_manager.sendPeersNewGroupRequest("", 0, orig_group_id, "", "", &goptions, "", &emptyRaid, true);
+	}
+}
+
+/* 
+	Function: Command_Split()
+	Purpose	: split coin to group
+	Example	: /split {plat} {gold} {silver} {copper}
+*/ 
+void Commands::Command_Split(Client* client, Seperator* sep) {
+ // int32 item_id = atoul(sep->arg[0,1,2,3]);
+	int32 plat = 0, gold = 0, silver = 0, copper = 0;
+	if(sep->IsNumber(0))
+		plat = atoul(sep->arg[0]);
+	if(sep->IsNumber(1))
+		gold = atoul(sep->arg[1]);
+	if(sep->IsNumber(2))
+		silver = atoul(sep->arg[2]);
+	if(sep->IsNumber(3))
+		copper = atoul(sep->arg[3]);
+	
+	world.GetGroupManager()->SplitWithGroupOrRaid(client, plat, gold, silver, copper);
+}
+
+/* 
+	Function: Command_RaidSay()
+	Purpose	: Speak to raid members
+	Example	: /raidsay {message}, /rsay {message}
+*/ 
+void Commands::Command_RaidSay(Client* client, Seperator* sep) {
+	GroupMemberInfo* gmi = client->GetPlayer()->GetGroupMemberInfo();
+	if(sep && sep->arg[0] && gmi) {
+		world.GetGroupManager()->GroupLock(__FUNCTION__, __LINE__);
+		int32 spawn_group_id = gmi->group_id;
+		PlayerGroup* spawn_group = world.GetGroupManager()->GetGroup(spawn_group_id);
+		bool israidgroup = (spawn_group && spawn_group->IsGroupRaid());
+		world.GetGroupManager()->ReleaseGroupLock(__FUNCTION__, __LINE__);
+		if(israidgroup) {
+			world.GetGroupManager()->GroupChatMessage(gmi->group_id, client->GetPlayer(), client->GetPlayer()->GetCurrentLanguage(), sep->argplus[0], CHANNEL_RAID_SAY);
+			peer_manager.SendPeersChannelMessage(gmi->group_id, std::string(client->GetPlayer()->GetName()), std::string(sep->argplus[0]), CHANNEL_RAID_SAY, client->GetPlayer()->GetCurrentLanguage());
+		}
+	}
+}

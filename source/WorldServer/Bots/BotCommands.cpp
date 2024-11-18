@@ -583,6 +583,10 @@ void Commands::Command_Bot_Spawn(Client* client, Seperator* sep) {
 			}
 
 			client->GetPlayer()->SpawnedBots[bot_id] = bot->GetID();
+			
+			if(bot->IsNPC()) {
+					((NPC*)bot)->HaltMovement();
+			}
 		}
 		else {
 			client->Message(CHANNEL_ERROR, "Error spawning bot (%u)", bot_id);

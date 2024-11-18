@@ -51,6 +51,8 @@ void SpellProcess::RemoveCaster(Spawn* caster){
 		if(spell->caster == caster) {
 			spell->caster = nullptr;
 		}
+		if(spell->initial_target == caster->GetID())
+			spell->initial_target = 0;
 		spell->MSpellTargets.releasewritelock(__FUNCTION__, __LINE__);
 	}
 }
@@ -2051,14 +2053,16 @@ void SpellProcess::RemoveSpellTimersFromSpawn(Spawn* spawn, bool remove_all, boo
 
 			bool foundMatch = false;
 			
-			spell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
-			for (i = 0; i < spell->targets.size(); i++){
-				if (spawn->GetID() == spell->targets.at(i)){
-					foundMatch = true;
-					break;
+			if(spawn != spell->caster) {
+				spell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
+				for (i = 0; i < spell->targets.size(); i++){
+					if (spawn->GetID() == spell->targets.at(i)){
+						foundMatch = true;
+						break;
+					}
 				}
-			}
 			spell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
+			}
 			if(foundMatch) {
 				if (spawn->IsEntity())
 					((Entity*)spawn)->RemoveSpellEffect(spell);

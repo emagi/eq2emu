@@ -1700,19 +1700,21 @@ int EQ2Emu_lua_GetZone(lua_State* state) {
 	if (!lua_interface)
 		return 0;
 	int32 zone_id = lua_interface->GetInt32Value(state);
-	ZoneServer* zone = 0;
-	if (zone_id > 0)
-		zone = zone_list.Get(zone_id, true, false, false);
+	ZoneChangeDetails zone_details;
+	std::string zone_name;
+	ZoneServer* zone = nullptr;
+	
+	if(zone_id < 1) {
+		zone_name = lua_interface->GetStringValue(state);
+	}
+	bool zone_avail = zone_list.GetZone(&zone_details, zone_id, zone_name, true, false, false, false);
+	if (zone_avail) {
+		zone = (ZoneServer*)zone_details.zonePtr;
+	}
 	else {
-		string zone_name = lua_interface->GetStringValue(state);
-		if (zone_name.length() > 0) {
-			zone = zone_list.Get(zone_name.c_str(), true, false, false);
-		}
-		else {
-			Spawn* spawn = lua_interface->GetSpawn(state);
-			if (spawn)
-				zone = spawn->GetZone();
-		}
+		Spawn* spawn = lua_interface->GetSpawn(state);
+		if (spawn)
+			zone = spawn->GetZone();
 	}
 	lua_interface->ResetFunctionStack(state);
 	if (zone) {
@@ -2597,7 +2599,7 @@ int EQ2Emu_lua_RemoveSpellBonus(lua_State* state) {
 			luaspell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
 		}
 		else {
-			LogWrite(LUA__ERROR, 0, "LUA", "Error removing spell bonus buff %s called by %s, zone is not available.", luaspell->spell ? luaspell->spell->GetName() : "NotSet", spawn->GetName());
+			LogWrite(LUA__ERROR, 0, "LUA", "Error removing spell bonus buff %s called by %s, zone is not available.", luaspell->spell ? luaspell->spell->GetName() : "NotSet", spawn ? spawn->GetName() : "N/A");
 		}
 	}
 	else if (spawn && spawn->IsEntity()) {
@@ -6680,6 +6682,11 @@ int EQ2Emu_lua_RemoveWard(lua_State* state) {
 	}
 	
 	ZoneServer* zone = spell->caster->GetZone();
+	if(!zone) {
+		lua_interface->LogError("%s: RemoveWard error: no valid zone for caster", lua_interface->GetScriptName(state));
+		return 0;
+	}
+	
 	Spawn* target = 0;
 	spell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
 	for (int32 i = 0; i < spell->targets.size(); i++) {
@@ -14265,6 +14272,37 @@ int EQ2Emu_lua_DespawnByLocationID(lua_State* state) {
 			lua_interface->SetBooleanValue(state, true);
 			return 1;
 		}
+	}
+	lua_interface->SetBooleanValue(state, false);
+	return 1;
+}
+
+int EQ2Emu_lua_AddRespawn(lua_State* state) {
+	ZoneServer* zone = lua_interface->GetZone(state);
+	int32 location_id = lua_interface->GetInt32Value(state, 2);
+	int32 respawn_time = lua_interface->GetInt32Value(state, 3);
+	lua_interface->ResetFunctionStack(state);
+	if (zone) {
+			zone->AddRespawn(location_id, respawn_time);
+			lua_interface->SetBooleanValue(state, true);
+			return 1;
+	}
+	lua_interface->SetBooleanValue(state, false);
+	return 1;
+}
+
+
+
+int EQ2Emu_lua_CreatePersistedRespawn(lua_State* state) {
+	int32 location_id = lua_interface->GetInt32Value(state);
+	int8 spawn_type = lua_interface->GetInt32Value(state, 2);
+	int32 respawn_time = lua_interface->GetInt32Value(state, 3);
+	int32 zone_id = lua_interface->GetInt32Value(state, 4);
+	lua_interface->ResetFunctionStack(state);
+	if (location_id && zone_id) {
+			database.CreatePersistedRespawn(location_id,spawn_type,respawn_time,zone_id);
+			lua_interface->SetBooleanValue(state, true);
+			return 1;
 	}
 	lua_interface->SetBooleanValue(state, false);
 	return 1;

@@ -454,6 +454,16 @@ public:
 	void Command_Assist(Client* client, Seperator* sep);
 	void Command_Target(Client* client, Seperator* sep);
 	void Command_Target_Pet(Client* client, Seperator* sep);
+	
+	void Command_WhoGroup(Client* client, Seperator* sep);
+	void Command_WhoRaid(Client* client, Seperator* sep);
+	void Command_RaidInvite(Client* client, Seperator* sep);
+	void Command_Raid_Looter(Client* client, Seperator* sep);
+	void Command_KickFromGroup(Client* client, Seperator* sep);
+	void Command_KickFromRaid(Client* client, Seperator* sep);
+	void Command_LeaveRaid(Client* client, Seperator* sep);
+	void Command_Split(Client* client, Seperator* sep);
+	void Command_RaidSay(Client* client, Seperator* sep);
 
 	// AA Commands
 	void Get_AA_Xml(Client* client, Seperator* sep);
@@ -948,6 +958,16 @@ private:
 #define COMMAND_TARGET_PET				537
 
 #define COMMAND_SET_CONSUME_FOOD			538
+
+#define COMMAND_WHOGROUP				539 // /whogroup /whog
+#define COMMAND_WHORAID					540 // /whoraid /whor
+#define COMMAND_RAIDINVITE				541 // /raidinvite
+#define COMMAND_RAID_LOOTER				542 // /raid_looter
+#define COMMAND_KICKFROMGROUP			543 // /kickfromgroup
+#define COMMAND_KICKFROMRAID			544 // /kickfromraid
+#define COMMAND_LEAVERAID				545 // /leaveraid
+#define COMMAND_SPLIT					546 // /split
+#define COMMAND_RAIDSAY					547 // /raidsay /rsay
 
 #define GET_AA_XML						750
 #define ADD_AA							751

@@ -29,12 +29,14 @@
 #include "../WorldDatabase.h"
 #include "../../common/Log.h"
 #include "../Rules/Rules.h"
+#include "../Web/PeerManager.h"
 
 extern ConfigReader configReader;
 extern ZoneList zone_list;
 extern WorldDatabase database;
 extern World world;
 extern RuleManager rule_manager;
+extern PeerManager peer_manager;
 
 /***************************************************************************************************************************************************
  *																							GUILD
@@ -275,7 +277,7 @@ int8 Guild::GetRecruitingDescTag(int8 index) {
 	return ret;
 }
 
-bool Guild::SetPermission(int8 rank, int8 permission, int8 value, bool send_packet) {
+bool Guild::SetPermission(int8 rank, int8 permission, int8 value, bool send_packet, bool save_needed) {
 
 	bool ret = false;
 	if (value == 0 || value == 1) {
@@ -287,7 +289,8 @@ bool Guild::SetPermission(int8 rank, int8 permission, int8 value, bool send_pack
 	if (ret && send_packet) {
 		LogWrite(GUILD__DEBUG, 1, "Guilds", "Set Guild Permissions - Rank: %i, Permission: %i, Value: %i", rank, permission, value);
 		SendGuildUpdate();
-		ranks_save_needed = true;
+		if(save_needed)
+			ranks_save_needed = true;
 	}
 	return ret;
 }
@@ -301,7 +304,7 @@ int8 Guild::GetPermission(int8 rank, int8 permission) {
 	return ret;
 }
 
-bool Guild::SetEventFilter(int8 event_id, int8 category, int8 value, bool send_packet) {
+bool Guild::SetEventFilter(int8 event_id, int8 category, int8 value, bool send_packet, bool save_needed) {
 
 	bool ret = false;
 	if ((category == GUILD_EVENT_FILTER_CATEGORY_RETAIN_HISTORY || category == GUILD_EVENT_FILTER_CATEGORY_BROADCAST) && (value == 0 || value == 1)) {
@@ -313,7 +316,8 @@ bool Guild::SetEventFilter(int8 event_id, int8 category, int8 value, bool send_p
 	if (ret && send_packet) {
 		LogWrite(GUILD__DEBUG, 1, "Guilds", "Set Guild Event Filter - EventID: %i, Category: %i, Value: %i", event_id, category, value);
 		SendGuildUpdate();
-		event_filters_save_needed = true;
+		if(save_needed)
+			event_filters_save_needed = true;
 	}
 	return ret;
 }
@@ -712,6 +716,36 @@ bool Guild::AddNewGuildMember(Client *client, const char *invited_by, int8 rank)
 		}
 
 		member_save_needed = true;
+		
+		peer_manager.sendPeersAddGuildMember(gm->character_id, GetID(), (invited_by != nullptr) ? std::string(invited_by) : "", gm->join_date, rank);
+	}
+
+	return true;
+}
+
+bool Guild::AddNewGuildMember(int32 characterID, const char *invited_by, int32 join_timestamp, int8 rank) {
+	GuildMember *gm;
+
+	if (members.count(characterID) == 0) {
+		gm = new GuildMember;
+		bool foundMember = peer_manager.GetClientGuildDetails(characterID, gm);
+		if(!foundMember) {
+			LogWrite(GUILD__ERROR, 0, "Guilds", "FAILED TO FIND MEMBER: %s invited %s to join guild: %s", invited_by, gm->name, GetName());
+			safe_delete(gm);
+			return false;
+		}
+		gm->rank = rank;
+		gm->join_date = join_timestamp;
+		gm->last_login_date = gm->join_date;
+		mMembers.writelock(__FUNCTION__, __LINE__);
+		members[characterID] = gm;
+		mMembers.releasewritelock(__FUNCTION__, __LINE__);
+		
+		if (invited_by) {
+			AddNewGuildEvent(GUILD_EVENT_MEMBER_JOINS, "%s has accepted %s's invitation to join %s.", Timer::GetUnixTimeStamp(), true, gm->name, invited_by, GetName());
+			SendMessageToGuild(GUILD_EVENT_MEMBER_JOINS, "%s has accepted %s's invitation to join %s.", gm->name, invited_by, GetName());
+			LogWrite(GUILD__DEBUG, 0, "Guilds", "%s invited %s to join guild: %s", invited_by, gm->name, GetName());
+		}
 	}
 
 	return true;
@@ -848,20 +882,21 @@ bool Guild::PromoteGuildMember(Client *client, const char *name, bool send_packe
 	return ret;
 }
 
-bool Guild::KickGuildMember(Client *client, const char *name, bool send_packet) {
+int32 Guild::KickGuildMember(Client *client, const char *name, bool send_packet) {
 
 	GuildMember *gm;
 	Client *kicked_client;
 	const char *kicker_name;
-
+	int32 character_id = 0;
 	assert(client);
 	assert(name);
 
 	if (!(gm = GetGuildMember(name)))
-		return false;
+		return 0;
 
 	kicker_name = client->GetPlayer()->GetName();
-
+	character_id = gm->character_id;
+	
 	if (!strncmp(kicker_name, gm->name, sizeof(gm->name))) {
 		AddNewGuildEvent(GUILD_EVENT_MEMBER_LEAVES, "%s left the guild.", Timer::GetUnixTimeStamp(), true, gm->name);
 		SendMessageToGuild(GUILD_EVENT_MEMBER_LEAVES, "%s left the guild.", gm->name);
@@ -897,7 +932,7 @@ bool Guild::KickGuildMember(Client *client, const char *name, bool send_packet) 
 	safe_delete_array(gm->recruiter_picture_data);
 	safe_delete(gm);
 
-	return true;
+	return character_id;
 }
 
 bool Guild::InvitePlayer(Client *client, const char *name, bool send_packet) {
@@ -1853,7 +1888,10 @@ void Guild::SendGuildMemberList(Client* client) {
 			}
 			mMembers.releasereadlock(__FUNCTION__, __LINE__);
 			//DumpPacket(packet->serialize());
-			client->QueuePacket(packet->serialize());
+			//packet->PrintPacket();
+			EQ2Packet* pack = packet->serialize();
+			//DumpPacket(pack);
+			client->QueuePacket(pack);
 			safe_delete(packet);
 		}
 	}
@@ -2179,7 +2217,7 @@ void Guild::SendGuildRecruiterInfo(Client* client, Player* player) {
 	}
 }
 
-void Guild::HandleGuildSay(Client* sender, const char* message) {
+bool Guild::HandleGuildSay(Client* sender, const char* message) {
 
 	map<int32, GuildMember *>::iterator itr;
 	GuildMember *gm;
@@ -2189,11 +2227,11 @@ void Guild::HandleGuildSay(Client* sender, const char* message) {
 	assert(message);
 
 	if (!(gm = GetGuildMemberOnline(sender)))
-		return;
+		return false;
 
 	if (!permissions.Get(gm->rank)->Get(GUILD_PERMISSIONS_SPEAK_IN_GUILD_CHAT)) {
 		sender->SimpleMessage(CHANNEL_NARRATIVE, "You do not have permission to speak in guild chat.");
-		return;
+		return false;
 	}
 
 	mMembers.readlock(__FUNCTION__, __LINE__);
@@ -2206,9 +2244,30 @@ void Guild::HandleGuildSay(Client* sender, const char* message) {
 	}
 	mMembers.releasereadlock(__FUNCTION__, __LINE__);
 	LogWrite(GUILD__DEBUG, 0, "Guilds", "Guild Say");
+	
+	return true;
 }
 
-void Guild::HandleOfficerSay(Client* sender, const char* message) {
+void Guild::HandleGuildSay(std::string senderName, const char* message, int8 language) {
+
+	map<int32, GuildMember *>::iterator itr;
+	GuildMember *gm;
+
+	assert(message);
+	Client* client = 0;
+	mMembers.readlock(__FUNCTION__, __LINE__);
+	for (itr = members.begin(); itr != members.end(); itr++) {
+		if (!(client = zone_list.GetClientByCharID(itr->second->character_id)))
+			continue;
+			
+		if (permissions.Get(itr->second->rank)->Get(GUILD_PERMISSIONS_SEE_GUILD_CHAT))
+			client->GetCurrentZone()->HandleChatMessage(senderName, client->GetPlayer()->GetName(), CHANNEL_GUILD_SAY, message, 0, 0, language);
+	}
+	mMembers.releasereadlock(__FUNCTION__, __LINE__);
+	LogWrite(GUILD__DEBUG, 0, "Guilds", "Guild Say");
+}
+
+bool Guild::HandleOfficerSay(Client* sender, const char* message) {
 
 	map<int32, GuildMember *>::iterator itr;
 	GuildMember *gm;
@@ -2218,11 +2277,11 @@ void Guild::HandleOfficerSay(Client* sender, const char* message) {
 	assert(message);
 
 	if (!(gm = GetGuildMemberOnline(sender)))
-		return;
+		return false;
 
 	if (!permissions.Get(gm->rank)->Get(GUILD_PERMISSIONS_SPEAK_IN_OFFICER_CHAT)) {
 		sender->SimpleMessage(CHANNEL_NARRATIVE, "You do not have permission to speak in officer chat.");
-		return;
+		return false;
 	}
 				
 	mMembers.readlock(__FUNCTION__, __LINE__);
@@ -2232,6 +2291,25 @@ void Guild::HandleOfficerSay(Client* sender, const char* message) {
 
 		if (permissions.Get(itr->second->rank)->Get(GUILD_PERMISSIONS_SEE_OFFICER_CHAT))
 			client->GetCurrentZone()->HandleChatMessage(client, sender->GetPlayer(), client->GetPlayer()->GetName(), CHANNEL_OFFICER_SAY, message, 0, 0, false, sender->GetPlayer()->GetCurrentLanguage());
+	}
+	mMembers.releasereadlock(__FUNCTION__, __LINE__);
+	LogWrite(GUILD__DEBUG, 0, "Guilds", "Officer Say");
+	return true;
+}
+
+void Guild::HandleOfficerSay(std::string senderName, const char* message, int8 language) {
+
+	map<int32, GuildMember *>::iterator itr;
+	Client *client;
+			
+	mMembers.readlock(__FUNCTION__, __LINE__);
+	for (itr = members.begin(); itr != members.end(); itr++) {
+		if (!(client = zone_list.GetClientByCharID(itr->second->character_id)))
+			continue;
+
+		if (permissions.Get(itr->second->rank)->Get(GUILD_PERMISSIONS_SEE_OFFICER_CHAT))
+			client->GetCurrentZone()->HandleChatMessage(senderName, client->GetPlayer()->GetName(), CHANNEL_OFFICER_SAY, message, 0, 0, language);
+
 	}
 	mMembers.releasereadlock(__FUNCTION__, __LINE__);
 	LogWrite(GUILD__DEBUG, 0, "Guilds", "Officer Say");
@@ -2255,6 +2333,29 @@ void Guild::SendMessageToGuild(int8 event_type, const char* message, ...) {
 
 		if (event_filters.Get(itr->second->rank)->Get(GUILD_EVENT_FILTER_CATEGORY_BROADCAST))
 			client->SimpleMessage(CHANNEL_GUILD_EVENT, buffer);
+	}
+	mMembers.releasereadlock(__FUNCTION__, __LINE__);
+	LogWrite(GUILD__DEBUG, 0, "Guilds", "Sent message to entire guild.");
+}
+
+void Guild::SendGuildChatMessage(const char* message, ...) {
+
+	map<int32, GuildMember *>::iterator itr;
+	Client *client;
+	va_list argptr;
+	char buffer[4096];
+
+	va_start(argptr, message);
+	vsnprintf(buffer, sizeof(buffer), message, argptr);
+	va_end(argptr);
+	
+	mMembers.readlock(__FUNCTION__, __LINE__);
+	for (itr = members.begin(); itr != members.end(); itr++) {
+		if (!(client = zone_list.GetClientByCharID(itr->second->character_id)))
+			continue;
+
+		if (event_filters.Get(itr->second->rank)->Get(GUILD_EVENT_FILTER_CATEGORY_BROADCAST))
+			client->SimpleMessage(CHANNEL_GUILD_CHAT, buffer);
 	}
 	mMembers.releasereadlock(__FUNCTION__, __LINE__);
 	LogWrite(GUILD__DEBUG, 0, "Guilds", "Sent message to entire guild.");

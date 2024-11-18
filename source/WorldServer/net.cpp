@@ -20,6 +20,7 @@
 #include "../common/debug.h"
 #include "../common/Log.h"
 
+#include <boost/program_options.hpp>
 #include <iostream>
 using namespace std;
 #include <string.h>
@@ -58,6 +59,9 @@ using namespace std;
 #include "Traits/Traits.h"
 #include "Transmute.h"
 #include "Zone/ChestTrap.h"
+
+#include "Web/PeerManager.h"
+#include "Web/HTTPSClientPool.h"
 
 //devn00b
 #ifdef DISCORD
@@ -111,6 +115,8 @@ extern MasterSkillList master_skill_list;
 extern MasterItemList master_item_list;
 extern GuildList guild_list;
 extern Variables variables;
+extern PeerManager peer_manager;
+extern HTTPSClientPool peer_https_pool;
 ConfigReader configReader;
 int32 MasterItemList::next_unique_id = 0;
 int last_signal = 0;
@@ -125,6 +131,7 @@ extern map<int16, int16> EQOpcodeVersions;
 ThreadReturnType ItemLoad (void* tmp);
 ThreadReturnType AchievmentLoad (void* tmp);
 ThreadReturnType SpellLoad (void* tmp);
+ThreadReturnType StartPeerPoll (void* tmp);
 //devn00b
 #ifdef DISCORD
 	#ifndef WIN32
@@ -133,6 +140,7 @@ ThreadReturnType SpellLoad (void* tmp);
 #endif
 
 int main(int argc, char** argv) {
+	net.is_primary = true;
 #ifdef PROFILER
 	PROFILE_FUNC();
 #endif
@@ -184,8 +192,8 @@ int main(int argc, char** argv) {
 	LogWrite(WORLD__DEBUG, 0, "World", "Randomizing World...");
 	srand(time(NULL));
 
-	net.ReadLoginINI();
-		
+	net.ReadLoginINI(argc, argv);
+	
 	// JA: Grouping all System (core) data loads together for timing purposes
 	LogWrite(WORLD__INFO, 0, "World", "Loading System Data...");
 	int32 t_now = Timer::GetUnixTimeStamp();
@@ -371,6 +379,13 @@ int main(int argc, char** argv) {
 		
 		world.world_loaded = true;
 		world.world_uptime = getCurrentTimestamp();
+		#ifdef WIN32
+			_beginthread(StartPeerPoll, 0, NULL);
+		#else
+			pthread_t thread;
+			pthread_create(&thread, NULL, &StartPeerPoll, NULL);
+			pthread_detach(thread);
+		#endif
 	}
 	else {
 		LogWrite(NET__ERROR, 0, "Net", "Failed to open port %i.", net.GetWorldPort());
@@ -384,8 +399,11 @@ int main(int argc, char** argv) {
 		TimeoutTimer->Start();
 		EQStream* eqs = 0;
 		UpdateWindowTitle(0);
-		LogWrite(ZONE__INFO, 0, "Zone", "Starting static zones...");
-		database.LoadSpecialZones();
+		
+		if(net.is_primary) {
+			database.LoadSpecialZones();
+		}
+		
 		map<EQStream*, int32> connecting_clients;
 		map<EQStream*, int32>::iterator cc_itr;
 		
@@ -469,7 +487,7 @@ int main(int argc, char** argv) {
 					database.PingNewDB();
 					database.PingAsyncDatabase();
 
-					if (net.LoginServerInfo && loginserver.Connected() == false && loginserver.CanReconnect()) {
+					if (net.is_primary && net.LoginServerInfo && loginserver.Connected() == false && loginserver.CanReconnect()) {
 						LogWrite(WORLD__DEBUG, 0, "Thread", "Starting autoinit loginserver thread...");
 #ifdef WIN32
 						_beginthread(AutoInitLoginServer, 0, NULL);
@@ -495,6 +513,8 @@ int main(int argc, char** argv) {
 	}
 	LogWrite(WORLD__DEBUG, 0, "World", "The world is ending!");
 
+	peer_https_pool.stopPolling();
+	
 	LogWrite(WORLD__DEBUG, 0, "World", "Shutting down zones...");
 	zone_list.ShutDownZones();
 
@@ -612,6 +632,14 @@ ThreadReturnType AchievmentLoad (void* tmp)
 	THREAD_RETURN(NULL);
 }
 
+ThreadReturnType StartPeerPoll (void* tmp)
+{
+	LogWrite(WORLD__WARNING, 0, "Thread", "Start Polling...");
+	peer_https_pool.startPolling();
+	THREAD_RETURN(NULL);
+}
+
+
 ThreadReturnType EQ2ConsoleListener(void* tmp)
 {
 	char cmd[300]; 
@@ -663,7 +691,7 @@ void CatchSignal(int sig_num) {
 	}
 }
 
-bool NetConnection::ReadLoginINI() {
+bool NetConnection::ReadLoginINI(int argc, char** argv) {
 	JsonParser parser(MAIN_CONFIG_FILE);
 	if(!parser.IsLoaded()) {
 		LogWrite(INIT__ERROR, 0, "Init", "Failed to find %s in server directory..", MAIN_CONFIG_FILE);
@@ -730,12 +758,97 @@ bool NetConnection::ReadLoginINI() {
 	web_keypassword = parser.getValue("worldserver.webkeypassword");
 	web_hardcodeuser = parser.getValue("worldserver.webhardcodeuser");
 	web_hardcodepassword = parser.getValue("worldserver.webhardcodepassword");
+	web_cmduser = parser.getValue("worldserver.webcmduser");
+	web_cmdpassword = parser.getValue("worldserver.webcmdpassword");
+
+    std::string base_peeraddress = "worldserver.peeraddress";
+    std::string base_peerport = "worldserver.peerport";
+
+    for (int i = -1; i <= 100; ++i) {
+		std::string peeraddress = base_peeraddress;
+		std::string peerport = base_peerport;
+		if(i > -1){
+			peeraddress = base_peeraddress + std::to_string(i);
+			peerport = base_peerport + std::to_string(i);
+		}
+
+        // Assuming parser.getValue can handle the concatenated strings.
+        std::string web_peeraddress = parser.getValue(peeraddress);
+		std::string web_peerport = parser.getValue(peerport);
+		if(web_peeraddress.size() > 0 && web_peerport.size() > 0) {
+			int16 port = 0;
+			parser.convertStringToUnsignedShort(web_peerport, port);
+			if(port > 0) {
+			web_peers[web_peeraddress] = port;
+			LogWrite(INIT__INFO, 0, "Init", "Adding peer %s:%u...", web_peeraddress.c_str(), port);
+			}
+			else {
+			LogWrite(INIT__ERROR, 0, "Init", "Error peer %s:%u at position %i, skipped.", web_peeraddress.c_str(), port, i);
+			}
+		}
+		else {
+			break;
+		}
+    }
+	
+	std::string webpeerpriority_str = parser.getValue("worldserver.peerpriority");
+    parser.convertStringToUnsignedShort(webpeerpriority_str, web_peerpriority);
+	
+	peer_https_pool.init(web_certfile, web_keyfile);
 	
 	std::string webloginport_str = parser.getValue("worldserver.webport");
     parser.convertStringToUnsignedShort(webloginport_str, web_worldport);
 	
 	std::string defaultstatus_str = parser.getValue("worldserver.defaultstatus");
     parser.convertStringToUnsignedChar(defaultstatus_str, DEFAULTSTATUS);
+	
+	
+	    // Define namespace for ease of use
+    namespace po = boost::program_options;
+
+    // Variables to store parsed options
+    std::string worldAddress("");
+    std::string internalWorldAddress("");
+    std::string webWorldAddress("");
+    uint16 worldPort = 0;
+    uint16 webWorldPort = 0;
+    uint16 peerPriority = 0;
+
+    // Setup options
+    po::options_description desc("Allowed options");
+    desc.add_options()
+        ("worldaddress", po::value<std::string>(&worldAddress), "World address")
+        ("internalworldaddress", po::value<std::string>(&internalWorldAddress), "Internal world address")
+        ("worldport", po::value<uint16>(&worldPort)->default_value(0), "Web world port")
+        ("webworldaddress", po::value<std::string>(&webWorldAddress), "Web world address")
+        ("webworldport", po::value<uint16>(&webWorldPort)->default_value(0), "Web world port")
+        ("peerpriority", po::value<uint16>(&peerPriority)->default_value(0), "Peer priority");
+
+    // Parse the arguments
+    po::variables_map vm;
+    try {
+        po::store(po::parse_command_line(argc, argv, desc), vm);
+        po::notify(vm);
+    }
+    catch (const po::error &e) {
+        std::cerr << "Error parsing options: " << e.what() << "\n";
+        std::cout << desc << "\n";
+    }
+	if(peerPriority)
+		web_peerpriority = peerPriority;
+	if(webWorldPort)
+		web_worldport = webWorldPort;
+	if(worldPort)
+		worldport = worldPort;
+	
+	if(worldAddress.size() > 0)
+		snprintf(worldaddress, sizeof(worldaddress), "%s", worldAddress.c_str());
+	
+	if(internalWorldAddress.size() > 0)
+		snprintf(internalworldaddress, sizeof(internalworldaddress), "%s", internalWorldAddress.c_str());
+	
+	if(webWorldAddress.size() > 0)
+		web_worldaddress = webWorldAddress;
 	
 	LogWrite(INIT__DEBUG, 0, "Init", "%s read...", MAIN_CONFIG_FILE);
 	LoginServerInfo=1;
@@ -761,6 +874,11 @@ char* NetConnection::GetLoginInfo(int16* oPort) {
 
 	*oPort = loginport[tmp[x]];
 	return loginaddress[tmp[x]];
+}
+
+void NetConnection::SetPrimary(bool isprimary) {
+	net.is_primary = isprimary;
+	database.LoadSpecialZones();
 }
 
 void UpdateWindowTitle(char* iNewTitle) {

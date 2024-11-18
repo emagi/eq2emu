@@ -360,4 +360,12 @@
 		<ConfigType Type="PACKET" Level="9" Color="Yellow" Enabled="False" Logs="3" />
 		<ConfigType Type="TRACE" Level="9" Color="Yellow" Enabled="False" Logs="1" />
 	</LogConfig>
+	<LogConfig Category="PEERING">
+		<ConfigType Type="INFO" Level="9" Color="WhiteBold" Enabled="True" Logs="3" />
+		<ConfigType Type="WARNING" Level="9" Color="YellowBold" Enabled="True" Logs="3" />
+		<ConfigType Type="ERROR" Level="9" Color="RedBold" Enabled="True" Logs="3" />
+		<ConfigType Type="DEBUG" Level="9" Color="GreenBold" Enabled="False" Logs="3" />
+		<ConfigType Type="PACKET" Level="9" Color="Yellow" Enabled="False" Logs="3" />
+		<ConfigType Type="TRACE" Level="9" Color="Yellow" Enabled="False" Logs="1" />
+	</LogConfig>
 </EQ2EmuLogConfigs>

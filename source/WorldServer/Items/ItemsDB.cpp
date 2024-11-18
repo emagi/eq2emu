@@ -458,7 +458,7 @@ int32 WorldDatabase::LoadHouseItem(int32 item_id)
 	MYSQL_ROW row;
 	
 	std::string select_query_addition = std::string(" where item_id = ") + std::to_string(item_id);
-	MYSQL_RES* result = query.RunQuery2(Q_SELECT, "SELECT item_id, rent_reduction, status_rent_reduction, coin_rent_reduction, house_only FROM item_details_house%s", (item_id == 0) ? "" : select_query_addition.c_str());
+	MYSQL_RES* result = query.RunQuery2(Q_SELECT, "SELECT item_id, rent_reduction, status_rent_reduction, coin_rent_reduction, house_only, house_location FROM item_details_house%s", (item_id == 0) ? "" : select_query_addition.c_str());
 	int32 total = 0;
 	int32 id = 0;
 
@@ -477,6 +477,7 @@ int32 WorldDatabase::LoadHouseItem(int32 item_id)
 				item->houseitem_info->status_rent_reduction = atoi(row[2]);
 				item->houseitem_info->coin_rent_reduction = atof(row[3]);
 				item->houseitem_info->house_only = atoi(row[4]);
+				item->houseitem_info->house_location = atoul(row[5]);
 				total++;
 			}
 			else

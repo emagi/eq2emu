@@ -322,6 +322,7 @@ public:
 	void	LoadDataFromRow(DatabaseResult *result, Item* item);
 	void	LoadCharacterItemList(int32 account_id, int32 char_id, Player* player, int16);
 	bool	loadCharacter(const char* name, int32 account_id, Client* client);
+	std::string	loadCharacterFromLogin(ZoneChangeDetails* details, int32 char_id, int32 account_id);
 	bool	LoadCharacterStats(int32 id, int32 account_id, Client* client);
 	void	LoadCharacterQuestRewards(Client* client);
 	void	LoadCharacterQuestTemporaryRewards(Client* client, int32 quest_id);
@@ -411,6 +412,10 @@ public:
 	bool				DeleteInstanceSpawnRemoved(int32 instance_id, int32 spawn_location_entry_id);
 	bool				DeleteCharacterFromInstance(int32 char_id, int32 instance_id);
 	bool				LoadCharacterInstances(Client* client);
+	
+	bool				DeletePersistedRespawn(int32 zone_id, int32 spawn_location_entry_id);
+	int32				CreatePersistedRespawn(int32 spawn_location_entry_id, int32 spawn_type, int32 respawn_time, int32 zone_id);
+	map<int32,int32>*	GetPersistedSpawns(int32 zone_id, int8 type);
 	//
 
 	MutexMap<int32, LoginEquipmentUpdate>* GetEquipmentUpdates();
@@ -468,6 +473,7 @@ public:
 
 	/* Guilds */
 	void				LoadGuilds();
+	void				LoadGuild(int32 guild_id);
 	int32				LoadGuildMembers(Guild* guild);
 	void				LoadGuildEvents(Guild* guild);
 	void				LoadGuildRanks(Guild* guild);

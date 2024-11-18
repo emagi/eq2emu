@@ -152,7 +152,7 @@ void WorldDatabase::LoadGlobalLoot(ZoneServer* zone) {
 			count++;
 		}
 
-		LogWrite(LOOT__DEBUG, 0, "Loot", "--Loaded %u Global loot list%s.", count, count == 1 ? "" : "s");
+		LogWrite(LOOT__DEBUG, 4, "Loot", "--Loaded %u Global loot list%s.", count, count == 1 ? "" : "s");
 	}
 }
 
@@ -177,7 +177,7 @@ bool WorldDatabase::LoadSpawnLoot(ZoneServer* zone, Spawn* spawn)
 			LogWrite(LOOT__DEBUG, 5, "Loot", "---Adding loot table %u to spawn %u", table_id, spawn_id);
 			count++;
 		}
-		LogWrite(LOOT__DEBUG, 0, "Loot", "--Loaded %u spawn loot list%s.", count, count == 1 ? "" : "s");
+		LogWrite(LOOT__DEBUG, 4, "Loot", "--Loaded %u spawn loot list%s.", count, count == 1 ? "" : "s");
 		return true;
 	}
 	return false;

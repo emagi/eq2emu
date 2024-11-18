@@ -58,8 +58,8 @@ public:
 
 	void SendDeleteCharacter ( CharacterTimeStamp_Struct* cts );
 
-	int32 DetermineCharacterLoginRequest ( UsertoWorldRequest_Struct* utwr );
-	
+	int32 DetermineCharacterLoginRequest ( UsertoWorldRequest_Struct* utwr, ZoneChangeDetails* details, std::string name);
+	void SendCharApprovedLogin(int8 response, std::string peerAddress, std::string peerInternalAddress, std::string clientIP, int16 peerPort, int32 account_id, int32 char_id, int32 key, int32 world_id, int32 from_id);
 	void InitLoginServerVariables();
 
 	sint16 minLockedStatus;
