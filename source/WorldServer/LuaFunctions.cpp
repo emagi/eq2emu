@@ -6681,6 +6681,11 @@ int EQ2Emu_lua_RemoveWard(lua_State* state) {
 		return 0;
 	}
 	
+	if(!spell->caster) {
+		lua_interface->LogError("%s: RemoveWard error: no valid caster", lua_interface->GetScriptName(state));
+		return 0;
+	}
+	
 	ZoneServer* zone = spell->caster->GetZone();
 	if(!zone) {
 		lua_interface->LogError("%s: RemoveWard error: no valid zone for caster", lua_interface->GetScriptName(state));
