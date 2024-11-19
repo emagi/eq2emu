@@ -1518,7 +1518,6 @@ void ZoneServer::DeleteSpawns(bool delete_all) {
 				spawn = itr->first;
 				
 				lua_interface->SetLuaUserDataStale(spawn);
-				spellProcess->RemoveCaster(spawn);
 				
 				if(movementMgr != nullptr) {
 					movementMgr->RemoveMob((Entity*)spawn);
