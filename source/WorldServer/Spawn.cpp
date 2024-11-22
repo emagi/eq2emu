@@ -1413,6 +1413,9 @@ void Spawn::SetZone(ZoneServer* in_zone, int32 version){
 
 /*** HIT POINT ***/
 void Spawn::SetHP(sint32 new_val, bool setUpdateFlags){
+	if(new_val < 0)
+		new_val = 0;
+	
 	if(new_val == 0){
 		ClearRunningLocations();
 		CalculateRunningLocation(true);
@@ -1518,6 +1521,9 @@ sint32 Spawn::GetTotalPowerBaseInstance()
 
 /*** POWER ***/
 void Spawn::SetPower(sint32 power, bool setUpdateFlags){
+	if(power < 0)
+		power = 0;
+	
 	if(power > basic_info.max_power)
 		SetInfo(&basic_info.max_power, power, setUpdateFlags);
 	SetInfo(&basic_info.cur_power, power, setUpdateFlags);
