@@ -903,7 +903,7 @@ void LuaInterface::RemoveSpell(LuaSpell* spell, bool call_remove_function, bool 
 		if (spell->caster)
 		{
 			if(spell->caster->GetZone()) {
-				spell->caster->GetZone()->GetSpellProcess()->RemoveSpellScriptTimerBySpell(spell);
+				spell->caster->GetZone()->GetSpellProcess()->RemoveSpellScriptTimerBySpell(spell, false);
 			}
 			spell->caster->RemoveProc(0, spell);
 			spell->caster->RemoveMaintainedSpell(spell);
@@ -1639,7 +1639,6 @@ void LuaInterface::DeletePendingSpells(bool all) {
 
 			SetLuaUserDataStale(spell);
 			RemoveCurrentSpell(spell->state, spell, false);
-			safe_delete(spell);
 		}
 	}
 	MSpellDelete.unlock();
