@@ -3026,8 +3026,9 @@ void SpellProcess::AddSelfAndPetToCharTargets(LuaSpell* spell, Spawn* caster, bo
 		spell->char_id_targets.insert(make_pair(charID, 0x00));
 }
 
-void SpellProcess::DeleteActiveSpell(LuaSpell* spell) {
-	lua_interface->RemoveCurrentSpell(spell->state, spell, true);
+void SpellProcess::DeleteActiveSpell(LuaSpell* spell, bool skipRemoveCurrent) {
+	if(!skipRemoveCurrent)
+		lua_interface->RemoveCurrentSpell(spell->state, spell, true);
 	active_spells.Remove(spell, true, 2000);
 }
 

@@ -396,7 +396,7 @@ public:
 	void AddActiveSpell(LuaSpell* spell);
 	static void AddSelfAndPet(LuaSpell* spell, Spawn* self, bool onlyPet=false);
 	static void AddSelfAndPetToCharTargets(LuaSpell* spell, Spawn* caster, bool onlyPet=false);
-	void DeleteActiveSpell(LuaSpell* spell);
+	void DeleteActiveSpell(LuaSpell* spell, bool skipRemoveCurrent = false);
 	static bool AddLuaSpellTarget(LuaSpell* lua_spell, int32 id, bool lock_spell_targets = true);
 	mutable std::shared_mutex MSpellProcess;
 private:
