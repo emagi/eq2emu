@@ -887,6 +887,9 @@ void LuaInterface::RemoveSpell(LuaSpell* spell, bool call_remove_function, bool 
 		}
 	}
 	spell->char_id_targets.clear(); // TODO: reach out to those clients in different
+	
+	spell->timer.Disable();
+	
 	spell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
 
 	if(removing_all_spells) {
