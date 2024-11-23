@@ -8842,6 +8842,10 @@ void Client::SendSellMerchantList(bool sell) {
 				map<int32, Item*>::iterator test_itr;
 				for (test_itr = items->begin(); test_itr != items->end(); test_itr++) {
 					bool isbagwithitems = false;
+					
+					if(test_itr->second && (test_itr->second->details.inv_slot_id == -3 || test_itr->second->details.inv_slot_id == -4))
+						continue; // omit bank/shared-bank
+					
 					if (test_itr->second && test_itr->second->IsBag() && (test_itr->second->details.num_slots - test_itr->second->details.num_free_slots != test_itr->second->details.num_slots))
 						isbagwithitems = true;
 

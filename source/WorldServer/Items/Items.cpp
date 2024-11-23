@@ -3422,7 +3422,8 @@ int32 PlayerItemList::GetWeight(){
 	for(int16 i = 0; i < indexed_items.size(); i++){
 		Item* item = indexed_items[i];
 		if (item) {
-			ret += item->generic_info.weight;
+			if(item->details.inv_slot_id != -3 && item->details.inv_slot_id != -4)
+				ret += item->generic_info.weight;
 		}
 	}
 	MPlayerItems.releasereadlock(__FUNCTION__, __LINE__);

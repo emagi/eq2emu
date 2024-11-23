@@ -7032,6 +7032,8 @@ void Commands::Command_Inventory(Client* client, Seperator* sep, EQ2_RemoteComma
 				if(outapp)
 					client->QueuePacket(outapp);
 			}
+			
+			client->GetPlayer()->CalculateApplyWeight();
 		}
 		else if(sep->arg[1][0] && strncasecmp("equip", sep->arg[0], 5) == 0 && sep->IsNumber(1))
 		{
