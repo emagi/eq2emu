@@ -2046,7 +2046,7 @@ to zero and treated like placeholders." />
 <Data ElementName="spell_effects" Substruct="Substruct_SpellEffects" Size="12" />  <!-- 0xcb -->
 <Data ElementName="maintained_effects" Substruct="Substruct_MaintainedEffects" Size="12" /> <!-- 0x167 -->
 <Data ElementName="breath" Type="float" /> <!-- 0x44f -->
-<Data ElementName="breathable_environments" Type="int32" /> <!-- 0x453 -->
+<Data ElementName="breathe_underwater" Type="int32" /> <!-- 0x453 -->
 <Data ElementName="auto_attack" Type="int8" /> <!-- 0x457 -->
 <Data ElementName="ranged_auto_attack" Type="int8" /> <!-- 0x458 -->
 <Data ElementName="can_cast" Type="int8" Size="1" /> <!-- 0x459 -->
@@ -2200,7 +2200,7 @@ to zero and treated like placeholders." />
 <Data ElementName="spell_effects" Substruct="Substruct_SpellEffects" Size="30" />  <!-- 637 -->
 <Data ElementName="maintained_effects" Substruct="Substruct_MaintainedEffects" Size="30" /> <!-- 0x167 -->
 <Data ElementName="breath" Type="float" /> <!-- 0x44f -->
-<Data ElementName="breathable_environments" Type="int32" /> <!-- 0x453 -->
+<Data ElementName="breathe_underwater" Type="int32" /> <!-- 0x453 -->
 <Data ElementName="auto_attack" Type="int8" /> <!-- 0x457 -->
 <Data ElementName="ranged_auto_attack" Type="int8" /> <!-- 0x458 -->
 <Data ElementName="can_cast" Type="int8" Size="1" /> <!-- 0x459 -->
@@ -2392,7 +2392,7 @@ to zero and treated like placeholders." />
 <Data ElementName="elemental" Type="int8" Size="1" /> <!-- 914 -->
 <Data ElementName="maintained_effects" Substruct="Substruct_MaintainedEffects" Size="30" /> <!-- 915 -->
 <Data ElementName="breath" Type="float" Size="1" /> <!-- 3525 -->
-<Data ElementName="breathable_environments" Type="int32" Size="1" /> <!-- 3529 -->
+<Data ElementName="breathe_underwater" Type="int32" Size="1" /> <!-- 3529 -->
 <Data ElementName="auto_attack" Type="int8" /> <!-- 3533 -->
 <Data ElementName="ranged_auto_attack" Type="int8" /> <!-- 3534 -->
 <Data ElementName="can_cast" Type="int8" Size="1" /> <!-- 3535 -->
@@ -2633,7 +2633,7 @@ to zero and treated like placeholders." />
 <Data ElementName="elemental" Type="int8" Size="1" /> <!-- 946 -->
 <Data ElementName="maintained_effects" Substruct="Substruct_MaintainedEffects" Size="30" /> <!-- 915 -->
 <Data ElementName="breath" Type="float" Size="1" /> <!-- 3525 -->
-<Data ElementName="breathable_environments" Type="int32" Size="1" /> <!-- 3529 -->
+<Data ElementName="breathe_underwater" Type="int32" Size="1" /> <!-- 3529 -->
 <Data ElementName="flags" Type="int32" Size="1" />
 <Data ElementName="auto_attack" Type="int8" /> <!-- 3533 -->
 <Data ElementName="ranged_auto_attack" Type="int8" /> <!-- 3534 -->
@@ -11325,23 +11325,19 @@ to zero and treated like placeholders." />
 <Data ElementName="num_membersx" Type="int32" Size="1" />
 <Data ElementName="member_array" Type="Array" ArraySizeVariable="num_members" >
 	<Data ElementName="character_id" Type="int32" Size="1" />
-	<Data ElementName="account_id" Type="int32" Size="1" />
 	<Data ElementName="name" Type="EQ2_16Bit_String" Size="1" />
 	<Data ElementName="adventure_class" Type="int32" Size="1" />
 	<Data ElementName="adventure_level" Type="int32" Size="1" />
 	<Data ElementName="tradeskill_class" Type="int32" Size="1" />
 	<Data ElementName="tradeskill_level" Type="int32" Size="1" />
-	<Data ElementName="rank" Type="int32" Size="1" />
-	<Data ElementName="member_flags" Type="int32" Size="1" />
-	<Data ElementName="join_date" Type="int32" Size="1" />
+	<Data ElementName="rank" Type="int8" Size="1" />
+	<Data ElementName="member_flags" Type="int8" Size="1" />
 	<Data ElementName="guild_status" Type="int32" Size="1" />
-	<Data ElementName="last_login" Type="int32" Size="1" />
 	<Data ElementName="recruiter_id" Type="int32" Size="1" />
-	<Data ElementName="points" Type="float" Size="1" />
 	<Data ElementName="zone" Type="EQ2_16Bit_String" Size="1" />
 	<Data ElementName="note" Type="EQ2_16Bit_String" Size="1" />
 	<Data ElementName="officer_note" Type="EQ2_16Bit_String" Size="1" />
-	<Data ElementName="unique_id" Type="int32" Size="1" />
+	<Data ElementName="account_id" Type="int32" Size="1" />
 </Data>
 <Data ElementName="unknown7" Type="int16" Size="1" />
 </Struct>
