@@ -2509,7 +2509,7 @@ Spawn* ZoneServer::ProcessSpawnLocation(SpawnLocation* spawnlocation, map<int32,
 		
 		int32 spawnTime = 0;
 		
-		if(spawnlocation->entities[i]->spawn_type == SPAWN_ENTRY_TYPE_NPC)
+		/*if(spawnlocation->entities[i]->spawn_type == SPAWN_ENTRY_TYPE_NPC)
 			spawnTime = database.CheckSpawnRemoveInfo(instNPCs,spawnlocation->entities[i]->spawn_location_id);
 		else if(spawnlocation->entities[i]->spawn_type == SPAWN_ENTRY_TYPE_OBJECT)
 			spawnTime = database.CheckSpawnRemoveInfo(instObjSpawns,spawnlocation->entities[i]->spawn_location_id);
@@ -2520,7 +2520,7 @@ Spawn* ZoneServer::ProcessSpawnLocation(SpawnLocation* spawnlocation, map<int32,
 		else if(spawnTime > 1) { // if not 1, respawn after time
 			AddRespawn(spawnlocation->entities[i]->spawn_location_id, spawnTime);
 			return nullptr;
-		}
+		}*/
 		
 		if (spawnlocation->conditional > 0) {
 			if ((spawnlocation->conditional & SPAWN_CONDITIONAL_DAY) == SPAWN_CONDITIONAL_DAY && isDusk)
