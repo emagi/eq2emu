@@ -146,8 +146,9 @@ void SpellProcess::Process(){
 				// if there is no tick function it will return false, this will cause the server to crash in the event
 				// of a spell that has a duration but is not a "until canceled" spell or a spell with a tick (tradeskill buffs)
 				// to counter this check to see if the spell has a call_frequency > 0 before we call ProcessSpell()
-				if (spell->spell->GetSpellData()->call_frequency > 0 && !ProcessSpell(spell, false))
-					active_spells.Remove(spell, true, 2000);
+				if (spell->spell->GetSpellData()->call_frequency > 0 && !ProcessSpell(spell, false)) {
+					DeleteCasterSpell(spell, "expired");
+				}
 				else if (((spell->timer.GetDuration() * spell->num_calls) >= spell->spell->GetSpellData()->duration1 * 100) || 
 						 (spell->restored && (spell->timer.GetSetAtTrigger() * spell->num_calls) >= spell->spell->GetSpellData()->duration1 * 100))
 					DeleteCasterSpell(spell, "expired");
@@ -1193,7 +1194,8 @@ void SpellProcess::ProcessSpell(ZoneServer* zone, Spell* spell, Entity* caster, 
 							Spawn* tmpTarget = zone->GetSpawnByID(conflictSpell->initial_target);
 							if(tmpTarget && tmpTarget->IsEntity())
 							{
-								zone->RemoveTargetFromSpell(conflictSpell, tmpTarget);
+								((Entity*)tmpTarget)->RemoveEffectsFromLuaSpell(conflictSpell);
+								zone->RemoveTargetFromSpell(conflictSpell, tmpTarget, false);
 								CheckRemoveTargetFromSpell(conflictSpell);
 								((Entity*)tmpTarget)->RemoveSpellEffect(conflictSpell);
 								if(client && IsReady(conflictSpell->spell, client->GetPlayer()))
@@ -2823,20 +2825,7 @@ void SpellProcess::CheckRemoveTargetFromSpell(LuaSpell* spell, bool allow_delete
 									LogWrite(SPELL__DEBUG, 0, "Spell", "%s CheckRemoveTargetFromSpell %s (%u).", spell->spell->GetName(), remove_spawn->GetName(), remove_spawn->GetID());
 									targets->erase(target_itr);
 									if (remove_spawn->IsEntity())
-									{
-										if(!removing_all_spells)
-										{
-											if(remove_spawn->IsPlayer())
-												spell->char_id_targets.insert(make_pair(((Player*)remove_spawn)->GetCharacterID(),0));
-											else if(remove_spawn->IsPet() && ((Entity*)remove_spawn)->GetOwner() && ((Entity*)remove_spawn)->GetOwner()->IsPlayer())
-											{
-												Entity* pet = (Entity*)remove_spawn;
-												Player* ownerPlayer = (Player*)pet->GetOwner();
-												spell->char_id_targets.insert(make_pair(ownerPlayer->GetCharacterID(),pet->GetPetType()));
-											}
-										}
 										((Entity*)remove_spawn)->RemoveEffectsFromLuaSpell(spell);
-									}
 									break;
 								}
 							}
