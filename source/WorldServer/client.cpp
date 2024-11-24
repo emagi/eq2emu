@@ -5001,6 +5001,8 @@ void Client::Zone(ZoneChangeDetails* new_zone, ZoneServer* opt_zone, bool set_co
 	}
 
 	Save();
+	
+	GetPlayer()->SetSaveSpellEffects(true);
 
 	ResetSendMail();
 	// Remove players pet from zone if there is one
