@@ -439,18 +439,6 @@ void Client::SendLoginInfo() {
 
 	//	SendAchievementsList();
 
-	/*Guild* guild = player->GetGuild();
-	if (guild) {
-		guild->UpdateGuildMemberInfo(GetPlayer());
-		if (firstlogin)
-			guild->SendGuildMOTD(this);
-		guild->SendGuildUpdate(this);
-		guild->SendGuildMember(GetPlayer(), firstlogin);
-		guild->SendGuildEventList(this);
-		guild->SendGuildBankEventList(this);
-		guild->SendAllGuildEvents(this);
-		guild->SendGuildMemberList(this);
-	}*/
 	if (version > 373) {
 		LogWrite(CCLIENT__DEBUG, 0, "Client", "Loading Faction Updates...");
 		EQ2Packet* outapp = player->GetFactions()->FactionUpdate(GetVersion());
@@ -1936,6 +1924,9 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
 					ProcessZoneIgnoreWidgets();
 					if (version <= 561) {
 						master_trait_list.ChooseNextTrait(this);
+						Guild* guild = GetPlayer()->GetGuild();
+						if(guild)
+							guild->SendGuildMemberList();
 					}
 
 					const char* zone_script = world.GetZoneScript(GetPlayer()->GetZone()->GetZoneID());
@@ -7393,9 +7384,9 @@ void Client::DisplayQuestRewards(Quest* quest, int64 coin, vector<Item*>* reward
 					if (item) {
 						packet2->setArrayDataByName("reward_id", item->details.item_id, i);
 						packet2->setItemArrayDataByName("item", item, player, i, 0, GetClientItemPacketOffset());
+						if (!quest) //this entire function is either for version <=561 or for quest rewards in middle of quest, so quest should be 0, otherwise quest will handle the rewards
+							player->AddPendingItemReward(item); //item reference will be deleted after the player accepts it
 					}
-					if (!quest) //this entire function is either for version <=561 or for quest rewards in middle of quest, so quest should be 0, otherwise quest will handle the rewards
-						player->AddPendingItemReward(item); //item reference will be deleted after the player accepts it
 				}
 			}
 
@@ -7404,9 +7395,9 @@ void Client::DisplayQuestRewards(Quest* quest, int64 coin, vector<Item*>* reward
 				if (item) {
 					packet2->setArrayDataByName("reward_id", item->details.item_id, i);
 					packet2->setItemArrayDataByName("item", item, player, i, 0, GetClientItemPacketOffset());
+					if (!quest) //this entire function is either for version <=561 or for quest rewards in middle of quest, so quest should be 0, otherwise quest will handle the rewards
+						player->AddPendingItemReward(item); //item reference will be deleted after the player accepts it
 				}
-				if (!quest) //this entire function is either for version <=561 or for quest rewards in middle of quest, so quest should be 0, otherwise quest will handle the rewards
-					player->AddPendingItemReward(item); //item reference will be deleted after the player accepts it
 
 				i++;
 			}
