@@ -1826,8 +1826,9 @@ void Guild::SendGuildUpdate(Client* client) {
 			packet->setMediumStringByName("bank2_name", banks[1].name.c_str());
 			packet->setMediumStringByName("bank3_name", banks[2].name.c_str());
 			packet->setMediumStringByName("bank4_name", banks[3].name.c_str());
-			//DumpPacket(packet->serialize());
-			client->QueuePacket(packet->serialize());
+			EQ2Packet* pack = packet->serialize();
+			//DumpPacket(pack);
+			client->QueuePacket(pack);
 			safe_delete(packet);
 		}
 	}
@@ -2011,17 +2012,21 @@ void Guild::GuildMemberLogin(Client *client, bool first_login) {
 
 	assert(client);
 
+
 	UpdateGuildMemberInfo(client->GetPlayer());
 	if (first_login)
 		SendGuildMOTD(client);
-	SendGuildUpdate(client);
-	if (first_login)
-		SendGuildMember(client->GetPlayer(), false);
+	if(client->GetVersion() > 561) {
+		if (first_login)
+			SendGuildMember(client->GetPlayer(), false);
+	}
 	SendGuildRecruiterInfo(client, client->GetPlayer());
 	SendGuildEventList(client);
 	SendGuildBankEventList(client);
 	SendGuildMember(client->GetPlayer());
 	SendGuildEventDetails(client);
+	SendGuildUpdate(client);
+		
 	uchar blah5[] = {/*0xFF,0x09,0x01,*/0x01,0x00,0x00,0x00,0x00,0x00,0x00};
 	uchar blah6[] = {/*0xFF,0x09,0x01,*/0x01,0x00,0x00,0x00,0x01,0x00,0x00};
 	uchar blah7[] = {/*0xFF,0x09,0x01,*/0x01,0x00,0x00,0x00,0x02,0x00,0x00};
@@ -2032,13 +2037,19 @@ void Guild::GuildMemberLogin(Client *client, bool first_login) {
 	//DumpPacket(blah7, sizeof(blah7));
 	//DumpPacket(blah8, sizeof(blah8));
 
-	client->QueuePacket(new EQ2Packet(OP_RequestGuildBankEventDetailsMs, blah5, sizeof(blah5)));
-	client->QueuePacket(new EQ2Packet(OP_RequestGuildBankEventDetailsMs, blah6, sizeof(blah6)));
-	client->QueuePacket(new EQ2Packet(OP_RequestGuildBankEventDetailsMs, blah7, sizeof(blah7)));
-	client->QueuePacket(new EQ2Packet(OP_RequestGuildBankEventDetailsMs, blah8, sizeof(blah8)));
+	if(client->GetVersion() > 561) {
+		client->QueuePacket(new EQ2Packet(OP_RequestGuildBankEventDetailsMs, blah5, sizeof(blah5)));
+		client->QueuePacket(new EQ2Packet(OP_RequestGuildBankEventDetailsMs, blah6, sizeof(blah6)));
+		client->QueuePacket(new EQ2Packet(OP_RequestGuildBankEventDetailsMs, blah7, sizeof(blah7)));
+		client->QueuePacket(new EQ2Packet(OP_RequestGuildBankEventDetailsMs, blah8, sizeof(blah8)));
+	}
+	
 	if (first_login)
 		SendAllGuildEvents(client);
-	SendGuildMemberList(client);
+	if(client->GetVersion() > 561) {
+		SendGuildMemberList(client);
+	}
+	
 	if (first_login) {
 		snprintf(buf, sizeof(buf), "Guildmate: %s has logged in", client->GetPlayer()->GetName());
 		

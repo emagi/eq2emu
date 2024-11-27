@@ -11322,7 +11322,7 @@ to zero and treated like placeholders." />
 <Struct Name="WS_GuildMembershipResponse" ClientVersion="1" OpcodeName="OP_GuildMembershipResponseMsg">
 <Data ElementName="guild_id" Type="int32" Size="1" />
 <Data ElementName="character_id_to" Type="int32" Size="1" />
-<Data ElementName="num_membersx" Type="int32" Size="1" />
+<Data ElementName="num_members" Type="int32" Size="1" />
 <Data ElementName="member_array" Type="Array" ArraySizeVariable="num_members" >
 	<Data ElementName="character_id" Type="int32" Size="1" />
 	<Data ElementName="name" Type="EQ2_16Bit_String" Size="1" />
@@ -11330,14 +11330,17 @@ to zero and treated like placeholders." />
 	<Data ElementName="adventure_level" Type="int32" Size="1" />
 	<Data ElementName="tradeskill_class" Type="int32" Size="1" />
 	<Data ElementName="tradeskill_level" Type="int32" Size="1" />
-	<Data ElementName="rank" Type="int8" Size="1" />
-	<Data ElementName="member_flags" Type="int8" Size="1" />
+	<Data ElementName="rank" Type="int32" Size="1" />
 	<Data ElementName="guild_status" Type="int32" Size="1" />
-	<Data ElementName="recruiter_id" Type="int32" Size="1" />
+	<Data ElementName="last_login" Type="int32" Size="1" />
+	<Data ElementName="member_flags" Type="int32" Size="1" />
+	<Data ElementName="unknown3" Type="int8" Size="1" />
+	<Data ElementName="unknown2" Type="int8" Size="1" />
 	<Data ElementName="zone" Type="EQ2_16Bit_String" Size="1" />
+	<Data ElementName="unknown4" Type="int8" Size="10" />
 	<Data ElementName="note" Type="EQ2_16Bit_String" Size="1" />
 	<Data ElementName="officer_note" Type="EQ2_16Bit_String" Size="1" />
-	<Data ElementName="account_id" Type="int32" Size="1" />
+	<Data ElementName="unknown5_accountid" Type="int8" Size="4" />
 </Data>
 <Data ElementName="unknown7" Type="int16" Size="1" />
 </Struct>
@@ -11430,35 +11433,39 @@ to zero and treated like placeholders." />
 <Data ElementName="name" Type="EQ2_16Bit_String" Size="1" />
 <Data ElementName="adventure_class" Type="int32" Size="1" />
 <Data ElementName="adventure_level" Type="int32" Size="1" />
-<Data ElementName="rank" Type="int8" Size="1"/>
-<Data ElementName="member_flags" Type="int8" Size="1" />
-<Data ElementName="unknown2" Type="int8" Size="2" />
-<Data ElementName="points" Type="float" Size="1" />
-<Data ElementName="last_login" Type="int32" Size="1" />
+<Data ElementName="tradeskill_class" Type="int32" Size="1" />
+<Data ElementName="tradeskill_level" Type="int32" Size="1" />
+<Data ElementName="rank" Type="int32" Size="1" />
 <Data ElementName="guild_status" Type="int32" Size="1" />
+<Data ElementName="last_login" Type="int32" Size="1" />
+<Data ElementName="member_flagsx" Type="int32" Size="1" />
+<Data ElementName="unknown3" Type="int8" Size="1" />
+<Data ElementName="unknown2" Type="int8" Size="1" />
 <Data ElementName="zone" Type="EQ2_16Bit_String" Size="1" />
+<Data ElementName="unknown4" Type="int8" Size="10" />
+<Data ElementName="note" Type="EQ2_16Bit_String" Size="1" />
+<Data ElementName="officer_note" Type="EQ2_16Bit_String" Size="1" />
+<Data ElementName="unknown5_accountid" Type="int8" Size="4" />
 </Struct>
 <Struct Name="WS_JoinGuildNotify" ClientVersion="546" OpcodeName="OP_JoinGuildNotifyMsg">
 <Data ElementName="guild_id" Type="int32" Size="1" />
 <Data ElementName="character_id" Type="int32" Size="1" />
-<Data ElementName="account_id" Type="int32" Size="1" />
 <Data ElementName="name" Type="EQ2_16Bit_String" Size="1" />
-<Data ElementName="unknown2" Type="int8" Size="1" />
-<Data ElementName="unknown3" Type="int8" Size="1" />
-<Data ElementName="adventure_class" Type="int8" Size="1" />
-<Data ElementName="adventure_level" Type="int8" Size="1" />
-<Data ElementName="tradeskill_class" Type="int8" Size="1" />
-<Data ElementName="tradeskill_level" Type="int8" Size="1" />
-<Data ElementName="rank" Type="int8" Size="1"/>
-<Data ElementName="member_flags" Type="int8" Size="1" />
-<Data ElementName="join_date" Type="int32" Size="1" />
+<Data ElementName="adventure_class" Type="int32" Size="1" />
+<Data ElementName="adventure_level" Type="int32" Size="1" />
+<Data ElementName="tradeskill_class" Type="int32" Size="1" />
+<Data ElementName="tradeskill_level" Type="int32" Size="1" />
+<Data ElementName="rank" Type="int32" Size="1" />
 <Data ElementName="guild_status" Type="int32" Size="1" />
 <Data ElementName="last_login" Type="int32" Size="1" />
-<Data ElementName="recruiter_id" Type="int32" Size="1" />
-<Data ElementName="points" Type="float" Size="1" />
+<Data ElementName="member_flagsx" Type="int32" Size="1" />
+<Data ElementName="unknown3" Type="int8" Size="1" />
+<Data ElementName="unknown2" Type="int8" Size="1" />
 <Data ElementName="zone" Type="EQ2_16Bit_String" Size="1" />
+<Data ElementName="unknown4" Type="int8" Size="10" />
 <Data ElementName="note" Type="EQ2_16Bit_String" Size="1" />
 <Data ElementName="officer_note" Type="EQ2_16Bit_String" Size="1" />
+<Data ElementName="unknown5_accountid" Type="int8" Size="4" />
 </Struct>
 <Struct Name="WS_JoinGuildNotify" ClientVersion="910" OpcodeName="OP_JoinGuildNotifyMsg">
 <Data ElementName="guild_id" Type="int32" Size="1" />
@@ -11515,11 +11522,51 @@ to zero and treated like placeholders." />
 <Data ElementName="guild_name" Type="EQ2_16Bit_String" Size="1" />
 <Data ElementName="guild_motd" Type="EQ2_16Bit_String" Size="1" />
 <Data ElementName="guild_id" Type="int32" Size="1" />
-<Data ElementName="guild_type" Type="int8" Size="1" />
+<Data ElementName="unknownx" Type="int8" Size="2" />
 <Data ElementName="guild_level" Type="int32" Size="1" />
-<Data ElementName="unknown" Type="int32" Size="1" />
+<Data ElementName="formed_date" Type="int32" Size="1" />
+<Data ElementName="unique_accounts" Type="int32" Size="1" />
 <Data ElementName="exp_current" Type="int64" Size="1" />
 <Data ElementName="exp_to_next_level" Type="int64" Size="1" />
+<Data ElementName="event_filter_retain1" Type="int32" Size="1" />
+<Data ElementName="event_filter_retain2" Type="int32" Size="1" />
+<Data ElementName="event_filter_broadcast1" Type="int32" Size="1" />
+<Data ElementName="event_filter_broadcast2" Type="int32" Size="1" />
+<Data ElementName="event_filter_broadcast3" Type="int32" Size="1" />
+<Data ElementName="recuiting_short_description" Type="EQ2_16Bit_String" />
+<Data ElementName="recruiting_full_description" Type="EQ2_16Bit_String" />
+<Data ElementName="rank0_name" Type="EQ2_16Bit_String" Size="1" />
+<Data ElementName="rank0_permissions1" Type="int32" Size="1" />
+<Data ElementName="rank0_permissions2" Type="int32" Size="1" />
+<Data ElementName="rank0_permissions_unused" Type="int8" Size="48" />
+<Data ElementName="rank1_name" Type="EQ2_16Bit_String" Size="1" />
+<Data ElementName="rank1_permissions1" Type="int32" Size="1" />
+<Data ElementName="rank1_permissions2" Type="int32" Size="1" />
+<Data ElementName="rank1_permissions_unused" Type="int8" Size="48" />
+<Data ElementName="rank2_name" Type="EQ2_16Bit_String" Size="1" />
+<Data ElementName="rank2_permissions1" Type="int32" Size="1" />
+<Data ElementName="rank2_permissions2" Type="int32" Size="1" />
+<Data ElementName="rank2_permissions_unused" Type="int8" Size="48" />
+<Data ElementName="rank3_name" Type="EQ2_16Bit_String" Size="1" />
+<Data ElementName="rank3_permissions1" Type="int32" Size="1" />
+<Data ElementName="rank3_permissions2" Type="int32" Size="1" />
+<Data ElementName="rank3_permissions_unused" Type="int8" Size="48" />
+<Data ElementName="rank4_name" Type="EQ2_16Bit_String" Size="1" />
+<Data ElementName="rank4_permissions1" Type="int32" Size="1" />
+<Data ElementName="rank4_permissions2" Type="int32" Size="1" />
+<Data ElementName="rank4_permissions_unused" Type="int8" Size="48" />
+<Data ElementName="rank5_name" Type="EQ2_16Bit_String" Size="1" />
+<Data ElementName="rank5_permissions1" Type="int32" Size="1" />
+<Data ElementName="rank5_permissions2" Type="int32" Size="1" />
+<Data ElementName="rank5_permissions_unused" Type="int8" Size="48" />
+<Data ElementName="rank6_name" Type="EQ2_16Bit_String" Size="1" />
+<Data ElementName="rank6_permissions1" Type="int32" Size="1" />
+<Data ElementName="rank6_permissions2" Type="int32" Size="1" />
+<Data ElementName="rank6_permissions_unused" Type="int8" Size="48" />
+<Data ElementName="rank7_name" Type="EQ2_16Bit_String" Size="1" />
+<Data ElementName="rank7_permissions1" Type="int32" Size="1" />
+<Data ElementName="rank7_permissions2" Type="int32" Size="1" />
+<Data ElementName="rank7_permissions_unused" Type="int8" Size="48" />
 </Struct>
 <Struct Name="WS_GuildUpdate" ClientVersion="562" OpcodeName="OP_GuildUpdateMsg">
 <Data ElementName="guild_name" Type="EQ2_16Bit_String" Size="1" />
