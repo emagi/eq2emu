@@ -307,6 +307,7 @@ void Entity::MeleeAttack(Spawn* victim, float distance, bool primary, bool multi
 		SetAttackDelay(primary);
 	
 	if(victim->IsNPC() && victim->EngagedInCombat() == false) {
+		CheckEncounterState((Entity*)victim);
 		((NPC*)victim)->AddHate(this, 50);
 	}
 
@@ -379,6 +380,7 @@ void Entity::RangeAttack(Spawn* victim, float distance, Item* weapon, Item* ammo
 			}
 
 			if(victim->IsNPC() && victim->EngagedInCombat() == false) {
+				CheckEncounterState((Entity*)victim);
 				((NPC*)victim)->AddHate(this, 50);
 			}
 

@@ -941,6 +941,8 @@ bool ZoneServer::AggroVictim(NPC* npc, Spawn* victim, Client* client)
 	if(isEntity && !npc->AttackAllowed((Entity*)victim))
 		return false;
 	
+	victim->CheckEncounterState((Entity*)npc, true);
+	
 	if (npc->HasSpawnGroup()) {
 		vector<Spawn*>* groupVec = npc->GetSpawnGroup();
 		for (int32 i = 0; i < groupVec->size(); i++) {
@@ -965,8 +967,6 @@ bool ZoneServer::AggroVictim(NPC* npc, Spawn* victim, Client* client)
 		else
 			npc->InCombat(true);
 	}
-	
-	victim->CheckEncounterState((Entity*)npc, true);
 	return true;
 }
 
