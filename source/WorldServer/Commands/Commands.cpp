@@ -50,6 +50,7 @@ along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 #include "../Transmute.h"
 #include "../Bots/Bot.h"
 #include "../Web/PeerManager.h"
+#include "../../common/GlobalHeaders.h"
 
 extern WorldDatabase database;
 extern MasterSpellList master_spell_list;
@@ -6681,18 +6682,22 @@ void Commands::Command_GuildsCreate(Client* client, Seperator* sep)
 	if (sep && sep->arg[0]) 
 	{
 		const char* guild_name = sep->arg[0];
-		if(!guild_name || strlen(guild_name) < 4) {
+		int8 resp = database.CheckNameFilter(guild_name, 4, 41);
+		if(!guild_name || resp == BADNAMELENGTH_REPLY) {
 			client->Message(CHANNEL_COLOR_YELLOW, "Guild name is too short.");
+		}
+		else if(resp == NAMEINVALID_REPLY || resp == NAMEFILTER_REPLY) {
+			client->Message(CHANNEL_COLOR_YELLOW, "Guild name was rejected.");
 		}
 		else if (!guild_list.GetGuild(guild_name)) 
 		{
 			bool ret = false;
 
-			if (sep->arg[1] && strlen(sep->arg[1]) > 0) 
+			if (sep->arg[1] && strlen(sep->arg[1]) > 0 && client->GetAdminStatus() > 0) 
 			{
 				Client* to_client = zone_list.GetClientByCharName(string(sep->arg[1]));
 
-				if (to_client) 
+				if (to_client && !to_client->GetPlayer()->GetGuild()) 
 				{
 					if(net.is_primary) {
 						int32 guildID = world.CreateGuild(guild_name, to_client, to_client->GetPlayer()->GetGroupMemberInfo() ? to_client->GetPlayer()->GetGroupMemberInfo()->group_id : 0);
@@ -6704,14 +6709,15 @@ void Commands::Command_GuildsCreate(Client* client, Seperator* sep)
 					}
 					ret = true;
 				}
-				else
-					client->Message(CHANNEL_COLOR_YELLOW, "Could not find player with name '%s'", sep->arg[1]);
+				else {
+					client->Message(CHANNEL_COLOR_YELLOW, "Could not find target %s or target is already in a guild.", sep->arg[1]);
+				}
 			}
-			else if (client->GetPlayer()->GetTarget() && client->GetPlayer()->GetTarget()->IsPlayer()) 
+			else if (client->GetAdminStatus() > 0 && client->GetPlayer()->GetTarget() && client->GetPlayer()->GetTarget()->IsPlayer()) 
 			{
 				Client* to_client = ((Player*)client->GetPlayer()->GetTarget())->GetClient();
 
-				if (to_client) 
+				if (to_client && !to_client->GetPlayer()->GetGuild()) 
 				{
 					if(net.is_primary) {
 						int32 guildID = world.CreateGuild(guild_name, to_client, to_client->GetPlayer()->GetGroupMemberInfo() ? to_client->GetPlayer()->GetGroupMemberInfo()->group_id : 0);
@@ -6722,11 +6728,17 @@ void Commands::Command_GuildsCreate(Client* client, Seperator* sep)
 						peer_manager.sendPrimaryCreateGuildRequest(std::string(guild_name), std::string(to_client->GetPlayer()->GetName()));
 					}
 					ret = true;
+				}
+				else {
+					client->Message(CHANNEL_COLOR_YELLOW, "Could not find target %s or target is already in a guild.", (to_client != nullptr) ? to_client->GetPlayer()->GetName() : "NoTarget");
 				}
 			}
 			else 
 			{
-				if(net.is_primary) {
+				if(client->GetPlayer()->GetGuild()) {
+					client->SimpleMessage(CHANNEL_COLOR_YELLOW, "You are already in a guild.");
+				}
+				else if(net.is_primary) {
 					int32 guildID = world.CreateGuild(guild_name);
 					if(guildID > 0)
 						peer_manager.sendPeersCreateGuild(guildID);
