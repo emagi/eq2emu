@@ -11236,6 +11236,12 @@ to zero and treated like placeholders." />
 <Data ElementName="type" Type="int8" />
 <Data ElementName="name" Type="EQ2_16Bit_String" />
 <Data ElementName="unknown" Type="int8" Size="1" />
+<Data ElementName="guild_name" Type="EQ2_16Bit_String" Size="1" />
+</Struct>
+<Struct Name="WS_ReceiveOffer" ClientVersion="562" OpcodeName="OP_ClientCmdMsg" OpcodeType="OP_EqReceiveOfferCmd">
+<Data ElementName="type" Type="int8" />
+<Data ElementName="name" Type="EQ2_16Bit_String" />
+<Data ElementName="unknown" Type="int8" Size="1" />
 <Data ElementName="unknown2" Type="int8" Size="1" />
 <Data ElementName="guild_name" Type="EQ2_16Bit_String" Size="1" />
 </Struct>
