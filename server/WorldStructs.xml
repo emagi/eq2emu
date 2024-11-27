@@ -11438,7 +11438,7 @@ to zero and treated like placeholders." />
 <Data ElementName="rank" Type="int32" Size="1" />
 <Data ElementName="guild_status" Type="int32" Size="1" />
 <Data ElementName="last_login" Type="int32" Size="1" />
-<Data ElementName="member_flagsx" Type="int32" Size="1" />
+<Data ElementName="member_flags" Type="int32" Size="1" />
 <Data ElementName="unknown3" Type="int8" Size="1" />
 <Data ElementName="unknown2" Type="int8" Size="1" />
 <Data ElementName="zone" Type="EQ2_16Bit_String" Size="1" />
@@ -11458,7 +11458,7 @@ to zero and treated like placeholders." />
 <Data ElementName="rank" Type="int32" Size="1" />
 <Data ElementName="guild_status" Type="int32" Size="1" />
 <Data ElementName="last_login" Type="int32" Size="1" />
-<Data ElementName="member_flagsx" Type="int32" Size="1" />
+<Data ElementName="member_flags" Type="int32" Size="1" />
 <Data ElementName="unknown3" Type="int8" Size="1" />
 <Data ElementName="unknown2" Type="int8" Size="1" />
 <Data ElementName="zone" Type="EQ2_16Bit_String" Size="1" />
