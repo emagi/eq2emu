@@ -721,12 +721,12 @@ void Bot::Begin_Camp() {
 		GetZone()->Despawn(this, 5000);
 	}
 
+	camping = false;
+	immediate_camp = true;
+	
 	if (!GetOwner())
 		return;
 
 	if (GetOwner()->IsPlayer())
 		((Player*)GetOwner())->SpawnedBots.erase(BotIndex);
-	
-	camping = false;
-	immediate_camp = true;
 }
