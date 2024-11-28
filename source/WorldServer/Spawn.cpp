@@ -3945,7 +3945,7 @@ void Spawn::CheckEncounterState(Entity* victim, bool test_auto_lock) {
 			}
 			world.GetGroupManager()->ReleaseGroupLock(__FUNCTION__, __LINE__);
 		}
-		else if (attacker->GetInfoStruct()->get_group_solo_autolock()) {
+		else if (attacker->GetInfoStruct()->get_group_solo_autolock()|| attacker->GetInfoStruct()->get_group_autolock()) {
 			matchedAutoLock = true;
 			if (((NPC*)victim)->Brain()) {
 				((NPC*)victim)->Brain()->AddHate(attacker, 0);
