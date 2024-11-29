@@ -2337,7 +2337,7 @@ void Spawn::InitializePosPacketData(Player* player, PacketStruct* packet, bool b
 		packet->setDataByName("pos_speed", pos_packet_speed);
 		packet->setDataByName("pos_side_speed", side_speed);
 	}
-	else if (bSendSpeed && (!IsNPC() || Alive())) {
+	else if (bSendSpeed && (!IsNPC() || Alive()) && GetBaseSpeed() != 0.0f) {
 		sint16 side_speed = GetSpeed() * speed_multiplier;
 		packet->setDataByName("pos_speed", side_speed);
 		if(side_speed != 0 && ((IsWidget() && ((Widget*)this)->GetMultiFloorLift()) || IsTransportSpawn())) {
