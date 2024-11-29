@@ -158,7 +158,7 @@ public:
 	~SpellProcess();
 	
 	/// Remove dead pointers for casters when the Spawn is deconstructed
-	void RemoveCaster(Spawn* caster);
+	void RemoveCaster(Spawn* caster, bool lock_spell_process = true);
 	
 	/// <summary>Remove all spells from the SpellProcess </summary>
 	void RemoveAllSpells(bool reload_spells = false);

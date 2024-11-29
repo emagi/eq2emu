@@ -43,7 +43,9 @@ SpellProcess::~SpellProcess(){
 	RemoveAllSpells();
 }
 
-void SpellProcess::RemoveCaster(Spawn* caster){
+void SpellProcess::RemoveCaster(Spawn* caster, bool lock_spell_process){
+	if(lock_spell_process)
+		MSpellProcess.lock_shared();
 	MutexList<LuaSpell*>::iterator active_spells_itr = active_spells.begin();
 	while(active_spells_itr.Next()){
 		LuaSpell* spell = active_spells_itr->value;
@@ -55,6 +57,8 @@ void SpellProcess::RemoveCaster(Spawn* caster){
 			spell->initial_target = 0;
 		spell->MSpellTargets.releasewritelock(__FUNCTION__, __LINE__);
 	}
+	if(lock_spell_process)
+		MSpellProcess.unlock_shared();
 }
 
 void SpellProcess::RemoveAllSpells(bool reload_spells){
