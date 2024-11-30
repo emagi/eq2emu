@@ -27,7 +27,7 @@ extern ConfigReader configReader;
 extern MasterSpellList master_spell_list;
 
 void ClientPacketFunctions::SendHeroicOPUpdate(Client* client, HeroicOP* ho) {
-	if (!client) {
+	if (!client || !client->GetPlayer()) {
 		LogWrite(PACKET__ERROR, 0, "Packets", "SendHeroicOPUpdate() called without a valid client");
 		return;
 	}
