@@ -45,20 +45,18 @@ SpellProcess::~SpellProcess(){
 
 void SpellProcess::RemoveCaster(Spawn* caster, bool lock_spell_process){
 	if(lock_spell_process)
-		MSpellProcess.lock_shared();
+		MSpellProcess.lock();
 	MutexList<LuaSpell*>::iterator active_spells_itr = active_spells.begin();
 	while(active_spells_itr.Next()){
 		LuaSpell* spell = active_spells_itr->value;
-		spell->MSpellTargets.writelock(__FUNCTION__, __LINE__);
 		if(spell->caster == caster) {
 			spell->caster = nullptr;
 		}
 		if(spell->initial_target == caster->GetID())
 			spell->initial_target = 0;
-		spell->MSpellTargets.releasewritelock(__FUNCTION__, __LINE__);
 	}
 	if(lock_spell_process)
-		MSpellProcess.unlock_shared();
+		MSpellProcess.unlock();
 }
 
 void SpellProcess::RemoveAllSpells(bool reload_spells){

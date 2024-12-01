@@ -1519,6 +1519,10 @@ void ZoneServer::DeleteSpawns(bool delete_all) {
 				
 				lua_interface->SetLuaUserDataStale(spawn);
 				
+				if (spellProcess) {
+					spellProcess->RemoveCaster(spawn, true);
+				}
+
 				if(movementMgr != nullptr) {
 					movementMgr->RemoveMob((Entity*)spawn);
 				}
@@ -6720,10 +6724,6 @@ void ZoneServer::RemoveSpawnSupportFunctions(Spawn* spawn, bool lock_spell_proce
 	}
 	if(spawn->IsEntity())
 		RemoveSpellTimersFromSpawn((Entity*)spawn, true, true, true, lock_spell_process);
-	
-	if (spellProcess) {
-		spellProcess->RemoveCaster(spawn, lock_spell_process);
-	}
 	
 	if(!shutdown) { // in case of shutdown, DeleteData(true) handles the cleanup later via DeleteSpawnScriptTimers
 		StopSpawnScriptTimer(spawn, "");
