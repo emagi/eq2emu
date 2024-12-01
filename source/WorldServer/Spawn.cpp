@@ -446,7 +446,7 @@ void Spawn::InitializeFooterPacketData(Player* player, PacketStruct* footer) {
 		footer->setDataByName("widget_z", sign->GetWidgetZ());
 		
 		int8 showSignText = 1;
-		if((HasQuestsRequired() || HasHistoryRequired()) && !MeetsSpawnAccessRequirements(player)) {
+		if((HasQuestsRequired() || HasHistoryRequired()) && !MeetsSpawnAccessRequirements(player) && (req_quests_override & 512) > 0) {
 			showSignText = 0;
 		}
 		
