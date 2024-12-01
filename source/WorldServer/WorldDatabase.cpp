@@ -1145,7 +1145,7 @@ void WorldDatabase::LoadSpiritShards(ZoneServer* zone){
 	MYSQL_ROW row;
 	int32 id = 0;
 	int32 total = 0;
-	MYSQL_RES* result = query.RunQuery2(Q_SELECT,"SELECT timestamp, name, level, race, gender, adventure_class, model_type, soga_model_type, hair_type, hair_face_type, wing_type, chest_type, legs_type, soga_hair_type, soga_hair_face_type, hide_hood, size, collision_radius, action_state, visual_state, mood_state, emote_state, pos_state, activity_status, sub_title, prefix_title, suffix_title, lastname, x, y, z, heading, gridid, id, charid\n"
+	MYSQL_RES* result = query.RunQuery2(Q_SELECT,"SELECT unix_timestamp(timestamp), name, level, race, gender, adventure_class, model_type, soga_model_type, hair_type, hair_face_type, wing_type, chest_type, legs_type, soga_hair_type, soga_hair_face_type, hide_hood, size, collision_radius, action_state, visual_state, mood_state, emote_state, pos_state, activity_status, sub_title, prefix_title, suffix_title, lastname, x, y, z, heading, gridid, id, charid\n"
 													"FROM character_spirit_shards\n"
 													"WHERE zoneid = %u and (instanceid = 0 or instanceid = %u)",
 													zone->GetZoneID(), zone->GetInstanceID());
