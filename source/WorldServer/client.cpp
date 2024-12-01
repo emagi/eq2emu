@@ -8490,7 +8490,7 @@ void Client::BuyItem(int32 item_id, int16 quantity) {
 
 void Client::RepairItem(int32 item_id) {
 	Spawn* spawn = GetMerchantTransaction();
-	if (spawn) {
+	if (spawn && (spawn->GetMerchantType() & MERCHANT_TYPE_REPAIR)) {
 		Item* item = player->item_list.GetItemFromID(item_id);
 		if (!item)
 			item = player->GetEquipmentList()->GetItemFromItemID(item_id);
@@ -8528,7 +8528,7 @@ void Client::RepairItem(int32 item_id) {
 
 void Client::RepairAllItems() {
 	Spawn* spawn = GetMerchantTransaction();
-	if (spawn) {
+	if (spawn && (spawn->GetMerchantType() & MERCHANT_TYPE_REPAIR)) {
 		vector<Item*>* repairable_items = GetRepairableItems();
 		if (repairable_items && repairable_items->size() > 0) {
 			vector<Item*>::iterator itr;
