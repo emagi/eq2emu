@@ -399,18 +399,25 @@ void Spawn::InitializeVisPacketData(Player* player, PacketStruct* vis_packet) {
 			vis_flags += 4;
 	}
 
-	if (version <= 546 && (vis_flags > 1 || appearance.display_hand_icon > 0)) //interactable
+	if (version <= 546 && (vis_flags > 1 || appearance.display_hand_icon > 0) && MeetsSpawnAccessRequirements(player)) //interactable
 		vis_flags = 1;
-	vis_packet->setDataByName("vis_flags", vis_flags);
-
+	else if(!player->HasGMVision()) {
+		vis_flags = 0;
+	}
+	else if((req_quests_override & 256) > 0) {
+		if(vis_flags > 1)
+			vis_flags = 1;
+	}
 
 	if (MeetsSpawnAccessRequirements(player)) {
 		vis_packet->setDataByName("hand_flag", appearance.display_hand_icon);
 	}
-	else {
-		if ((req_quests_override & 256) > 0)
+	else if ((req_quests_override & 256) > 0) {
 			vis_packet->setDataByName("hand_flag", 1);
 	}
+	
+	vis_packet->setDataByName("vis_flags", vis_flags);
+	
 	if ((version == 546 || version == 561) && GetMerchantID() > 0) {
 		vis_packet->setDataByName("guild", "<Merchant>");
 	}
