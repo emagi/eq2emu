@@ -321,17 +321,23 @@ bool LoginServer::Process() {
 			int8 resp = 0;
 			int32 acct_id = 0;
 			int32 char_id = 0;
+			// have to load packet to clear the buffer
 			if(packet && packet->LoadPacketData(pack->pBuffer+sizeof(int16),pack->size - sizeof(int16), version <= 561 ? false : true)){
-				EQ2_16BitString name = packet->getType_EQ2_16BitString_ByName("name");
-				resp = database.CheckNameFilter(name.data.c_str());
-				acct_id = packet->getType_int32_ByName("account_id");
-				LogWrite(WORLD__DEBUG, 0, "World", "Response: %i", (int)resp);
-				
-				sint16 lowestStatus = database.GetLowestCharacterAdminStatus(acct_id);
-				if(lowestStatus == -2)
-					resp = UNKNOWNERROR_REPLY2;
-				else if(resp == CREATESUCCESS_REPLY)
-					char_id = database.SaveCharacter(packet, acct_id);
+				if(net.world_locked) {
+					resp = NOSERVERSAVAIL_REPLY; // no new characters when locked
+				}
+				else {
+					EQ2_16BitString name = packet->getType_EQ2_16BitString_ByName("name");
+					resp = database.CheckNameFilter(name.data.c_str());
+					acct_id = packet->getType_int32_ByName("account_id");
+					LogWrite(WORLD__DEBUG, 0, "World", "Response: %i", (int)resp);
+					
+					sint16 lowestStatus = database.GetLowestCharacterAdminStatus(acct_id);
+					if(lowestStatus == -2)
+						resp = UNKNOWNERROR_REPLY2;
+					else if(resp == CREATESUCCESS_REPLY)
+						char_id = database.SaveCharacter(packet, acct_id);
+				}
 			}
 			else{
 				LogWrite(WORLD__ERROR, 0, "World", "Invalid creation request!");
