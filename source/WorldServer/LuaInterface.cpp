@@ -1614,11 +1614,7 @@ void LuaInterface::DeletePendingSpells(bool all) {
 			spell = *del_itr;
 			
 			if(!all) {
-				if (spell->caster) {
-					ZoneServer* curZone = spell->caster->GetZone();
-					if(curZone)
-						curZone->GetSpellProcess()->DeleteActiveSpell(spell, true);
-				}
+				// rely on targets the spell->caster could be corrupt
 				if(spell->targets.size() > 0) {
 					spell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
 					for (int8 i = 0; i < spell->targets.size(); i++) {
