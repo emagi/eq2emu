@@ -8174,7 +8174,9 @@ void WorldDatabase::LoadCharacterSpellEffects(int32 char_id, Client* client, int
 			lua_spell->slot_pos = slot_pos;
 			if(!isExistingLuaSpell)
 				lua_spell->caster = player; // TODO: get actual player
-
+			
+			lua_spell->zone = player->GetZone();
+			
 			player->MSpellEffects.releasewritelock();
 
 			if(!isMaintained)
@@ -8286,6 +8288,9 @@ void WorldDatabase::LoadCharacterSpellEffects(int32 char_id, Client* client, int
 			info->maintained_effects[effect_slot].spell = lua_spell;
 			if(!isExistingLuaSpell)
 				lua_spell->caster = player;
+			
+			lua_spell->zone = player->GetZone();
+			
 			player->MMaintainedSpells.releasewritelock();
 		
 			LogWrite(LUA__WARNING, 0, "LUA", "WorldDatabase::LoadCharacterSpellEffects: %s process spell caster %s (%u), caster char id: %u, target id %u (%s).", lua_spell->spell->GetName(), lua_spell->caster ? lua_spell->caster->GetName() : "", 

@@ -649,6 +649,7 @@ bool SpellProcess::CastInstant(Spell* spell, Entity* caster, Entity* target, boo
 	}
 
 	lua_spell->caster = caster;
+	lua_spell->zone = caster->GetZone();
 	lua_spell->initial_caster_char_id = (caster && caster->IsPlayer()) ? ((Player*)caster)->GetCharacterID() : 0; 
 	lua_spell->spell = spell;
 	lua_spell->initial_target = target->GetID();
@@ -1068,6 +1069,7 @@ void SpellProcess::ProcessSpell(ZoneServer* zone, Spell* spell, Entity* caster, 
 		int8 spell_type = spell->GetSpellData()->spell_type;
 		
 		lua_spell->caster = caster;
+		lua_spell->zone = caster->GetZone();
 		lua_spell->initial_caster_char_id = (caster && caster->IsPlayer()) ? ((Player*)caster)->GetCharacterID() : 0; 
 		lua_spell->spell = spell;
 
@@ -1630,6 +1632,7 @@ void SpellProcess::ProcessSpell(ZoneServer* zone, Spell* spell, Entity* caster, 
 			cast_timer->target_id = target ? target->GetID() : 0;
 			cast_timer->spell = lua_spell;
 			cast_timer->spell->caster = caster;
+			cast_timer->spell->zone = caster->GetZone();
 			cast_timer->delete_timer = false;
 			cast_timer->timer = new Timer(spell->GetSpellData()->cast_time * 10);
 			cast_timer->zone = zone;

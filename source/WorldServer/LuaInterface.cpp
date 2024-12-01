@@ -1615,6 +1615,7 @@ void LuaInterface::DeletePendingSpells(bool all) {
 			
 			if(!all) {
 				// rely on targets the spell->caster could be corrupt
+				bool spellDeleted = false;
 				if(spell->targets.size() > 0) {
 					spell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
 					for (int8 i = 0; i < spell->targets.size(); i++) {
@@ -1625,9 +1626,15 @@ void LuaInterface::DeletePendingSpells(bool all) {
 						if(!targetZone)
 							continue;
 						
+						spellDeleted = true;
+						
 						targetZone->GetSpellProcess()->DeleteActiveSpell(spell, true);
 					}
 					spell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
+				}
+				
+				if(!spellDeleted && spell->zone != nullptr) {
+					spell->zone->GetSpellProcess()->DeleteActiveSpell(spell, true);
 				}
 			}
 			
@@ -2056,6 +2063,7 @@ LuaSpell* LuaInterface::LoadSpellScript(const char* name)  {
 		spell->has_proc = false;
 		spell->initial_caster_char_id = 0;
 		spell->initial_target_char_id = 0;
+		spell->zone = nullptr;
 		
 		MSpells.lock();
 		current_spells[spell->state] = spell;
@@ -2354,6 +2362,7 @@ LuaSpell* LuaInterface::CreateSpellScript(const char* name, lua_State* existStat
 	new_spell->has_proc = false;
 	new_spell->initial_caster_char_id = 0;
 	new_spell->initial_target_char_id = 0;
+	new_spell->zone = nullptr;
 	
 	current_spells[new_spell->state] = new_spell;
 	return new_spell;

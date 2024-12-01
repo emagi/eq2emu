@@ -103,7 +103,7 @@ struct LuaSpell{
 	int32           effect_bitmask;
 	bool			restored; // restored spell cross zone
 	std::atomic<bool> has_proc;
-
+	ZoneServer*		zone;
 };
 
 class LUAUserData{
