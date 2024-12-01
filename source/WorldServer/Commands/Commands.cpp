@@ -8420,9 +8420,7 @@ void Commands::Command_PetName(Client* client, Seperator* sep)
 */ 
 void Commands::Command_NamePet(Client* client, Seperator* sep)
 {
-	PrintSep(sep, "COMMAND_NAME_PET");
-	LogWrite(MISC__TODO, 1, "Command", "TODO-Command: Name Pet Command");
-	client->Message(CHANNEL_COLOR_YELLOW, "Pets are not yet implemented.");
+	Command_PetName(client, sep);
 }
 
 /* 
@@ -8434,9 +8432,7 @@ void Commands::Command_NamePet(Client* client, Seperator* sep)
 */ 
 void Commands::Command_Rename(Client* client, Seperator* sep)
 {
-	PrintSep(sep, "COMMAND_RENAME");
-	LogWrite(MISC__TODO, 1, "Command", "TODO-Command: Rename Pet Command");
-	client->Message(CHANNEL_COLOR_YELLOW, "Pets are not yet implemented.");
+	Command_PetName(client, sep);
 }
 
 /* 
