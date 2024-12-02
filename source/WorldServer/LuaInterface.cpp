@@ -614,7 +614,7 @@ void LuaInterface::RemoveCurrentSpell(lua_State* state, LuaSpell* cur_spell, boo
 			Mutex* mutex = GetSpellScriptMutex(cur_spell->file_name.c_str());
 			mutex->writelock(__FUNCTION__, __LINE__);
 			map<lua_State*, LuaSpell*>::iterator spell_script_itr2 = spell_script_itr->second.find(state);
-			if(spell_script_itr2 != spell_script_itr->second.end()) {
+			if(spell_script_itr2 != spell_script_itr->second.end() && spell_script_itr2->second == cur_spell) {
 				spell_script_itr2->second = nullptr;
 			}
 			mutex->releasewritelock(__FUNCTION__, __LINE__);
@@ -2317,6 +2317,7 @@ LuaSpell* LuaInterface::GetSpellScript(const char* name, bool create_new, bool u
 				{
 					lua_State* state = spell_script_itr->first;
 					ret = CreateSpellScript(name, state);
+					spell_script_itr->second = ret;
 					break; // don't keep iterating, we already have our result
 				}
 			}
@@ -2337,7 +2338,6 @@ LuaSpell* LuaInterface::GetSpellScript(const char* name, bool create_new, bool u
 LuaSpell* LuaInterface::CreateSpellScript(const char* name, lua_State* existState) {
 	LuaSpell* new_spell = new LuaSpell;
 	new_spell->state = existState;
-	spell_scripts[std::string(name)][new_spell->state] = new_spell;
 	new_spell->file_name = string(name);
 	new_spell->resisted = false;
 	new_spell->is_damage_spell = false;
