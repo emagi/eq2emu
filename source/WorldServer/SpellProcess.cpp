@@ -222,7 +222,7 @@ void SpellProcess::Process(){
 				if (cast_timer->delete_timer) {
 					safe_delete(cast_timer->timer);
 					if(cast_timer->spell && !cast_timer->spell->has_proc) {
-						lua_interface->RemoveCurrentSpell(cast_timer->spell->state, cast_timer->spell, true, false);
+						lua_interface->RemoveCurrentSpell(cast_timer->spell->state, cast_timer->spell, true, false, false);
 					}
 					cast_timers.Remove(cast_timer, true);
 				}
