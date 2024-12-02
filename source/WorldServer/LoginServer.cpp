@@ -642,7 +642,7 @@ int32 LoginServer::DetermineCharacterLoginRequest ( UsertoWorldRequest_Struct* u
 			std::ostringstream jsonStream;
 			boost::property_tree::write_json(jsonStream, root);
 			std::string jsonPayload = jsonStream.str();
-			LogWrite(PEERING__INFO, 0, "Peering", "%s: Sending AddCharAuth for %s to peer %s:%u for existing zone %s", __FUNCTION__, name, details->peerWebAddress.c_str(), details->peerWebPort, details->zoneName.c_str());
+			LogWrite(PEERING__INFO, 0, "Peering", "%s: Sending AddCharAuth for %s to peer %s:%u for existing zone %s", __FUNCTION__, name.c_str(), details->peerWebAddress.c_str(), details->peerWebPort, details->zoneName.c_str());
 			attemptedPeer = true;
 			peer_https_pool.sendPostRequestToPeerAsync(details->peerId, details->peerWebAddress, std::to_string(details->peerWebPort), "/addcharauth", jsonPayload);
 	}
