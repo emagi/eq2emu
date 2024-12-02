@@ -2453,6 +2453,7 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 		case COMMAND_WAYPOINT: {
 			bool success = false;
 			client->ClearWaypoint();
+			    float x, y, z;
 			if (sep && sep->IsNumber(0) && sep->IsNumber(1) && sep->IsNumber(2)) {
 				if (!client->ShowPathToTarget(atof(sep->arg[0]), atof(sep->arg[1]), atof(sep->arg[2]), 0))
 					client->Message(CHANNEL_COLOR_RED, "Invalid coordinates given");
@@ -2460,6 +2461,20 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 			else if ( client->GetAdminStatus() > 100 && cmdTarget ) {
 				if (!client->ShowPathToTarget(cmdTarget->GetX(), cmdTarget->GetY(), cmdTarget->GetZ(), 0))
 					client->Message(CHANNEL_COLOR_RED, "Invalid coordinates given");
+			}
+			else if(sep && sep->arg[0]) {
+				// Create a stringstream object
+				std::stringstream ss(sep->argplus[0]);
+				float x,y,z;
+				// Parse the values
+				char comma; // To skip the commas
+				if ((ss >> x >> comma >> y >> comma >> z) && ss.eof()) {
+					if (!client->ShowPathToTarget(x, y, z, 0))
+						client->Message(CHANNEL_COLOR_RED, "Invalid coordinates given");
+				}
+				else {
+					client->Message(CHANNEL_COLOR_YELLOW, "Usage: /waypoint x, y, z");
+				}
 			}
 			else {
 				client->Message(CHANNEL_COLOR_YELLOW, "Usage: /waypoint x y z");
