@@ -537,13 +537,13 @@ void HTTPSClientPool::pollPeerHealth(const std::string& server, const std::strin
 			if (auto isprimary = json_tree.get_optional<bool>("peer_primary")) {
 				peer_primary = isprimary.get();
 			}
-			if (auto peerclientaddr = tree.get_optional<std::string>("peer_client_address")) {
+			if (auto peerclientaddr = json_tree.get_optional<std::string>("peer_client_address")) {
 				worldAddr = peerclientaddr.get();
 			}
-			if (auto peerclient_internaladdr = tree.get_optional<std::string>("peer_client_internal_address")) {
+			if (auto peerclient_internaladdr = json_tree.get_optional<std::string>("peer_client_internal_address")) {
 				internalWorldAddr = peerclient_internaladdr.get();
 			}
-			if (auto peerclientport = tree.get_optional<int16>("peer_client_port")) {
+			if (auto peerclientport = json_tree.get_optional<int16>("peer_client_port")) {
 				worldPort = peerclientport.get();
 			}
 			if(worldAddr.size() > 0 && worldPort > 0) {
