@@ -66,6 +66,9 @@ void World::Web_worldhandle_status(const http::request<http::string_body>& req, 
 	pt.put("world_reloading", world.IsReloadingSubsystems() ? "yes" : "no");
 	pt.put("peer_primary", net.is_primary);
 	pt.put("peer_priority", net.GetPeerPriority());
+	pt.put("peer_client_address", std::string(net.GetWorldAddress()));
+	pt.put("peer_client_internal_address", std::string(net.GetInternalWorldAddress()));
+	pt.put("peer_client_port", std::to_string(net.GetWorldPort()));
 
 	std::ostringstream oss;
 	boost::property_tree::write_json(oss, pt);

@@ -525,6 +525,9 @@ void HTTPSClientPool::pollPeerHealth(const std::string& server, const std::strin
 			std::string online_status;
 			int16 peer_priority = 65535;
 			bool peer_primary = false;
+			
+			std::string worldAddr(""), internalWorldAddr(""), clientIP("");
+			int16 worldPort = 0;
 			if (auto status = json_tree.get_optional<std::string>("world_status")) {
 				online_status = status.get();
 			}
@@ -533,6 +536,18 @@ void HTTPSClientPool::pollPeerHealth(const std::string& server, const std::strin
 			}
 			if (auto isprimary = json_tree.get_optional<bool>("peer_primary")) {
 				peer_primary = isprimary.get();
+			}
+			if (auto peerclientaddr = tree.get_optional<std::string>("peer_client_address")) {
+				worldAddr = peerclientaddr.get();
+			}
+			if (auto peerclient_internaladdr = tree.get_optional<std::string>("peer_client_internal_address")) {
+				internalWorldAddr = peerclient_internaladdr.get();
+			}
+			if (auto peerclientport = tree.get_optional<int16>("peer_client_port")) {
+				worldPort = peerclientport.get();
+			}
+			if(worldAddr.size() > 0 && worldPort > 0) {
+				peer_manager.updatePeer(server, web_worldport, worldAddr, internalWorldAddr, worldPort, peer_primary);
 			}
 			peer_manager.updatePriority(id, peer_priority);
 
