@@ -299,6 +299,7 @@ void World::init(std::string web_ipaddr, int16 web_port, std::string cert_file, 
 					continue; // no good, you can't add yourself
 				}
 
+				LogWrite(PEERING__INFO, 0, "Peering", "Add peer on %s:%u..", peer_itr->first.c_str(), peer_itr->second);
 				std::string portNum = std::to_string(peer_itr->second);
 				std::string peerName = "eq2emu_" + peer_itr->first + "_" + portNum;
 
