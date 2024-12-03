@@ -547,6 +547,9 @@ void HTTPSClientPool::pollPeerHealth(const std::string& server, const std::strin
 							net.SetPrimary(false);
 						}
 					}
+					else if(!peer_manager.hasPrimary() && peer_primary) {
+						peer_manager.setPrimary(id);
+					}
 
 					switch (curStatus) {
 					case HealthStatus::STARTUP: {
