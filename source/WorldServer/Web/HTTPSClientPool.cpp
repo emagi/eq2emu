@@ -719,9 +719,21 @@ void HTTPSClientPool::startPolling() {
 		auto server = clientPair.first.first;
 		auto port = clientPair.first.second;
 		LogWrite(PEERING__DEBUG, 5, "Peering", "%s: startPolling for %s:%s.", __FUNCTION__, server.c_str(), port.c_str());
-		std::async(std::launch::async, [this, server, port]() {
-			pollPeerHealth(server, port);
-		});
+		try {
+			std::async(std::launch::async, [this, server, port]() {
+				try {
+					pollPeerHealth(server, port);
+				} catch (const std::exception& e) {
+					LogWrite(PEERING__DEBUG, 1, "Peering", "Exception in pollPeerHealth for %s:%s: %s", server.c_str(), port.c_str(), e.what());
+				} catch (...) {
+					LogWrite(PEERING__DEBUG, 1, "Peering", "Unknown exception in pollPeerHealth for %s:%s.", server.c_str(), port.c_str());
+				}
+			});
+		} catch (const std::exception& e) {
+			LogWrite(PEERING__DEBUG, 1, "Peering", "Failed to start async task for %s:%s: %s", server.c_str(), port.c_str(), e.what());
+		} catch (...) {
+			LogWrite(PEERING__DEBUG, 1, "Peering", "Unknown exception when starting async task for %s:%s.", server.c_str(), port.c_str());
+		}
 	}
 }
 
