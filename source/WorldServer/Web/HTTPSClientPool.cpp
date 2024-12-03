@@ -718,7 +718,7 @@ void HTTPSClientPool::startPolling() {
 	for (const auto& clientPair : clients) {
 		auto server = clientPair.first.first;
 		auto port = clientPair.first.second;
-		LogWrite(PEERING__DEBUG, 5, "Peering", "%s: startPolling for %s:%u.", __FUNCTION__, server.c_str(), port);
+		LogWrite(PEERING__DEBUG, 5, "Peering", "%s: startPolling for %s:%s.", __FUNCTION__, server.c_str(), port.c_str());
 
 		std::async(std::launch::async, &HTTPSClientPool::pollPeerHealth, this, server, port);
 	}
