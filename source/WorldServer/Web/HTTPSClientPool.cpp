@@ -582,7 +582,7 @@ void HTTPSClientPool::pollPeerHealth(const std::string& server, const std::strin
 							peer_manager.setPrimary(id);
 							net.SetPrimary(false);
 						}
-						else if (!peer_manager.hasPrimary() && !net.is_primary && net.GetPeerPriority() <= peer_priority) {
+						else if (!peer_manager.hasPrimary() && world.world_loaded && !net.is_primary && net.GetPeerPriority() <= peer_priority) {
 							LogWrite(PEERING__INFO, 0, "Peering", "%s: I AM PRIMARY!", __FUNCTION__);
 							net.SetPrimary();
 						}
