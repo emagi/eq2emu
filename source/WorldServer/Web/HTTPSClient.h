@@ -47,7 +47,8 @@ public:
 
 private:
 	std::unordered_map<std::string, std::string> cookies;
-
+    std::shared_ptr<boost::asio::ssl::context> sslCtx;
+	
 	std::string certFile;
 	std::string keyFile;
 	std::string server;

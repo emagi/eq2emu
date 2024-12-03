@@ -87,7 +87,10 @@ std::string base64_encode(const std::string& input) {
 }
 
 HTTPSClient::HTTPSClient(const std::string& certFile, const std::string& keyFile)
-	: certFile(certFile), keyFile(keyFile) {}
+	: certFile(certFile), keyFile(keyFile) {
+		// SSL and TCP setup
+		sslCtx = createSSLContext();
+	}
 
 std::shared_ptr<boost::asio::ssl::context> HTTPSClient::createSSLContext() {
 	auto sslCtx = std::make_shared<boost::asio::ssl::context>(boost::asio::ssl::context::tlsv13_client);
@@ -128,8 +131,6 @@ std::string HTTPSClient::sendRequest(const std::string& server, const std::strin
 	try {
 		boost::asio::io_context ioContext;
 
-		// SSL and TCP setup
-		auto sslCtx = createSSLContext();
 		auto stream = std::make_shared<boost::asio::ssl::stream<boost::asio::ip::tcp::socket>>(ioContext, *sslCtx);
 		auto resolver = std::make_shared<boost::asio::ip::tcp::resolver>(ioContext);
 		auto results = resolver->resolve(server, port);
@@ -258,11 +259,11 @@ std::string HTTPSClient::sendRequest(const std::string& server, const std::strin
 		// Store cookies from the response
 		if (res->base().count(http::field::set_cookie) > 0) {
 			auto set_cookie_value = res->base()[http::field::set_cookie].to_string();
-			std::istringstream stream(set_cookie_value);
+			std::istringstream streamdata(set_cookie_value);
 			std::string token;
 
 			// Parse "Set-Cookie" field for name-value pairs
-			while (std::getline(stream, token, ';')) {
+			while (std::getline(streamdata, token, ';')) {
 				auto pos = token.find('=');
 				if (pos != std::string::npos) {
 					std::string name = token.substr(0, pos);
@@ -290,7 +291,6 @@ std::string HTTPSClient::sendPostRequest(const std::string& server, const std::s
 		boost::asio::io_context ioContext;
 
 		// SSL and TCP setup
-		auto sslCtx = createSSLContext();
 		auto stream = std::make_shared<boost::asio::ssl::stream<boost::asio::ip::tcp::socket>>(ioContext, *sslCtx);
 		auto resolver = std::make_shared<boost::asio::ip::tcp::resolver>(ioContext);
 		auto results = resolver->resolve(server, port);
