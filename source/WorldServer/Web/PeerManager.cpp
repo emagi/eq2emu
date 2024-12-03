@@ -235,7 +235,7 @@ void PeerManager::handlePrimaryConflict(const std::string& reconnectingPeerId) {
 		// Demote the current primary
 		if (reconnectingPeer && currentPrimary->healthCheck.status == HealthStatus::OK) {
 			setPrimary(reconnectingPeerId);
-			LogWrite(PEERING__INFO, 0, "Peering", "%s: Peer %s forced to primary", __FUNCTION__, reconnectingPeer->id);
+			LogWrite(PEERING__INFO, 0, "Peering", "%s: Peer %s forced to primary", __FUNCTION__, reconnectingPeer->id.c_str());
 			if (currentPrimary) {
 				LogWrite(PEERING__INFO, 0, "Peering", "%s: Demoted to secondary", __FUNCTION__);
 			}
@@ -245,7 +245,7 @@ void PeerManager::handlePrimaryConflict(const std::string& reconnectingPeerId) {
 		// Demote the reconnecting peer
 		if (currentPrimary && currentPrimary->healthCheck.status == HealthStatus::OK) {
 			setPrimary(currentPrimary->id);
-			LogWrite(PEERING__INFO, 0, "Peering", "%s: Peer %s forced to primary", __FUNCTION__, currentPrimary->id);
+			LogWrite(PEERING__INFO, 0, "Peering", "%s: Peer %s forced to primary", __FUNCTION__, currentPrimary->id.c_str());
 		}
 	}
 }
