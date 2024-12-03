@@ -634,12 +634,17 @@ ThreadReturnType AchievmentLoad (void* tmp)
 
 ThreadReturnType StartPeerPoll (void* tmp)
 {
-	
+	int32 check_zone = 0;
 	while( RunLoops )
 	{
 		LogWrite(WORLD__WARNING, 0, "Thread", "Start Polling...");
 		peer_https_pool.startPolling();
 		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+		if(check_zone > 60) {
+			check_zone = 0;
+			database.LoadSpecialZones();
+		}
+		check_zone++;
 	}
 	THREAD_RETURN(NULL);
 }
