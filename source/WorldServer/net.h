@@ -96,7 +96,11 @@ public:
 	std::string GetWebHardcodePassword()		{ return web_hardcodepassword; }
 	std::string GetCmdUser()		{ return web_cmduser; }
 	std::string GetCmdPassword()		{ return web_cmdpassword; }
-	std::map<std::string, int16> GetWebPeers() { std::map<std::string, int16> copied_map(web_peers); return copied_map; }
+	std::multimap<std::string, int16> GetWebPeers() {
+    // Create a copy of the existing multimap
+    std::multimap<std::string, int16> copied_map(web_peers);
+    return copied_map;
+	}
 	int16 GetPeerPriority() { return web_peerpriority; }
 	bool world_locked;
 	std::atomic<bool> is_primary;
@@ -119,7 +123,7 @@ private:
 	std::string	web_hardcodepassword;
 	std::string	web_cmduser;
 	std::string	web_cmdpassword;
-	std::map<std::string, int16> web_peers;
+	std::multimap<std::string, int16> web_peers;
 	int16	web_worldport;
 	int16	web_peerpriority;
 

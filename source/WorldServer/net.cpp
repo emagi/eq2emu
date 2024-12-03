@@ -779,7 +779,7 @@ bool NetConnection::ReadLoginINI(int argc, char** argv) {
 			int16 port = 0;
 			parser.convertStringToUnsignedShort(web_peerport, port);
 			if(port > 0) {
-			web_peers[web_peeraddress] = port;
+			web_peers.insert({web_peeraddress, port});
 			LogWrite(INIT__INFO, 0, "Init", "Adding peer %s:%u...", web_peeraddress.c_str(), port);
 			}
 			else {

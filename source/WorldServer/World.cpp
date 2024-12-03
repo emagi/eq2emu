@@ -290,15 +290,18 @@ void World::init(std::string web_ipaddr, int16 web_port, std::string cert_file, 
 		return;
 	}
 	try {
-		std::map<std::string, int16> peers = net.GetWebPeers();
-		std::map<std::string, int16>::iterator peer_itr;
-		if(peers.size() > 0) {
+		std::multimap<std::string, int16> peers = net.GetWebPeers();
+		std::multimap<std::string, int16>::iterator peer_itr;
+		if (!peers.empty()) {
 			net.is_primary = false;
-			for(peer_itr = peers.begin(); peer_itr != peers.end(); peer_itr++) {
-				if(net.GetWebWorldAddress() == peer_itr->first && net.GetWebWorldPort() == peer_itr->second)
-					continue; // no good you can't add yourself
+			for (peer_itr = peers.begin(); peer_itr != peers.end(); ++peer_itr) {
+				if (net.GetWebWorldAddress() == peer_itr->first && net.GetWebWorldPort() == peer_itr->second) {
+					continue; // no good, you can't add yourself
+				}
+
 				std::string portNum = std::to_string(peer_itr->second);
 				std::string peerName = "eq2emu_" + peer_itr->first + "_" + portNum;
+
 				peer_manager.addPeer(peerName, PeeringStatus::SECONDARY, "", "", 0, peer_itr->first, peer_itr->second);
 				peer_https_pool.addPeerClient(peerName, peer_itr->first, std::to_string(peer_itr->second), "/addpeer");
 			}
