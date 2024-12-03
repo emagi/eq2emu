@@ -656,10 +656,11 @@ void HTTPSClientPool::pollPeerHealth(const std::string& server, const std::strin
 					}
 					}
 					LogWrite(PEERING__ERROR, 0, "Peering", "%s: ERROR POLLING %s:%s reason: %s", __FUNCTION__, server.c_str(), port.c_str(), e.what() ? e.what() : "??");
+					std::this_thread::sleep_for(std::chrono::milliseconds(400));
 				}
 				interval = 0;
 			}
-			std::this_thread::sleep_for(std::chrono::milliseconds(1));
+			std::this_thread::sleep_for(std::chrono::milliseconds(50));
 		}
 	}
 }
