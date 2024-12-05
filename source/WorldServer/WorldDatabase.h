@@ -218,6 +218,7 @@ public:
 	void	LoadCharacterQuestProgress(Client* client);
 	void	LoadCharacterFriendsIgnoreList(Player* player);
 	void	LoadZoneInfo(ZoneServer* zone, int32 minLevel=0, int32 maxLevel=0, int32 avgLevel=0, int32 firstLevel=0);
+	void	LoadZonePlayerLevels(ZoneServer* zone);
 	void	LoadZoneInfo(ZoneInfo* zone_info);
 	int32	GetZoneID(const char* name);
 	void	SaveZoneInfo(int32 zone_id, const char* field, sint32 value);

@@ -3005,8 +3005,10 @@ void WorldDatabase::LoadZoneInfo(ZoneServer* zone, int32 minLevel, int32 maxLeve
 				zone->SetupInstance(CreateNewInstance(zone->GetZoneID(), minLevel, maxLevel, avgLevel, firstLevel));
 				zone->setGroupRaidLevels(minLevel, maxLevel, avgLevel, firstLevel);
 			}
-			else
+			else {
 				zone->SetupInstance(zone->GetInstanceID());
+				LoadZonePlayerLevels(zone);
+			}
 		}
 		zone->SetCanBind(atoul(row[23]));
 		zone->SetCanGate(atoul(row[24]));
@@ -3014,6 +3016,18 @@ void WorldDatabase::LoadZoneInfo(ZoneServer* zone, int32 minLevel, int32 maxLeve
 		zone->SetCanEvac(atoul(row[26]));
 	}
 	safe_delete_array(escaped);
+}
+
+
+void WorldDatabase::LoadZonePlayerLevels(ZoneServer* zone) {
+	Query query;
+	int32 ruleset_id;
+	MYSQL_RES* result = query.RunQuery2(Q_SELECT, "SELECT player_minlevel, player_maxlevel, player_avglevel, player_firstlevel FROM instances WHERE id = %u and zone_id = %u", zone->GetInstanceID(), zone->GetZoneID());
+	if (result && mysql_num_rows(result) > 0) {
+		MYSQL_ROW row;
+		row = mysql_fetch_row(result);
+		zone->setGroupRaidLevels(atoul(row[0]), atoul(row[1]), atoul(row[2]), atoul(row[3]));
+	}
 }
 
 void WorldDatabase::LoadZoneInfo(ZoneInfo* zone_info) {

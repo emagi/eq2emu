@@ -1572,6 +1572,11 @@ void LuaInterface::RegisterFunctions(lua_State* state) {
 	lua_register(state,"CreateChoiceWindow", EQ2Emu_lua_CreateChoiceWindow);
 	lua_register(state,"ClearChoice", EQ2Emu_lua_ClearChoice);
 	lua_register(state,"GetChoiceSpawnID", EQ2Emu_lua_GetChoiceSpawnID);
+	
+	lua_register(state,"GetZonePlayerMinLevel", EQ2Emu_lua_GetZonePlayerMinLevel);
+	lua_register(state,"GetZonePlayerMaxLevel", EQ2Emu_lua_GetZonePlayerMaxLevel);
+	lua_register(state,"GetZonePlayerAvgLevel", EQ2Emu_lua_GetZonePlayerAvgLevel);
+	lua_register(state,"GetZonePlayerFirstLevel", EQ2Emu_lua_GetZonePlayerFirstLevel);
 }
 
 void LuaInterface::LogError(const char* error, ...)  {

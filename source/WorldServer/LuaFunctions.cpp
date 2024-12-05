@@ -14414,3 +14414,51 @@ int EQ2Emu_lua_GetChoiceSpawnID(lua_State* state) {
 	lua_interface->SetInt32Value(state, spawn_id);
 	return 1;
 }
+
+int EQ2Emu_lua_GetZonePlayerMinLevel(lua_State* state) {
+	ZoneServer* zone = lua_interface->GetZone(state);
+	lua_interface->ResetFunctionStack(state);
+	
+	int32 level = 0;
+	if (zone) {
+		level = zone->getGroupraidMinLevel();
+	}
+	lua_interface->SetInt32Value(state, level);
+	return 1;
+}
+
+int EQ2Emu_lua_GetZonePlayerMaxLevel(lua_State* state) {
+	ZoneServer* zone = lua_interface->GetZone(state);
+	lua_interface->ResetFunctionStack(state);
+	
+	int32 level = 0;
+	if (zone) {
+		level = zone->getGroupraidMaxLevel();
+	}
+	lua_interface->SetInt32Value(state, level);
+	return 1;
+}
+
+int EQ2Emu_lua_GetZonePlayerAvgLevel(lua_State* state) {
+	ZoneServer* zone = lua_interface->GetZone(state);
+	lua_interface->ResetFunctionStack(state);
+	
+	int32 level = 0;
+	if (zone) {
+		level = zone->getGroupraidAvgLevel();
+	}
+	lua_interface->SetInt32Value(state, level);
+	return 1;
+}
+
+int EQ2Emu_lua_GetZonePlayerFirstLevel(lua_State* state) {
+	ZoneServer* zone = lua_interface->GetZone(state);
+	lua_interface->ResetFunctionStack(state);
+	
+	int32 level = 0;
+	if (zone) {
+		level = zone->getGroupraidFirstLevel();
+	}
+	lua_interface->SetInt32Value(state, level);
+	return 1;
+}
