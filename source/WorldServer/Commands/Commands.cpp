@@ -5595,7 +5595,7 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 		case COMMAND_SET_GUILD_MEMBER_NOTE	: { Command_SetGuildMemberNote(client, sep); break; }
 		case COMMAND_SET_GUILD_OFFICER_NOTE	: { Command_SetGuildOfficerNote(client, sep); break; }
 		case COMMAND_GUILD				: { Command_Guild(client, sep); break; }
-		case COMMAND_CREATE_GUILD		: { Command_CreateGuild(client); break; }
+		case COMMAND_CREATE_GUILD		: { Command_CreateGuild(client, sep); break; }
 		case COMMAND_GUILDS				: { Command_Guilds(client); break; }
 		case COMMAND_GUILDS_ADD			: { Command_GuildsAdd(client, sep); break; }
 		case COMMAND_GUILDS_CREATE		: { Command_GuildsCreate(client, sep); break; }
@@ -6541,9 +6541,9 @@ void Commands::Command_Guild(Client* client, Seperator* sep)
 	Purpose	: Display's in-game Guild Creation window
 	Dev		: Scatman
 */ 
-void Commands::Command_CreateGuild(Client* client)
+void Commands::Command_CreateGuild(Client* client, Seperator* sep)
 {
-	client->SendGuildCreateWindow();
+	Command_GuildsCreate(client, sep, true);
 }
 
 /* 
@@ -6692,11 +6692,33 @@ void Commands::Command_GuildsAdd(Client* client, Seperator* sep)
 	Dev		: Scatman
 	Example	: /guilds create [guild name] (player name)
 */ 
-void Commands::Command_GuildsCreate(Client* client, Seperator* sep)
+void Commands::Command_GuildsCreate(Client* client, Seperator* sep, bool prompted_dialog)
 {
+	Spawn* npc = nullptr;
+	if(prompted_dialog) {
+		auto target_npc = client->dialog_manager.getAcceptValue("create guild");
+		if(!target_npc) {
+			// well this is not acceptable!! CHEATER! :D
+			return;
+		}
+		else {
+			if(!client->GetPlayer()->GetZone()){
+				// player isn't in a zone? eh..
+				return;
+			}
+			npc = client->GetPlayer()->GetZone()->GetSpawnByID(target_npc);
+			if(!npc) {
+				client->Message(CHANNEL_COLOR_RED, "Did not find guild registrar, please re-initiate dialog with them.");
+				return;
+			}
+		}
+	}
 	if (sep && sep->arg[0]) 
 	{
 		const char* guild_name = sep->arg[0];
+		if(prompted_dialog)
+			guild_name = sep->argplus[0];
+		
 		int8 resp = database.CheckNameFilter(guild_name, 4, 41);
 		if(!guild_name || resp == BADNAMELENGTH_REPLY) {
 			client->Message(CHANNEL_COLOR_YELLOW, "Guild name is too short.");
@@ -6708,7 +6730,7 @@ void Commands::Command_GuildsCreate(Client* client, Seperator* sep)
 		{
 			bool ret = false;
 
-			if (sep->arg[1] && strlen(sep->arg[1]) > 0 && client->GetAdminStatus() > 0) 
+			if (!prompted_dialog && sep->arg[1] && strlen(sep->arg[1]) > 0 && client->GetAdminStatus() > 0) 
 			{
 				Client* to_client = zone_list.GetClientByCharName(string(sep->arg[1]));
 
@@ -6728,7 +6750,7 @@ void Commands::Command_GuildsCreate(Client* client, Seperator* sep)
 					client->Message(CHANNEL_COLOR_YELLOW, "Could not find target %s or target is already in a guild.", sep->arg[1]);
 				}
 			}
-			else if (client->GetAdminStatus() > 0 && client->GetPlayer()->GetTarget() && client->GetPlayer()->GetTarget()->IsPlayer()) 
+			else if (!prompted_dialog && client->GetAdminStatus() > 0 && client->GetPlayer()->GetTarget() && client->GetPlayer()->GetTarget()->IsPlayer()) 
 			{
 				Client* to_client = ((Player*)client->GetPlayer()->GetTarget())->GetClient();
 
@@ -6752,27 +6774,38 @@ void Commands::Command_GuildsCreate(Client* client, Seperator* sep)
 			{
 				if(client->GetPlayer()->GetGuild()) {
 					client->SimpleMessage(CHANNEL_COLOR_YELLOW, "You are already in a guild.");
+					if(client->GetAdminStatus() < 1)
+						return;
 				}
 				else if(net.is_primary) {
-					int32 guildID = world.CreateGuild(guild_name);
-					if(guildID > 0)
+					Client* leader = nullptr;
+					if(prompted_dialog || client->GetAdminStatus() < 1)
+						leader = client;
+					int32 guildID = world.CreateGuild(guild_name, leader);
+					if(guildID > 0) {
 						peer_manager.sendPeersCreateGuild(guildID);
+						ret = true;
+					}
 				}
 				else {
-					peer_manager.sendPrimaryCreateGuildRequest(std::string(guild_name), "");
+					peer_manager.sendPrimaryCreateGuildRequest(std::string(guild_name), "", prompted_dialog, npc->GetID());
+					return;
 				}
-				ret = true;
 			}
 
-			if (ret)
+			if (ret) {
 				client->Message(CHANNEL_COLOR_YELLOW, "Guild '%s' was successfully created.", guild_name);
+				if(prompted_dialog) { // prompted dialog requires npc be defined
+					client->GetCurrentZone()->CallSpawnScript(npc, SPAWN_SCRIPT_CASTED_ON, client->GetPlayer(), guild_name);
+				}
+			}
 			else
 				client->SimpleMessage(CHANNEL_COLOR_YELLOW, "There was an error creating the guild.");
 		}
 		else
 			client->Message(CHANNEL_COLOR_YELLOW, "Guild '%s' already exists.", guild_name);
 	}
-	else
+	else if(!prompted_dialog)
 		client->SimpleMessage(CHANNEL_COLOR_YELLOW, "Usage: /guilds create [guild name] (player name).  If no player is specified, the player's target will be used.  If the player has no target, a guild with no members will be created.");
 }
 

@@ -1977,7 +1977,81 @@ void PlayerGroupManager::ClearGroupRaidLooterFlag(int32 groupID) {
 	}
 }
 
+void PlayerGroupManager::EstablishRaidLevelRange(Client* client, int32* min_level, int32* max_level, int32* avg_level, int32* first_level) {
+	std::shared_lock lock(MGroups);
+	if(!client)
+		return;
+	
+	if (!client->GetPlayer()->GetGroupMemberInfo()) {
+		*min_level = *max_level = *avg_level = *first_level = client->GetPlayer()->GetLevel();
+		return;
+	}
 
+	int32 groupID = client->GetPlayer()->GetGroupMemberInfo()->group_id;
+
+	if (m_groups.count(groupID) < 1) {
+		*min_level = *max_level = *avg_level = *first_level = client->GetPlayer()->GetLevel();
+		return;
+	}
+
+	PlayerGroup* group = m_groups[groupID];
+	if (group) {
+		bool isInRaid = group->IsInRaidGroup(group->GetID());
+		std::vector<int32> raidGroups;
+		group->GetRaidGroups(&raidGroups);
+
+		if (!isInRaid && raidGroups.size() < 1) {
+			raidGroups.push_back(group->GetID());
+		}
+
+		// Initialize tracking variables
+		int32 local_min_level = INT32_MAX;
+		int32 local_max_level = INT32_MIN;
+		int32 total_levels = 0;
+		int8 level_count = 0;
+
+		// Get the first player's level
+		*first_level = client->GetPlayer()->GetLevel();
+
+		for (auto& groupID : raidGroups) {
+			group = m_groups[groupID];
+			if (!group)
+				continue;
+
+			group->MGroupMembers.readlock(__FUNCTION__, __LINE__);
+			deque<GroupMemberInfo*>* members = group->GetMembers();
+
+			for (auto& memberInfo : *members) {
+				Entity* member = memberInfo->member;
+				if (!member || !member->IsPlayer())
+					continue;
+
+				if (member->GetZone() != client->GetPlayer()->GetZone())
+					continue;
+
+				int32 member_level = member->GetLevel();
+				local_min_level = std::min(local_min_level, member_level);
+				local_max_level = std::max(local_max_level, member_level);
+				total_levels += member_level;
+				level_count++;
+			}
+			group->MGroupMembers.releasereadlock(__FUNCTION__, __LINE__);
+		}
+
+		// Finalize values with divide-by-zero protection
+		if (level_count > 0) {
+			*min_level = local_min_level;
+			*max_level = local_max_level;
+			*avg_level = total_levels / level_count;
+		}
+		else {
+			*min_level = *max_level = *avg_level = *first_level = client->GetPlayer()->GetLevel();
+		}
+	}
+	else {
+		*min_level = *max_level = *avg_level = *first_level = client->GetPlayer()->GetLevel();
+	}
+}
 
 Entity* PlayerGroup::GetGroupMemberByPosition(Entity* seeker, int32 mapped_position) {
 	Entity* ret = nullptr;

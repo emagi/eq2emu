@@ -1,21 +1,21 @@
-/*  
-    EQ2Emulator:  Everquest II Server Emulator
-    Copyright (C) 2007  EQ2EMulator Development Team (http://www.eq2emulator.net)
+/*
+	EQ2Emulator:  Everquest II Server Emulator
+	Copyright (C) 2007  EQ2EMulator Development Team (http://www.eq2emulator.net)
 
-    This file is part of EQ2Emulator.
+	This file is part of EQ2Emulator.
 
-    EQ2Emulator is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+	EQ2Emulator is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
 
-    EQ2Emulator is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+	EQ2Emulator is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
+	You should have received a copy of the GNU General Public License
+	along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 */
 #ifndef CLIENT_H
 #define CLIENT_H
@@ -24,6 +24,12 @@
 #include <atomic>
 #include <mutex>
 #include <shared_mutex>
+#include <iostream>
+#include <map>
+#include <string>
+#include <thread>
+#include <chrono>
+#include <condition_variable>
 
 #include "../common/EQStream.h"
 #include "../common/timer.h"
@@ -61,13 +67,13 @@ struct GroupOptions;
 #define MAIL_TYPE_SPAM		1
 #define MAIL_TYPE_GM		2
 
-struct QueuedQuest{
+struct QueuedQuest {
 	int32 quest_id;
 	int32 step;
 	bool display_quest_helper;
 };
 
-struct BuyBackItem{
+struct BuyBackItem {
 	int32	item_id;
 	int32	unique_id;
 	int16	quantity;
@@ -75,7 +81,7 @@ struct BuyBackItem{
 	bool	save_needed;
 };
 
-struct MacroData{
+struct MacroData {
 	string	name;
 	string	text;
 	int16	icon;
@@ -107,7 +113,7 @@ struct MailWindow {
 	int32	coin_silver;
 	int32	coin_gold;
 	int32	coin_plat;
-	Item*	item;
+	Item* item;
 	int32	char_item_id;
 	int32	stack;
 };
@@ -150,22 +156,101 @@ struct WaypointInfo {
 };
 
 
+class DialogManager {
+public:
+	// Add accept string with int32 id and a timer
+	bool addAccept(const std::string& key, int32 id, int32 seconds) {
+		std::lock_guard<std::mutex> lock(mutex_);
+		if (acceptMap_.count(key) == 0) {
+			acceptMap_[key] = id;
+			if (seconds)
+				startTimer(key, seconds, true); // true indicates it's an accept key
+			return true;
+		}
+		return false; // Duplicate found in either map
+	}
+
+	// Add decline string with int32 id and a timer
+	bool addDecline(const std::string& key, int32 id, int32 seconds) {
+		std::lock_guard<std::mutex> lock(mutex_);
+		if (declineMap_.count(key) == 0) {
+			declineMap_[key] = id;
+			if (seconds)
+				startTimer(key, seconds, false); // false indicates it's a decline key
+			return true;
+		}
+		return false; // Duplicate found in either map
+	}
+
+	// Clear a specific accept string
+	bool clearAccept(const std::string& key) {
+		std::lock_guard<std::mutex> lock(mutex_);
+		return acceptMap_.erase(key) > 0;
+	}
+
+	// Clear a specific decline string
+	bool clearDecline(const std::string& key) {
+		std::lock_guard<std::mutex> lock(mutex_);
+		return declineMap_.erase(key) > 0;
+	}
+
+	int32 getAcceptValue(const std::string& key) {
+		std::lock_guard<std::mutex> lock(mutex_);
+		if (acceptMap_.count(key)) {
+			return acceptMap_.at(key);
+		}
+		return 0; // Key not found
+	}
+
+	int32 getDeclineValue(const std::string& key) {
+		std::lock_guard<std::mutex> lock(mutex_);
+		if (declineMap_.count(key)) {
+			return declineMap_.at(key);
+		}
+		return 0; // Key not found
+	}
+
+	// Check if a dialog is active
+	bool isDialogActive(const std::string& key) {
+		std::lock_guard<std::mutex> lock(mutex_);
+		return acceptMap_.count(key) > 0 || declineMap_.count(key) > 0;
+	}
+
+private:
+	std::map<std::string, int32> acceptMap_;
+	std::map<std::string, int32> declineMap_;
+	std::mutex mutex_;
+
+	void startTimer(const std::string& key, int32 seconds, bool isAccept) {
+		std::thread([this, key, seconds, isAccept]() {
+			std::this_thread::sleep_for(std::chrono::seconds(seconds));
+			std::lock_guard<std::mutex> lock(mutex_);
+			if (isAccept) {
+				acceptMap_.erase(key);
+			}
+			else {
+				declineMap_.erase(key);
+			}
+			}).detach();
+	}
+};
+
 class Client {
 public:
 	Client(EQStream* ieqs);
-    ~Client();
-	
+	~Client();
+
 	void	RemoveClientFromZone();
 	bool	Process(bool zone_process = false);
 	void	Disconnect(bool send_disconnect = true);
-	void	SetConnected(bool val){ connected = val; }
-	bool	IsConnected(){ return connected; }
-	bool	IsReadyForSpawns(){ return ready_for_spawns; }
+	void	SetConnected(bool val) { connected = val; }
+	bool	IsConnected() { return connected; }
+	bool	IsReadyForSpawns() { return ready_for_spawns; }
 	bool	IsReadyForUpdates() { return ready_for_updates; }
-	bool	IsZoning(){ return client_zoning; }
+	bool	IsZoning() { return client_zoning; }
 	void	SetReadyForUpdates();
 	void	SetReadyForSpawns(bool val);
-	void	QueuePacket(EQ2Packet* app, bool attemptedCombine=false);
+	void	QueuePacket(EQ2Packet* app, bool attemptedCombine = false);
 	void	SendLoginInfo();
 	int8	GetMessageChannelColor(int8 channel_type);
 	void	HandleTellMessage(const char* fromName, const char* message, const char* to, int32 current_language_id);
@@ -174,12 +259,12 @@ public:
 	void	SendSpellUpdate(Spell* spell, bool add_silently = false, bool add_to_hotbar = true);
 	void	Zone(ZoneChangeDetails* new_zone, ZoneServer* opt_zone = nullptr, bool set_coords = true, bool is_spell = false);
 	void	Zone(const char* new_zone, bool set_coords = true, bool is_spell = false);
-	void	Zone(int32 instanceid, bool set_coords = true, bool byInstanceID=false, bool is_spell = false);
+	void	Zone(int32 instanceid, bool set_coords = true, bool byInstanceID = false, bool is_spell = false);
 	void	ApproveZone();
 	void	SendZoneInfo();
 	void	SendZoneSpawns();
 	void	HandleVerbRequest(EQApplicationPacket* app);
-	void	SendControlGhost(int32 send_id=0xFFFFFFFF, int8 unknown2=0);
+	void	SendControlGhost(int32 send_id = 0xFFFFFFFF, int8 unknown2 = 0);
 	void	SendCharInfo();
 	void	SendLoginDeniedBadVersion();
 	void	SendCharPOVGhost();
@@ -187,20 +272,20 @@ public:
 	float	DistanceFrom(Client* client);
 	void	SendDefaultGroupOptions();
 	bool	HandleLootItemByID(Spawn* entity, int32 item_id, Spawn* target);
-	bool	HandleLootItem(Spawn* entity, Item* item, Spawn* target=nullptr, bool overrideLootRestrictions = false);
+	bool	HandleLootItem(Spawn* entity, Item* item, Spawn* target = nullptr, bool overrideLootRestrictions = false);
 	void	HandleLootItemRequestPacket(EQApplicationPacket* app);
 	void	HandleSkillInfoRequest(EQApplicationPacket* app);
 	void	HandleExamineInfoRequest(EQApplicationPacket* app);
 	void	HandleQuickbarUpdateRequest(EQApplicationPacket* app);
-	void	SendPopupMessage(int8 unknown, const char* text, const char* type, float size, int8 red, int8 green, int8 blue);	
+	void	SendPopupMessage(int8 unknown, const char* text, const char* type, float size, int8 red, int8 green, int8 blue);
 	void	PopulateSkillMap();
 	void	ChangeLevel(int16 old_level, int16 new_level);
 	void	ChangeTSLevel(int16 old_level, int16 new_level);
 	bool	Summon(const char* search_name);
 	std::string	IdentifyInstanceLockout(int32 zoneID, bool displayClient = true);
 	bool	IdentifyInstance(ZoneChangeDetails* zone_details, int32 zoneID);
-	bool	TryZoneInstance(int32 zoneID, bool zone_coords_valid=false);
-	bool	GotoSpawn(const char* search_name, bool forceTarget=false);
+	bool	TryZoneInstance(int32 zoneID, bool zone_coords_valid = false);
+	bool	GotoSpawn(const char* search_name, bool forceTarget = false);
 	void	DisplayDeadWindow();
 	void	HandlePlayerRevive(int32 point_id);
 	void	Bank(Spawn* banker, bool cancel = false);
@@ -208,23 +293,23 @@ public:
 	bool    BankWithdrawalNoBanker(int64 amount);
 	bool    BankHasCoin(int64 amount);
 	void	BankDeposit(int64 amount);
-	Spawn*	GetBanker();
+	Spawn* GetBanker();
 	void	SetBanker(Spawn* in_banker);
 	bool	AddItem(int32 item_id, int16 quantity = 0, AddItemType type = AddItemType::NOT_SET);
 	bool	AddItem(Item* item, bool* item_deleted = 0, AddItemType type = AddItemType::NOT_SET);
 	bool	AddItemToBank(int32 item_id, int16 quantity = 0);
 	bool	AddItemToBank(Item* item);
 	void	UnequipItem(int16 index, sint32 bag_id = -999, int8 to_slot = 255, int8 appearance_equip = 0);
-	bool	RemoveItem(Item *item, int16 quantity, bool force_override_no_delete = false);
+	bool	RemoveItem(Item* item, int16 quantity, bool force_override_no_delete = false);
 	void	ProcessTeleport(Spawn* spawn, vector<TransportDestination*>* destinations, int32 transport_id = 0, bool is_spell = false);
-	void	ProcessTeleportLocation(EQApplicationPacket* app); 
+	void	ProcessTeleportLocation(EQApplicationPacket* app);
 
 	void	UpdateCharacterInstances();
 	void	SetLastSavedTimeStamp(int32 unixts) { last_saved_timestamp = unixts; }
 	int32	GetLastSavedTimeStamp() { return last_saved_timestamp; }
 
 	bool	CheckZoneAccess(const char* zoneName);
-	
+
 	ZoneServer* GetCurrentZone();
 	int32 GetCurrentZoneID();
 	void	SetCurrentZoneByInstanceID(int32 id, int32 zoneid);
@@ -235,46 +320,46 @@ public:
 		zoning_destination = zone;
 	}
 	ZoneServer* GetZoningDestination() { return zoning_destination; }
-	Player*	GetPlayer(){ return player; }
-	EQStream*	getConnection(){ return eqs; }
-	void	setConnection(EQStream* ieqs){ eqs = ieqs; }
+	Player* GetPlayer() { return player; }
+	EQStream* getConnection() { return eqs; }
+	void	setConnection(EQStream* ieqs) { eqs = ieqs; }
 
-	inline int32		GetIP()				{ return ip; }
-	inline int16		GetPort()			{ return port; }
-	inline int32		WaitingForBootup()	{ return pwaitingforbootup; }
-	inline int32		GetCharacterID()		{ return character_id; }
-	inline int32		GetAccountID()			{ return account_id; }
-	inline const char*	GetAccountName()		{ return account_name; }
-	inline sint16		GetAdminStatus()		{ return admin_status; }
-	inline int16		GetVersion()			{ return version; }
-	void SetNameCRC(int32 val){ name_crc = val; }
-	int32 GetNameCRC(){ return name_crc; }
+	inline int32		GetIP() { return ip; }
+	inline int16		GetPort() { return port; }
+	inline int32		WaitingForBootup() { return pwaitingforbootup; }
+	inline int32		GetCharacterID() { return character_id; }
+	inline int32		GetAccountID() { return account_id; }
+	inline const char* GetAccountName() { return account_name; }
+	inline sint16		GetAdminStatus() { return admin_status; }
+	inline int16		GetVersion() { return version; }
+	void SetNameCRC(int32 val) { name_crc = val; }
+	int32 GetNameCRC() { return name_crc; }
 
 
-	void				SetVersion(int16 new_version){ version = new_version; }
+	void				SetVersion(int16 new_version) { version = new_version; }
 	void				SetAccountID(int32 in_accountid) { account_id = in_accountid; }
 	void				SetCharacterID(int32 in_characterid) { character_id = in_characterid; }
 	void				SetAdminStatus(sint16 in_status) { admin_status = in_status; }
-	
 
-	void	DetermineCharacterUpdates ( );
 
-	void	UpdateTimeStampFlag ( int8 flagType )
+	void	DetermineCharacterUpdates();
+
+	void	UpdateTimeStampFlag(int8 flagType)
 	{
-		if(! (timestamp_flag & flagType ) )
-		timestamp_flag |= flagType;
+		if (!(timestamp_flag & flagType))
+			timestamp_flag |= flagType;
 	}
 
-	int8	GetTimeStampFlag ( ) { return timestamp_flag; }
+	int8	GetTimeStampFlag() { return timestamp_flag; }
 	bool	UpdateQuickbarNeeded();
 	void	Save();
 	bool	remove_from_list;
 	void	CloseLoot(int32 spawn_id);
 	void	SendLootResponsePacket(int32 total_coins, vector<Item*>* items, Spawn* entity, bool ignore_loot_tier = false);
-	void	LootSpawnRequest(Spawn* entity, bool attemptDisarm=true);
+	void	LootSpawnRequest(Spawn* entity, bool attemptDisarm = true);
 	bool	LootSpawnByMethod(Spawn* entity);
-	void	OpenChest(Spawn* entity, bool attemptDisarm=true);
-	void	CastGroupOrSelf(Entity* source, uint32 spellID, uint32 spellTier=1, float restrictiveRadius=0.0f);
+	void	OpenChest(Spawn* entity, bool attemptDisarm = true);
+	void	CastGroupOrSelf(Entity* source, uint32 spellID, uint32 spellTier = 1, float restrictiveRadius = 0.0f);
 	void	CheckPlayerQuestsKillUpdate(Spawn* spawn);
 	void	CheckPlayerQuestsChatUpdate(Spawn* spawn);
 	void	CheckPlayerQuestsItemUpdate(Item* item);
@@ -291,12 +376,12 @@ public:
 	void	SendQuestFailure(Quest* quest);
 	void	SendQuestUpdateStep(Quest* quest, int32 step, bool display_quest_helper = true);
 	void	SendQuestUpdateStepImmediately(Quest* quest, int32 step, bool display_quest_helper = true);
-	void	DisplayQuestRewards(Quest* quest, int64 coin, vector<Item*>* rewards=0, vector<Item*>* selectable_rewards=0, map<int32, sint32>* factions=0, const char* header="Quest Reward!", int32 status_points=0, const char* text=0, bool was_displayed = false);
-	void	PopulateQuestRewardItems(vector <Item*>* items, PacketStruct* packet, std::string num_rewards_str = "num_rewards", std::string reward_id_str = "reward_id" , std::string item_str = "item");
+	void	DisplayQuestRewards(Quest* quest, int64 coin, vector<Item*>* rewards = 0, vector<Item*>* selectable_rewards = 0, map<int32, sint32>* factions = 0, const char* header = "Quest Reward!", int32 status_points = 0, const char* text = 0, bool was_displayed = false);
+	void	PopulateQuestRewardItems(vector <Item*>* items, PacketStruct* packet, std::string num_rewards_str = "num_rewards", std::string reward_id_str = "reward_id", std::string item_str = "item");
 	void	DisplayQuestComplete(Quest* quest, bool tempReward = false, std::string customDescription = string(""), bool was_displayed = false);
 	void	DisplayRandomizeFeatures(int32 features);
 	void	AcceptQuestReward(Quest* quest, int32 item_id);
-	Quest*	GetPendingQuestAcceptance(int32 item_id);
+	Quest* GetPendingQuestAcceptance(int32 item_id);
 	void	DisplayConversation(int32 conversation_id, int32 spawn_id, vector<ConversationOption>* conversations, const char* text, const char* mp3, int32 key1, int32 key2, int8 language = 0, int8 can_close = 1);
 	void	DisplayConversation(Item* item, vector<ConversationOption>* conversations, const char* text, int8 type, const char* mp3 = 0, int32 key1 = 0, int32 key2 = 0, int8 language = 0, int8 can_close = 1);
 	void	DisplayConversation(Spawn* src, int8 type, vector<ConversationOption>* conversations, const char* text, const char* mp3 = 0, int32 key1 = 0, int32 key2 = 0, int8 language = 0, int8 can_close = 1);
@@ -306,16 +391,16 @@ public:
 	void	AddCombineSpawn(Spawn* spawn);
 	void	RemoveCombineSpawn(Spawn* spawn);
 	void	SaveCombineSpawns(const char* name = 0);
-	Spawn*	GetCombineSpawn();
+	Spawn* GetCombineSpawn();
 	bool	ShouldTarget();
 	void	TargetSpawn(Spawn* spawn);
 	void	ReloadQuests();
-	int32	GetCurrentQuestID(){ return current_quest_id; }
+	int32	GetCurrentQuestID() { return current_quest_id; }
 	void	SetLuaDebugClient(bool val);
 	void	SetMerchantTransaction(Spawn* spawn);
-	Spawn*	GetMerchantTransaction();
+	Spawn* GetMerchantTransaction();
 	void	SetMailTransaction(Spawn* spawn);
-	Spawn*	GetMailTransaction();
+	Spawn* GetMailTransaction();
 	void	PlaySound(const char* name);
 	void	SendBuyMerchantList(bool sell = false);
 	void	SendSellMerchantList(bool sell = false);
@@ -332,7 +417,7 @@ public:
 	void	RepairItem(int32 item_id);
 	void	RepairAllItems();
 	void	AddBuyBack(int32 unique_id, int32 item_id, int16 quantity, int32 price, bool save_needed = true);
-	deque<BuyBackItem*>*	GetBuyBacks();
+	deque<BuyBackItem*>* GetBuyBacks();
 	vector<Item*>* GetRepairableItems();
 	vector<Item*>* GetItemsByEffectType(ItemEffectType type, ItemEffectType secondary_effect = NO_EFFECT_TYPE);
 	void	SendMailList();
@@ -360,29 +445,29 @@ public:
 	void	SetPlayer(Player* new_player);
 
 	void	AddPendingQuestAcceptReward(Quest* quest);
-	void	AddPendingQuestReward(Quest* quest, bool update=true, bool is_temporary = false, std::string description = std::string(""));
+	void	AddPendingQuestReward(Quest* quest, bool update = true, bool is_temporary = false, std::string description = std::string(""));
 	bool	HasQuestRewardQueued(int32 quest_id, bool is_temporary, bool is_collection);
-	void	QueueQuestReward(int32 quest_id, bool is_temporary, bool is_collection, bool has_displayed, int64 tmp_coin, int32 tmp_status, std::string description, bool db_saved=false, int32 index=0);
+	void	QueueQuestReward(int32 quest_id, bool is_temporary, bool is_collection, bool has_displayed, int64 tmp_coin, int32 tmp_status, std::string description, bool db_saved = false, int32 index = 0);
 	void	RemoveQueuedQuestReward();
 	void	AddPendingQuestUpdate(int32 quest_id, int32 step_id, int32 progress = 0xFFFFFFFF);
-	void	ProcessQuestUpdates();	
+	void	ProcessQuestUpdates();
 	void	AddWaypoint(const char* waypoint_name, int8 waypoint_category, int32 spawn_id);
 	void	BeginWaypoint(const char* waypoint_name, float x, float y, float z);
 	void	InspectPlayer(Player* player_to_inspect);
 	void	SetPendingGuildInvite(Guild* guild, Player* invited_by = 0);
-	PendingGuildInvite*	GetPendingGuildInvite() {return &pending_guild_invite;}
+	PendingGuildInvite* GetPendingGuildInvite() { return &pending_guild_invite; }
 	void	ShowClaimWindow();
 	void	ShowGuildSearchWindow();
 	void	CheckQuestQueue();
-	void	ShowDressingRoom(Item *item, sint32 crc);
+	void	ShowDressingRoom(Item* item, sint32 crc);
 	void	SendCollectionList();
-	bool	SendCollectionsForItem(Item *item);
-	void	HandleCollectionAddItem(int32 collection_id, Item *item);
-	void	DisplayCollectionComplete(Collection *collection);
+	bool	SendCollectionsForItem(Item* item);
+	void	HandleCollectionAddItem(int32 collection_id, Item* item);
+	void	DisplayCollectionComplete(Collection* collection);
 	void	HandInCollections();
-	void	AcceptCollectionRewards(Collection *collection, int32 selectable_item_id = 0);
+	void	AcceptCollectionRewards(Collection* collection, int32 selectable_item_id = 0);
 	void	SendRecipeList();
-	void	PopulateRecipeData(Recipe* recipe, PacketStruct* packet, int i=0);
+	void	PopulateRecipeData(Recipe* recipe, PacketStruct* packet, int i = 0);
 	int32	GetRecipeCRC(Recipe* recipe);
 	void	SendRecipeDetails(vector<int32>* recipes);
 	void	SendTitleUpdate();
@@ -398,7 +483,7 @@ public:
 
 	bool IsCrafting();
 
-	void SetRecipeListSent(bool val) {m_recipeListSent = val; }
+	void SetRecipeListSent(bool val) { m_recipeListSent = val; }
 	bool GetRecipeListSent() { return m_recipeListSent; }
 	void ShowRecipeBook();
 	PendingResurrection* GetCurrentRez();
@@ -415,7 +500,7 @@ public:
 
 	bool GetInitialSpawnsSent() { return initial_spawns_sent; }
 
-	void SendQuestJournalUpdate(Quest* quest, bool updated=true);
+	void SendQuestJournalUpdate(Quest* quest, bool updated = true);
 
 	void AddQuestTimer(int32 quest_id);
 
@@ -426,7 +511,7 @@ public:
 
 	void EndAutoMount();
 	bool GetOnAutoMount() { return on_auto_mount; }
-	
+
 	bool IsCurrentTransmuteID(int32 trans_id);
 	void SetTransmuteID(int32 trans_id);
 	int32 GetTransmuteID();
@@ -445,7 +530,7 @@ public:
 	void SendDefaultCommand(Spawn* spawn, const char* command, float distance);
 
 	void SetTempPlacementSpawn(Spawn* tmp);
-	
+
 	Spawn* GetTempPlacementSpawn() { return tempPlacementSpawn; }
 
 	void SetPlacementUniqueItemID(int32 id) { placement_unique_item_id = id; }
@@ -457,13 +542,13 @@ public:
 	bool HandleHouseEntityCommands(Spawn* spawn, int32 spawnid, string command);
 	// find an appropriate spawn to use for the house object, save spawn location/entry data to DB
 	bool PopulateHouseSpawn(PacketStruct* place_object);
-	
+
 	// finalize the spawn-in of the object in world, remove the item from player inventory, set the spawned in object item id (for future pickup)
 	bool PopulateHouseSpawnFinalize();
 
-	void SendMoveObjectMode(Spawn* spawn, uint8 placementMode, float unknown2_3=0.0f);
+	void SendMoveObjectMode(Spawn* spawn, uint8 placementMode, float unknown2_3 = 0.0f);
 
-	void SendFlightAutoMount(int32 path_id, int16 mount_id = 0, int8 mount_red_color = 0xFF, int8 mount_green_color = 0xFF, int8 mount_blue_color=0xFF);
+	void SendFlightAutoMount(int32 path_id, int16 mount_id = 0, int8 mount_red_color = 0xFF, int8 mount_green_color = 0xFF, int8 mount_blue_color = 0xFF);
 
 	void SendShowBook(Spawn* sender, string title, int8 language, int8 num_pages, ...);
 	void SendShowBook(Spawn* sender, string title, int8 language, vector<Item::BookPage*> pages);
@@ -480,7 +565,7 @@ public:
 
 	void AddWaypoint(string name, int8 type);
 	void RemoveWaypoint(string name) {
-		if (waypoints.count(name) > 0){
+		if (waypoints.count(name) > 0) {
 			waypoints.erase(name);
 		}
 	}
@@ -491,9 +576,9 @@ public:
 
 	void SetRegionDebug(bool val) { regionDebugMessaging = val; }
 
-	static void CreateMail(int32 charID, std::string fromName, std::string subjectName, std::string mailBody, 
+	static void CreateMail(int32 charID, std::string fromName, std::string subjectName, std::string mailBody,
 		int8 mailType, int32 copper, int32 silver, int32 gold, int32 platinum, int32 item_id, int16 stack_size, int32 time_sent, int32 expire_time);
-	void CreateAndUpdateMail(std::string fromName, std::string subjectName, std::string mailBody, 
+	void CreateAndUpdateMail(std::string fromName, std::string subjectName, std::string mailBody,
 		int8 mailType, int32 copper, int32 silver, int32 gold, int32 platinum, int32 item_id, int16 stack_size, int32 time_sent, int32 expire_time);
 
 	void SendEquipOrInvUpdateBySlot(int8 slot);
@@ -509,7 +594,7 @@ public:
 
 	void TriggerSpellSave();
 
-	void ClearSentItemDetails() { 
+	void ClearSentItemDetails() {
 		MItemDetails.writelock(__FUNCTION__, __LINE__);
 		sent_item_details.clear();
 		MItemDetails.releasewritelock(__FUNCTION__, __LINE__);
@@ -519,7 +604,7 @@ public:
 
 	int32 GetRejoinGroupID() { return rejoin_group_id; }
 
-	void ClearSentSpellList() { 
+	void ClearSentSpellList() {
 		MSpellDetails.writelock(__FUNCTION__, __LINE__);
 		sent_spell_details.clear();
 		MSpellDetails.releasewritelock(__FUNCTION__, __LINE__);
@@ -531,7 +616,7 @@ public:
 		bool res = false;
 		MSpellDetails.readlock(__FUNCTION__, __LINE__);
 		std::map<int32, int32>::iterator itr = sent_spell_details.find(id);
-		if(itr != sent_spell_details.end() && itr->second == tier)
+		if (itr != sent_spell_details.end() && itr->second == tier)
 			res = true;
 		MSpellDetails.releasereadlock(__FUNCTION__, __LINE__);
 		return res;
@@ -545,73 +630,76 @@ public:
 
 	void	DisableSave() { disable_save = true; }
 	bool	IsSaveDisabled() { return disable_save; }
-	void	ResetZoningCoords() { 
+	void	ResetZoningCoords() {
 		zoning_x = 0;
 		zoning_y = 0;
 		zoning_z = 0;
 		zoning_h = 0;
 	}
-	void	SetZoningCoords(float x, float y, float z, float h) { 
+	void	SetZoningCoords(float x, float y, float z, float h) {
 		zoning_x = x;
 		zoning_y = y;
 		zoning_z = z;
 		zoning_h = h;
 	}
-	
+
 	bool	UseItem(Item* item, Spawn* target = nullptr);
-	
+
 	void	SendPlayFlavor(Spawn* spawn, int8 language, VoiceOverStruct* non_garble, VoiceOverStruct* garble, bool success = false, bool garble_success = false);
 	void	SaveQuestRewardData(bool force_refresh = false);
 	void	UpdateCharacterRewardData(QuestRewardData* data);
 	void	SetQuestUpdateState(bool val) { quest_updates = val; }
-	
-	
+
+
 	bool	SetPlayerPOVGhost(Spawn* spawn);
-	
+
 	int32	GetPlayerPOVGhostSpawnID() { return pov_ghost_spawn_id; }
-	
+
 	void	HandleDialogSelectMsg(int32 conversation_id, int32 response_index);
 	bool	SetPetName(const char* name);
-	
+
 	bool	CheckConsumptionAllowed(int16 slot, bool send_message = true);
-	
+
 	void	StartLinkdeadTimer();
 	bool	IsLinkdeadTimerEnabled();
-	
+
 	bool	AddRecipeBookToPlayer(int32 recipe_id, Item* item = nullptr);
 	bool	RemoveRecipeFromPlayer(int32 recipe_id);
-	
+
 	void	SaveSpells();
-	
+
 	void	GiveQuestReward(Quest* quest, bool has_displayed = false);
-	
-	void	SendReplaceWidget(int32 widget_id, bool delete_widget, float x=0.0f, float y=0.0f, float z=0.0f, int32 grid_id=0);
+
+	void	SendReplaceWidget(int32 widget_id, bool delete_widget, float x = 0.0f, float y = 0.0f, float z = 0.0f, int32 grid_id = 0);
 	void	ProcessZoneIgnoreWidgets();
-	
+
 	void	SendHearCast(Spawn* caster, Spawn* target, int32 spell_visual, int16 cast_time);
 	int32	GetSpellVisualOverride(int32 spell_visual);
-	
-	sint16	GetClientItemPacketOffset() { sint16 offset = -1; if(GetVersion() <= 373) { offset = -2; } return offset; }
-	
+
+	sint16	GetClientItemPacketOffset() { sint16 offset = -1; if (GetVersion() <= 373) { offset = -2; } return offset; }
+
 	int32	GetZoningID() { return zoning_id; }
 	int32	GetZoningInstanceID() { return zoning_instance_id; }
-	
+
 	void	SetZoningDetails(ZoneChangeDetails* details) { zoning_details = ZoneChangeDetails(details); }
-	
+
 	void	HandleGroupAcceptResponse(int8 result);
 	void	SetGroupOptionsReference(GroupOptions* options);
 	void	SendReceiveOffer(Client* client_target, int8 type, std::string name, int8 unknown2);
+
+	bool	SendDialogChoice(int32 spawnID, const std::string& windowTextPrompt, const std::string& acceptText, const std::string& acceptCommand, const std::string& declineText, const std::string& declineCommand, int32 time, int8 textBox, int8 textBoxRequired, int32 maxLength);
+	DialogManager dialog_manager;
 private:
 	void	AddRecipeToPlayerPack(Recipe* recipe, PacketStruct* packet, int16* i);
 	void    SavePlayerImages();
 	void	SkillChanged(Skill* skill, int16 previous_value, int16 new_value);
 	void	SetStepComplete(int32 quest_id, int32 step);
 	void	AddStepProgress(int32 quest_id, int32 step, int32 progress);
-	
+
 	void	SendNewSpells(int8 class_id);
 	void	SendNewTSSpells(int8 class_id);
 	void	AddSendNewSpells(vector<Spell*>* spells);
-	
+
 	map<int32, map<int32, int32> > quest_pending_updates;
 	vector<QueuedQuest*> quest_queue;
 	vector<QuestRewardData*> quest_pending_reward;
@@ -622,16 +710,16 @@ private:
 	vector<Item*>* search_items;
 	int32 waypoint_id = 0;
 	map<string, WaypointInfo> waypoints;
-	Spawn*	transport_spawn;
+	Spawn* transport_spawn;
 	Mutex	MBuyBack;
 	deque<BuyBackItem*> buy_back_items;
-	Spawn*	merchant_transaction;
-	Spawn*	mail_transaction;
+	Spawn* merchant_transaction;
+	Spawn* mail_transaction;
 	mutable std::shared_mutex MPendingQuestAccept;
-	vector<int32> pending_quest_accept;	
+	vector<int32> pending_quest_accept;
 	bool	lua_debug;
 	bool	should_target;
-	Spawn*	combine_spawn;
+	Spawn* combine_spawn;
 	int8	num_active_failures;
 	int32	next_conversation_id;
 	map<int32, int32> conversation_spawns;
@@ -639,10 +727,10 @@ private:
 	mutable std::shared_mutex MConversation;
 	map<int32, map<int8, string> > conversation_map;
 	int32	current_quest_id;
-	Spawn*	banker;
+	Spawn* banker;
 	map<int32, int32> sent_spell_details;
 	map<int32, bool> sent_item_details;
-	Player*	player;
+	Player* player;
 	int16	version;
 	int8	timestamp_flag;
 	int32	ip;
@@ -654,20 +742,20 @@ private:
 	char	zone_name[64];
 	int32	zoneID;
 	int32	instanceID;
-	Timer*	autobootup_timeout;
+	Timer* autobootup_timeout;
 	int32	pwaitingforbootup;
 	int32	last_update_time;
 
 	int32	last_saved_timestamp;
 
-	Timer*	CLE_keepalive_timer;
-	Timer*	connect;
-	Timer*	camp_timer;
-	Timer*	linkdead_timer;
+	Timer* CLE_keepalive_timer;
+	Timer* connect;
+	Timer* camp_timer;
+	Timer* linkdead_timer;
 	bool	connected;
 	std::atomic<bool> ready_for_spawns;
 	std::atomic<bool> ready_for_updates;
-	
+
 	bool	seencharsel;
 	bool	connected_to_zone;
 	std::atomic<bool> client_zoning;
@@ -681,7 +769,7 @@ private:
 	float	zoning_z;
 	float	zoning_h;
 	bool	firstlogin;
-	
+
 	enum 	NewLoginState { LOGIN_NONE, LOGIN_DELAYED, LOGIN_ALLOWED, LOGIN_INITIAL_LOAD, LOGIN_SEND };
 	NewLoginState	new_client_login; // 1 = delayed state, 2 = let client in
 	Timer	underworld_cooldown_timer;
@@ -694,7 +782,7 @@ private:
 	std::atomic<int8> player_pos_change_count;
 	int32 player_pos_timer;
 	bool enabled_player_pos_timer;
-	bool HandlePacket(EQApplicationPacket *app);
+	bool HandlePacket(EQApplicationPacket* app);
 	EQStream* eqs;
 	bool quickbar_changed;
 	ZoneServer* current_zone;
@@ -707,7 +795,7 @@ private:
 	IncomingPaperdollImage incoming_paperdoll;
 	int32 transmuteID;
 	bool GetHouseZoneServer(ZoneChangeDetails* zone_details, int32 spawn_id, int64 house_id);
-	
+
 	std::atomic<bool> m_recipeListSent;
 	bool initial_spawns_sent;
 	bool should_load_spells;
@@ -733,9 +821,9 @@ private:
 	int32 temporary_transport_id;
 
 	int32 rejoin_group_id;
-	
+
 	int32 lastRegionRemapTime;
-	
+
 	bool regionDebugMessaging;
 
 	bool client_reloading_zone;
@@ -750,10 +838,10 @@ private:
 	Mutex MSpellDetails;
 	bool disable_save;
 	vector< string > devices;
-	
+
 	std::atomic<int32> pov_ghost_spawn_id;
 	Timer delay_msg_timer;
-	
+
 	uchar* recipe_orig_packet;
 	uchar* recipe_xor_packet;
 	int	recipe_packet_count;
@@ -766,7 +854,7 @@ public:
 	~ClientList();
 	bool	ContainsStream(EQStream* eqs);
 	void	Add(Client* client);
-	Client*	Get(int32 ip, int16 port);
+	Client* Get(int32 ip, int16 port);
 	Client* FindByAccountID(int32 account_id);
 	Client* FindByName(char* charname);
 	void	Remove(Client* client, bool delete_data = false);

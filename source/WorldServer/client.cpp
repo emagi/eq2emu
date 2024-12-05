@@ -4152,7 +4152,9 @@ void Client::SetCurrentZoneByInstanceID(int32 id, int32 zoneid) {
 		current_zone->RemoveSpawn(player, false, true, true, true, true);
 	}
 	ZoneChangeDetails zone_details;
-	if (zone_list.GetZoneByInstance(&zone_details, id, zoneid, true, false, true, false)) {
+	int32 minLevel = 0, maxLevel = 0, avgLevel = 0, firstLevel = 0;
+	 world.GetGroupManager()->EstablishRaidLevelRange(this, &minLevel, &maxLevel, &avgLevel, &firstLevel);
+	if (zone_list.GetZoneByInstance(&zone_details, id, zoneid, true, false, true, false, minLevel, maxLevel, avgLevel, firstLevel)) {
 		SetCurrentZone((ZoneServer*)zone_details.zonePtr);
 	}
 	else {
@@ -4649,6 +4651,9 @@ bool Client::IdentifyInstance(ZoneChangeDetails* zone_details, int32 zoneID) {
 	if (instanceType < 1)
 		return false;
 
+	int32 minLevel = 0, maxLevel = 0, avgLevel = 0, firstLevel = 0;
+	 world.GetGroupManager()->EstablishRaidLevelRange(this, &minLevel, &maxLevel, &avgLevel, &firstLevel);
+	 
 	bool foundZone = false;
 	InstanceData* data = GetPlayer()->GetCharacterInstances()->FindInstanceByZoneID(zoneID);
 	if (data) {
@@ -4659,7 +4664,7 @@ bool Client::IdentifyInstance(ZoneChangeDetails* zone_details, int32 zoneID) {
 		}
 
 		// Need to update `character_instances` table with new timestamps (for persistent) and instance id's
-		foundZone = zone_list.GetZoneByInstance(zone_details, data->instance_id, zoneID, true, false, false);
+		foundZone = zone_list.GetZoneByInstance(zone_details, data->instance_id, zoneID, true, false, false, true, minLevel, maxLevel, avgLevel, firstLevel);
 
 		// if we got an instance_zone and the instance_id from the data is 0 or data instance id is not the same as the zone instance id then update values
 		if (foundZone && (data->instance_id == 0 || data->instance_id != zone_details->instanceId)) {
@@ -4685,6 +4690,9 @@ bool Client::TryZoneInstance(int32 zoneID, bool zone_coords_valid) {
 	// determine if this is a group instanced zone that already exists
 	foundZone = world.GetGroupManager()->IdentifyMemberInGroupOrRaid(&zone_details, this, zoneID);
 
+	int32 minLevel = 0, maxLevel = 0, avgLevel = 0, firstLevel = 0;
+	world.GetGroupManager()->EstablishRaidLevelRange(this, &minLevel, &maxLevel, &avgLevel, &firstLevel);
+	 
 	if (foundZone) {
 		InstanceData* data = nullptr;
 		if (zone_details.instanceId)
@@ -4720,7 +4728,7 @@ bool Client::TryZoneInstance(int32 zoneID, bool zone_coords_valid) {
 			case GROUP_LOCKOUT_INSTANCE:
 			case RAID_LOCKOUT_INSTANCE:
 			{
-				if ((foundZone = zone_list.GetZoneByInstance(&zone_details, 0, zoneID))) {
+				if ((foundZone = zone_list.GetZoneByInstance(&zone_details, 0, zoneID, true, false, true, true, minLevel, maxLevel, avgLevel, firstLevel))) {
 					// once lockout instance zone shuts down you can't renenter if you have a lockout or if you don't you get a new zone
 					// so delete `instances` entry for the zone when it shuts down.
 					int32 db_id = database.AddCharacterInstance(GetPlayer()->GetCharacterID(), zone_details.instanceId, zone_details.zoneName, zone_details.instanceType, 0, 0, zone_details.defaultLockoutTime, zone_details.defaultReenterTime);
@@ -4734,7 +4742,7 @@ bool Client::TryZoneInstance(int32 zoneID, bool zone_coords_valid) {
 			case GROUP_PERSIST_INSTANCE:
 			case RAID_PERSIST_INSTANCE:
 			{
-				if ((foundZone = zone_list.GetZoneByInstance(&zone_details, 0, zoneID))) {
+				if ((foundZone = zone_list.GetZoneByInstance(&zone_details, 0, zoneID, true, false, true, true, minLevel, maxLevel, avgLevel, firstLevel))) {
 					int32 db_id = database.AddCharacterInstance(GetPlayer()->GetCharacterID(), zone_details.instanceId, zone_details.zoneName, zone_details.instanceType, Timer::GetUnixTimeStamp(), 0, zone_details.defaultLockoutTime, zone_details.defaultReenterTime);
 
 					if (db_id > 0)
@@ -4750,7 +4758,7 @@ bool Client::TryZoneInstance(int32 zoneID, bool zone_coords_valid) {
 				if (instance_zone) {
 					// Check the current population against the max population, if greater or equal start a new version
 					if (instance_zone->GetClientCount() >= rule_manager.GetZoneRule(GetCurrentZoneID(), R_Zone, MaxPlayers)->GetInt32()) {
-						foundZone = zone_list.GetZoneByInstance(&zone_details, 0, zoneID);
+						foundZone = zone_list.GetZoneByInstance(&zone_details, 0, zoneID, true, false, true, true, minLevel, maxLevel, avgLevel, firstLevel);
 					}
 					else {
 						peer_manager.setZonePeerDataSelf(&zone_details, std::string(instance_zone->GetZoneFile()), std::string(instance_zone->GetZoneName()),
@@ -4762,7 +4770,7 @@ bool Client::TryZoneInstance(int32 zoneID, bool zone_coords_valid) {
 					}
 				}
 				else {
-					foundZone = zone_list.GetZoneByInstance(&zone_details, 0, zoneID);
+					foundZone = zone_list.GetZoneByInstance(&zone_details, 0, zoneID, true, false, true, true, minLevel, maxLevel, avgLevel, firstLevel);
 				}
 
 				break;
@@ -4779,7 +4787,7 @@ bool Client::TryZoneInstance(int32 zoneID, bool zone_coords_valid) {
 
 			case QUEST_INSTANCE:
 			{
-				foundZone = zone_list.GetZoneByInstance(&zone_details, 0, zoneID);
+				foundZone = zone_list.GetZoneByInstance(&zone_details, 0, zoneID, true, false, true, true, minLevel, maxLevel, avgLevel, firstLevel);
 				break;
 				/*
 				ALTER TABLE `zones` CHANGE COLUMN `instance_type` `instance_type` ENUM('NONE','GROUP_LOCKOUT_INSTANCE','GROUP_PERSIST_INSTANCE','RAID_LOCKOUT_INSTANCE','RAID_PERSIST_INSTANCE','SOLO_LOCKOUT_INSTANCE','SOLO_PERSIST_INSTANCE','TRADESKILL_INSTANCE','PUBLIC_INSTANCE','PERSONAL_HOUSE_INSTANCE','GUILD_HOUSE_INSTANCE','QUEST_INSTANCE') NOT NULL DEFAULT 'NONE' COLLATE 'latin1_general_ci' AFTER `start_zone`;
@@ -4938,7 +4946,9 @@ bool Client::CheckZoneAccess(const char* zoneName) {
 
 void Client::Zone(int32 instanceid, bool set_coords, bool byInstanceID, bool is_spell) {
 	ZoneChangeDetails zone_details;
-	if (zone_list.GetZoneByInstance(&zone_details, instanceid, 0)) {
+	int32 minLevel = 0, maxLevel = 0, avgLevel = 0, firstLevel = 0;
+	 world.GetGroupManager()->EstablishRaidLevelRange(this, &minLevel, &maxLevel, &avgLevel, &firstLevel);
+	if (zone_list.GetZoneByInstance(&zone_details, instanceid, 0, true, false, true, true, minLevel, maxLevel, avgLevel, firstLevel)) {
 		Zone(&zone_details, (ZoneServer*)zone_details.zonePtr, set_coords, is_spell);
 	}
 
@@ -5102,7 +5112,11 @@ void Client::Zone(const char* new_zone, bool set_coords, bool is_spell)
 	std::string camelCaseName = database.GetZoneName(zone_id);
 
 	InstanceData* data = GetPlayer()->GetCharacterInstances()->FindInstanceByZoneID(zone_id);
-	if ((data && zone_list.GetZoneByInstance(&zone_details, data->instance_id, zone_id)) || zone_list.GetZone(&zone_details, 0, camelCaseName)) {
+	
+	int32 minLevel = 0, maxLevel = 0, avgLevel = 0, firstLevel = 0;
+	world.GetGroupManager()->EstablishRaidLevelRange(this, &minLevel, &maxLevel, &avgLevel, &firstLevel);
+	 
+	if ((data && zone_list.GetZoneByInstance(&zone_details, data->instance_id, zone_id, true, false, true, true, minLevel, maxLevel, avgLevel, firstLevel)) || zone_list.GetZone(&zone_details, 0, camelCaseName)) {
 		Zone(&zone_details, (ZoneServer*)zone_details.zonePtr, set_coords, is_spell);
 	}
 }
@@ -13402,4 +13416,41 @@ void Client::SendReceiveOffer(Client* target_client, int8 type, std::string name
 		target_client->QueuePacket(packet->serialize());
 	}
 	safe_delete(packet);
+}
+
+bool Client::SendDialogChoice(int32 spawnID, const std::string& windowTextPrompt, const std::string& acceptText, const std::string& acceptCommand, const std::string& declineText, const std::string& declineCommand, int32 time, int8 textBox, int8 textBoxRequired, int32 maxLength) {
+	PacketStruct* p = configReader.getStruct("WS_ChoiceWindow", GetVersion());
+	if (!p) {
+		LogWrite(CCLIENT__ERROR, 0, "Client", "CreateChoiceWindow command error: WS_ChoiceWindow packet does not exist for client version %u", GetVersion());
+		return false;
+	}
+	
+	bool successAccept = true;
+	bool successDecline = true;
+	
+	if(acceptCommand.size() > 0)
+		successAccept = dialog_manager.addAccept(acceptCommand, spawnID, time);
+	
+	if(declineCommand.size() > 0)
+		successDecline = dialog_manager.addDecline(declineCommand, spawnID, time);
+	
+	if(!successAccept || !successDecline) { // failed to successfully add command
+		LogWrite(CCLIENT__ERROR, 0, "Client", "CreateChoiceWindow command error: Window has a conflict with accept  (%s) %u or decline (%s) %u.  Call ClearChoice(Player, Command, x) x being 0 for accept 1 for decline commands.", acceptCommand.c_str(), successAccept, declineCommand.c_str(), successDecline);
+		return false;
+	}
+	
+	p->setMediumStringByName("text", windowTextPrompt.c_str());
+	p->setMediumStringByName("accept_text", acceptText.c_str());
+	p->setMediumStringByName("accept_command", acceptCommand.c_str());
+	p->setMediumStringByName("cancel_text", declineText.c_str());
+	p->setMediumStringByName("cancel_command", declineCommand.c_str());
+	p->setDataByName("time", time);
+	p->setDataByName("text_box", textBox);
+	p->setDataByName("text_required", textBoxRequired);
+	p->setDataByName("max_length", maxLength);
+
+	QueuePacket(p->serialize());
+	safe_delete(p);
+	
+	return true;
 }

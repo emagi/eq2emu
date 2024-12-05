@@ -311,14 +311,14 @@ public:
 	void Command_StopFollow(Client* client, Seperator* sep);
 	void Command_Grid(Client* client, Seperator* sep);
 	void Command_Guild(Client* client, Seperator* sep);
-	void Command_CreateGuild(Client* client);
+	void Command_CreateGuild(Client* client, Seperator* sep);
 	void Command_SetGuildOfficerNote(Client* client, Seperator* sep);
 	void Command_SetGuildMemberNote(Client* client, Seperator* sep);
 	void Command_OfficerSay(Client* client, Seperator* sep);
 	void Command_GuildSay(Client* client, Seperator* sep);
 	void Command_Guilds(Client* client);
 	void Command_GuildsAdd(Client* client, Seperator* sep);
-	void Command_GuildsCreate(Client* client, Seperator* sep);
+	void Command_GuildsCreate(Client* client, Seperator* sep, bool prompted_dialog = false);
 	void Command_GuildsDelete(Client* client, Seperator* sep);
 	void Command_GuildsList(Client* client);
 	void Command_GuildsRemove(Client* client, Seperator* sep);

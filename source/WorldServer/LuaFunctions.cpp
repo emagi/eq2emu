@@ -14313,3 +14313,104 @@ int EQ2Emu_lua_CreatePersistedRespawn(lua_State* state) {
 	return 1;
 }
 
+
+int EQ2Emu_lua_CreateChoiceWindow(lua_State* state) {
+	if (!lua_interface)
+		return 0;
+	Spawn* npc = lua_interface->GetSpawn(state);
+	Spawn* spawn = lua_interface->GetSpawn(state, 2);
+	std::string windowTextPrompt = lua_interface->GetStringValue(state, 3);
+	std::string acceptText = lua_interface->GetStringValue(state, 4);
+	std::string acceptCommand = lua_interface->GetStringValue(state, 5);
+	std::string declineText = lua_interface->GetStringValue(state, 6);
+	std::string declineCommand = lua_interface->GetStringValue(state, 7);
+	int32 time = lua_interface->GetInt32Value(state, 8);
+	int8 textBox = lua_interface->GetInt8Value(state, 9);
+	int8 textBoxRequired = lua_interface->GetInt8Value(state, 10);
+	int32 maxLength = lua_interface->GetInt32Value(state, 11);
+	lua_interface->ResetFunctionStack(state);
+	if(!npc || !npc->IsNPC())
+	{
+		lua_interface->LogError("%s: LUA CreateChoiceWindow command error: npc is not valid, either does not exist or is not a npc", lua_interface->GetScriptName(state));
+		lua_interface->SetBooleanValue(state, false);
+		return 1;
+	}
+	
+	if(!spawn || !spawn->IsPlayer())
+	{
+		lua_interface->LogError("%s: LUA CreateChoiceWindow command error: spawn is not valid, either does not exist or is not a player", lua_interface->GetScriptName(state));
+		lua_interface->SetBooleanValue(state, false);
+		return 1;
+	}
+
+	Client* client = ((Player*)spawn)->GetClient();
+	
+	if(client) {
+			bool success = client->SendDialogChoice(npc->GetID(), windowTextPrompt, acceptText, acceptCommand, declineText, declineCommand, time, textBox, textBoxRequired, maxLength);
+			lua_interface->SetBooleanValue(state, success);
+			return 1;
+	}
+	lua_interface->SetBooleanValue(state, false);
+	return 1;
+}
+
+
+int EQ2Emu_lua_ClearChoice(lua_State* state) {
+	if (!lua_interface)
+		return 0;
+	Spawn* spawn = lua_interface->GetSpawn(state);
+	std::string commandToClear = lua_interface->GetStringValue(state, 2);
+	int8 clearDecline = lua_interface->GetInt8Value(state, 3);
+	lua_interface->ResetFunctionStack(state);
+	if(!spawn || !spawn->IsPlayer())
+	{
+		lua_interface->LogError("%s: LUA ClearChoice command error: spawn is not valid, either does not exist or is not a player", lua_interface->GetScriptName(state));
+		lua_interface->SetBooleanValue(state, false);
+		return 1;
+	}
+
+	Client* client = ((Player*)spawn)->GetClient();
+	
+	if(client) {
+			bool success = false;
+			
+			if(clearDecline) {
+				success = client->dialog_manager.clearDecline(commandToClear);
+			}
+			else {
+				success = client->dialog_manager.clearAccept(commandToClear);
+			}
+			lua_interface->SetBooleanValue(state, success);
+			return 1;
+	}
+	lua_interface->SetBooleanValue(state, false);
+	return 1;
+}
+
+int EQ2Emu_lua_GetChoiceSpawnID(lua_State* state) {
+	if (!lua_interface)
+		return 0;
+	Spawn* spawn = lua_interface->GetSpawn(state);
+	std::string commandMatch = lua_interface->GetStringValue(state, 2);
+	int8 declineValue = lua_interface->GetInt8Value(state, 3);
+	lua_interface->ResetFunctionStack(state);
+	if(!spawn || !spawn->IsPlayer())
+	{
+		lua_interface->LogError("%s: LUA GetChoiceSpawnID command error: spawn is not valid, either does not exist or is not a player", lua_interface->GetScriptName(state));
+		lua_interface->SetInt32Value(state, 0);
+		return 1;
+	}
+
+	Client* client = ((Player*)spawn)->GetClient();
+	int32 spawn_id = 0;
+	if(client) {
+		if(declineValue) {
+			spawn_id = client->dialog_manager.getDeclineValue(commandMatch);
+		}
+		else {
+			spawn_id = client->dialog_manager.getAcceptValue(commandMatch);
+		}
+	}
+	lua_interface->SetInt32Value(state, spawn_id);
+	return 1;
+}

@@ -217,7 +217,7 @@ public:
 	void	LoadPlayerAA(Player *player);
 	void	LoadCharacterQuestProgress(Client* client);
 	void	LoadCharacterFriendsIgnoreList(Player* player);
-	void	LoadZoneInfo(ZoneServer* zone);
+	void	LoadZoneInfo(ZoneServer* zone, int32 minLevel=0, int32 maxLevel=0, int32 avgLevel=0, int32 firstLevel=0);
 	void	LoadZoneInfo(ZoneInfo* zone_info);
 	int32	GetZoneID(const char* name);
 	void	SaveZoneInfo(int32 zone_id, const char* field, sint32 value);
@@ -398,7 +398,7 @@ public:
 
 	// Zone Instance DB Functions
 	map<int32,int32>*	GetInstanceRemovedSpawns(int32 instance_id, int8 type);
-	int32				CreateNewInstance(int32 zone_id);
+	int32				CreateNewInstance(int32 zone_id, int32 playersMinLevel=0, int32 playersMaxLevel=0, int32 playersavgLevel=0, int32 playersfirstLevel=0);
 	//int32				AddCharacterInstance(int32 char_id, int32 instance_id, int32 grant_reenter_time_left=0, int32 grant_reset_time_left=0, int32 lockout_time=0);
 	int32				AddCharacterInstance(int32 char_id, int32 instance_id, string zone_name, int8 instance_type, int32 last_success, int32 last_failure, int32 success_lockout, int32 failure_lockout);
 	bool				UpdateCharacterInstanceTimers(int32 char_id, int32 instance_id, int32 lockout_time=0, int32 reset_time=0, int32 reenter_time=0 );

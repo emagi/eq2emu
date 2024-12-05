@@ -206,7 +206,7 @@ public:
 		std::string peerId = "", std::vector<int32>* raidGroups = nullptr, bool is_update = false);
 
 	void sendPeersDisbandGroup(int32 group_id);
-	bool sendPrimaryCreateGuildRequest(std::string guild_name, std::string leader_name);
+	bool sendPrimaryCreateGuildRequest(std::string guild_name, std::string leader_name, bool prompted_dialog = false, int32 spawnID = 0);
 	void sendPeersAddGuildMember(int32 character_id, int32 guild_id, std::string invited_by, int32 join_timestamp, int8 rank);
 	void sendPeersRemoveGuildMember(int32 character_id, int32 guild_id, std::string removed_by);
 	void sendPeersCreateGuild(int32 guild_id);

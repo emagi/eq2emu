@@ -124,7 +124,7 @@ public:
 	GroupOptions* GetGroupOptions() { return &group_options; }
 	int8 GetLastLooterIndex() { return group_options.last_looted_index; }
 	void SetNextLooterIndex(int8 new_index) { group_options.last_looted_index = new_index; }
-
+	
 	int32 GetID() { return m_id; }
 
 	void GetRaidGroups(std::vector<int32>* groups);
@@ -255,6 +255,7 @@ public:
 	void SplitWithGroupOrRaid(Client* client, int32 coin_plat, int32 coin_gold, int32 coin_silver, int32 coin_copper);
 	bool IdentifyMemberInGroupOrRaid(ZoneChangeDetails* details, Client* client, int32 zoneID, int32 instanceID = 0);
 	void ClearGroupRaidLooterFlag(int32 groupID);
+	void EstablishRaidLevelRange(Client* client, int32* min_level, int32* max_level, int32* avg_level, int32* first_level);
 private:
 	int32								m_nextGroupID;			// Used to generate a new unique id for new groups
 

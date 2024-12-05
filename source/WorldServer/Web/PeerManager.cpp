@@ -619,7 +619,7 @@ void PeerManager::sendPeersDisbandGroup(int32 group_id) {
 	}
 }
 
-bool PeerManager::sendPrimaryCreateGuildRequest(std::string guild_name, std::string leader_name) {
+bool PeerManager::sendPrimaryCreateGuildRequest(std::string guild_name, std::string leader_name, bool prompted_dialog, int32 spawnID) {
 	std::shared_ptr<Peer> primary = getHealthyPrimaryPeerPtr();
 	if (primary) {
 		boost::property_tree::ptree root;
@@ -628,6 +628,8 @@ bool PeerManager::sendPrimaryCreateGuildRequest(std::string guild_name, std::str
 		root.put("peer_web_port", std::to_string(net.GetWebWorldPort()));
 		root.put("guild_name", guild_name);
 		root.put("leader_name", leader_name);
+		root.put("prompted_dialog", prompted_dialog);
+		root.put("spawn_id", spawnID);
 
 		std::ostringstream jsonStream;
 		boost::property_tree::write_json(jsonStream, root);

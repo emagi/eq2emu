@@ -177,6 +177,11 @@ ZoneServer::ZoneServer(const char* name) {
 
 	lifetime_client_count = 0;
 	
+	groupraidMinLevel = 0;
+	groupraidMaxLevel = 0;
+	groupraidAvgLevel = 0;
+	groupraidFirstLevel = 0;
+	
 	is_initialized = false;
 }
 

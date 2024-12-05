@@ -295,6 +295,8 @@ void HandleCreateGuild(boost::property_tree::ptree tree) {
 	bool success = false;
 	int32 guildID = 0;
 	std::string leaderName("");
+	bool promptedDialog = false;
+	int32 spawnID = 0;
 	if (auto successful = tree.get_optional<bool>("success")) {
 		success = successful.get();
 	}
@@ -307,6 +309,14 @@ void HandleCreateGuild(boost::property_tree::ptree tree) {
 		leaderName = name.get();
 	}
 
+	if (auto prompt = tree.get_optional<bool>("prompted_dialog")) {
+		promptedDialog = prompt.get();
+	}
+
+	if (auto spawnid = tree.get_optional<int32>("spawn_id")) {
+		spawnID = spawnid.get();
+	}
+
 	if (net.is_primary) {
 		// we send out to peers 
 	}
@@ -315,6 +325,12 @@ void HandleCreateGuild(boost::property_tree::ptree tree) {
 		Guild* guild = guild_list.GetGuild(guildID);
 		Client* leader = zone_list.GetClientByCharName(leaderName.c_str());
 		if (leader && guild && !leader->GetPlayer()->GetGuild()) {
+			if(spawnID) {
+				Spawn* npc = leader->GetPlayer()->GetZone()->GetSpawnByID(spawnID);
+				if(promptedDialog && npc && npc->IsNPC()) {
+					leader->GetCurrentZone()->CallSpawnScript(npc, SPAWN_SCRIPT_CASTED_ON, leader->GetPlayer(), guild->GetName());
+				}
+			}
 			guild->AddNewGuildMember(leader, 0, GUILD_RANK_LEADER);
 			database.SaveGuildMembers(guild);
 			if (leader && leader->GetPlayer()->GetGroupMemberInfo()) {

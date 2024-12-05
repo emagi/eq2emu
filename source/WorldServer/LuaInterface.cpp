@@ -1568,6 +1568,10 @@ void LuaInterface::RegisterFunctions(lua_State* state) {
 	
 	lua_register(state,"AddRespawn", EQ2Emu_lua_AddRespawn);
 	lua_register(state,"CreatePersistedRespawn", EQ2Emu_lua_CreatePersistedRespawn);
+	
+	lua_register(state,"CreateChoiceWindow", EQ2Emu_lua_CreateChoiceWindow);
+	lua_register(state,"ClearChoice", EQ2Emu_lua_ClearChoice);
+	lua_register(state,"GetChoiceSpawnID", EQ2Emu_lua_GetChoiceSpawnID);
 }
 
 void LuaInterface::LogError(const char* error, ...)  {

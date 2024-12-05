@@ -684,7 +684,7 @@ void ZoneList::Remove(ZoneServer* zone) {
 	}
 }
 
-bool ZoneList::GetZone(ZoneChangeDetails* zone_details, int32 opt_zone_id, std::string opt_zone_name, bool loadZone, bool skip_existing_zones, bool increment_zone, bool check_peers, bool check_instances, bool only_always_loaded, bool skip_self) {
+bool ZoneList::GetZone(ZoneChangeDetails* zone_details, int32 opt_zone_id, std::string opt_zone_name, bool loadZone, bool skip_existing_zones, bool increment_zone, bool check_peers, bool check_instances, bool only_always_loaded, bool skip_self, int32 minLevel, int32 maxLevel, int32 avgLevel, int32 firstLevel) {
 	list<ZoneServer*>::iterator zone_iter;
 	ZoneServer* tmp = 0;
 	ZoneServer* ret = 0;
@@ -736,6 +736,11 @@ bool ZoneList::GetZone(ZoneChangeDetails* zone_details, int32 opt_zone_id, std::
 				root.put("zone_name", opt_zone_name);
 				root.put("zone_id", std::to_string(opt_zone_id));
 				root.put("always_loaded", only_always_loaded);
+				
+				root.put("min_level", minLevel);
+				root.put("max_level", maxLevel);
+				root.put("avg_level", avgLevel);
+				root.put("first_level", firstLevel);
 				std::ostringstream jsonStream;
 				boost::property_tree::write_json(jsonStream, root);
 				std::string jsonPayload = jsonStream.str();
@@ -751,7 +756,7 @@ bool ZoneList::GetZone(ZoneChangeDetails* zone_details, int32 opt_zone_id, std::
 			}
 			else {
 				tmp = new ZoneServer(opt_zone_name.c_str());
-				database.LoadZoneInfo(tmp);
+				database.LoadZoneInfo(tmp, minLevel, maxLevel, avgLevel, firstLevel);
 				tmp->Init();
 				tmp->SetAlwaysLoaded(only_always_loaded);
 			}
@@ -771,7 +776,8 @@ bool ZoneList::GetZone(ZoneChangeDetails* zone_details, int32 opt_zone_id, std::
 	return (tmp != nullptr) ? true : false;
 }
 
-bool ZoneList::GetZoneByInstance(ZoneChangeDetails* zone_details, int32 instance_id, int32 zone_id, bool loadZone, bool skip_existing_zones, bool increment_zone, bool check_peers) {
+bool ZoneList::GetZoneByInstance(ZoneChangeDetails* zone_details, int32 instance_id, int32 zone_id, bool loadZone, bool skip_existing_zones, bool increment_zone, bool check_peers, 
+								 int32 minLevel, int32 maxLevel, int32 avgLevel, int32 firstLevel) {
 	list<ZoneServer*>::iterator zone_iter;
 	ZoneServer* tmp = 0;
 	ZoneServer* ret = 0;
@@ -814,6 +820,12 @@ bool ZoneList::GetZoneByInstance(ZoneChangeDetails* zone_details, int32 instance
 				root.put("zone_name", zonename);
 				root.put("zone_id", std::to_string(zone_id));
 				root.put("always_loaded", false);
+				
+				root.put("min_level", minLevel);
+				root.put("max_level", maxLevel);
+				root.put("avg_level", avgLevel);
+				root.put("first_level", firstLevel);
+				
 				std::ostringstream jsonStream;
 				boost::property_tree::write_json(jsonStream, root);
 				std::string jsonPayload = jsonStream.str();
@@ -834,7 +846,7 @@ bool ZoneList::GetZoneByInstance(ZoneChangeDetails* zone_details, int32 instance
 				if ( instance_id > 0 )
 					tmp->SetupInstance(instance_id);
 
-				database.LoadZoneInfo(tmp);
+				database.LoadZoneInfo(tmp, minLevel, maxLevel, avgLevel, firstLevel);
 				tmp->Init();
 			}
 		}

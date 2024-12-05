@@ -618,6 +618,7 @@ void World::Web_worldhandle_startzone(const http::request<http::string_body>& re
 	int32 zoneId = 0;
 	std::string zoneName("");
 	bool alwaysLoaded = false;
+	int32 minLevel = 0, maxLevel = 0, avgLevel = 0, firstLevel = 0;
 	if (auto inst_id = json_tree.get_optional<int32>("instance_id")) {
 		instanceId = inst_id.get();
 	}
@@ -633,6 +634,22 @@ void World::Web_worldhandle_startzone(const http::request<http::string_body>& re
 	if (auto always_loaded = json_tree.get_optional<bool>("always_loaded")) {
 		alwaysLoaded = always_loaded.get();
 	}
+	
+	if (auto level = json_tree.get_optional<int32>("min_level")) {
+		minLevel = level.get();
+	}
+	
+	if (auto level = json_tree.get_optional<int32>("max_level")) {
+		maxLevel = level.get();
+	}
+	
+	if (auto level = json_tree.get_optional<int32>("avg_level")) {
+		avgLevel = level.get();
+	}
+	
+	if (auto level = json_tree.get_optional<int32>("first_level")) {
+		firstLevel = level.get();
+	}
 
 	sint32 success = 0;
 	ZoneChangeDetails details;
@@ -642,7 +659,7 @@ void World::Web_worldhandle_startzone(const http::request<http::string_body>& re
 				success = 1;
 		}
 		else {
-			if ((zone_list.GetZoneByInstance(&details, instanceId, zoneId, true, false, false, false)))
+			if ((zone_list.GetZoneByInstance(&details, instanceId, zoneId, true, false, false, false, minLevel, maxLevel, avgLevel, firstLevel)))
 				success = 1;
 		}
 	}

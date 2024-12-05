@@ -1036,6 +1036,11 @@ private:
 	mutable std::shared_mutex MIgnoredWidgets;
 	std::map<int32, bool> ignored_widgets;
 	Map* default_zone_map; // this is the map that npcs, ground spawns, so on use.  May not be the same as the clients!
+	
+	int32 groupraidMinLevel;
+	int32 groupraidMaxLevel;
+	int32 groupraidAvgLevel;
+	int32 groupraidFirstLevel;
 public:
 	Spawn*				GetSpawn(int32 id);
 
@@ -1167,6 +1172,29 @@ public:
 	void ReloadSpawns();
 
 	void SendStateCommand(Spawn* spawn, int32 state);
+
+	int32 getGroupraidMinLevel() const {
+		return groupraidMinLevel;
+	}
+
+	int32 getGroupraidMaxLevel() const {
+		return groupraidMaxLevel;
+	}
+
+	int32 getGroupraidAvgLevel() const {
+		return groupraidAvgLevel;
+	}
+
+	int32 getGroupraidFirstLevel() const {
+		return groupraidFirstLevel;
+	}
+	
+	void setGroupRaidLevels(int32 min_level, int32 max_level, int32 avg_level, int32 first_level) {
+		groupraidMinLevel = min_level;
+		groupraidMaxLevel = max_level;
+		groupraidAvgLevel = avg_level;
+		groupraidFirstLevel = first_level;
+	}
 
 	int32 lifetime_client_count;
 	int32 incoming_clients;

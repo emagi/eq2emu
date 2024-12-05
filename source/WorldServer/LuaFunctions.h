@@ -663,4 +663,8 @@ int EQ2Emu_lua_DespawnByLocationID(lua_State* state);
 
 int EQ2Emu_lua_AddRespawn(lua_State* state);
 int EQ2Emu_lua_CreatePersistedRespawn(lua_State* state);
+
+int EQ2Emu_lua_CreateChoiceWindow(lua_State* state);
+int EQ2Emu_lua_ClearChoice(lua_State* state);
+int EQ2Emu_lua_GetChoiceSpawnID(lua_State* state);
 #endif

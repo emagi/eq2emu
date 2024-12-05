@@ -2954,9 +2954,11 @@ void WorldDatabase::LoadCharacterFriendsIgnoreList(Player* player) {
 	}
 }
 
-void WorldDatabase::LoadZoneInfo(ZoneServer* zone){
+void WorldDatabase::LoadZoneInfo(ZoneServer* zone, int32 minLevel, int32 maxLevel, int32 avgLevel, int32 firstLevel){
 	Query query;
 	int32 ruleset_id;
+	zone->setGroupRaidLevels(minLevel, maxLevel, avgLevel, firstLevel);
+	
 	char* escaped = getEscapeString(zone->GetZoneName());
 	MYSQL_RES* result = query.RunQuery2(Q_SELECT, "SELECT id, file, description, underworld, safe_x, safe_y, safe_z, min_status, min_level, max_level, instance_type+0, shutdown_timer, zone_motd, default_reenter_time, default_reset_time, default_lockout_time, force_group_to_zone, safe_heading, xp_modifier, ruleset_id, expansion_id, weather_allowed, sky_file, can_bind, can_gate, city_zone, can_evac FROM zones where name='%s'",escaped);
 	if(result && mysql_num_rows(result) > 0) {
@@ -2999,8 +3001,10 @@ void WorldDatabase::LoadZoneInfo(ZoneServer* zone){
 
 		if (zone->IsInstanceZone())
 		{
-			if ( zone->GetInstanceID() < 1 )
-				zone->SetupInstance(CreateNewInstance(zone->GetZoneID()));
+			if ( zone->GetInstanceID() < 1 ) {
+				zone->SetupInstance(CreateNewInstance(zone->GetZoneID(), minLevel, maxLevel, avgLevel, firstLevel));
+				zone->setGroupRaidLevels(minLevel, maxLevel, avgLevel, firstLevel);
+			}
 			else
 				zone->SetupInstance(zone->GetInstanceID());
 		}
@@ -4085,7 +4089,6 @@ void WorldDatabase::UpdateStartingZone(int32 char_id, int8 class_id, int8 race_i
 				instance_id = CreateNewInstance(zone_id);
 				tmp->SetInstanceID(instance_id);
 				LoadZoneInfo(tmp);
-				instance_id = CreateNewInstance(zone_id);
 				AddCharacterInstance(char_id, instance_id, string(tmp->GetZoneName()), tmp->GetInstanceType(), Timer::GetUnixTimeStamp(), 0, tmp->GetDefaultLockoutTime(), tmp->GetDefaultReenterTime());
 				safe_delete(tmp);
 			}
@@ -5935,13 +5938,13 @@ bool WorldDatabase::UpdateInstancedSpawnRemoved(int32 spawn_location_entry_id, i
 		return false;
 }
 
-int32 WorldDatabase::CreateNewInstance(int32 zone_id)
+int32 WorldDatabase::CreateNewInstance(int32 zone_id, int32 playersMinLevel, int32 playersMaxLevel, int32 playersavgLevel, int32 playersfirstLevel)
 {
 	int32 ret = 0;
 
 	LogWrite(INSTANCE__DEBUG, 0, "Instance", "Creating new instance for zone: %u ", zone_id);
 
-	if( !database_new.Query("INSERT INTO instances (zone_id) VALUES (%u)", zone_id) )
+	if( !database_new.Query("INSERT INTO instances (zone_id, player_minlevel, player_maxlevel, player_avglevel, player_firstlevel) VALUES (%u, %u, %u, %u, %u)", zone_id, playersMinLevel, playersMaxLevel, playersavgLevel, playersfirstLevel) )
 		LogWrite(INSTANCE__ERROR, 0, "Instance", "Error in CreateNewInstance() '%s': %i", database_new.GetErrorMsg(), database_new.GetError());
 	else
 		ret = database_new.LastInsertID();
