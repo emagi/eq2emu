@@ -572,19 +572,21 @@ void HTTPSClientPool::pollPeerHealth(const std::string& server, const std::strin
 			}
 			// Process Clients
 			if (json_tree.find("Clients") != json_tree.not_found()) {
-				const auto& clients_subtree = json_tree.get_child("Clients");
+				// Create a new ptree to preserve the "Zones" key
+				boost::property_tree::ptree clients_copy;
 
-				boost::property_tree::ptree clients_copy = clients_subtree;
-
+				// Copy the "Zones" node to zones_copy to preserve its key
+				clients_copy.put_child("Clients", json_tree.get_child("Clients"));
 				peer_manager.updateClientTree(id, clients_copy);
 			}
 			
 			// Process Zones
 			if (json_tree.find("Zones") != json_tree.not_found()) {
-				const auto& zones_subtree = json_tree.get_child("Zones");
+				// Create a new ptree to preserve the "Zones" key
+				boost::property_tree::ptree zones_copy;
 
-				boost::property_tree::ptree zones_copy = zones_subtree;
-
+				// Copy the "Zones" node to zones_copy to preserve its key
+				zones_copy.put_child("Zones", json_tree.get_child("Zones"));
 				peer_manager.updateZoneTree(id, zones_copy);
 			}
 			
