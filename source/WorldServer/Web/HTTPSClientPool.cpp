@@ -545,24 +545,22 @@ void HTTPSClientPool::pollPeerHealth(const std::string& server, const std::strin
 			std::string worldAddr(""), internalWorldAddr(""), clientIP("");
 			int16 worldPort = 0;
 			try {
-				auto webStatusTree = json_tree.get_child("WebStatus");
-
-				if (auto status = webStatusTree.get_optional<std::string>("world_status")) {
+				if (auto status = json_tree.get_optional<std::string>("world_status")) {
 					online_status = status.get();
 				}
-				if (auto priority = webStatusTree.get_optional<int16>("peer_priority")) {
+				if (auto priority = json_tree.get_optional<int16>("peer_priority")) {
 					peer_priority = priority.get();
 				}
-				if (auto isprimary = webStatusTree.get_optional<bool>("peer_primary")) {
+				if (auto isprimary = json_tree.get_optional<bool>("peer_primary")) {
 					peer_primary = isprimary.get();
 				}
-				if (auto peerclientaddr = webStatusTree.get_optional<std::string>("peer_client_address")) {
+				if (auto peerclientaddr = json_tree.get_optional<std::string>("peer_client_address")) {
 					worldAddr = peerclientaddr.get();
 				}
-				if (auto peerclient_internaladdr = webStatusTree.get_optional<std::string>("peer_client_internal_address")) {
+				if (auto peerclient_internaladdr = json_tree.get_optional<std::string>("peer_client_internal_address")) {
 					internalWorldAddr = peerclient_internaladdr.get();
 				}
-				if (auto peerclientport = webStatusTree.get_optional<int16>("peer_client_port")) {
+				if (auto peerclientport = json_tree.get_optional<int16>("peer_client_port")) {
 					worldPort = peerclientport.get();
 				}
 				if(worldAddr.size() > 0 && worldPort > 0) {
