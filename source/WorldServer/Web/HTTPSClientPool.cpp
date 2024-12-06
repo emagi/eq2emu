@@ -572,21 +572,28 @@ void HTTPSClientPool::pollPeerHealth(const std::string& server, const std::strin
 			}
 			// Process Clients
 			if (json_tree.find("Clients") != json_tree.not_found()) {
-				for (const auto& client : json_tree.get_child("Clients")) {
-					boost::property_tree::ptree clientTree = client.second;
-					peer_manager.updateClientTree(id, clientTree);
-					break; // should only be one tree
-				}
-			}
+				std::ostringstream oss;
+				boost::property_tree::write_json(oss, json_tree.get_child("Clients"));
 
+				std::istringstream json_stream(oss.str());
+				boost::property_tree::ptree zonept;
+				boost::property_tree::read_json(json_stream, zonept);
+
+				peer_manager.updateZoneTree(id, zonept);
+			}
+			
 			// Process Zones
 			if (json_tree.find("Zones") != json_tree.not_found()) {
-				for (const auto& zone : json_tree.get_child("Zones")) {
-					boost::property_tree::ptree zoneTree = zone.second;
-					peer_manager.updateZoneTree(id, zoneTree);
-					break; // should only be one tree
-				}
+				std::ostringstream oss;
+				boost::property_tree::write_json(oss, json_tree.get_child("Zones"));
+
+				std::istringstream json_stream(oss.str());
+				boost::property_tree::ptree zonept;
+				boost::property_tree::read_json(json_stream, zonept);
+
+				peer_manager.updateZoneTree(id, zonept);
 			}
+			
 			if (peer_primary && net.is_primary) {
 				peer_manager.handlePrimaryConflict(id);
 				std::shared_ptr<Peer> hasPrimary = peer_manager.getHealthyPrimaryPeerPtr();
