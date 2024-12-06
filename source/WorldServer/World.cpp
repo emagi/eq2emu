@@ -277,6 +277,8 @@ void World::init(std::string web_ipaddr, int16 web_port, std::string cert_file, 
 			world_webserver->register_route("/removeguildmember", World::Web_worldhandle_removeguildmember);
 			world_webserver->register_route("/setguildpermission", World::Web_worldhandle_setguildpermission);
 			world_webserver->register_route("/setguildeventfilter", World::Web_worldhandle_setguildeventfilter);
+			
+			world_webserver->register_route("/peerstatus", World::Web_worldhandle_peerstatus);
 			world_webserver->run();
 			LogWrite(INIT__INFO, 0, "Init", "World Web Server is listening on %s:%u..", web_ipaddr.c_str(), web_port);
 			web_success = true;

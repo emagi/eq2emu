@@ -532,7 +532,7 @@ void HTTPSClientPool::pollPeerHealth(const std::string& server, const std::strin
 		HealthStatus curStatus = peer_manager.getPeerStatus(server, web_worldport);
 		id = peer_manager.isPeer(server, web_worldport);
 		try {
-			auto response = client->sendRequest(server, port, "/status");  // Assumes HTTPSClient has a get method
+			auto response = client->sendRequest(server, port, "/peerstatus");  // Assumes HTTPSClient has a get method
 			//std::cout << "Health check response from " << server << ":" << port << " - " << response << std::endl;
 
 			boost::property_tree::ptree json_tree;
@@ -544,29 +544,51 @@ void HTTPSClientPool::pollPeerHealth(const std::string& server, const std::strin
 			
 			std::string worldAddr(""), internalWorldAddr(""), clientIP("");
 			int16 worldPort = 0;
-			if (auto status = json_tree.get_optional<std::string>("world_status")) {
-				online_status = status.get();
-			}
-			if (auto priority = json_tree.get_optional<int16>("peer_priority")) {
-				peer_priority = priority.get();
-			}
-			if (auto isprimary = json_tree.get_optional<bool>("peer_primary")) {
-				peer_primary = isprimary.get();
-			}
-			if (auto peerclientaddr = json_tree.get_optional<std::string>("peer_client_address")) {
-				worldAddr = peerclientaddr.get();
-			}
-			if (auto peerclient_internaladdr = json_tree.get_optional<std::string>("peer_client_internal_address")) {
-				internalWorldAddr = peerclient_internaladdr.get();
-			}
-			if (auto peerclientport = json_tree.get_optional<int16>("peer_client_port")) {
-				worldPort = peerclientport.get();
-			}
-			if(worldAddr.size() > 0 && worldPort > 0) {
-				peer_manager.updatePeer(server, web_worldport, worldAddr, internalWorldAddr, worldPort, peer_primary);
-			}
-			peer_manager.updatePriority(id, peer_priority);
+			try {
+				auto webStatusTree = json_tree.get_child("WebStatus");
 
+				if (auto status = webStatusTree.get_optional<std::string>("world_status")) {
+					online_status = status.get();
+				}
+				if (auto priority = webStatusTree.get_optional<int16>("peer_priority")) {
+					peer_priority = priority.get();
+				}
+				if (auto isprimary = webStatusTree.get_optional<bool>("peer_primary")) {
+					peer_primary = isprimary.get();
+				}
+				if (auto peerclientaddr = webStatusTree.get_optional<std::string>("peer_client_address")) {
+					worldAddr = peerclientaddr.get();
+				}
+				if (auto peerclient_internaladdr = webStatusTree.get_optional<std::string>("peer_client_internal_address")) {
+					internalWorldAddr = peerclient_internaladdr.get();
+				}
+				if (auto peerclientport = webStatusTree.get_optional<int16>("peer_client_port")) {
+					worldPort = peerclientport.get();
+				}
+				if(worldAddr.size() > 0 && worldPort > 0) {
+					peer_manager.updatePeer(server, web_worldport, worldAddr, internalWorldAddr, worldPort, peer_primary);
+				}
+				peer_manager.updatePriority(id, peer_priority);
+			} catch (const boost::property_tree::ptree_error& e) {
+				LogWrite(PEERING__ERROR, 0, "Peering", "%s: Error accessing WebStatus tree: Peer %s at %s:%s - HAS PRIMARY status, demoting self.", __FUNCTION__, id.c_str(), server.c_str(), port.c_str());
+			}
+			// Process Clients
+			if (json_tree.find("Clients") != json_tree.not_found()) {
+				for (const auto& client : json_tree.get_child("Clients")) {
+					boost::property_tree::ptree clientTree = client.second;
+					peer_manager.updateClientTree(id, clientTree);
+					break; // should only be one tree
+				}
+			}
+
+			// Process Zones
+			if (json_tree.find("Zones") != json_tree.not_found()) {
+				for (const auto& zone : json_tree.get_child("Zones")) {
+					boost::property_tree::ptree zoneTree = zone.second;
+					peer_manager.updateZoneTree(id, zoneTree);
+					break; // should only be one tree
+				}
+			}
 			if (peer_primary && net.is_primary) {
 				peer_manager.handlePrimaryConflict(id);
 				std::shared_ptr<Peer> hasPrimary = peer_manager.getHealthyPrimaryPeerPtr();
@@ -581,7 +603,6 @@ void HTTPSClientPool::pollPeerHealth(const std::string& server, const std::strin
 
 			switch (curStatus) {
 			case HealthStatus::STARTUP: {
-				pollPeerHealthData(client, id, server, port);
 				if (online_status == "offline") {
 					std::shared_ptr<Peer> peer = peer_manager.getPeerById(id);
 					if (peer) {
@@ -620,7 +641,6 @@ void HTTPSClientPool::pollPeerHealth(const std::string& server, const std::strin
 				break;
 			}
 			case HealthStatus::OK: {
-				pollPeerHealthData(client, id, server, port);
 				if (!net.is_primary && !peer_manager.hasPrimary() && peer_priority < net.GetPeerPriority()) {
 					LogWrite(PEERING__INFO, 0, "Peering", "%s: Peer %s at %s:%s - HAS PRIMARY.", __FUNCTION__, id.c_str(), server.c_str(), port.c_str());
 					peer_manager.setPrimary(id);

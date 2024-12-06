@@ -516,8 +516,8 @@ class ZoneList {
 
 	void SendTimeUpdate();
 	
-	void	PopulateClientList(http::response<http::string_body>& res);
-	void	PopulateZoneList(http::response<http::string_body>& res);
+	void	PopulateClientList(boost::property_tree::ptree& pt);
+	void	PopulateZoneList(boost::property_tree::ptree& pt);
 private:
 	Mutex				MClientList;
 	Mutex				MZoneList;
@@ -707,6 +707,9 @@ public:
 	static void Web_worldhandle_removeguildmember(const http::request<http::string_body>& req, http::response<http::string_body>& res);
 	static void Web_worldhandle_setguildpermission(const http::request<http::string_body>& req, http::response<http::string_body>& res);
 	static void Web_worldhandle_setguildeventfilter(const http::request<http::string_body>& req, http::response<http::string_body>& res);
+	static void Web_worldhandle_peerstatus(const http::request<http::string_body>& req, http::response<http::string_body>& res);
+	
+	static void Web_populate_status(boost::property_tree::ptree& pt);
 	Mutex MVoiceOvers;
 	
 	static sint64 newValue;

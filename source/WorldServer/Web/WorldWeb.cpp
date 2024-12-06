@@ -50,15 +50,27 @@ HTTPSClientPool peer_https_pool;
 
 void World::Web_worldhandle_status(const http::request<http::string_body>& req, http::response<http::string_body>& res) {
 	res.set(http::field::content_type, "application/json; charset=utf-8");
+	
 	boost::property_tree::ptree pt;
+	world.Web_populate_status(pt);
+	
+	std::ostringstream oss;
+	boost::property_tree::write_json(oss, pt);
+	std::string json = oss.str();
+	res.body() = json;
+	res.prepare_payload();
+}
 
+void World::Web_populate_status(boost::property_tree::ptree& pt) {
 	pt.put("web_status", "online");
 	bool world_online = world.world_loaded;
-	pt.put("world_status", world.world_loaded ? "online" : "offline");
+	pt.put("world_status", world_online ? "online" : "offline");
 	pt.put("world_uptime", (getCurrentTimestamp() - world.world_uptime));
+
 	auto [days, hours, minutes, seconds] = convertTimestampDuration((getCurrentTimestamp() - world.world_uptime));
-	std::string uptime_str("Days: " + std::to_string(days) + ", " + "Hours: " + std::to_string(hours) + ", " + "Minutes: " + std::to_string(minutes) + ", " + "Seconds: " + std::to_string(seconds));
+	std::string uptime_str = "Days: " + std::to_string(days) + ", Hours: " + std::to_string(hours) + ", Minutes: " + std::to_string(minutes) + ", Seconds: " + std::to_string(seconds);
 	pt.put("world_uptime_string", uptime_str);
+
 	pt.put("login_connected", loginserver.Connected() ? "connected" : "disconnected");
 	pt.put("player_count", zone_list.GetZonesPlayersCount());
 	pt.put("client_count", numclients);
@@ -69,7 +81,14 @@ void World::Web_worldhandle_status(const http::request<http::string_body>& req, 
 	pt.put("peer_client_address", std::string(net.GetWorldAddress()));
 	pt.put("peer_client_internal_address", std::string(net.GetInternalWorldAddress()));
 	pt.put("peer_client_port", std::to_string(net.GetWorldPort()));
+}
 
+void World::Web_worldhandle_clients(const http::request<http::string_body>& req, http::response<http::string_body>& res) {
+	res.set(http::field::content_type, "application/json; charset=utf-8");
+	
+	boost::property_tree::ptree pt;
+	zone_list.PopulateClientList(pt);
+	
 	std::ostringstream oss;
 	boost::property_tree::write_json(oss, pt);
 	std::string json = oss.str();
@@ -77,76 +96,66 @@ void World::Web_worldhandle_status(const http::request<http::string_body>& req, 
 	res.prepare_payload();
 }
 
-void World::Web_worldhandle_clients(const http::request<http::string_body>& req, http::response<http::string_body>& res) {
-	zone_list.PopulateClientList(res);
+void ZoneList::PopulateClientList(boost::property_tree::ptree& pt) {
+    boost::property_tree::ptree maintree;
+
+    MClientList.lock();
+    for (auto& itr : client_map) {
+        if (itr.second) {
+            Client* cur = itr.second;
+            boost::property_tree::ptree client_pt;
+
+            client_pt.put("character_id", cur->GetCharacterID());
+            client_pt.put("character_name", cur->GetPlayer() ? cur->GetPlayer()->GetName() : "");
+            client_pt.put("subtitle", cur->GetPlayer() ? cur->GetPlayer()->appearance.sub_title : "");
+            client_pt.put("class1", cur->GetPlayer() ? cur->GetPlayer()->GetInfoStruct()->get_class1() : 0);
+            client_pt.put("class2", cur->GetPlayer() ? cur->GetPlayer()->GetInfoStruct()->get_class2() : 0);
+            client_pt.put("class3", cur->GetPlayer() ? cur->GetPlayer()->GetInfoStruct()->get_class3() : 0);
+            client_pt.put("deity", cur->GetPlayer() ? cur->GetPlayer()->GetDeity() : 0);
+            client_pt.put("tradeskill_class1", cur->GetPlayer() ? cur->GetPlayer()->GetInfoStruct()->get_tradeskill_class1() : 0);
+            client_pt.put("tradeskill_class2", cur->GetPlayer() ? cur->GetPlayer()->GetInfoStruct()->get_tradeskill_class2() : 0);
+            client_pt.put("tradeskill_class3", cur->GetPlayer() ? cur->GetPlayer()->GetInfoStruct()->get_tradeskill_class3() : 0);
+            client_pt.put("race", cur->GetPlayer() ? cur->GetPlayer()->GetInfoStruct()->get_race() : 0);
+            client_pt.put("level", cur->GetPlayer() ? cur->GetPlayer()->GetInfoStruct()->get_level() : 0);
+            client_pt.put("effective_level", cur->GetPlayer() ? cur->GetPlayer()->GetInfoStruct()->get_effective_level() : 0);
+            client_pt.put("tradeskill_level", cur->GetPlayer() ? cur->GetPlayer()->GetInfoStruct()->get_tradeskill_level() : 0);
+            client_pt.put("account_age", cur->GetPlayer() ? cur->GetPlayer()->GetInfoStruct()->get_account_age_base() : 0);
+            client_pt.put("account_id", cur->GetAccountID());
+            client_pt.put("version", cur->GetVersion());
+            client_pt.put("status", cur->GetAdminStatus());
+            client_pt.put("guild_id", cur->GetPlayer() && cur->GetPlayer()->GetGuild() ? cur->GetPlayer()->GetGuild()->GetID() : 0);
+            client_pt.put("flags", cur->GetPlayer() ? cur->GetPlayer()->GetInfoStruct()->get_flags() : 0);
+            client_pt.put("flags2", cur->GetPlayer() ? cur->GetPlayer()->GetInfoStruct()->get_flags2() : 0);
+            client_pt.put("adventure_class", cur->GetPlayer() ? cur->GetPlayer()->GetAdventureClass() : 0);
+            client_pt.put("tradeskill_class", cur->GetPlayer() ? cur->GetPlayer()->GetTradeskillClass() : 0);
+            client_pt.put("is_zoning", cur->IsZoning() || !cur->IsReadyForUpdates());
+
+            bool linkdead = cur->GetPlayer() ? ((cur->GetPlayer()->GetActivityStatus() & ACTIVITY_STATUS_LINKDEAD) > 0) : false;
+            client_pt.put("is_linkdead", linkdead);
+            client_pt.put("in_zone", cur->IsReadyForUpdates());
+            client_pt.put("zone_id", cur->GetPlayer() && cur->GetPlayer()->GetZone() ? cur->GetPlayer()->GetZone()->GetZoneID() : 0);
+            client_pt.put("instance_id", cur->GetPlayer() && cur->GetPlayer()->GetZone() ? cur->GetPlayer()->GetZone()->GetInstanceID() : 0);
+            client_pt.put("zonename", cur->GetPlayer() && cur->GetPlayer()->GetZone() ? cur->GetPlayer()->GetZone()->GetZoneName() : "N/A");
+            client_pt.put("zonedescription", cur->GetPlayer() && cur->GetPlayer()->GetZone() ? cur->GetPlayer()->GetZone()->GetZoneDescription() : "");
+
+            GroupMemberInfo* gmi = cur->GetPlayer() ? cur->GetPlayer()->GetGroupMemberInfo() : nullptr;
+            int32 group_id = 0;
+            bool group_leader = false;
+            if (gmi && gmi->group_id) {
+                group_id = gmi->group_id;
+                group_leader = gmi->leader;
+            }
+            client_pt.put("group_id", group_id);
+            client_pt.put("group_leader", group_leader);
+
+            maintree.push_back(std::make_pair("", client_pt));
+        }
+    }
+    MClientList.unlock();
+
+    pt.add_child("Clients", maintree);
 }
 
-void ZoneList::PopulateClientList(http::response<http::string_body>& res) {
-	res.set(http::field::content_type, "application/json; charset=utf-8");
-	boost::property_tree::ptree maintree;
-
-	std::ostringstream oss;
-
-	MClientList.lock();
-	map<string, Client*>::iterator itr;
-	for (itr = client_map.begin(); itr != client_map.end(); itr++) {
-		if (itr->second) {
-			Client* cur = (Client*)itr->second;
-			boost::property_tree::ptree pt;
-			pt.put("character_id", cur->GetCharacterID());
-			pt.put("character_name", cur->GetPlayer() ? cur->GetPlayer()->GetName() : "");
-			pt.put("subtitle", cur->GetPlayer() ? cur->GetPlayer()->appearance.sub_title : "");
-			pt.put("class1", cur->GetPlayer() ? cur->GetPlayer()->GetInfoStruct()->get_class1() : 0);
-			pt.put("class2", cur->GetPlayer() ? cur->GetPlayer()->GetInfoStruct()->get_class2() : 0);
-			pt.put("class3", cur->GetPlayer() ? cur->GetPlayer()->GetInfoStruct()->get_class3() : 0);
-			pt.put("deity", cur->GetPlayer() ? cur->GetPlayer()->GetDeity() : 0);
-			pt.put("tradeskill_class1", cur->GetPlayer() ? cur->GetPlayer()->GetInfoStruct()->get_tradeskill_class1() : 0);
-			pt.put("tradeskill_class2", cur->GetPlayer() ? cur->GetPlayer()->GetInfoStruct()->get_tradeskill_class2() : 0);
-			pt.put("tradeskill_class3", cur->GetPlayer() ? cur->GetPlayer()->GetInfoStruct()->get_tradeskill_class3() : 0);
-			pt.put("race", cur->GetPlayer() ? cur->GetPlayer()->GetInfoStruct()->get_race() : 0);
-			pt.put("level", cur->GetPlayer() ? cur->GetPlayer()->GetInfoStruct()->get_level() : 0);
-			pt.put("effective_level", cur->GetPlayer() ? cur->GetPlayer()->GetInfoStruct()->get_effective_level() : 0);
-			pt.put("tradeskill_level", cur->GetPlayer() ? cur->GetPlayer()->GetInfoStruct()->get_tradeskill_level() : 0);
-			pt.put("account_age", cur->GetPlayer() ? cur->GetPlayer()->GetInfoStruct()->get_account_age_base() : 0);
-			pt.put("account_id", cur->GetAccountID());
-			pt.put("version", cur->GetVersion());
-			pt.put("status", cur->GetAdminStatus());
-			pt.put("guild_id", cur->GetPlayer()->GetGuild() != nullptr ? cur->GetPlayer()->GetGuild()->GetID() : 0);
-			pt.put("flags", cur->GetPlayer() ? cur->GetPlayer()->GetInfoStruct()->get_flags() : 0);
-			pt.put("flags2", cur->GetPlayer() ? cur->GetPlayer()->GetInfoStruct()->get_flags2() : 0);
-			pt.put("adventure_class", cur->GetPlayer() ? cur->GetPlayer()->GetAdventureClass() : 0);
-			pt.put("tradeskill_class", cur->GetPlayer() ? cur->GetPlayer()->GetTradeskillClass() : 0);
-			pt.put("is_zoning", (cur->IsZoning() || !cur->IsReadyForUpdates()));
-
-			bool linkdead = cur->GetPlayer() ? (((cur->GetPlayer()->GetActivityStatus() & ACTIVITY_STATUS_LINKDEAD) > 0)) : false;
-			pt.put("is_linkdead", linkdead);
-			pt.put("in_zone", cur->IsReadyForUpdates());
-			pt.put("zone_id", (cur->GetPlayer() && cur->GetPlayer()->GetZone()) ? cur->GetPlayer()->GetZone()->GetZoneID() : 0);
-			pt.put("instance_id", (cur->GetPlayer() && cur->GetPlayer()->GetZone()) ? cur->GetPlayer()->GetZone()->GetInstanceID() : 0);
-			pt.put("zonename", (cur->GetPlayer() && cur->GetPlayer()->GetZone()) ? cur->GetPlayer()->GetZone()->GetZoneName() : "N/A");
-			pt.put("zonedescription", (cur->GetPlayer() && cur->GetPlayer()->GetZone()) ? cur->GetPlayer()->GetZone()->GetZoneDescription() : "");
-
-			GroupMemberInfo* gmi = cur->GetPlayer()->GetGroupMemberInfo();
-			int32 group_id = 0;
-			bool group_leader = false;
-			if (gmi && gmi->group_id) {
-				group_id = gmi->group_id;
-				group_leader = gmi->leader;
-			}
-			pt.put("group_id", group_id);
-			pt.put("group_leader", group_leader);
-			maintree.push_back(std::make_pair("", pt));
-		}
-	}
-	MClientList.unlock();
-
-	boost::property_tree::ptree result;
-	result.add_child("Clients", maintree);
-	boost::property_tree::write_json(oss, result);
-	std::string json = oss.str();
-	res.body() = json;
-	res.prepare_payload();
-}
 
 void World::Web_worldhandle_setadminstatus(const http::request<http::string_body>& req, http::response<http::string_body>& res) {
 	res.set(http::field::content_type, "application/json; charset=utf-8");
@@ -452,53 +461,54 @@ void World::Web_worldhandle_addpeer(const http::request<http::string_body>& req,
 }
 
 void World::Web_worldhandle_zones(const http::request<http::string_body>& req, http::response<http::string_body>& res) {
-	zone_list.PopulateZoneList(res);
-}
-
-void ZoneList::PopulateZoneList(http::response<http::string_body>& res) {
 	res.set(http::field::content_type, "application/json; charset=utf-8");
-	boost::property_tree::ptree maintree;
-
+	
+	boost::property_tree::ptree pt;
+	zone_list.PopulateZoneList(pt);
+	
 	std::ostringstream oss;
-	list<ZoneServer*>::iterator zone_iter;
-	ZoneServer* tmp = 0;
-	MZoneList.readlock(__FUNCTION__, __LINE__);
-	int zonesListed = 0;
-	for (zone_iter = zlist.begin(); zone_iter != zlist.end(); zone_iter++) {
-		tmp = *zone_iter;
-		boost::property_tree::ptree pt;
-		pt.put("zone_name", tmp->GetZoneName());
-		pt.put("zone_file_name", tmp->GetZoneFile());
-		pt.put("zone_id", tmp->GetZoneID());
-		pt.put("instance_id", tmp->GetInstanceID());
-		pt.put("shutting_down", tmp->isZoneShuttingDown());
-		pt.put("instance_zone", tmp->IsInstanceZone());
-		pt.put("num_players", tmp->NumPlayers());
-		pt.put("city_zone", tmp->IsCityZone());
-		pt.put("safe_x", tmp->GetSafeX());
-		pt.put("safe_y", tmp->GetSafeY());
-		pt.put("safe_z", tmp->GetSafeZ());
-		pt.put("safe_heading", tmp->GetSafeHeading());
-		pt.put("lock_state", tmp->GetZoneLockState());
-		pt.put("min_status", tmp->GetMinimumStatus());
-		pt.put("min_level", tmp->GetMinimumLevel());
-		pt.put("max_level", tmp->GetMaximumLevel());
-		pt.put("min_version", tmp->GetMinimumVersion());
-		pt.put("default_lockout_time", tmp->GetDefaultLockoutTime());
-		pt.put("default_reenter_time", tmp->GetDefaultReenterTime());
-		pt.put("instance_type", (int8)tmp->GetInstanceType());
-		pt.put("always_loaded", tmp->AlwaysLoaded());
-		zonesListed++;
-		maintree.push_back(std::make_pair("", pt));
-	}
-	MZoneList.releasereadlock(__FUNCTION__, __LINE__);
-
-	boost::property_tree::ptree result;
-	result.add_child("Zones", maintree);
-	boost::property_tree::write_json(oss, result);
+	boost::property_tree::write_json(oss, pt);
 	std::string json = oss.str();
 	res.body() = json;
 	res.prepare_payload();
+}
+
+void ZoneList::PopulateZoneList(boost::property_tree::ptree& pt) {
+    boost::property_tree::ptree maintree;
+    list<ZoneServer*>::iterator zone_iter;
+    ZoneServer* tmp = nullptr;
+
+    MZoneList.readlock(__FUNCTION__, __LINE__);
+    for (zone_iter = zlist.begin(); zone_iter != zlist.end(); ++zone_iter) {
+        tmp = *zone_iter;
+        boost::property_tree::ptree zone_pt;
+        zone_pt.put("zone_name", tmp->GetZoneName());
+        zone_pt.put("zone_file_name", tmp->GetZoneFile());
+        zone_pt.put("zone_id", tmp->GetZoneID());
+        zone_pt.put("instance_id", tmp->GetInstanceID());
+        zone_pt.put("shutting_down", tmp->isZoneShuttingDown());
+        zone_pt.put("instance_zone", tmp->IsInstanceZone());
+        zone_pt.put("num_players", tmp->NumPlayers());
+        zone_pt.put("city_zone", tmp->IsCityZone());
+        zone_pt.put("safe_x", tmp->GetSafeX());
+        zone_pt.put("safe_y", tmp->GetSafeY());
+        zone_pt.put("safe_z", tmp->GetSafeZ());
+        zone_pt.put("safe_heading", tmp->GetSafeHeading());
+        zone_pt.put("lock_state", tmp->GetZoneLockState());
+        zone_pt.put("min_status", tmp->GetMinimumStatus());
+        zone_pt.put("min_level", tmp->GetMinimumLevel());
+        zone_pt.put("max_level", tmp->GetMaximumLevel());
+        zone_pt.put("min_version", tmp->GetMinimumVersion());
+        zone_pt.put("default_lockout_time", tmp->GetDefaultLockoutTime());
+        zone_pt.put("default_reenter_time", tmp->GetDefaultReenterTime());
+        zone_pt.put("instance_type", static_cast<int8>(tmp->GetInstanceType()));
+        zone_pt.put("always_loaded", tmp->AlwaysLoaded());
+
+        maintree.push_back(std::make_pair("", zone_pt));
+    }
+    MZoneList.releasereadlock(__FUNCTION__, __LINE__);
+
+    pt.add_child("Zones", maintree);
 }
 
 void World::Web_worldhandle_addcharauth(const http::request<http::string_body>& req, http::response<http::string_body>& res) {
@@ -1290,6 +1300,21 @@ void World::Web_worldhandle_setguildeventfilter(const http::request<http::string
 	}
 	pt.put("success", success);
 	pt.put("guild_id", guildID);
+	std::ostringstream oss;
+	boost::property_tree::write_json(oss, pt);
+	std::string json = oss.str();
+	res.body() = json;
+	res.prepare_payload();
+}
+
+void World::Web_worldhandle_peerstatus(const http::request<http::string_body>& req, http::response<http::string_body>& res) {
+	res.set(http::field::content_type, "application/json; charset=utf-8");
+	
+	boost::property_tree::ptree pt;
+	world.Web_populate_status(pt);	
+	zone_list.PopulateZoneList(pt);
+	zone_list.PopulateClientList(pt);
+	
 	std::ostringstream oss;
 	boost::property_tree::write_json(oss, pt);
 	std::string json = oss.str();
