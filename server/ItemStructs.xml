@@ -1,6 +1,7 @@
 <EQ2Emulator>
 <Struct Name="Substruct_BaseItemDescription" ClientVersion="1" >
-	<Data ElementName="unknownblah" Type="int8" Size="3" />
+    <Data ElementName="creator_flag" Type="int8" Size="1" />
+    <Data ElementName="creator" Type="EQ2_16Bit_String" Size="1" />
     <Data ElementName="unique_id" Type="int32" Size="1" />
     <Data ElementName="icon" Type="int16" Size="1" />
     <Data ElementName="flag_names" Type="EQ2_8Bit_String" Size="1" />
@@ -33,7 +34,8 @@
   </Struct>
 
   <Struct Name="Substruct_BaseItemDescriptionInspect" ClientVersion="373" >
-	<Data ElementName="unknownblah" Type="int8" Size="3" />
+    <Data ElementName="creator_flag" Type="int8" Size="1" />
+    <Data ElementName="creator" Type="EQ2_16Bit_String" Size="1" />
     <Data ElementName="unique_id" Type="int32" Size="1" />
     <Data ElementName="icon" Type="int16" Size="1" />
     <Data ElementName="tier" Type="int8" Size="1" />
@@ -60,7 +62,8 @@
 	<Data ElementName="unknown" Type="int8" Size="9" />
   </Struct>
   <Struct Name="Substruct_BaseItemDescriptionGeneric" ClientVersion="373" >
-	<Data ElementName="unknownblah" Type="int8" Size="3" />
+    <Data ElementName="creator_flag" Type="int8" Size="1" />
+    <Data ElementName="creator" Type="EQ2_16Bit_String" Size="1" />
     <Data ElementName="unique_id" Type="int32" Size="1" />
     <Data ElementName="icon" Type="int16" Size="1" />
     <Data ElementName="tier" Type="int8" Size="1" />
@@ -94,7 +97,8 @@
     </Data>
   </Struct>
 <Struct Name="Substruct_BaseItemDescription" ClientVersion="373" >
-	<Data ElementName="unknownblah" Type="int8" Size="3" />
+    <Data ElementName="creator_flag" Type="int8" Size="1" />
+    <Data ElementName="creator" Type="EQ2_16Bit_String" Size="1" />
     <Data ElementName="unique_id" Type="int32" Size="1" />
     <Data ElementName="icon" Type="int16" Size="1" />
     <Data ElementName="tier" Type="int8" Size="1" />
@@ -128,7 +132,7 @@
     </Data>
   </Struct>
 <Struct Name="Substruct_BaseItemDescription" ClientVersion="546" >
-    <Data ElementName="unknown" Type="int8" Size="1" />
+    <Data ElementName="creator" Type="EQ2_8Bit_String" Size="1" />
     <Data ElementName="unique_id" Type="int32" Size="1" />
     <Data ElementName="broker_item_id" Type="int64" Size="1" />   
     <Data ElementName="icon" Type="int16" Size="1" />

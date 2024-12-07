@@ -1806,8 +1806,8 @@ void Item::serialize(PacketStruct* packet, bool show_name, Player* player, int16
 	if (!client)
 		return;
 	if(creator.length() > 0){
-		packet->setSubstructSubstructDataByName("header", "info_header", "creator_flag", 1);
-		packet->setSubstructSubstructDataByName("header", "info_header", "creator", creator.c_str());
+		packet->setSubstructSubstructDataByName("header", "info", "creator_flag", 1);
+		packet->setSubstructSubstructDataByName("header", "info", "creator", creator.c_str());
 	}
 	if(show_name)
 		packet->setSubstructSubstructDataByName("header", "info_header", "show_name", show_name);

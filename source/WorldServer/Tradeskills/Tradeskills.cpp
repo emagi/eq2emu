@@ -487,9 +487,11 @@ void TradeskillMgr::StopCrafting(Client* client, bool lock) {
 			item->details.count = qty;
 			// use CHANNEL_COLOR_CHAT_RELATIONSHIP as that is the same value (4) as it is in a log for this message
 			client->Message(CHANNEL_COLOR_CHAT_RELATIONSHIP, "You created %s.", item->CreateItemLink(client->GetVersion()).c_str());
+			item->creator = std::string(client->GetPlayer()->GetName());
 			client->AddItem(item);
 			if(byproduct_itemid) {
 				Item* byproductItem = new Item(master_item_list.GetItem(byproduct_itemid));
+				byproductItem->creator = std::string(client->GetPlayer()->GetName());
 				byproductItem->details.count = byproduct_qty;
 				client->Message(CHANNEL_COLOR_CHAT_RELATIONSHIP, "You received %s as a byproduct.", byproductItem->CreateItemLink(client->GetVersion()).c_str());
 				client->AddItem(byproductItem);
