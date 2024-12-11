@@ -533,7 +533,7 @@ public:
 	inline bool		AlwaysLoaded()	{ return always_loaded; }
 	void			SetCityZone(bool val) { cityzone = val; }
 	void			SetAlwaysLoaded(bool val) { always_loaded = val; }
-	inline int32&	NumPlayers()	{ return pNumPlayers; }
+	int32			NumPlayers()	{ return pNumPlayers; }
 	void			SetMinimumStatus(sint16 minStatus) { minimumStatus = minStatus; }
 	sint16			GetMinimumStatus() { return minimumStatus; }
 	void			SetMinimumLevel(int16 minLevel) { minimumLevel = minLevel; }
