@@ -936,7 +936,7 @@ private:
 	bool	always_loaded;
 	bool	isInstance;	
 	
-	int32	pNumPlayers;
+	std::atomic<int32> pNumPlayers;
 	sint16	minimumStatus;
 	int16	minimumLevel;
 	int16	maximumLevel;

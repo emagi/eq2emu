@@ -3496,9 +3496,12 @@ GroundSpawn* ZoneServer::AddGroundSpawn(SpawnLocation* spawnlocation, SpawnEntry
 }
 
 void ZoneServer::AddSpawn(Spawn* spawn) {
-	if(!spawn->IsPlayer()) // we already set it on loadCharacter
-		spawn->SetZone(this);
-
+	if(!spawn->IsPlayer()) {
+		spawn->SetZone(this); // we already set it on loadCharacter
+	}
+	else {
+		pNumPlayers++;
+	}
 	MIgnoredWidgets.lock_shared();
 	std::map<int32, bool>::iterator itr;
 	for(itr = ignored_widgets.begin(); itr != ignored_widgets.end(); itr++) {
@@ -4654,6 +4657,10 @@ void ZoneServer::RemoveFromRangeMap(Client* client){
 
 void ZoneServer::RemoveSpawn(Spawn* spawn, bool delete_spawn, bool respawn, bool lock, bool erase_from_spawn_list, bool lock_spell_process) 
 {
+	if(spawn->IsPlayer()) {
+		if(pNumPlayers > 0)
+			pNumPlayers--;
+	}
 	LogWrite(ZONE__DEBUG, 3, "Zone", "Processing RemoveSpawn function for %s (%i)...", spawn->GetName(),spawn->GetID());
 
 	PacketStruct* packet = 0;

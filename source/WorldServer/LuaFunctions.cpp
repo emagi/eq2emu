@@ -14235,11 +14235,11 @@ int EQ2Emu_lua_GetSpellInitialTarget(lua_State* state) {
 	lua_interface->ResetFunctionStack(state);
 	if (spell) {
 		if(!spell->caster) {
-			lua_interface->LogError("%s: LUA GetSpellTarget command error, caster does not exist.", lua_interface->GetScriptName(state));
+			lua_interface->LogError("%s: LUA GetSpellInitialTarget command error, caster does not exist.", lua_interface->GetScriptName(state));
 			return 0;
 		}
 		if(!spell->caster->GetZone()) {
-			lua_interface->LogError("%s: LUA GetSpellTarget command error, zone does not exist.", lua_interface->GetScriptName(state));
+			lua_interface->LogError("%s: LUA GetSpellInitialTarget command error, zone does not exist.", lua_interface->GetScriptName(state));
 			return 0;
 		}
 		Spawn* spawn = spell->caster->GetZone()->GetSpawnByID(spell->initial_target);
@@ -14248,7 +14248,7 @@ int EQ2Emu_lua_GetSpellInitialTarget(lua_State* state) {
 			return 1;
 		}
 		else {
-			lua_interface->LogError("%s: LUA GetSpellTarget command error, could not find initial target %u to map to spawn.", lua_interface->GetScriptName(state), spell->initial_target);
+			lua_interface->LogError("%s: LUA GetSpellInitialTarget command error, could not find initial target %u to map to spawn.", lua_interface->GetScriptName(state), spell->initial_target);
 		}
 	}
 	return 0;
