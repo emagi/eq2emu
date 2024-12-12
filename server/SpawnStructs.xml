@@ -474,9 +474,9 @@
 <Data ElementName="temporary_scale" Type="float" Size="1" /> <!-- 310 -->
 <Data ElementName="name" Type="char" Size="64" /> <!-- 314 -->
 <Data ElementName="last_name" Type="char" Size="64" /> <!-- 378 -->
-<Data ElementName="name_suffix" Type="char" Size="64" /> <!-- 442 -->
-<Data ElementName="name_prefix" Type="char" Size="64" /> <!-- 506 -->
-<Data ElementName="unknown31" Type="char" Size="64" /> <!-- 570 -->
+<Data ElementName="prefix" Type="char" Size="64" /> <!-- 442 -->
+<Data ElementName="suffix" Type="char" Size="64" /> <!-- 506 -->
+<Data ElementName="guild" Type="char" Size="64" /> <!-- 570 -->
 <Data ElementName="second_suffix" Type="char" Size="64" /> <!-- 634 -->
 <Data ElementName="persistent_spell_visuals" Type="int16" Size="8" /> <!-- 698 -->
 <Data ElementName="persistent_spell_levels" Type="int8" Size="8" /> <!-- 714 -->
@@ -565,9 +565,9 @@
 <Data ElementName="temporary_scale" Type="float" Size="1" /> <!-- 310 -->
 <Data ElementName="name" Type="char" Size="64" /> <!-- 314 -->
 <Data ElementName="last_name" Type="char" Size="64" /> <!-- 378 -->
-<Data ElementName="name_suffix" Type="char" Size="64" /> <!-- 442 -->
-<Data ElementName="name_prefix" Type="char" Size="64" /> <!-- 506 -->
-<Data ElementName="unknown31" Type="char" Size="64" /> <!-- 570 -->
+<Data ElementName="prefix" Type="char" Size="64" /> <!-- 442 -->
+<Data ElementName="suffix" Type="char" Size="64" /> <!-- 506 -->
+<Data ElementName="guild" Type="char" Size="64" /> <!-- 570 -->
 <Data ElementName="second_suffix" Type="char" Size="64" /> <!-- 634 -->
 <Data ElementName="persistent_spell_visuals" Type="int16" Size="8" /> <!-- 698 -->
 <Data ElementName="persistent_spell_levels" Type="int8" Size="8" /> <!-- 714 -->
@@ -683,9 +683,9 @@
 <Data ElementName="temporary_scale" Type="float" Size="1" /> <!-- 667 -->
 <Data ElementName="name" Type="char" Size="64" /> <!-- 671 -->
 <Data ElementName="last_name" Type="char" Size="64" /> <!-- 735 -->
-<Data ElementName="name_suffix" Type="char" Size="64" /> <!-- 799 -->
-<Data ElementName="name_prefix" Type="char" Size="64" /> <!-- 863 -->
-<Data ElementName="unknown31" Type="char" Size="64" /> <!--927-->
+<Data ElementName="prefix" Type="char" Size="64" /> <!-- 863 -->
+<Data ElementName="suffix" Type="char" Size="64" /> <!-- 799 -->
+<Data ElementName="guild" Type="char" Size="64" /> <!--927-->
 <Data ElementName="second_suffix" Type="char" Size="64" /> <!-- 991 -->
 <Data ElementName="persistent_spell_visuals" Type="int16" Size="8" /> <!-- 1055 -->
 <Data ElementName="persistent_spell_levels" Type="int8" Size="8" /> <!-- 1071 -->
@@ -778,9 +778,9 @@
 <Data ElementName="temporary_scale" Type="float" Size="1" /> <!-- 667 -->
 <Data ElementName="name" Type="char" Size="64" /> <!-- 671 -->
 <Data ElementName="last_name" Type="char" Size="64" /> <!-- 735 -->
-<Data ElementName="name_suffix" Type="char" Size="64" /> <!-- 799 -->
-<Data ElementName="name_prefix" Type="char" Size="64" /> <!-- 863 -->
-<Data ElementName="unknown31" Type="char" Size="64" /> <!--927-->
+<Data ElementName="prefix" Type="char" Size="64" /> <!-- 863 -->
+<Data ElementName="suffix" Type="char" Size="64" /> <!-- 799 -->
+<Data ElementName="guild" Type="char" Size="64" /> <!--927-->
 <Data ElementName="second_suffix" Type="char" Size="64" /> <!-- 991 -->
 <Data ElementName="persistent_spell_visuals" Type="int16" Size="8" /> <!-- 1055 -->
 <Data ElementName="persistent_spell_levels" Type="int8" Size="8" /> <!-- 1071 -->
