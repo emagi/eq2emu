@@ -9346,8 +9346,6 @@ void Commands::Command_TitleSetSuffix(Client* client, Seperator* sep)
 
 		database.SaveCharSuffixIndex(index, client->GetCharacterID());
 		client->SendTitleUpdate();
-		client->GetPlayer()->info_changed = true;
-		client->GetPlayer()->GetZone()->AddChangedSpawn(client->GetPlayer());
 	}
 }
 

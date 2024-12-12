@@ -470,25 +470,18 @@ void Spawn::InitializeFooterPacketData(Player* player, PacketStruct* footer) {
 
 	if (strlen(appearance.name) < 1)
 		strncpy(appearance.name,to_string(GetID()).c_str(),128);
-	if(footer->GetVersion() > 561) {
-		footer->setMediumStringByName("name", appearance.name);
-		footer->setMediumStringByName("guild", appearance.sub_title);
-		footer->setMediumStringByName("prefix", appearance.prefix_title);
-		footer->setMediumStringByName("suffix", appearance.suffix_title);
-		footer->setMediumStringByName("last_name", appearance.last_name);
-		if (appearance.attackable == 0 && GetLevel() > 0)
-			footer->setDataByName("spawn_type", 1);
-		else if (appearance.attackable == 0)
-			footer->setDataByName("spawn_type", 6);
-		else
-			footer->setDataByName("spawn_type", 3);
-	}
-	else {
-		footer->setDataByName("guild", appearance.sub_title);
-		footer->setDataByName("prefix", appearance.prefix_title);
-		footer->setDataByName("suffix", appearance.suffix_title);
-		footer->setDataByName("last_name", appearance.last_name);
-	}
+
+	footer->setMediumStringByName("name", appearance.name);
+	footer->setMediumStringByName("guild", appearance.sub_title);
+	footer->setMediumStringByName("prefix", appearance.prefix_title);
+	footer->setMediumStringByName("suffix", appearance.suffix_title);
+	footer->setMediumStringByName("last_name", appearance.last_name);
+	if (appearance.attackable == 0 && GetLevel() > 0)
+		footer->setDataByName("spawn_type", 1);
+	else if (appearance.attackable == 0)
+		footer->setDataByName("spawn_type", 6);
+	else
+		footer->setDataByName("spawn_type", 3);
 }
 
 EQ2Packet* Spawn::spawn_serialize(Player* player, int16 version, int16 offset, int32 value, int16 offset2, int16 offset3, int16 offset4, int32 value2) {
@@ -539,7 +532,6 @@ EQ2Packet* Spawn::spawn_serialize(Player* player, int16 version, int16 offset, i
 
 	pos_struct->ResetData();
 	InitializePosPacketData(player, pos_struct);
-	
 	if (version <= 283) {
 		if (offset == 777) {
 			info_struct->setDataByName("name", "This is a really long name\n");
@@ -2395,11 +2387,6 @@ void Spawn::InitializeInfoPacketData(Player* spawn, PacketStruct* packet) {
 	bool spawnHiddenFromClient = false;
 
 	int8 classicFlags = 0;
-	
-	if(version <= 561 && IsPlayer()) {
-		InitializeFooterPacketData(spawn, packet);
-	}
-	
 	// radius of 0 is always seen, -1 is never seen (unless items/spells override), larger than 0 is a defined radius to restrict visibility
 	sint32 radius = rule_manager.GetZoneRule(GetZoneID(), R_PVP, InvisPlayerDiscoveryRange)->GetSInt32();
 	if (radius != 0 && (Spawn*)spawn != this && this->IsPlayer() && !spawn->CanSeeInvis((Entity*)this))
