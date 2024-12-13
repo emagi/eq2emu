@@ -2346,6 +2346,22 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 	    case COMMAND_USE_ITEM: {
 			if (sep && sep->arg[0] && sep->IsNumber(0)) {
 				int32 item_index = atoul(sep->arg[0]);
+				
+			if(client->GetVersion() <= 561) {
+				if(item_index <= 255) {
+					item_index = 255 - item_index;
+				}
+				else {
+					if(item_index == 256) { // first "new" item to inventory is assigned index 256 by client
+						item_index = client->GetPlayer()->item_list.GetFirstNewItem();
+					}
+					else {
+						// otherwise the slot has to be mapped out depending on the amount of new items + index sent in
+						item_index = client->GetPlayer()->item_list.GetNewItemByIndex((int16)item_index - 255);
+					}
+				}
+			}
+			
 				Item* item = player->item_list.GetItemFromIndex(item_index);
 				client->UseItem(item, client->GetPlayer()->GetTarget() ? client->GetPlayer()->GetTarget() : client->GetPlayer());
 			}
