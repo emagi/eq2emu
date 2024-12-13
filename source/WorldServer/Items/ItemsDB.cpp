@@ -1377,7 +1377,7 @@ void WorldDatabase::LoadCharacterItemList(int32 account_id, int32 char_id, Playe
 					ret = player->GetAppearanceEquipmentList()->AddItem(item->details.slot_id, item);
 				}
 				else {
-					if (version < 1209 && item->details.count > 255) {
+					if (version < 1209 && item->details.count > 255 && item->stack_count > 1) {
 						int stacks = item->details.count / 255;
 						int8 remainder = item->details.count % 255;
 						item->details.count = remainder;
