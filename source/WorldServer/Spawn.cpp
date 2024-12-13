@@ -2610,6 +2610,7 @@ void Spawn::InitializeInfoPacketData(Player* spawn, PacketStruct* packet) {
 		//Mount flag check
 		if (entity->GetMount() > 0) {
 			vis_flag += INFO_VIS_FLAG_MOUNTED;
+			classicFlags += INFO_CLASSIC_FLAG_NOLOOK; // serves as dual purpose for NPC's
 		}
 		
 		//Hide hood check
