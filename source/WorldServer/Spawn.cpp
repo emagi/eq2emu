@@ -399,9 +399,9 @@ void Spawn::InitializeVisPacketData(Player* player, PacketStruct* vis_packet) {
 			vis_flags += 4;
 	}
 
-	if (version <= 561 && (vis_flags > 1 || appearance.display_hand_icon > 0) && MeetsSpawnAccessRequirements(player)) //interactable
+	if (version < 561 && (vis_flags > 1 || appearance.display_hand_icon > 0) && MeetsSpawnAccessRequirements(player)) //interactable
 		vis_flags = 1;
-	else if(version > 561 && (vis_flags > 1 || appearance.display_hand_icon > 0) && MeetsSpawnAccessRequirements(player))
+	else if(version >= 561 && (vis_flags > 1 || appearance.display_hand_icon > 0) && MeetsSpawnAccessRequirements(player))
 		vis_flags = vis_flags;
 	else if((req_quests_override & 256) > 0) {
 		if(vis_flags > 1)
