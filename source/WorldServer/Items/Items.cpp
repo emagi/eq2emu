@@ -3378,8 +3378,13 @@ void PlayerItemList::DestroyItem(int16 index){
 		if(items.count(item->details.inv_slot_id) > 0 && items[item->details.inv_slot_id][item->details.appearance_type].count(item->details.slot_id) > 0)
 			items[item->details.inv_slot_id][item->details.appearance_type].erase(item->details.slot_id);
 		indexed_items[index] = 0;
-		
+
+		vector<Item*>::iterator itr = std::find(overflowItems.begin(), overflowItems.end(), item);
+		if(itr != overflowItems.end()) {
+			overflowItems.erase(itr);  // avoid a dead ptr
+		}
 		lua_interface->SetLuaUserDataStale(item);
+		
 		safe_delete(item);
 	}
 	MPlayerItems.releasewritelock(__FUNCTION__, __LINE__);

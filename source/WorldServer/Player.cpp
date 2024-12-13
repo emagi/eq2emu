@@ -2146,9 +2146,14 @@ void Player::UpdateInventory(int32 bag_id) {
 
 }
 EQ2Packet* Player::MoveInventoryItem(sint32 to_bag_id, int16 from_index, int8 new_slot, int8 charges, int8 appearance_type, bool* item_deleted, int16 version) {
+
 	Item* item = item_list.GetItemFromIndex(from_index);
+	bool isOverflow = ((item != nullptr) && (item->details.inv_slot_id == -2));
 	int8 result = item_list.MoveItem(to_bag_id, from_index, new_slot, appearance_type, charges);
 	if (result == 1) {
+		if(isOverflow && item->details.inv_slot_id != -2) {
+			item_list.RemoveOverflowItem(item);
+		}
 		if (item) {
 			if (!item->needs_deletion)
 				item->save_needed = true;
