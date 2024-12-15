@@ -1619,8 +1619,12 @@ void LuaInterface::DeletePendingSpells(bool all) {
 				tmp_deletes.push_back(itr->first);
 		}
 		LuaSpell* spell = 0;
+		
 		for (del_itr = tmp_deletes.begin(); del_itr != tmp_deletes.end(); del_itr++) {
 			spell = *del_itr;
+			
+			SetLuaUserDataStale(spell);
+			RemoveCurrentSpell(spell->state, spell, false);
 			
 			if(!all) {
 				// rely on targets the spell->caster could be corrupt
@@ -1654,9 +1658,6 @@ void LuaInterface::DeletePendingSpells(bool all) {
 				RemoveCustomSpell(spell->spell->GetSpellID());
 				safe_delete(spell->spell);
 			}
-
-			SetLuaUserDataStale(spell);
-			RemoveCurrentSpell(spell->state, spell, false);
 		}
 	}
 	MSpellDelete.unlock();
