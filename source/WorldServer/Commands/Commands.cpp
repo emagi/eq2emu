@@ -7510,7 +7510,7 @@ void Commands::Command_Location(Client* client)
 	client->SimpleMessage(CHANNEL_COLOR_YELLOW, "/location add [location id]");
 	client->SimpleMessage(CHANNEL_COLOR_YELLOW, "/location remove [location point id]");
 	client->SimpleMessage(CHANNEL_COLOR_YELLOW, "/location delete [location id]");
-	client->SimpleMessage(CHANNEL_COLOR_YELLOW, "/location list [locations|points] [location id if points used]");
+	client->SimpleMessage(CHANNEL_COLOR_YELLOW, "/location list [locations|points|respawns] [location id if points used]");
 }
 
 /* 
@@ -7603,16 +7603,18 @@ void Commands::Command_LocationList(Client* client, Seperator* sep)
 
 		if (strncmp(option, "locations", strlen(option)) == 0)
 			database.ListLocations(client);
+		else if (strncmp(option, "respawns", strlen(option)) == 0)
+			client->GetPlayer()->GetZone()->SendRespawnTimerList(client);
 		else if (strncmp(option, "points", strlen(option)) == 0 && sep->arg[1] && sep->IsNumber(1)) 
 		{
 			int32 location_id = atoul(sep->arg[1]);
 			database.ListLocationPoints(client, location_id);
 		}
 		else
-			client->SimpleMessage(CHANNEL_COLOR_YELLOW, "Useage: /location list [locations|points] [location ID if points used]");
+			client->SimpleMessage(CHANNEL_COLOR_YELLOW, "Useage: /location list [locations|points|respawns] [location ID if points used]");
 	}
 	else
-		client->SimpleMessage(CHANNEL_COLOR_YELLOW, "Useage: /location list [locations|points] [location ID if points used]");
+		client->SimpleMessage(CHANNEL_COLOR_YELLOW, "Useage: /location list [locations|points|respawns] [location ID if points used]");
 }
 
 /* 
@@ -10990,6 +10992,9 @@ void Commands::Command_Test(Client* client, EQ2_16BitString* command_parms) {
 			if(guild)
 				guild->SendGuildMemberList();
 		
+		}
+		else if(atoi(sep->arg[0]) == 38) {
+			client->GetPlayer()->GetZone()->SendFlightPathsPackets(client);
 		}
 	}
 	else {

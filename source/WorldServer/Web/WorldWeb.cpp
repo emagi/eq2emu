@@ -503,6 +503,7 @@ void ZoneList::PopulateZoneList(boost::property_tree::ptree& pt) {
         zone_pt.put("default_reenter_time", tmp->GetDefaultReenterTime());
         zone_pt.put("instance_type", static_cast<int8>(tmp->GetInstanceType()));
         zone_pt.put("always_loaded", tmp->AlwaysLoaded());
+        zone_pt.put("duplicated_zone", tmp->DuplicatedZone());
 
         maintree.push_back(std::make_pair("", zone_pt));
     }
@@ -627,7 +628,7 @@ void World::Web_worldhandle_startzone(const http::request<http::string_body>& re
 	int32 instanceId = 0;
 	int32 zoneId = 0;
 	std::string zoneName("");
-	bool alwaysLoaded = false;
+	bool alwaysLoaded = false, duplicatedZone = false;
 	int32 minLevel = 0, maxLevel = 0, avgLevel = 0, firstLevel = 0;
 	if (auto inst_id = json_tree.get_optional<int32>("instance_id")) {
 		instanceId = inst_id.get();
@@ -643,6 +644,10 @@ void World::Web_worldhandle_startzone(const http::request<http::string_body>& re
 
 	if (auto always_loaded = json_tree.get_optional<bool>("always_loaded")) {
 		alwaysLoaded = always_loaded.get();
+	}
+	
+	if (auto duplicated_zone = json_tree.get_optional<bool>("duplicated_zone")) {
+		duplicatedZone = duplicated_zone.get();
 	}
 	
 	if (auto level = json_tree.get_optional<int32>("min_level")) {
@@ -665,8 +670,12 @@ void World::Web_worldhandle_startzone(const http::request<http::string_body>& re
 	ZoneChangeDetails details;
 	if (instanceId || zoneId || zoneName.length() > 0) {
 		if (!instanceId) {
-			if ((zone_list.GetZone(&details, zoneId, zoneName, true, false, false, false, false, alwaysLoaded)))
+			if ((zone_list.GetZone(&details, zoneId, zoneName, true, false, false, false, false, alwaysLoaded, false, duplicatedZone))) {
+				if(details.zonePtr) {
+					((ZoneServer*)details.zonePtr)->SetDuplicatedZone(duplicatedZone);
+				}
 				success = 1;
+			}
 		}
 		else {
 			if ((zone_list.GetZoneByInstance(&details, instanceId, zoneId, true, false, false, false, minLevel, maxLevel, avgLevel, firstLevel)))

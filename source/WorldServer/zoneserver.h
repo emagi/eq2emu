@@ -531,8 +531,10 @@ public:
 	
 	inline bool		IsCityZone()	{ return cityzone; }
 	inline bool		AlwaysLoaded()	{ return always_loaded; }
+	inline bool		DuplicatedZone()	{ return duplicated_zone; }
 	void			SetCityZone(bool val) { cityzone = val; }
 	void			SetAlwaysLoaded(bool val) { always_loaded = val; }
+	void			SetDuplicatedZone(bool val) { duplicated_zone = val; }
 	int32			NumPlayers()	{ return pNumPlayers; }
 	void			SetMinimumStatus(sint16 minStatus) { minimumStatus = minStatus; }
 	sint16			GetMinimumStatus() { return minimumStatus; }
@@ -732,6 +734,8 @@ public:
 	
 	void	AddRespawn(Spawn* spawn);
 	void	AddRespawn(int32 locationID, int32 respawnTime);
+	
+	void	SendRespawnTimerList(Client* client);
 private:
 #ifndef WIN32
 	pthread_t ZoneThread;
@@ -934,6 +938,7 @@ private:
 	std::atomic<bool> is_initialized;
 	bool	cityzone;
 	bool	always_loaded;
+	bool	duplicated_zone;
 	bool	isInstance;	
 	
 	std::atomic<int32> pNumPlayers;

@@ -6138,11 +6138,16 @@ map<int32,int32>* WorldDatabase::GetPersistedSpawns(int32 zone_id, int8 type)
 
 	LogWrite(SPAWN__TRACE, 1, "Spawn", "Enter %s", __FUNCTION__);
 
-	LogWrite(INSTANCE__DEBUG, 0, "Instance", "Loading persisted spawns for zone_id: %u, spawn_type: %u", zone_id, type);
+	LogWrite(ZONE__DEBUG, 0, "Zone", "Loading persisted spawns for zone_id: %u, spawn_type: %u", zone_id, type);
 
 	if( !database_new.Select(&result, "SELECT spawn_location_entry_id, respawn_time FROM persisted_respawns WHERE zone_id = %u AND spawn_type = %u", zone_id, type) )
 	{
-		LogWrite(INSTANCE__ERROR, 0, "Instance", "Error in GetInstanceRemovedSpawns() '%s': %i", database_new.GetErrorMsg(), database_new.GetError());
+		if(database_new.GetError()) {
+			LogWrite(ZONE__ERROR, 0, "Zone", "Error in GetPersistedSpawns() '%s': %i", database_new.GetErrorMsg(), database_new.GetError());
+		}
+		else {
+			
+		}
 		return ret;
 	}
 	else
@@ -6161,13 +6166,13 @@ map<int32,int32>* WorldDatabase::GetPersistedSpawns(int32 zone_id, int8 type)
 				*/
 				int32 respawntime = result.GetInt32Str("respawn_time"); 
 
-				LogWrite(INSTANCE__DEBUG, 5, "Instance", "Found persisted spawn point: %u, respawn time: %u", spawn_location_entry_id, respawntime);
+				LogWrite(ZONE__ERROR, 5, "Zone", "Found persisted spawn point: %u, respawn time: %u", spawn_location_entry_id, respawntime);
 
 				ret->insert(make_pair(spawn_location_entry_id, respawntime));
 			}
 		}
 		else
-			LogWrite(INSTANCE__DEBUG, 0, "Instance", "No persisted spawns found for zone_id: %u, spawn_type: %u", zone_id, type);
+			LogWrite(ZONE__ERROR, 0, "Zone", "No persisted spawns found for zone_id: %u, spawn_type: %u", zone_id, type);
 
 	}
 

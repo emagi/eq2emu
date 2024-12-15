@@ -183,6 +183,8 @@ ZoneServer::ZoneServer(const char* name) {
 	groupraidFirstLevel = 0;
 	
 	is_initialized = false;
+	isInstance = false;
+	duplicated_zone = false;
 }
 
 typedef map <int32, bool> ChangedSpawnMapType;
@@ -2045,6 +2047,15 @@ void ZoneServer::CheckRespawns(){
 	}
 }
 
+void ZoneServer::SendRespawnTimerList(Client* client){	
+	MutexMap<int32, int32>::iterator itr = respawn_timers.begin();
+		client->Message(CHANNEL_FACTION, "Respawn Timers:");
+		client->Message(CHANNEL_FACTION, "Location ID : Time Remaining");
+	while(itr.Next()){
+		client->Message(CHANNEL_FACTION, "%u: %i seconds.", itr->first, (itr->second - Timer::GetCurrentTime2())/1000);
+	}
+}
+
 void ZoneServer::CheckSpawnExpireTimers() {
 	MutexMap<int32, int32>::iterator itr = spawn_expire_timers.begin();
 	while (itr.Next()) {
@@ -2516,12 +2527,18 @@ Spawn* ZoneServer::ProcessSpawnLocation(SpawnLocation* spawnlocation, map<int32,
 			continue;
 		
 		
-		int32 spawnTime = 0;
+		int32 spawnTime = 1;
 		
-		/*if(spawnlocation->entities[i]->spawn_type == SPAWN_ENTRY_TYPE_NPC)
+		if(spawnlocation->entities[i]->spawn_type == SPAWN_ENTRY_TYPE_NPC)
 			spawnTime = database.CheckSpawnRemoveInfo(instNPCs,spawnlocation->entities[i]->spawn_location_id);
 		else if(spawnlocation->entities[i]->spawn_type == SPAWN_ENTRY_TYPE_OBJECT)
 			spawnTime = database.CheckSpawnRemoveInfo(instObjSpawns,spawnlocation->entities[i]->spawn_location_id);
+		else if(spawnlocation->entities[i]->spawn_type == SPAWN_ENTRY_TYPE_WIDGET)
+			spawnTime = database.CheckSpawnRemoveInfo(instWidgetSpawns,spawnlocation->entities[i]->spawn_location_id);
+		else if(spawnlocation->entities[i]->spawn_type == SPAWN_ENTRY_TYPE_SIGN)
+			spawnTime = database.CheckSpawnRemoveInfo(instSignSpawns,spawnlocation->entities[i]->spawn_location_id);
+		else if(spawnlocation->entities[i]->spawn_type == SPAWN_ENTRY_TYPE_GROUNDSPAWN)
+			spawnTime = database.CheckSpawnRemoveInfo(instGroundSpawns,spawnlocation->entities[i]->spawn_location_id);
 		
 		if(spawnTime == 0) { // don't respawn
 			return nullptr;
@@ -2529,7 +2546,7 @@ Spawn* ZoneServer::ProcessSpawnLocation(SpawnLocation* spawnlocation, map<int32,
 		else if(spawnTime > 1) { // if not 1, respawn after time
 			AddRespawn(spawnlocation->entities[i]->spawn_location_id, spawnTime);
 			return nullptr;
-		}*/
+		}
 		
 		if (spawnlocation->conditional > 0) {
 			if ((spawnlocation->conditional & SPAWN_CONDITIONAL_DAY) == SPAWN_CONDITIONAL_DAY && isDusk)
@@ -8722,12 +8739,20 @@ void ZoneServer::SendFlightPathsPackets(Client* client) {
 				vector<FlightPathLocation*>::iterator itr2;
 				int32 j = 0;
 				for (itr2 = m_flightPathRoutes[itr->first].begin(); itr2 != m_flightPathRoutes[itr->first].end(); itr2++, j++) {
-					packet->setSubArrayDataByName("x", (*itr2)->X, i, j);
-					packet->setSubArrayDataByName("y", (*itr2)->Y, i, j);
-					packet->setSubArrayDataByName("z", (*itr2)->Z, i, j);
+					if(client->GetVersion() <= 561) {
+						std::string fieldNum = std::to_string(i) + "_" + std::to_string(j);
+						packet->setDataByName(("x" + fieldNum).c_str(), (*itr2)->X);
+						packet->setDataByName(("y" + fieldNum).c_str(), (*itr2)->Y);
+						packet->setDataByName(("z" + fieldNum).c_str(), (*itr2)->Z);
+					}
+					else {
+						packet->setSubArrayDataByName("x", (*itr2)->X, i, j);
+						packet->setSubArrayDataByName("y", (*itr2)->Y, i, j);
+						packet->setSubArrayDataByName("z", (*itr2)->Z, i, j);
+					}
 				}
 			}
-
+			packet->PrintPacket();
 			client->QueuePacket(packet->serialize());
 			safe_delete(packet);
 		}

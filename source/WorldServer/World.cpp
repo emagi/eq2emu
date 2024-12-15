@@ -686,10 +686,11 @@ void ZoneList::Remove(ZoneServer* zone) {
 	}
 }
 
-bool ZoneList::GetZone(ZoneChangeDetails* zone_details, int32 opt_zone_id, std::string opt_zone_name, bool loadZone, bool skip_existing_zones, bool increment_zone, bool check_peers, bool check_instances, bool only_always_loaded, bool skip_self, int32 minLevel, int32 maxLevel, int32 avgLevel, int32 firstLevel) {
+bool ZoneList::GetZone(ZoneChangeDetails* zone_details, int32 opt_zone_id, std::string opt_zone_name, bool loadZone, bool skip_existing_zones, bool increment_zone, bool check_peers, bool check_instances, bool only_always_loaded, bool skip_self, bool duplicated_zone, int32 minLevel, int32 maxLevel, int32 avgLevel, int32 firstLevel) {
 	list<ZoneServer*>::iterator zone_iter;
 	ZoneServer* tmp = 0;
 	ZoneServer* ret = 0;
+	bool hadFullZone = false;
 	if(!skip_existing_zones) {
 		if(!skip_self) {
 			MZoneList.readlock(__FUNCTION__, __LINE__);
@@ -706,6 +707,9 @@ bool ZoneList::GetZone(ZoneChangeDetails* zone_details, int32 opt_zone_id, std::
 						}
 						break;
 					}
+					else if(!tmp->IsCityZone()) {
+						hadFullZone = true;
+					}
 				}
 			}
 			tmp = nullptr;
@@ -715,8 +719,15 @@ bool ZoneList::GetZone(ZoneChangeDetails* zone_details, int32 opt_zone_id, std::
 		if(!ret && check_peers) {
 			std::string peerId = peer_manager.getZonePeerId(opt_zone_name, opt_zone_id, 0, zone_details, only_always_loaded);
 			if(peerId.size() > 0) {
-				LogWrite(WORLD__ERROR, 0, "World", "Peer %s is providing zone %s for zone %s id %u", peerId.c_str(), zone_details->zoneName.c_str(), opt_zone_name.c_str(), opt_zone_id);
-				return true;
+				
+				if(zone_details->instanceType == 0 && zone_details->numPlayers >= 30 && !zone_details->isCityZone) {
+					LogWrite(WORLD__WARNING, 0, "World", "Peer %s is providing zone %s for zone %s id %u, however the zone is full, omitting result.", peerId.c_str(), zone_details->zoneName.c_str(), opt_zone_name.c_str(), opt_zone_id);
+					hadFullZone = true;
+				}
+				else {
+					LogWrite(WORLD__INFO, 0, "World", "Peer %s is providing zone %s for zone %s id %u", peerId.c_str(), zone_details->zoneName.c_str(), opt_zone_name.c_str(), opt_zone_id);
+					return true;
+				}
 			}
 		}
 	}
@@ -738,6 +749,7 @@ bool ZoneList::GetZone(ZoneChangeDetails* zone_details, int32 opt_zone_id, std::
 				root.put("zone_name", opt_zone_name);
 				root.put("zone_id", std::to_string(opt_zone_id));
 				root.put("always_loaded", only_always_loaded);
+				root.put("duplicated_zone", hadFullZone);
 				
 				root.put("min_level", minLevel);
 				root.put("max_level", maxLevel);
@@ -746,19 +758,20 @@ bool ZoneList::GetZone(ZoneChangeDetails* zone_details, int32 opt_zone_id, std::
 				std::ostringstream jsonStream;
 				boost::property_tree::write_json(jsonStream, root);
 				std::string jsonPayload = jsonStream.str();
-				LogWrite(PEERING__DEBUG, 0, "Peering", "%s: Notify Peer %s StartZone %s (%u), always loaded %u", __FUNCTION__, peer->id.c_str(), opt_zone_name.c_str(), opt_zone_id, only_always_loaded);
+				LogWrite(PEERING__DEBUG, 0, "Peering", "%s: Notify Peer %s StartZone %s (%u), always loaded %u, had full zone %%u", __FUNCTION__, peer->id.c_str(), opt_zone_name.c_str(), opt_zone_id, only_always_loaded, hadFullZone);
 				peer_https_pool.sendPostRequestToPeerAsync(peer->id, peer->webAddr, std::to_string(peer->webPort), "/startzone", jsonPayload);
 				peer_manager.setZonePeerData(zone_details, peer->id, peer->worldAddr, peer->internalWorldAddr, peer->worldPort, peer->webAddr, peer->webPort, std::string(tmp->GetZoneFile()), std::string(tmp->GetZoneName()), tmp->GetZoneID(), 
 										 tmp->GetInstanceID(), tmp->GetSafeX(), tmp->GetSafeY(), tmp->GetSafeZ(), tmp->GetSafeHeading(), 
 										 tmp->GetZoneLockState(), tmp->GetMinimumStatus(), tmp->GetMinimumLevel(), tmp->GetMaximumLevel(), 
 										 tmp->GetMinimumVersion(), tmp->GetDefaultLockoutTime(), tmp->GetDefaultReenterTime(),
-										 tmp->GetInstanceType(), tmp->NumPlayers());
+										 tmp->GetInstanceType(), tmp->NumPlayers(), tmp->IsCityZone());
 				safe_delete(tmp);
 				return true;
 			}
 			else {
 				tmp = new ZoneServer(opt_zone_name.c_str());
 				database.LoadZoneInfo(tmp, minLevel, maxLevel, avgLevel, firstLevel);
+				tmp->SetDuplicatedZone(hadFullZone);
 				tmp->Init();
 				tmp->SetAlwaysLoaded(only_always_loaded);
 			}
@@ -770,7 +783,7 @@ bool ZoneList::GetZone(ZoneChangeDetails* zone_details, int32 opt_zone_id, std::
 										 tmp->GetInstanceID(), tmp->GetSafeX(), tmp->GetSafeY(), tmp->GetSafeZ(), tmp->GetSafeHeading(), 
 										 tmp->GetZoneLockState(), tmp->GetMinimumStatus(), tmp->GetMinimumLevel(), tmp->GetMaximumLevel(), 
 										 tmp->GetMinimumVersion(), tmp->GetDefaultLockoutTime(), tmp->GetDefaultReenterTime(),
-										 tmp->GetInstanceType(), tmp->NumPlayers(), tmp);
+										 tmp->GetInstanceType(), tmp->NumPlayers(), tmp->IsCityZone(), tmp);
 		if(zone_details) {
 			zone_details->zonePtr = (void*)tmp;
 		}
@@ -837,7 +850,7 @@ bool ZoneList::GetZoneByInstance(ZoneChangeDetails* zone_details, int32 instance
 										 instance_id, tmp->GetSafeX(), tmp->GetSafeY(), tmp->GetSafeZ(), tmp->GetSafeHeading(), 
 										 tmp->GetZoneLockState(), tmp->GetMinimumStatus(), tmp->GetMinimumLevel(), tmp->GetMaximumLevel(), 
 										 tmp->GetMinimumVersion(), tmp->GetDefaultLockoutTime(), tmp->GetDefaultReenterTime(),
-										 tmp->GetInstanceType(), tmp->NumPlayers());
+										 tmp->GetInstanceType(), tmp->NumPlayers(), tmp->IsCityZone());
 				safe_delete(tmp);
 				return true;
 			}
@@ -858,7 +871,7 @@ bool ZoneList::GetZoneByInstance(ZoneChangeDetails* zone_details, int32 instance
 										 tmp->GetInstanceID(), tmp->GetSafeX(), tmp->GetSafeY(), tmp->GetSafeZ(), tmp->GetSafeHeading(), 
 										 tmp->GetZoneLockState(), tmp->GetMinimumStatus(), tmp->GetMinimumLevel(), 
 										 tmp->GetMaximumLevel(), tmp->GetMinimumVersion(), tmp->GetDefaultLockoutTime(), tmp->GetDefaultReenterTime(),
-										 tmp->GetInstanceType(), tmp->NumPlayers(), tmp);
+										 tmp->GetInstanceType(), tmp->NumPlayers(), tmp->IsCityZone(), tmp);
 		zone_details->zonePtr = (void*)tmp;
 	}
 	return (tmp != nullptr) ? true : false;
@@ -1010,9 +1023,10 @@ void PeerManager::sendZonePeerList(Client* client) {
 			int32 default_lockout_time = zone.second.get<int32>("default_lockout_time");
 			int32 default_reenter_time = zone.second.get<int32>("default_reenter_time");
 			int8 instance_type = zone.second.get<int8>("instance_type");
+			bool duplicated_zone = zone.second.get<std::string>("duplicated_zone") == "true";
 			
-			client->Message(CHANNEL_COLOR_YELLOW,"Zone (ID) (InstanceID): %s (%u) (%u), Peer: %s, NumPlayers: %u, Locked: %s, ShuttingDown: %s.",zone_name.c_str(),zone_id,
-				instance_id,peer->id.c_str(), num_players, lock_state ? "true" : "false", shutting_down ? "true" : "false");	
+			client->Message(CHANNEL_COLOR_YELLOW,"Zone (ID) (InstanceID): %s (%u) (%u), Peer: %s, NumPlayers: %u, Locked: %s, ShuttingDown: %s, DuplicateZone: %s.",zone_name.c_str(),zone_id,
+				instance_id,peer->id.c_str(), num_players, lock_state ? "true" : "false", shutting_down ? "true" : "false", duplicated_zone ? "true" : "false");	
 		}
 		} catch (const std::exception& e) {
 			LogWrite(PEERING__ERROR, 0, "Peering", "%s: Zones Parsing Error %s for %s:%u/%s", __FUNCTION__, e.what() ? e.what() : "??", peer->webAddr.c_str(), peer->webPort);

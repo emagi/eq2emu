@@ -1905,7 +1905,7 @@ bool PlayerGroupManager::IdentifyMemberInGroupOrRaid(ZoneChangeDetails* details,
 					tmp->GetInstanceID(), tmp->GetSafeX(), tmp->GetSafeY(), tmp->GetSafeZ(), tmp->GetSafeHeading(),
 					tmp->GetZoneLockState(), tmp->GetMinimumStatus(), tmp->GetMinimumLevel(), tmp->GetMaximumLevel(),
 					tmp->GetMinimumVersion(), tmp->GetDefaultLockoutTime(), tmp->GetDefaultReenterTime(),
-					tmp->GetInstanceType(), tmp->NumPlayers());
+					tmp->GetInstanceType(), tmp->NumPlayers(), tmp->IsCityZone());
 				safe_delete(tmp);
 				succeed = true;
 				break;
@@ -1922,7 +1922,7 @@ bool PlayerGroupManager::IdentifyMemberInGroupOrRaid(ZoneChangeDetails* details,
 			ret->GetSafeZ(), ret->GetSafeHeading(), ret->GetZoneLockState(),
 			ret->GetMinimumStatus(), ret->GetMinimumLevel(), ret->GetMaximumLevel(),
 			ret->GetMinimumVersion(), ret->GetDefaultLockoutTime(), ret->GetDefaultReenterTime(),
-			ret->GetInstanceType(), ret->NumPlayers(), ret);
+			ret->GetInstanceType(), ret->NumPlayers(), ret->IsCityZone(), ret);
 		return true;
 	}
 
@@ -1946,7 +1946,7 @@ bool PlayerGroupManager::IdentifyMemberInGroupOrRaid(ZoneChangeDetails* details,
 							tmp->GetInstanceID(), tmp->GetSafeX(), tmp->GetSafeY(), tmp->GetSafeZ(), tmp->GetSafeHeading(),
 							tmp->GetZoneLockState(), tmp->GetMinimumStatus(), tmp->GetMinimumLevel(), tmp->GetMaximumLevel(),
 							tmp->GetMinimumVersion(), tmp->GetDefaultLockoutTime(), tmp->GetDefaultReenterTime(),
-							tmp->GetInstanceType(), tmp->NumPlayers());
+							tmp->GetInstanceType(), tmp->NumPlayers(), tmp->IsCityZone());
 						safe_delete(tmp);
 						succeed = true;
 						break;

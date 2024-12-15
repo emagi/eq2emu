@@ -96,7 +96,7 @@ void PeerManager::updateClientTree(const std::string& id, const boost::property_
 void PeerManager::setZonePeerData(ZoneChangeDetails* opt_details, std::string peerId, std::string peerWorldAddress, std::string peerInternalWorldAddress, int16 peerWorldPort,
 	std::string peerWebAddress, int16 peerWebPort, std::string zoneFileName,
 	std::string zoneName, int32 zoneId, int32 instanceId, float safeX, float safeY, float safeZ, float safeHeading, bool lockState, sint16 minStatus,
-	int16 minLevel, int16 maxLevel, int16 minVersion, int32 defaultLockoutTime, int32 defaultReenterTime, int8 instanceType, int32 numPlayers) {
+	int16 minLevel, int16 maxLevel, int16 minVersion, int32 defaultLockoutTime, int32 defaultReenterTime, int8 instanceType, int32 numPlayers, bool isCityZone) {
 	if (opt_details) {
 		opt_details->peerId = peerId;
 		opt_details->peerWorldAddress = peerWorldAddress;
@@ -122,6 +122,7 @@ void PeerManager::setZonePeerData(ZoneChangeDetails* opt_details, std::string pe
 		opt_details->defaultReenterTime = defaultReenterTime;
 		opt_details->instanceType = instanceType;
 		opt_details->numPlayers = numPlayers;
+		opt_details->isCityZone = isCityZone;
 		opt_details->zonePtr = nullptr;
 		opt_details->peerAuthorized = false;
 		opt_details->zoneKey = 0;
@@ -133,7 +134,7 @@ void PeerManager::setZonePeerData(ZoneChangeDetails* opt_details, std::string pe
 void PeerManager::setZonePeerDataSelf(ZoneChangeDetails* opt_details, std::string zoneFileName, std::string zoneName, int32 zoneId,
 	int32 instanceId, float safeX, float safeY, float safeZ, float safeHeading, bool lockState, sint16 minStatus,
 	int16 minLevel, int16 maxLevel, int16 minVersion, int32 defaultLockoutTime, int32 defaultReenterTime, int8 instanceType,
-	int32 numPlayers, void* zonePtr) {
+	int32 numPlayers, bool isCityZone, void* zonePtr) {
 	if (opt_details) {
 		opt_details->peerId = "self";
 		opt_details->peerWorldAddress = net.GetWorldAddress();
@@ -158,6 +159,7 @@ void PeerManager::setZonePeerDataSelf(ZoneChangeDetails* opt_details, std::strin
 		opt_details->defaultReenterTime = defaultReenterTime;
 		opt_details->instanceType = instanceType;
 		opt_details->numPlayers = numPlayers;
+		opt_details->isCityZone = isCityZone;
 		opt_details->zonePtr = zonePtr;
 		opt_details->peerAuthorized = true;
 		opt_details->zoneKey = 0;
@@ -167,6 +169,8 @@ void PeerManager::setZonePeerDataSelf(ZoneChangeDetails* opt_details, std::strin
 }
 
 std::string PeerManager::getZonePeerId(const std::string& inc_zone_name, int32 inc_zone_id, int32 inc_instance_id, ZoneChangeDetails* opt_details, bool only_always_loaded) {
+	bool matchFullZone = false;
+	std::string fullZoneId = "";
 	for (auto& [peerId, peer] : peers) {
 		if (peer->healthCheck.status != HealthStatus::OK)
 			continue;
@@ -210,10 +214,18 @@ std::string PeerManager::getZonePeerId(const std::string& inc_zone_name, int32 i
 					else if (!instance_zone && inc_zone_name.length() > 0 && strncasecmp(zone_name.c_str(), inc_zone_name.c_str(), inc_zone_name.length()) == 0) {
 						match = true;
 					}
+					
+					if(!instance_zone && num_players >= 30 && !city_zone) {
+						match = false;
+						setZonePeerData(opt_details, peerId, peer->worldAddr, peer->internalWorldAddr, peer->worldPort, peer->webAddr, peer->webPort, zone_file_name, zone_name, zone_id, instance_id,
+							safe_x, safe_y, safe_z, safe_heading, lock_state, min_status, min_level, max_level, min_version, default_lockout_time, default_reenter_time, instance_type, num_players, city_zone);
+						matchFullZone = true;
+						fullZoneId = peerId;
+					}
 
 					if (match) {
 						setZonePeerData(opt_details, peerId, peer->worldAddr, peer->internalWorldAddr, peer->worldPort, peer->webAddr, peer->webPort, zone_file_name, zone_name, zone_id, instance_id,
-							safe_x, safe_y, safe_z, safe_heading, lock_state, min_status, min_level, max_level, min_version, default_lockout_time, default_reenter_time, instance_type, num_players);
+							safe_x, safe_y, safe_z, safe_heading, lock_state, min_status, min_level, max_level, min_version, default_lockout_time, default_reenter_time, instance_type, num_players, city_zone);
 						return peerId;
 					}
 				}
@@ -223,7 +235,8 @@ std::string PeerManager::getZonePeerId(const std::string& inc_zone_name, int32 i
 			LogWrite(PEERING__ERROR, 0, "Peering", "%s: Error Parsing Zones for %s:%u", __FUNCTION__, peer->webAddr.c_str(), peer->webPort);
 		}
 	}
-	return "";
+	
+	return fullZoneId;
 }
 
 void PeerManager::handlePrimaryConflict(const std::string& reconnectingPeerId) {
