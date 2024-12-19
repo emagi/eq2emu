@@ -901,6 +901,11 @@ public:
 
 	int32			GetRespawnTime();
 	void			SetRespawnTime(int32 time);
+	sint32			GetRespawnOffsetLow();
+	void			SetRespawnOffsetLow(sint32 time);
+	sint32			GetRespawnOffsetHigh();
+	void			SetRespawnOffsetHigh(sint32 time);
+	
 	int32			GetExpireTime() { return expire_time; }
 	void			SetExpireTime(int32 new_expire_time) { expire_time = new_expire_time; }
 	int32			GetExpireOffsetTime();
@@ -1498,6 +1503,8 @@ private:
 	int32			spawn_entry_id;
 	int32			spawn_location_spawns_id;
 	int32			respawn;
+	sint32			respawn_offset_low;
+	sint32			respawn_offset_high;
 	int32			expire_time;
 	int32			expire_offset;
 	float			x_offset;

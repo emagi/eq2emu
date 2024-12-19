@@ -46,6 +46,8 @@ struct SpawnEntry{
 	int32	spawn_id;
 	float	spawn_percentage;
 	int32	respawn;
+	sint32	respawn_offset_low;
+	sint32	respawn_offset_high;
 	int32	expire_time;
 	int32	expire_offset;
 	//devn00b: added spawn location overrides, added these to accomodate.

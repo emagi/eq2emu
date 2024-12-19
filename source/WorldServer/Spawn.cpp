@@ -148,6 +148,8 @@ Spawn::Spawn(){
 	is_loot_complete = false;
 	is_loot_dispensed = false;
 	reset_movement = false;
+	respawn_offset_low = 0;
+	respawn_offset_high = 0;
 	ResetKnockedBack();
 }
 
@@ -1845,6 +1847,22 @@ int32 Spawn::GetRespawnTime(){
 
 void Spawn::SetRespawnTime(int32 time){
 	respawn = time;
+}
+
+sint32 Spawn::GetRespawnOffsetLow(){
+	return respawn_offset_low;
+}
+
+void Spawn::SetRespawnOffsetLow(sint32 time){
+	respawn_offset_low = time;
+}
+
+sint32 Spawn::GetRespawnOffsetHigh(){
+	return respawn_offset_high;
+}
+
+void Spawn::SetRespawnOffsetHigh(sint32 time){
+	respawn_offset_high = time;
 }
 
 int32 Spawn::GetExpireOffsetTime(){

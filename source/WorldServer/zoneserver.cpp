@@ -2992,6 +2992,8 @@ NPC* ZoneServer::AddNPCSpawn(SpawnLocation* spawnlocation, SpawnEntry* spawnentr
 		npc->SetSpawnLocationID(spawnentry->spawn_location_id);
 		npc->SetSpawnEntryID(spawnentry->spawn_entry_id);
 		npc->SetRespawnTime(spawnentry->respawn);
+		npc->SetRespawnOffsetLow(spawnentry->respawn_offset_low);
+		npc->SetRespawnOffsetHigh(spawnentry->respawn_offset_high);
 		npc->SetExpireTime(spawnentry->expire_time);
 
 		//devn00b add overrides for some spawns
@@ -3413,6 +3415,8 @@ Sign* ZoneServer::AddSignSpawn(SpawnLocation* spawnlocation, SpawnEntry* spawnen
 		sign->SetSpawnLocationID(spawnentry->spawn_location_id);
 		sign->SetSpawnEntryID(spawnentry->spawn_entry_id);
 		sign->SetRespawnTime(spawnentry->respawn);
+		sign->SetRespawnOffsetLow(spawnentry->respawn_offset_low);
+		sign->SetRespawnOffsetHigh(spawnentry->respawn_offset_high);
 		sign->SetExpireTime(spawnentry->expire_time);
 		if (spawnentry->expire_time > 0)
 			AddSpawnExpireTimer(sign, spawnentry->expire_time, spawnentry->expire_offset);
@@ -3442,6 +3446,8 @@ Widget* ZoneServer::AddWidgetSpawn(SpawnLocation* spawnlocation, SpawnEntry* spa
 			widget->SetZ(widget->GetWidgetZ());
 		}
 		widget->SetRespawnTime(spawnentry->respawn);
+		widget->SetRespawnOffsetLow(spawnentry->respawn_offset_low);
+		widget->SetRespawnOffsetHigh(spawnentry->respawn_offset_high);
 		widget->SetExpireTime(spawnentry->expire_time);
 		widget->SetSpawnOrigHeading(widget->GetHeading());
 		if (spawnentry->expire_time > 0)
@@ -3466,6 +3472,8 @@ Object* ZoneServer::AddObjectSpawn(SpawnLocation* spawnlocation, SpawnEntry* spa
 		object->SetSpawnLocationID(spawnentry->spawn_location_id);
 		object->SetSpawnEntryID(spawnentry->spawn_entry_id);
 		object->SetRespawnTime(spawnentry->respawn);
+		object->SetRespawnOffsetLow(spawnentry->respawn_offset_low);
+		object->SetRespawnOffsetHigh(spawnentry->respawn_offset_high);
 		object->SetExpireTime(spawnentry->expire_time);
 		if (spawnentry->expire_time > 0)
 			AddSpawnExpireTimer(object, spawnentry->expire_time, spawnentry->expire_offset);
@@ -3489,6 +3497,8 @@ GroundSpawn* ZoneServer::AddGroundSpawn(SpawnLocation* spawnlocation, SpawnEntry
 		spawn->SetSpawnLocationID(spawnentry->spawn_location_id);
 		spawn->SetSpawnEntryID(spawnentry->spawn_entry_id);
 		spawn->SetRespawnTime(spawnentry->respawn);
+		spawn->SetRespawnOffsetLow(spawnentry->respawn_offset_low);
+		spawn->SetRespawnOffsetHigh(spawnentry->respawn_offset_high);
 		spawn->SetExpireTime(spawnentry->expire_time);
 		
 		if(spawn->GetRandomizeHeading()) {
@@ -9268,7 +9278,13 @@ void ZoneServer::AddIgnoredWidget(int32 id) {
 }
 
 void ZoneServer::AddRespawn(Spawn* spawn) {
-	AddRespawn(spawn->GetSpawnLocationID(), spawn->GetRespawnTime());
+	int32 respawn_time = spawn->GetRespawnTime();
+	if(spawn->GetRespawnOffsetLow() != 0 || spawn->GetRespawnOffsetHigh() != 0) {
+		int random_offset = MakeRandomInt(spawn->GetRespawnOffsetLow(), spawn->GetRespawnOffsetHigh());
+		int result_time = static_cast<int>(respawn_time) + random_offset;
+		respawn_time = static_cast<unsigned>(std::max(result_time, 0));
+	}
+	AddRespawn(spawn->GetSpawnLocationID(), respawn_time);
 }
 
 void ZoneServer::AddRespawn(int32 locationID, int32 respawnTime) {
