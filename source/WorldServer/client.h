@@ -30,6 +30,8 @@
 #include <thread>
 #include <chrono>
 #include <condition_variable>
+#include <regex>
+#include <optional>
 
 #include "../common/EQStream.h"
 #include "../common/timer.h"
@@ -314,12 +316,14 @@ public:
 	int32 GetCurrentZoneID();
 	void	SetCurrentZoneByInstanceID(int32 id, int32 zoneid);
 	//void	SetCurrentZoneByInstanceID(instanceid, zoneid);
-	void	SetCurrentZone(int32 id);
+	void	SetCurrentZone(int32 id, int32 zone_duplicate_id = 0);
 	void	SetCurrentZone(ZoneServer* zone);
 	void	SetZoningDestination(ZoneServer* zone) {
 		zoning_destination = zone;
 	}
 	ZoneServer* GetZoningDestination() { return zoning_destination; }
+	int32 GetDuplicatingZoneID() { return duplicate_zoning_id; }
+	
 	Player* GetPlayer() { return player; }
 	EQStream* getConnection() { return eqs; }
 	void	setConnection(EQStream* ieqs) { eqs = ieqs; }
@@ -508,7 +512,25 @@ public:
 
 	void SetPendingFlightPath(int32 val) { pending_flight_path = val; }
 	int32 GetPendingFlightPath() { return pending_flight_path; }
+	void AttemptStartAutoMount();
+	
+	int32 extractZoneNumericalSuffix(const std::string& input) {
+		try {
+			std::regex pattern(R"(.*\s(\d+)$)"); // Matches a space followed by digits at the end
+			std::smatch match;
 
+			if (std::regex_match(input, match, pattern)) {
+				return std::stoul(match[1].str()); // Extract and convert the numerical part
+			}
+		} catch (const std::regex_error& e) {
+			std::cerr << "Regex error: " << e.what() << "\n";
+		} catch (const std::exception& e) {
+			std::cerr << "Error: " << e.what() << "\n";
+		}
+
+		return 0; // Return nullopt if no match is found or an exception occurs
+	}
+	
 	void EndAutoMount();
 	bool GetOnAutoMount() { return on_auto_mount; }
 
@@ -764,6 +786,7 @@ private:
 	int32	zoning_id;
 	int32	zoning_instance_id;
 	ZoneServer* zoning_destination;
+	int32	duplicate_zoning_id; // when a public zone is instanced for too many players this its number
 	float	zoning_x;
 	float	zoning_y;
 	float	zoning_z;

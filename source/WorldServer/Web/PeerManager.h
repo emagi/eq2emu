@@ -181,8 +181,8 @@ public:
 	void SendPeersChannelMessage(int32 group_id, std::string fromName, std::string message, int16 channel, int32 language_id = 0);
 	void SendPeersGuildChannelMessage(int32 guild_id, std::string fromName, std::string message, int16 channel, int32 language_id = 0);
 	void sendZonePeerList(Client* client);
-	std::string getZonePeerId(const std::string& inc_zone_name, int32 inc_zone_id, int32 inc_instance_id, ZoneChangeDetails* opt_details = nullptr, bool only_always_loaded = false);
-	int32 getZoneHighestDuplicateId(const std::string& inc_zone_name, int32 inc_zone_id);
+	std::string getZonePeerId(const std::string& inc_zone_name, int32 inc_zone_id, int32 inc_instance_id, ZoneChangeDetails* opt_details = nullptr, bool only_always_loaded = false, int32 matchDuplicatedId = 0);
+	int32 getZoneHighestDuplicateId(const std::string& inc_zone_name, int32 inc_zone_id, bool increment_new_value = true);
 	void setZonePeerData(ZoneChangeDetails* opt_details);
 	void setPrimary(const std::string& id);
 	bool hasPrimary();

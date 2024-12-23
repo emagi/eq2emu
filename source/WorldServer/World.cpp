@@ -1608,11 +1608,11 @@ void ZoneList::ReloadSpawns() {
 }
 
 
-int32 ZoneList::GetHighestDuplicateID(const std::string& inc_zone_name, int32 inc_zone_id)
+int32 ZoneList::GetHighestDuplicateID(const std::string& inc_zone_name, int32 inc_zone_id, bool increment_new_value)
 {
 	list<ZoneServer*>::iterator zone_iter;
 	ZoneServer* tmp = 0;
-	int32 highest_id = peer_manager.getZoneHighestDuplicateId(inc_zone_name, inc_zone_id);
+	int32 highest_id = peer_manager.getZoneHighestDuplicateId(inc_zone_name, inc_zone_id, increment_new_value);
 	MZoneList.readlock(__FUNCTION__, __LINE__);
 	bool match = false;
 	bool matched_peer = (highest_id>0);
@@ -1635,10 +1635,45 @@ int32 ZoneList::GetHighestDuplicateID(const std::string& inc_zone_name, int32 in
 
 	MZoneList.releasereadlock(__FUNCTION__, __LINE__);
 	
-	if(match && !matched_peer)
+	if(match && !matched_peer && increment_new_value)
 		highest_id++;
 	
 	return highest_id;
+}
+
+bool ZoneList::GetDuplicateZoneDetails(ZoneChangeDetails* zone_details, const std::string& inc_zone_name, int32 inc_zone_id, int32 matchDuplicateId)
+{
+	list<ZoneServer*>::iterator zone_iter;
+	ZoneServer* tmp = 0;
+	std::string peerId = peer_manager.getZonePeerId(inc_zone_name, inc_zone_id, 0, zone_details, false, matchDuplicateId);
+	if(peerId.size() > 0)
+		return true;
+	
+	MZoneList.readlock(__FUNCTION__, __LINE__);
+	bool match = false;
+	for(zone_iter=zlist.begin(); zone_iter!=zlist.end(); zone_iter++)
+	{
+		tmp = *zone_iter;
+		
+		if(tmp->IsInstanceZone())
+			continue;
+				
+		if(((inc_zone_id > 0 && tmp->GetZoneID() == inc_zone_id) || (inc_zone_name.length() > 0 && strncasecmp(tmp->GetZoneName(), inc_zone_name.c_str(), inc_zone_name.length())==0))){
+			if(tmp->DuplicatedID() == matchDuplicateId) {
+				peer_manager.setZonePeerDataSelf(zone_details, std::string(tmp->GetZoneFile()), std::string(tmp->GetZoneName()), tmp->GetZoneID(), 
+												 tmp->GetInstanceID(), tmp->GetSafeX(), tmp->GetSafeY(), tmp->GetSafeZ(), tmp->GetSafeHeading(), 
+												 tmp->GetZoneLockState(), tmp->GetMinimumStatus(), tmp->GetMinimumLevel(), tmp->GetMaximumLevel(), 
+												 tmp->GetMinimumVersion(), tmp->GetDefaultLockoutTime(), tmp->GetDefaultReenterTime(),
+												 tmp->GetInstanceType(), tmp->NumPlayers(), tmp->IsCityZone(), tmp);
+				match = true;
+				break;
+			}
+		}
+	}
+
+	MZoneList.releasereadlock(__FUNCTION__, __LINE__);
+	
+	return match;
 }
 
 bool World::ReportBug(string data, char* player_name, int32 account_id, const char* spawn_name, int32 spawn_id, int32 zone_id){

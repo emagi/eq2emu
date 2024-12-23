@@ -170,7 +170,7 @@ void PeerManager::setZonePeerDataSelf(ZoneChangeDetails* opt_details, std::strin
 	}
 }
 
-std::string PeerManager::getZonePeerId(const std::string& inc_zone_name, int32 inc_zone_id, int32 inc_instance_id, ZoneChangeDetails* opt_details, bool only_always_loaded) {
+std::string PeerManager::getZonePeerId(const std::string& inc_zone_name, int32 inc_zone_id, int32 inc_instance_id, ZoneChangeDetails* opt_details, bool only_always_loaded, int32 matchDuplicatedId) {
 	bool matchFullZone = false;
 	std::string fullZoneId = "";
 	for (auto& [peerId, peer] : peers) {
@@ -201,12 +201,16 @@ std::string PeerManager::getZonePeerId(const std::string& inc_zone_name, int32 i
 				int32 default_reenter_time = zone.second.get<int32>("default_reenter_time");
 				int8 instance_type = zone.second.get<int8>("instance_type");
 				bool always_loaded = zone.second.get<bool>("always_loaded");
+				int32 duplicate_id = zone.second.get<int32>("duplicated_id");
 
 				if (only_always_loaded && !always_loaded)
 					continue;
 
 				if (!shutting_down) {
 					bool match = false;
+					if(matchDuplicatedId > 0 && duplicate_id != matchDuplicatedId)
+						continue;
+					
 					if (instance_zone && inc_instance_id > 0 && instance_id == inc_instance_id) {
 						match = true;
 					}
@@ -244,7 +248,7 @@ std::string PeerManager::getZonePeerId(const std::string& inc_zone_name, int32 i
 	return fullZoneId;
 }
 
-int32 PeerManager::getZoneHighestDuplicateId(const std::string& inc_zone_name, int32 inc_zone_id) {
+int32 PeerManager::getZoneHighestDuplicateId(const std::string& inc_zone_name, int32 inc_zone_id, bool increment_new_value) {
 	int32 highestID = 0;
 	bool matched_zone = false;
 	for (auto& [peerId, peer] : peers) {
@@ -281,7 +285,7 @@ int32 PeerManager::getZoneHighestDuplicateId(const std::string& inc_zone_name, i
 		}
 	}
 	
-	if(matched_zone) {
+	if(matched_zone && increment_new_value) {
 		highestID++;
 	}
 	

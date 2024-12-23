@@ -166,6 +166,7 @@ Client::Client(EQStream* ieqs) : underworld_cooldown_timer(5000), pos_update(125
 	zoning_x = 0;
 	zoning_y = 0;
 	zoning_z = 0;
+	duplicate_zoning_id = 0;
 	zoning_instance_id = 0;
 	player_pos_changed = false;
 	player_pos_timer = Timer::GetCurrentTime2() + 1000;
@@ -958,9 +959,8 @@ void Client::SendZoneInfo() {
 				QueuePacket(fog_packet->serialize());
 				safe_delete(fog_packet);
 			}
-
-			zone->SendFlightPathsPackets(this);
 		}
+		zone->SendFlightPathsPackets(this);
 	}
 	/*
 	uchar blah[] ={0x00,0x00,0x00,0x00,0xFF,0xFF,0xFF,0xFF,0x00,0x01,0x00,0x00,0x00,0x00
@@ -2753,33 +2753,7 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
 	case OP_ReadyForTakeOffMsg:
 	{
 		LogWrite(OPCODE__DEBUG, 1, "Opcode", "Opcode 0x%X (%i): OP_ReadyForTakeOffMsg", opcode, opcode);
-
-		int32 index = GetCurrentZone()->GetFlightPathIndex(GetPendingFlightPath());
-		if (GetPendingFlightPath() > 0) {
-			if (index != -1) {
-				PacketStruct* packet = configReader.getStruct("WS_ClearForTakeOff", GetVersion());
-				if (packet) {
-					packet->setDataByName("spawn_id", GetPlayer()->GetIDWithPlayerSpawn(GetPlayer()));
-					packet->setDataByName("path_id", index);
-					packet->setDataByName("speed", GetCurrentZone()->GetFlightPathSpeed(GetPendingFlightPath()));
-					QueuePacket(packet->serialize());
-					safe_delete(packet);
-
-					on_auto_mount = true;
-				}
-			}
-			else {
-				LogWrite(CCLIENT__ERROR, 0, "Client", "OP_ReadyForTakeOffMsg recieved but unable to get an index for path (%u) in zone (%u)", GetPendingFlightPath(), GetCurrentZone()->GetZoneID());
-				Message(CHANNEL_ERROR, "Unable to get index for path (%u) in zone (%u)", GetPendingFlightPath(), GetCurrentZone()->GetZoneID());
-				EndAutoMount();
-			}
-
-			SetPendingFlightPath(0);
-
-		}
-		else
-			LogWrite(CCLIENT__ERROR, 0, "Client", "OP_ReadyForTakeOffMsg recieved but there is no pending flight path...");
-
+		AttemptStartAutoMount();
 		break;
 	}
 
@@ -4133,15 +4107,25 @@ void Client::SetCurrentZone(ZoneServer* zone) {
 	if (player) {
 		player->SetZone(zone, GetVersion());
 	}
+	if(zone)
+		duplicate_zoning_id = zone->DuplicatedID();
 }
 
-void Client::SetCurrentZone(int32 id) {
+void Client::SetCurrentZone(int32 id, int32 duplicate_zone_id) {
 	if (current_zone) {
 		//current_zone->GetCombat()->RemoveHate(player);
 		current_zone->RemoveSpawn(player, false, true, true, true, true);
 	}
+	
+	duplicate_zoning_id = 0;
+	bool foundDupeZone = false;
 	ZoneChangeDetails zone_details;
-	if (zone_list.GetZone(&zone_details, id, "", true, false, true, false)) {
+	if(duplicate_zone_id) {
+		if(foundDupeZone = zone_list.GetDuplicateZoneDetails(&zone_details, "", id, duplicate_zone_id))
+			duplicate_zoning_id = duplicate_zone_id;
+	}
+	
+	if (foundDupeZone || zone_list.GetZone(&zone_details, id, "", true, false, true, false)) {
 		SetCurrentZone((ZoneServer*)zone_details.zonePtr);
 	}
 }
@@ -4151,6 +4135,7 @@ void Client::SetCurrentZoneByInstanceID(int32 id, int32 zoneid) {
 		//current_zone->GetCombat()->RemoveHate(player);
 		current_zone->RemoveSpawn(player, false, true, true, true, true);
 	}
+	duplicate_zoning_id = 0;
 	ZoneChangeDetails zone_details;
 	int32 minLevel = 0, maxLevel = 0, avgLevel = 0, firstLevel = 0;
 	 world.GetGroupManager()->EstablishRaidLevelRange(this, &minLevel, &maxLevel, &avgLevel, &firstLevel);
@@ -4766,7 +4751,7 @@ bool Client::TryZoneInstance(int32 zoneID, bool zone_coords_valid) {
 							instance_zone->GetSafeZ(), instance_zone->GetSafeHeading(), instance_zone->GetZoneLockState(),
 							instance_zone->GetMinimumStatus(), instance_zone->GetMinimumLevel(), instance_zone->GetMaximumLevel(),
 							instance_zone->GetMinimumVersion(), instance_zone->GetDefaultLockoutTime(), instance_zone->GetDefaultReenterTime(),
-							instance_zone->GetInstanceType(), instance_zone->NumPlayers(), instance_zone);
+							instance_zone->GetInstanceType(), instance_zone->NumPlayers(), instance_zone->IsCityZone(), instance_zone);
 					}
 				}
 				else {
@@ -10009,6 +9994,7 @@ void Client::ProcessTeleport(Spawn* spawn, vector<TransportDestination*>* destin
 		if (packet) {
 			packet->setDataByName("spawn_id", GetPlayer()->GetIDWithPlayerSpawn(spawn));
 
+			int32 additional_locations = 0;
 			// Put all the destinations the player can go in a new vector
 			vector<TransportDestination*> destinations;
 			for (int32 i = 0; i < transport_list.size(); i++) {
@@ -10033,26 +10019,47 @@ void Client::ProcessTeleport(Spawn* spawn, vector<TransportDestination*>* destin
 					packet->setDataByName("current_map_y", destination->map_y);
 				}
 				else {
+					int32 additional_zones = zone_list.GetHighestDuplicateID("", destination->destination_zone_id, false);
+					additional_locations += additional_zones;
 					destinations.push_back(destination);
 				}
 			}
 
 			// Use the new vector to create the packet
 			destination = 0;
-			packet->setArrayLengthByName("num_destinations", destinations.size());
+			packet->setArrayLengthByName("num_destinations", additional_locations+destinations.size());
+			int32 offset = 0;
+			int32 unique_ids = 3000000; // db has hard cap of 2 million
 			for (int32 i = 0; i < destinations.size(); i++) {
 				destination = destinations.at(i);
 
-				packet->setArrayDataByName("unique_id", destination->unique_id, i);
-				packet->setArrayDataByName("display_name", destination->display_name.c_str(), i);
-				packet->setArrayDataByName("zone_name", destination->display_name.c_str(), i);
-				packet->setArrayDataByName("zone_file_name", destination->display_name.c_str(), i);
-				packet->setArrayDataByName("cost", destination->cost, i);
+				packet->setArrayDataByName("unique_id", destination->unique_id, i+offset);
+				packet->setArrayDataByName("display_name", destination->display_name.c_str(), i+offset);
+				packet->setArrayDataByName("zone_name", destination->display_name.c_str(), i+offset);
+				packet->setArrayDataByName("zone_file_name", destination->display_name.c_str(), i+offset);
+				packet->setArrayDataByName("cost", destination->cost, i+offset);
 
 				if (has_map) {
-					packet->setArrayDataByName("map_x", destination->map_x, i);
-					packet->setArrayDataByName("map_y", destination->map_y, i);
+					packet->setArrayDataByName("map_x", destination->map_x, i+offset);
+					packet->setArrayDataByName("map_y", destination->map_y, i+offset);
 				}
+				
+				int32 additional_zones = zone_list.GetHighestDuplicateID("", destination->destination_zone_id, false);
+				for (int32 a = 0; a < additional_zones; a++) {
+					int32 field_pos = a+1;
+					packet->setArrayDataByName("unique_id", unique_ids++, i+offset+field_pos);
+					std::string name = destination->display_name + " " + std::to_string(field_pos);
+					packet->setArrayDataByName("display_name", name.c_str(), i+offset+field_pos);
+					packet->setArrayDataByName("zone_name", name.c_str(), i+offset+field_pos);
+					packet->setArrayDataByName("zone_file_name", destination->display_name.c_str(), i+offset+field_pos);
+					packet->setArrayDataByName("cost", destination->cost, i+offset+field_pos);
+
+					if (has_map) {
+						packet->setArrayDataByName("map_x", destination->map_x, i+offset+field_pos);
+						packet->setArrayDataByName("map_y", destination->map_y, i+offset+field_pos);
+					}
+				}
+				offset += additional_zones;
 
 			}
 
@@ -10069,6 +10076,7 @@ void Client::ProcessTeleport(Spawn* spawn, vector<TransportDestination*>* destin
 }
 
 void Client::ProcessTeleportLocation(EQApplicationPacket* app) {
+	int32 duplicateId = 0;
 	PacketStruct* packet = configReader.getStruct("WS_TeleportDestination", GetVersion());
 	if (packet) {
 		if (packet->LoadPacketData(app->pBuffer, app->size)) {
@@ -10078,11 +10086,18 @@ void Client::ProcessTeleportLocation(EQApplicationPacket* app) {
 			int32 cost = packet->getType_int32_ByName("cost");
 			vector<TransportDestination*> destinations;
 			TransportDestination* destination = 0;
+			duplicateId = extractZoneNumericalSuffix(zone_name);
+			if(duplicateId > 0) {
+				size_t lastSpacePos = zone_name.find_last_of(' ');
+				if (lastSpacePos != std::string::npos) {
+					zone_name = zone_name.substr(0, lastSpacePos);
+				}
+			}
 			if (this->GetTemporaryTransportID() || (spawn && spawn == transport_spawn && spawn->GetTransporterID()))
 				GetCurrentZone()->GetTransporters(&destinations, this, this->GetTemporaryTransportID() ? this->GetTemporaryTransportID() : spawn->GetTransporterID());
 			vector<TransportDestination*>::iterator itr;
 			for (itr = destinations.begin(); itr != destinations.end(); itr++) {
-				if ((*itr)->unique_id == unique_id && (*itr)->display_name == zone_name && (*itr)->cost == cost) {
+				if (((*itr)->unique_id == unique_id || unique_id >= 3000000) && (*itr)->display_name == zone_name && (*itr)->cost == cost) {
 					destination = *itr;
 					break;
 				}
@@ -10115,7 +10130,14 @@ void Client::ProcessTeleportLocation(EQApplicationPacket* app) {
 						if (!TryZoneInstance(destination->destination_zone_id, false)) {
 							LogWrite(INSTANCE__DEBUG, 0, "Instance", "Attempting to zone normally");
 							ZoneChangeDetails zone_details;
-							if (zone_list.GetZone(&zone_details, destination->destination_zone_id)) {
+							bool foundDupeZone = false;
+							duplicate_zoning_id = 0;
+							if(duplicateId > 0) {
+								if(foundDupeZone = zone_list.GetDuplicateZoneDetails(&zone_details, "", destination->destination_zone_id, duplicateId))
+									duplicate_zoning_id = duplicateId;
+							}
+							
+							if (foundDupeZone || zone_list.GetZone(&zone_details, destination->destination_zone_id)) {
 								Zone(&zone_details, (ZoneServer*)zone_details.zonePtr, false);
 							}
 						}
@@ -11587,6 +11609,34 @@ void Client::SavePlayerImages() {
 	incoming_paperdoll.current_size_bytes = 0;
 }
 
+void Client::AttemptStartAutoMount() {
+	int32 index = GetCurrentZone()->GetFlightPathIndex(GetPendingFlightPath());
+	if (GetPendingFlightPath() > 0) {
+		if (index != -1) {
+			PacketStruct* packet = configReader.getStruct("WS_ClearForTakeOff", GetVersion());
+			if (packet) {
+				packet->setDataByName("spawn_id", GetPlayer()->GetIDWithPlayerSpawn(GetPlayer()));
+				packet->setDataByName("path_id", index);
+				packet->setDataByName("speed", GetCurrentZone()->GetFlightPathSpeed(GetPendingFlightPath()));
+				QueuePacket(packet->serialize());
+				safe_delete(packet);
+
+				on_auto_mount = true;
+			}
+		}
+		else {
+			LogWrite(CCLIENT__ERROR, 0, "Client", "OP_ReadyForTakeOffMsg recieved but unable to get an index for path (%u) in zone (%u)", GetPendingFlightPath(), GetCurrentZone()->GetZoneID());
+			Message(CHANNEL_ERROR, "Unable to get index for path (%u) in zone (%u)", GetPendingFlightPath(), GetCurrentZone()->GetZoneID());
+			EndAutoMount();
+		}
+
+		SetPendingFlightPath(0);
+
+	}
+	else
+		LogWrite(CCLIENT__ERROR, 0, "Client", "OP_ReadyForTakeOffMsg recieved but there is no pending flight path...");
+}
+
 void Client::EndAutoMount() {
 	PacketStruct* packet = configReader.getStruct("WS_ServerControlFlags", GetVersion());
 	if (packet) {
@@ -12208,6 +12258,20 @@ void Client::SendFlightAutoMount(int32 path_id, int16 mount_id, int8 mount_red_c
 
 	if (mount_id)
 		((Entity*)GetPlayer())->SetMount(mount_id, mount_red_color, mount_green_color, mount_blue_color);
+	
+	if(GetVersion() <= 561) {
+		PacketStruct* packet = configReader.getStruct("WS_CreateBoatTransportMsg", GetVersion());
+		if (!packet) {
+			LogWrite(CCLIENT__ERROR, 0, "Client", "WS_CreateBoatTransportMsg missing for version %u", GetVersion());
+			return;
+		}
+		int8 index = (int8)GetCurrentZone()->GetFlightPathIndex(GetPendingFlightPath());
+		packet->setDataByName("path_id", index);
+	//	packet->PrintPacket();
+		QueuePacket(packet->serialize());
+		safe_delete(packet);
+		AttemptStartAutoMount();
+	}
 }
 
 void Client::SendShowBook(Spawn* sender, string title, int8 language, int8 num_pages, ...)

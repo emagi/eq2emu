@@ -512,7 +512,8 @@ class ZoneList {
 	void ReloadMail();
 	void ReloadSpawns();
 	
-	int32 GetHighestDuplicateID(const std::string& inc_zone_name, int32 inc_zone_id);
+	int32 GetHighestDuplicateID(const std::string& inc_zone_name, int32 inc_zone_id, bool increment_new_value = true);
+	bool GetDuplicateZoneDetails(ZoneChangeDetails* zone_details, const std::string& inc_zone_name, int32 inc_zone_id, int32 matchDuplicateId);
 	
 	void WatchdogHeartbeat();
 
