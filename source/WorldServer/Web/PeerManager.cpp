@@ -23,9 +23,11 @@ along with EQ2Emu.  If not, see <http://www.gnu.org/licenses/>.
 #include "../net.h"
 #include "../PlayerGroups.h"
 #include "HTTPSClientPool.h"
+#include "../Rules/Rules.h"
 
 extern NetConnection net;
 extern HTTPSClientPool peer_https_pool;
+extern RuleManager rule_manager;
 
 // HealthCheck method definitions
 void HealthCheck::updateStatus(HealthStatus newStatus) {
@@ -214,8 +216,11 @@ std::string PeerManager::getZonePeerId(const std::string& inc_zone_name, int32 i
 					else if (!instance_zone && inc_zone_name.length() > 0 && strncasecmp(zone_name.c_str(), inc_zone_name.c_str(), inc_zone_name.length()) == 0) {
 						match = true;
 					}
-					
-					if(!instance_zone && num_players >= 30 && !city_zone) {
+						
+					int32 max_players = rule_manager.GetZoneRule(zone_id, R_Zone, SharedZoneMaxPlayers)->GetInt32();
+					if(max_players < 1) // default of 30
+						max_players = 30;
+					if(!instance_zone && num_players >= max_players && !city_zone) {
 						match = false;
 						setZonePeerData(opt_details, peerId, peer->worldAddr, peer->internalWorldAddr, peer->worldPort, peer->webAddr, peer->webPort, zone_file_name, zone_name, zone_id, instance_id,
 							safe_x, safe_y, safe_z, safe_heading, lock_state, min_status, min_level, max_level, min_version, default_lockout_time, default_reenter_time, instance_type, num_players, city_zone);
@@ -237,6 +242,50 @@ std::string PeerManager::getZonePeerId(const std::string& inc_zone_name, int32 i
 	}
 	
 	return fullZoneId;
+}
+
+int32 PeerManager::getZoneHighestDuplicateId(const std::string& inc_zone_name, int32 inc_zone_id) {
+	int32 highestID = 0;
+	bool matched_zone = false;
+	for (auto& [peerId, peer] : peers) {
+		if (peer->healthCheck.status != HealthStatus::OK)
+			continue;
+		try {
+			std::lock_guard<std::mutex> lock(peer->dataMutex);
+			for (const auto& zone : peer->zone_tree->get_child("Zones")) {
+				// Access each field within the current zone
+				std::string zone_name = zone.second.get<std::string>("zone_name");
+				bool instance_zone = zone.second.get<std::string>("instance_zone") == "true";
+				std::string zone_file_name = zone.second.get<std::string>("zone_file_name");
+				int32 zone_id = zone.second.get<int32>("zone_id");
+				int32 instance_id = zone.second.get<int32>("instance_id");
+				int32 duplicate_id = zone.second.get<int32>("duplicated_id");
+
+				bool match = false;
+				if (!instance_zone && inc_zone_id > 0 && zone_id == inc_zone_id) {
+					match = true;
+				}
+				else if (!instance_zone && inc_zone_name.length() > 0 && strncasecmp(zone_name.c_str(), inc_zone_name.c_str(), inc_zone_name.length()) == 0) {
+					match = true;
+				}
+					
+				if (match) {
+					matched_zone = true;
+					if(duplicate_id > highestID)
+						highestID = duplicate_id;
+				}
+			}
+		}
+		catch (const std::exception& e) {
+			LogWrite(PEERING__ERROR, 0, "Peering", "%s: Error Parsing Zones for %s:%u", __FUNCTION__, peer->webAddr.c_str(), peer->webPort);
+		}
+	}
+	
+	if(matched_zone) {
+		highestID++;
+	}
+	
+	return highestID;
 }
 
 void PeerManager::handlePrimaryConflict(const std::string& reconnectingPeerId) {

@@ -793,7 +793,7 @@ void Entity::GetWeaponDamage(Item* item, int32* low_damage, int32* high_damage) 
 		
 		Skill* masterySkill = ((Player*)this)->skill_list.GetSkill(item->generic_info.skill_req2);
 		if(masterySkill) {
-		LogWrite(PLAYER__ERROR, 0, "Player", "Item has skill %s %u requirement", masterySkill->name.data.c_str(), item->generic_info.skill_req2);
+		LogWrite(PLAYER__DEBUG, 0, "Player", "Item %s has skill %s %u requirement", item->name.c_str(), masterySkill->name.data.c_str(), item->generic_info.skill_req2);
 			int16 skillID = master_item_list.GetItemStatIDByName(masterySkill->name.data);
 			int32 skill_chance = (int32)CalculateSkillWithBonus((char*)masterySkill->name.data.c_str(), master_item_list.GetItemStatIDByName(masterySkill->name.data), false);
 			if(skill_chance >= min_level_skill && skill_chance < rec_level_skill) {

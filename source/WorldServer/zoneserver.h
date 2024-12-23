@@ -532,9 +532,11 @@ public:
 	inline bool		IsCityZone()	{ return cityzone; }
 	inline bool		AlwaysLoaded()	{ return always_loaded; }
 	inline bool		DuplicatedZone()	{ return duplicated_zone; }
+	inline int32	DuplicatedID()	{ return duplicated_id; }
 	void			SetCityZone(bool val) { cityzone = val; }
 	void			SetAlwaysLoaded(bool val) { always_loaded = val; }
 	void			SetDuplicatedZone(bool val) { duplicated_zone = val; }
+	void			SetDuplicatedID(int32 id) { duplicated_id = id; }
 	int32			NumPlayers()	{ return pNumPlayers; }
 	void			SetMinimumStatus(sint16 minStatus) { minimumStatus = minStatus; }
 	sint16			GetMinimumStatus() { return minimumStatus; }
@@ -939,6 +941,7 @@ private:
 	bool	cityzone;
 	bool	always_loaded;
 	bool	duplicated_zone;
+	int32	duplicated_id;
 	bool	isInstance;	
 	
 	std::atomic<int32> pNumPlayers;

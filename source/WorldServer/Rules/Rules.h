@@ -208,7 +208,8 @@ enum RuleType {
 	HOTime,
 	UseMapUnderworldCoords,
 	MapUnderworldCoordOffset,
-
+	SharedZoneMaxPlayers,
+	
 	/* LOOT */
 	LootRadius,
 	AutoDisarmChest, // if enabled disarm only works if you right click and disarm, clicking and opening chest won't attempt auto disarm

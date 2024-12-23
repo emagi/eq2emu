@@ -362,6 +362,8 @@ void RuleManager::Init()
 	RULE_INIT(R_Zone, UseMapUnderworldCoords, "1"); // use maps lowest Y coordinate to establish underworld markers
 	RULE_INIT(R_Zone, MapUnderworldCoordOffset, "-200.0"); // adds (or in the case of negative value subtracts) so that the underworld marker is lower when map is using its lowest Y coordinate
 	
+	RULE_INIT(R_Zone, SharedZoneMaxPlayers, "30"); // max players in a shared zone (non instanced) before splitting to another zone, city_zone flagged are exempt
+	
 	RULE_INIT(R_Loot, LootRadius, "5.0");
 	RULE_INIT(R_Loot, AutoDisarmChest, "1");
 	RULE_INIT(R_Loot, ChestTriggerRadiusGroup, "10.0"); // radius at which chest will trigger against group members

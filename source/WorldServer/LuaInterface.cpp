@@ -1623,6 +1623,7 @@ void LuaInterface::DeletePendingSpells(bool all) {
 		for (del_itr = tmp_deletes.begin(); del_itr != tmp_deletes.end(); del_itr++) {
 			spell = *del_itr;
 			
+			spells_pending_delete.erase(spell);
 			SetLuaUserDataStale(spell);
 			RemoveCurrentSpell(spell->state, spell, false);
 			
@@ -1639,9 +1640,10 @@ void LuaInterface::DeletePendingSpells(bool all) {
 						if(!targetZone)
 							continue;
 						
-						spellDeleted = true;
+						if(!spellDeleted)
+							targetZone->GetSpellProcess()->DeleteActiveSpell(spell, true);
 						
-						targetZone->GetSpellProcess()->DeleteActiveSpell(spell, true);
+						spellDeleted = true;
 					}
 					spell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
 				}
@@ -1650,8 +1652,6 @@ void LuaInterface::DeletePendingSpells(bool all) {
 					spell->zone->GetSpellProcess()->DeleteActiveSpell(spell, true);
 				}
 			}
-			
-			spells_pending_delete.erase(spell);
 
 			if (spell->spell->IsCopiedSpell())
 			{
@@ -2694,7 +2694,7 @@ bool LuaInterface::RunRegionScript(string script_name, const char* function_name
 void LuaInterface::AddPendingSpellDelete(LuaSpell* spell) {
 	MSpellDelete.lock();
 	if ( spells_pending_delete.count(spell) == 0 )
-		spells_pending_delete[spell] = Timer::GetCurrentTime2() + 10000;
+		spells_pending_delete[spell] = Timer::GetCurrentTime2() + 100;
 	MSpellDelete.unlock();
 }
 

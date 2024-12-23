@@ -511,7 +511,9 @@ class ZoneList {
 	void ShutDownZones();
 	void ReloadMail();
 	void ReloadSpawns();
-
+	
+	int32 GetHighestDuplicateID(const std::string& inc_zone_name, int32 inc_zone_id);
+	
 	void WatchdogHeartbeat();
 
 	void SendTimeUpdate();

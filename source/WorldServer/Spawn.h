@@ -905,7 +905,8 @@ public:
 	void			SetRespawnOffsetLow(sint32 time);
 	sint32			GetRespawnOffsetHigh();
 	void			SetRespawnOffsetHigh(sint32 time);
-	
+	bool			DuplicatedSpawn() { return duplicated_spawn; }
+	void			SetDuplicateSpawn(bool val) { duplicated_spawn = val; }
 	int32			GetExpireTime() { return expire_time; }
 	void			SetExpireTime(int32 new_expire_time) { expire_time = new_expire_time; }
 	int32			GetExpireOffsetTime();
@@ -1505,6 +1506,7 @@ private:
 	int32			respawn;
 	sint32			respawn_offset_low;
 	sint32			respawn_offset_high;
+	bool			duplicated_spawn;
 	int32			expire_time;
 	int32			expire_offset;
 	float			x_offset;

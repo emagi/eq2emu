@@ -150,6 +150,7 @@ Spawn::Spawn(){
 	reset_movement = false;
 	respawn_offset_low = 0;
 	respawn_offset_high = 0;
+	duplicated_spawn = true;
 	ResetKnockedBack();
 }
 

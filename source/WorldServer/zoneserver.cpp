@@ -185,6 +185,7 @@ ZoneServer::ZoneServer(const char* name) {
 	is_initialized = false;
 	isInstance = false;
 	duplicated_zone = false;
+	duplicated_id = 0;
 }
 
 typedef map <int32, bool> ChangedSpawnMapType;
@@ -2525,7 +2526,9 @@ Spawn* ZoneServer::ProcessSpawnLocation(SpawnLocation* spawnlocation, map<int32,
 	{
 		if(spawnlocation->entities[i]->spawn_percentage == 0)
 			continue;
-		
+		if(DuplicatedZone() && !spawnlocation->entities[i]->duplicated_spawn) {
+			return nullptr; // dupe public/shared zone, we have turned off duplicating spawns for this location
+		}
 		
 		int32 spawnTime = 1;
 		
@@ -2994,6 +2997,7 @@ NPC* ZoneServer::AddNPCSpawn(SpawnLocation* spawnlocation, SpawnEntry* spawnentr
 		npc->SetRespawnTime(spawnentry->respawn);
 		npc->SetRespawnOffsetLow(spawnentry->respawn_offset_low);
 		npc->SetRespawnOffsetHigh(spawnentry->respawn_offset_high);
+		npc->SetDuplicateSpawn(spawnentry->duplicated_spawn);
 		npc->SetExpireTime(spawnentry->expire_time);
 
 		//devn00b add overrides for some spawns
@@ -3417,6 +3421,7 @@ Sign* ZoneServer::AddSignSpawn(SpawnLocation* spawnlocation, SpawnEntry* spawnen
 		sign->SetRespawnTime(spawnentry->respawn);
 		sign->SetRespawnOffsetLow(spawnentry->respawn_offset_low);
 		sign->SetRespawnOffsetHigh(spawnentry->respawn_offset_high);
+		sign->SetDuplicateSpawn(spawnentry->duplicated_spawn);
 		sign->SetExpireTime(spawnentry->expire_time);
 		if (spawnentry->expire_time > 0)
 			AddSpawnExpireTimer(sign, spawnentry->expire_time, spawnentry->expire_offset);
@@ -3448,6 +3453,7 @@ Widget* ZoneServer::AddWidgetSpawn(SpawnLocation* spawnlocation, SpawnEntry* spa
 		widget->SetRespawnTime(spawnentry->respawn);
 		widget->SetRespawnOffsetLow(spawnentry->respawn_offset_low);
 		widget->SetRespawnOffsetHigh(spawnentry->respawn_offset_high);
+		widget->SetDuplicateSpawn(spawnentry->duplicated_spawn);
 		widget->SetExpireTime(spawnentry->expire_time);
 		widget->SetSpawnOrigHeading(widget->GetHeading());
 		if (spawnentry->expire_time > 0)
@@ -3474,6 +3480,7 @@ Object* ZoneServer::AddObjectSpawn(SpawnLocation* spawnlocation, SpawnEntry* spa
 		object->SetRespawnTime(spawnentry->respawn);
 		object->SetRespawnOffsetLow(spawnentry->respawn_offset_low);
 		object->SetRespawnOffsetHigh(spawnentry->respawn_offset_high);
+		object->SetDuplicateSpawn(spawnentry->duplicated_spawn);
 		object->SetExpireTime(spawnentry->expire_time);
 		if (spawnentry->expire_time > 0)
 			AddSpawnExpireTimer(object, spawnentry->expire_time, spawnentry->expire_offset);
@@ -3499,6 +3506,7 @@ GroundSpawn* ZoneServer::AddGroundSpawn(SpawnLocation* spawnlocation, SpawnEntry
 		spawn->SetRespawnTime(spawnentry->respawn);
 		spawn->SetRespawnOffsetLow(spawnentry->respawn_offset_low);
 		spawn->SetRespawnOffsetHigh(spawnentry->respawn_offset_high);
+		spawn->SetDuplicateSpawn(spawnentry->duplicated_spawn);
 		spawn->SetExpireTime(spawnentry->expire_time);
 		
 		if(spawn->GetRandomizeHeading()) {
@@ -5280,7 +5288,7 @@ void ZoneServer::KillSpawn(bool spawnListLocked, Spawn* dead, Spawn* killer, boo
 			else if ( dead->IsObject ( ) )
 				database.CreateInstanceSpawnRemoved(dead->GetSpawnLocationID(),SPAWN_ENTRY_TYPE_OBJECT, dead->GetRespawnTime(),dead->GetZone()->GetInstanceID());
 		}
-		else if(!groupMemberAlive && dead->GetSpawnLocationID() > 0) {
+		else if(!groupMemberAlive && dead->GetSpawnLocationID() > 0 && !DuplicatedZone()) {
 			if(dead->IsNPC())
 				database.CreatePersistedRespawn(dead->GetSpawnLocationID(),SPAWN_ENTRY_TYPE_NPC,dead->GetRespawnTime(),GetZoneID());
 			else if(dead->IsObject())

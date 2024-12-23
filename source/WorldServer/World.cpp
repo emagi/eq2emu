@@ -699,8 +699,12 @@ bool ZoneList::GetZone(ZoneChangeDetails* zone_details, int32 opt_zone_id, std::
 				if(!check_instances && tmp->IsInstanceZone())
 					continue;
 				
+				int32 max_players = rule_manager.GetZoneRule(tmp->GetZoneID(), R_Zone, SharedZoneMaxPlayers)->GetInt32();
+				if(max_players < 1) // default of 30
+					max_players = 30;
+					
 				if(!tmp->isZoneShuttingDown() && ((opt_zone_id > 0 && tmp->GetZoneID() == opt_zone_id) || (opt_zone_name.length() > 0 && strncasecmp(tmp->GetZoneName(), opt_zone_name.c_str(), opt_zone_name.length())==0))){
-					if(tmp->NumPlayers() < 30 || tmp->IsCityZone()) {
+					if(tmp->NumPlayers() < max_players || tmp->IsCityZone()) {
 						ret = tmp;
 						if(increment_zone) {
 							ret->IncrementIncomingClients();
@@ -719,8 +723,10 @@ bool ZoneList::GetZone(ZoneChangeDetails* zone_details, int32 opt_zone_id, std::
 		if(!ret && check_peers) {
 			std::string peerId = peer_manager.getZonePeerId(opt_zone_name, opt_zone_id, 0, zone_details, only_always_loaded);
 			if(peerId.size() > 0) {
-				
-				if(zone_details->instanceType == 0 && zone_details->numPlayers >= 30 && !zone_details->isCityZone) {
+				int32 max_players = rule_manager.GetZoneRule(zone_details->zoneId, R_Zone, SharedZoneMaxPlayers)->GetInt32();
+				if(max_players < 1) // default of 30
+					max_players = 30;
+				if(zone_details->instanceType == 0 && zone_details->numPlayers >= max_players && !zone_details->isCityZone) {
 					LogWrite(WORLD__WARNING, 0, "World", "Peer %s is providing zone %s for zone %s id %u, however the zone is full, omitting result.", peerId.c_str(), zone_details->zoneName.c_str(), opt_zone_name.c_str(), opt_zone_id);
 					hadFullZone = true;
 				}
@@ -750,6 +756,7 @@ bool ZoneList::GetZone(ZoneChangeDetails* zone_details, int32 opt_zone_id, std::
 				root.put("zone_id", std::to_string(opt_zone_id));
 				root.put("always_loaded", only_always_loaded);
 				root.put("duplicated_zone", hadFullZone);
+				root.put("duplicated_id", zone_list.GetHighestDuplicateID(opt_zone_name, opt_zone_id));
 				
 				root.put("min_level", minLevel);
 				root.put("max_level", maxLevel);
@@ -772,6 +779,14 @@ bool ZoneList::GetZone(ZoneChangeDetails* zone_details, int32 opt_zone_id, std::
 				tmp = new ZoneServer(opt_zone_name.c_str());
 				database.LoadZoneInfo(tmp, minLevel, maxLevel, avgLevel, firstLevel);
 				tmp->SetDuplicatedZone(hadFullZone);
+				if(hadFullZone) {
+					tmp->SetDuplicatedID(zone_list.GetHighestDuplicateID(opt_zone_name, opt_zone_id));
+					std::string desc = "";
+					if(tmp->GetZoneDescription())
+						desc = std::string(tmp->GetZoneDescription());
+					desc += " " + std::to_string(tmp->DuplicatedID());
+					tmp->SetZoneDescription((char*)desc.c_str());
+				}
 				tmp->Init();
 				tmp->SetAlwaysLoaded(only_always_loaded);
 			}
@@ -835,6 +850,8 @@ bool ZoneList::GetZoneByInstance(ZoneChangeDetails* zone_details, int32 instance
 				root.put("zone_name", zonename);
 				root.put("zone_id", std::to_string(zone_id));
 				root.put("always_loaded", false);
+				root.put("duplicated_zone", false); // instances dont duplicate, only shared zones
+				root.put("duplicated_id", 0);
 				
 				root.put("min_level", minLevel);
 				root.put("max_level", maxLevel);
@@ -1588,6 +1605,40 @@ void ZoneList::ReloadSpawns() {
 		(*itr)->ReloadSpawns();
 
 	MZoneList.releasereadlock(__FUNCTION__, __LINE__);
+}
+
+
+int32 ZoneList::GetHighestDuplicateID(const std::string& inc_zone_name, int32 inc_zone_id)
+{
+	list<ZoneServer*>::iterator zone_iter;
+	ZoneServer* tmp = 0;
+	int32 highest_id = peer_manager.getZoneHighestDuplicateId(inc_zone_name, inc_zone_id);
+	MZoneList.readlock(__FUNCTION__, __LINE__);
+	bool match = false;
+	bool matched_peer = (highest_id>0);
+	for(zone_iter=zlist.begin(); zone_iter!=zlist.end(); zone_iter++)
+	{
+		tmp = *zone_iter;
+		
+		if(tmp->IsInstanceZone())
+			continue;
+				
+		if(((inc_zone_id > 0 && tmp->GetZoneID() == inc_zone_id) || (inc_zone_name.length() > 0 && strncasecmp(tmp->GetZoneName(), inc_zone_name.c_str(), inc_zone_name.length())==0))){
+			if(tmp->DuplicatedID() > highest_id) {
+				highest_id = tmp->DuplicatedID();
+				matched_peer = false;
+			}
+			
+			match = true;
+		}
+	}
+
+	MZoneList.releasereadlock(__FUNCTION__, __LINE__);
+	
+	if(match && !matched_peer)
+		highest_id++;
+	
+	return highest_id;
 }
 
 bool World::ReportBug(string data, char* player_name, int32 account_id, const char* spawn_name, int32 spawn_id, int32 zone_id){
