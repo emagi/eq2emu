@@ -4692,7 +4692,7 @@ void ZoneServer::RemoveFromRangeMap(Client* client){
 
 void ZoneServer::RemoveSpawn(Spawn* spawn, bool delete_spawn, bool respawn, bool lock, bool erase_from_spawn_list, bool lock_spell_process) 
 {
-	if(spawn->IsPlayer()) {
+	if(!spawn->IsDeletedSpawn() && spawn->IsPlayer()) {
 		if(pNumPlayers > 0)
 			pNumPlayers--;
 	}
