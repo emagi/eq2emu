@@ -4120,10 +4120,8 @@ void Client::SetCurrentZone(int32 id, int32 duplicate_zone_id) {
 	duplicate_zoning_id = 0;
 	bool foundDupeZone = false;
 	ZoneChangeDetails zone_details;
-	if(duplicate_zone_id) {
-		if(foundDupeZone = zone_list.GetDuplicateZoneDetails(&zone_details, "", id, duplicate_zone_id))
-			duplicate_zoning_id = duplicate_zone_id;
-	}
+	if(foundDupeZone = zone_list.GetDuplicateZoneDetails(&zone_details, "", id, duplicate_zone_id))
+		duplicate_zoning_id = duplicate_zone_id;
 	
 	if (foundDupeZone || zone_list.GetZone(&zone_details, id, "", true, false, true, false)) {
 		SetCurrentZone((ZoneServer*)zone_details.zonePtr);
@@ -10132,7 +10130,8 @@ void Client::ProcessTeleportLocation(EQApplicationPacket* app) {
 							ZoneChangeDetails zone_details;
 							bool foundDupeZone = false;
 							duplicate_zoning_id = 0;
-							if(duplicateId > 0) {
+							int32 additional_zones = zone_list.GetHighestDuplicateID("", destination->destination_zone_id, false);
+							if(additional_zones) {
 								if(foundDupeZone = zone_list.GetDuplicateZoneDetails(&zone_details, "", destination->destination_zone_id, duplicateId))
 									duplicate_zoning_id = duplicateId;
 							}
