@@ -8017,6 +8017,10 @@ void WorldDatabase::LoadCharacterSpellEffects(int32 char_id, Client* client, int
 			else
 				continue;
 		}
+		else if(!icon) {
+			LogWrite(LUA__WARNING, 0, "LUA", "WorldDatabase::LoadCharacterSpellEffects: GetSpell(%u, %u), no icon set, this must be a heroic opportunity or incorrectly configured spell!", spell_id, tier);
+			continue;
+		}
 		
 		bool isMaintained = false;
 		bool isExistingLuaSpell = false;
