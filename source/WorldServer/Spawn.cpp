@@ -5183,7 +5183,7 @@ void Spawn::DistributeGroupLoot_RoundRobin(std::vector<int32>* item_list, bool r
 		int32 item_id = *item_itr;
 		Item* tmpItem = master_item_list.GetItem(item_id);
 		Spawn* looter = nullptr;
-
+		int8 group_idx = 0;
 		bool skipItem = IsItemInLootTier(tmpItem);
 
 		if ((skipItem && !roundRobinTrashLoot) || (!skipItem && roundRobinTrashLoot))
@@ -5192,43 +5192,139 @@ void Spawn::DistributeGroupLoot_RoundRobin(std::vector<int32>* item_list, bool r
 		world.GetGroupManager()->GroupLock(__FUNCTION__, __LINE__);
 		PlayerGroup* group = world.GetGroupManager()->GetGroup(GetLootGroupID());
 		if (group) {
-			group->MGroupMembers.writelock(__FUNCTION__, __LINE__);
-			deque<GroupMemberInfo*>* members = group->GetMembers();
-
+			std::vector<int32> raidGroups;
+			world.GetGroupManager()->GetRaidGroups(GetLootGroupID(), &raidGroups);
+			
 			int8 index = group->GetLastLooterIndex();
-			if (index >= members->size()) {
-				index = 0;
-			}
-
-			GroupMemberInfo* gmi = members->at(index);
-			if (gmi) {
-				looter = gmi->member;
-			}
-			bool loopAttempted = false;
-			while (looter) {
-				if (!looter->IsPlayer()) {
-					index++;
-					if (index >= members->size()) {
-						if (loopAttempted) {
-							looter = nullptr;
-							break;
-						}
-						loopAttempted = true;
-						index = 0;
+			int8 actual_index = index;
+			if(raidGroups.size() > 0) {
+				group_idx = (index / 6);
+				if(group_idx < raidGroups.size()) {
+					group = world.GetGroupManager()->GetGroup(raidGroups.at(group_idx));
+					if(!group) {
+						LogWrite(LOOT__ERROR, 0, "Loot", "DistributeGroupLoot_RoundRobin: Failed to find group at index %u with value %u", group_idx, raidGroups.at(group_idx));
+						world.GetGroupManager()->ReleaseGroupLock(__FUNCTION__, __LINE__);
+						return;
 					}
-					gmi = members->at(index);
-					if (gmi) {
-						looter = gmi->member;
+					if(index >= 6) {
+						actual_index = index - (group_idx * 6);
 					}
-					continue;
+					else{
+						actual_index = index;
+					}
 				}
 				else {
-					break;
+					LogWrite(LOOT__ERROR, 0, "Loot", "DistributeGroupLoot_RoundRobin: Group at index %u out of range with raidGroups size %u", group_idx, raidGroups.size());
+					world.GetGroupManager()->ReleaseGroupLock(__FUNCTION__, __LINE__);
+					return;
 				}
 			}
-			index += 1;
-			group->SetNextLooterIndex(index);
-			group->MGroupMembers.releasewritelock(__FUNCTION__, __LINE__);
+			group->MGroupMembers.readlock(__FUNCTION__, __LINE__);
+			int8 size = group->GetMembers()->size();
+			group->MGroupMembers.releasereadlock(__FUNCTION__, __LINE__);
+			if (actual_index >= size) {
+				if(raidGroups.size() < 1) {
+					actual_index = 0;
+					index = 0;
+				}
+				else if(index >= raidGroups.size() * 6) {
+					group = world.GetGroupManager()->GetGroup(raidGroups.at(0));
+					if(!group) {
+						LogWrite(LOOT__ERROR, 0, "Loot", "DistributeGroupLoot_RoundRobin: Failed to find main group");
+						world.GetGroupManager()->ReleaseGroupLock(__FUNCTION__, __LINE__);
+						return;
+					}
+					actual_index = 0;
+					index = 0;
+					group_idx = 0;
+				}
+				else {
+					index = (group_idx + 1) * 6;
+					actual_index = 0;
+					group_idx = (index / 6);
+					if(group_idx < raidGroups.size()) {
+						group = world.GetGroupManager()->GetGroup(raidGroups.at(group_idx));
+						if(!group) {
+							LogWrite(LOOT__ERROR, 0, "Loot", "DistributeGroupLoot_RoundRobin: Failed to find group %u at index %u", raidGroups.at(group_idx), group_idx);
+							world.GetGroupManager()->ReleaseGroupLock(__FUNCTION__, __LINE__);
+							return;
+						}
+					}
+					else {
+						group = world.GetGroupManager()->GetGroup(raidGroups.at(0));
+						group_idx = 0;
+						index = 0;
+						actual_index = 0;
+						if(!group) {
+							LogWrite(LOOT__ERROR, 0, "Loot", "DistributeGroupLoot_RoundRobin: Failed to find main group");
+							world.GetGroupManager()->ReleaseGroupLock(__FUNCTION__, __LINE__);
+							return;
+						}
+					}
+				}
+			}
+			
+			group->MGroupMembers.readlock(__FUNCTION__, __LINE__);
+			deque<GroupMemberInfo*>* members = group->GetMembers();
+
+			bool foundLooter = false;
+			bool loopAttempted = false;
+			while (!foundLooter) {
+				// If we've iterated past the current group's members
+				if (actual_index >= members->size()) {
+					if (loopAttempted) {
+						// If we've looped through all groups and members without finding a player, stop
+						looter = nullptr;
+						break;
+					}
+
+					// Move to the next group in the raid
+					group_idx++;
+					if (group_idx >= raidGroups.size()) {
+						// If we've iterated through all raid groups, loop back to the first group
+						loopAttempted = true;
+						group_idx = 0;
+					}
+					
+					index = (group_idx) * 6;
+					actual_index = 0;
+
+					// Update the group pointer to the next group
+					group = world.GetGroupManager()->GetGroup(raidGroups.at(group_idx));
+					if (!group) {
+						LogWrite(LOOT__ERROR, 0, "Loot", "Failed to find group with ID %u", raidGroups.at(group_idx));
+						break;
+					}
+
+					// Update members pointer for the new group
+					members = group->GetMembers();
+				}
+
+				// Get the current member
+				GroupMemberInfo* gmi = members->at(actual_index);
+				if (gmi && gmi->member && gmi->member->IsPlayer()) {
+					looter = gmi->member;
+					foundLooter = true;
+				} else {
+					// Move to the next member
+					actual_index++;
+				}
+			}
+			group->MGroupMembers.releasereadlock(__FUNCTION__, __LINE__);
+
+			// Update the loot index across all raid groups
+			index++;
+			if(raidGroups.size() > 0) {
+				for (size_t i = 0; i < raidGroups.size(); i++) {
+					PlayerGroup* tmpGroup = world.GetGroupManager()->GetGroup(raidGroups.at(i));
+					if (tmpGroup) {
+						tmpGroup->SetNextLooterIndex(index);
+					}
+				}
+			}
+			else if(group) {
+				group->SetNextLooterIndex(index);
+			}
 		}
 		world.GetGroupManager()->ReleaseGroupLock(__FUNCTION__, __LINE__);
 
