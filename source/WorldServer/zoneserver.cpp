@@ -8770,7 +8770,7 @@ void ZoneServer::SendFlightPathsPackets(Client* client) {
 					}
 				}
 			}
-			packet->PrintPacket();
+			//packet->PrintPacket();
 			client->QueuePacket(packet->serialize());
 			safe_delete(packet);
 		}

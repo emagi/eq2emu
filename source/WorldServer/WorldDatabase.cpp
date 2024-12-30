@@ -2961,44 +2961,55 @@ void WorldDatabase::LoadZoneInfo(ZoneServer* zone, int32 minLevel, int32 maxLeve
 	zone->setGroupRaidLevels(minLevel, maxLevel, avgLevel, firstLevel);
 	
 	char* escaped = getEscapeString(zone->GetZoneName());
-	MYSQL_RES* result = query.RunQuery2(Q_SELECT, "SELECT id, file, description, underworld, safe_x, safe_y, safe_z, min_status, min_level, max_level, instance_type+0, shutdown_timer, zone_motd, default_reenter_time, default_reset_time, default_lockout_time, force_group_to_zone, safe_heading, xp_modifier, ruleset_id, expansion_id, weather_allowed, sky_file, can_bind, can_gate, city_zone, can_evac FROM zones where name='%s'",escaped);
-	if(result && mysql_num_rows(result) > 0) {
-		MYSQL_ROW row;
-		row = mysql_fetch_row(result);
+	std::shared_ptr<ZoneInfoMemory> zoneInfo = world.GetZoneInfoByName(escaped);
+	
+	MYSQL_RES* result = nullptr;
+	
+	if(zoneInfo == nullptr)
+		result = query.RunQuery2(Q_SELECT, "SELECT id, file, description, underworld, safe_x, safe_y, safe_z, min_status, min_level, max_level, instance_type+0, shutdown_timer, zone_motd, default_reenter_time, default_reset_time, default_lockout_time, force_group_to_zone, safe_heading, xp_modifier, ruleset_id, expansion_id, weather_allowed, sky_file, can_bind, can_gate, city_zone, can_evac FROM zones where name='%s'",escaped);
+	if((zoneInfo || (result && mysql_num_rows(result) > 0))) {
+		if(result && zoneInfo == nullptr) 
+		{	
+			MYSQL_ROW row;
+			row = mysql_fetch_row(result);
+		
+			zoneInfo = std::make_shared<ZoneInfoMemory>();
+			zoneInfo->LoadFromDatabaseRow(row);
+			world.AddZoneInfo(zoneInfo->zoneID, zoneInfo);
+		}
+		
+		if(!result && !zoneInfo) {
+			LogWrite(ZONE__ERROR, 0, "Zones", "Failed to get zone info for %s.", escaped);
+			safe_delete_array(escaped);
+			return;
+		}
 		zone->SetZoneName(escaped);
-		zone->SetZoneID(strtoul(row[0], NULL, 0));
-		zone->SetZoneFile(row[1]);
-		zone->SetZoneDescription(row[2]);
-		zone->SetUnderWorld(atof(row[3]));
-		zone->SetSafeX(atof(row[4]));
-		zone->SetSafeY(atof(row[5]));
-		zone->SetSafeZ(atof(row[6]));
-		zone->SetMinimumStatus(atoi(row[7]));
-		zone->SetMinimumLevel(atoi(row[8]));
-		zone->SetMaximumLevel(atoi(row[9]));
-		int8 type = (atoi(row[10]) == 0) ? 0 : atoi(row[10]) - 1;
-		zone->SetInstanceType(type);
-		zone->SetShutdownTimer(atoul(row[11]));
+		zone->SetZoneID(zoneInfo->zoneID);
+		zone->SetZoneFile((char*)zoneInfo->zoneFile.c_str());
+		zone->SetZoneDescription((char*)zoneInfo->zoneDescription.c_str());
+		zone->SetUnderWorld(zoneInfo->underworld);
+		zone->SetSafeX(zoneInfo->safeX);
+		zone->SetSafeY(zoneInfo->safeY);
+		zone->SetSafeZ(zoneInfo->safeZ);
+		zone->SetMinimumStatus(zoneInfo->minimumVersion);
+		zone->SetMinimumLevel(zoneInfo->minimumLevel);
+		zone->SetMaximumLevel(zoneInfo->maximumLevel);
+		zone->SetInstanceType(zoneInfo->instanceType);
+		zone->SetShutdownTimer(zoneInfo->shutdownTime);
+		zone->SetZoneMOTD(zoneInfo->zoneMotd);
 
-		char* zone_motd = row[12];
-		if (zone_motd && strlen(zone_motd) > 0)
-			zone->SetZoneMOTD(string(zone_motd));
-
-		zone->SetDefaultReenterTime(atoi(row[13]));
-		zone->SetDefaultResetTime(atoi(row[14]));
-		zone->SetDefaultLockoutTime(atoi(row[15]));
-		zone->SetForceGroupZoneOption(atoi(row[16]));
-		zone->SetSafeHeading(atof(row[17]));
-		zone->SetXPModifier(atof(row[18]));
-
-		if ((ruleset_id = atoul(row[19])) > 0 && !rule_manager.SetZoneRuleSet(zone->GetZoneID(), ruleset_id))
-			LogWrite(ZONE__ERROR, 0, "Zones", "Error setting rule set for zone '%s' (%u). A rule set with ID %u does not exist.", zone->GetZoneName(), zone->GetZoneID(), ruleset_id);
+		zone->SetDefaultReenterTime(zoneInfo->defReenterTime);
+		zone->SetDefaultResetTime(zoneInfo->defResetTime);
+		zone->SetDefaultLockoutTime(zoneInfo->defLockoutTime);
+		zone->SetForceGroupZoneOption(zoneInfo->groupZoneOption);
+		zone->SetSafeHeading(zoneInfo->safeHeading);
+		zone->SetXPModifier(zoneInfo->xpModifier);
 
 		// check data_version to see if client has proper expansion to enter a zone
-		zone->SetMinimumVersion(GetMinimumClientVersion(atoi(row[20])));
-		zone->SetWeatherAllowed(atoi(row[21]) == 0 ? false : true);
+		zone->SetMinimumVersion(zoneInfo->minimumVersion);
+		zone->SetWeatherAllowed(zoneInfo->weatherAllowed);
 
-		zone->SetZoneSkyFile(row[22]);
+		zone->SetZoneSkyFile((char*)zoneInfo->zoneSkyFile.c_str());
 
 		if (zone->IsInstanceZone())
 		{
@@ -3011,10 +3022,10 @@ void WorldDatabase::LoadZoneInfo(ZoneServer* zone, int32 minLevel, int32 maxLeve
 				LoadZonePlayerLevels(zone);
 			}
 		}
-		zone->SetCanBind(atoul(row[23]));
-		zone->SetCanGate(atoul(row[24]));
-      	zone->SetCityZone(atoi(row[25]));
-		zone->SetCanEvac(atoul(row[26]));
+		zone->SetCanBind(zoneInfo->canBind);
+		zone->SetCanGate(zoneInfo->canGate);
+		zone->SetCityZone(zoneInfo->cityZone);
+		zone->SetCanEvac(zoneInfo->canEvac);
 	}
 	safe_delete_array(escaped);
 }

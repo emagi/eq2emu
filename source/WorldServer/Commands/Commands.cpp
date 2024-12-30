@@ -5818,6 +5818,7 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 		case COMMAND_LEAVERAID: { Command_LeaveRaid(client, sep); break; }
 		case COMMAND_SPLIT: { Command_Split(client, sep); break; }
 		case COMMAND_RAIDSAY: { Command_RaidSay(client, sep); break; }
+		case COMMAND_RELOAD_ZONEINFO: { Command_ReloadZoneInfo(client, sep); break; }
 		default: 
 		{
 			LogWrite(COMMAND__WARNING, 0, "Command", "Unhandled command: %s", command->command.data.c_str());
@@ -12850,4 +12851,13 @@ void Commands::Command_RaidSay(Client* client, Seperator* sep) {
 			peer_manager.SendPeersChannelMessage(gmi->group_id, std::string(client->GetPlayer()->GetName()), std::string(sep->argplus[0]), CHANNEL_RAID_SAY, client->GetPlayer()->GetCurrentLanguage());
 		}
 	}
+}
+
+/* 
+	Function: Command_ReloadZoneInfo()
+	Purpose	: Clears ZoneInfoMemory used for database.LoadZoneInfo
+	Example	: /reload zoneinfo
+*/ 
+void Commands::Command_ReloadZoneInfo(Client* client, Seperator* sep) {
+	world.ClearZoneInfoCache();
 }

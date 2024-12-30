@@ -3651,3 +3651,65 @@ void World::ClientAuthApproval(int32 success, std::string charName, int32 accoun
 		 // can't find client
 	}
 }
+
+void World::ClearZoneInfoCache() {
+	std::unique_lock<std::shared_mutex> lock(cacheMutex);
+	zoneInfoByID.clear();
+	zoneInfoByName.clear();
+}
+
+std::shared_ptr<ZoneInfoMemory> World::GetZoneInfoById(int32 zoneID) {
+	std::shared_lock<std::shared_mutex> lock(cacheMutex);
+	auto it = zoneInfoByID.find(zoneID);
+	if (it != zoneInfoByID.end()) {
+		return it->second;
+	}
+	return nullptr;
+}
+
+std::shared_ptr<ZoneInfoMemory> World::GetZoneInfoByName(const std::string& zoneName) {
+	std::shared_lock<std::shared_mutex> lock(cacheMutex);
+	auto it = zoneInfoByName.find(zoneName);
+	if (it != zoneInfoByName.end()) {
+		return it->second;
+	}
+	return nullptr;
+}
+
+void World::AddZoneInfo(int32 zoneID, std::shared_ptr<ZoneInfoMemory> zoneInfo) {
+	std::unique_lock<std::shared_mutex> lock(cacheMutex);
+	zoneInfoByID[zoneInfo->zoneID] = zoneInfo;
+	zoneInfoByName[zoneInfo->zoneName] = zoneInfo;
+}
+
+void ZoneInfoMemory::LoadFromDatabaseRow(MYSQL_ROW row) {
+	zoneID = atoul(row[0]);
+	zoneFile = (row[1] != nullptr) ? row[1] : "";
+	zoneDescription = (row[2] != nullptr) ? row[2] : "";
+	underworld = atof(row[3]);
+	safeX = atof(row[4]);
+	safeY = atof(row[5]);
+	safeZ = atof(row[6]);
+	minimumLevel = atoi(row[8]);
+	maximumLevel = atoi(row[9]);
+	int8 type = (atoi(row[10]) == 0) ? 0 : atoi(row[10]) - 1;
+	shutdownTime = atoul(row[11]);
+	instanceType = (Instance_Type)type;
+	zoneMotd = (row[12] != nullptr) ? row[12] : "";
+	defReenterTime = atoi(row[13]);
+	defResetTime = atoi(row[14]);
+	defLockoutTime = atoi(row[15]);
+	groupZoneOption = atoi(row[16]);
+	safeHeading = atof(row[17]);
+	xpModifier = atof(row[18]);
+	rulesetID = atoul(row[19]);
+	if (rulesetID > 0 && !rule_manager.SetZoneRuleSet(zoneID, rulesetID))
+		LogWrite(ZONE__ERROR, 0, "Zones", "Error setting rule set for zone '%s' (%u). A rule set with ID %u does not exist.", zoneFile.c_str(), zoneID, rulesetID);
+	minimumVersion = database.GetMinimumClientVersion(atoul(row[20]));
+	weatherAllowed = atoul(row[21]);
+	zoneSkyFile = (row[22] != nullptr) ? row[22] : "";
+	canBind = atoul(row[23]);
+	canGate = atoul(row[24]);
+	cityZone = atoul(row[25]);
+	canEvac = atoul(row[26]);
+}

@@ -464,6 +464,8 @@ public:
 	void Command_LeaveRaid(Client* client, Seperator* sep);
 	void Command_Split(Client* client, Seperator* sep);
 	void Command_RaidSay(Client* client, Seperator* sep);
+	
+	void Command_ReloadZoneInfo(Client* client, Seperator* sep);
 
 	// AA Commands
 	void Get_AA_Xml(Client* client, Seperator* sep);
@@ -992,5 +994,7 @@ private:
 #define COMMAND_MODIFY_SPAWN		1007
 #define COMMAND_MODIFY_SPELL		1008
 #define COMMAND_MODIFY_ZONE			1009
+
+#define COMMAND_RELOAD_ZONEINFO		1010
 
 #endif

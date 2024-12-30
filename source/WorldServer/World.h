@@ -27,6 +27,7 @@
 #include <mutex>
 #include <shared_mutex>
 #include <atomic>
+#include <mysql.h>
 #include "SpawnLists.h"
 #include "zoneserver.h"
 #include "NPC.h"
@@ -412,6 +413,37 @@ struct WhoAllPeerPlayer {
 						 level = inLevel;
 					 }
 };
+
+class ZoneInfoMemory {
+public:
+	int32 zoneID;
+	std::string zoneName;
+	std::string zoneFile;
+	std::string zoneDescription;
+	std::string zoneMotd;
+	std::string zoneSkyFile;
+	float underworld;
+	float safeX, safeY, safeZ, safeHeading;
+	int16 minimumLevel, maximumLevel, minimumVersion;
+	int32 defReenterTime, defResetTime, defLockoutTime;
+	int8 groupZoneOption;
+	float xpModifier;
+	bool cityZone, canBind, canGate, canEvac, weatherAllowed;
+	int32 rulesetID;
+	Instance_Type instanceType;
+	int32 shutdownTime;
+	// Add other fields as necessary
+
+	// Constructor
+	ZoneInfoMemory() : zoneID(0), underworld(0.0f), safeX(0.0f), safeY(0.0f), safeZ(0.0f),
+		safeHeading(0.0f), minimumLevel(0), maximumLevel(0), minimumVersion(0),
+		defReenterTime(0), defResetTime(0), defLockoutTime(0), groupZoneOption(0),
+		xpModifier(1.0f), cityZone(false), canBind(false), canGate(false),
+		canEvac(false), weatherAllowed(true), rulesetID(0) {}
+
+	void LoadFromDatabaseRow(MYSQL_ROW row);
+};
+
 class ZoneList {
 	public:
 	ZoneList();
@@ -713,9 +745,16 @@ public:
 	static void Web_worldhandle_peerstatus(const http::request<http::string_body>& req, http::response<http::string_body>& res);
 	
 	static void Web_populate_status(boost::property_tree::ptree& pt);
+	
+	void ClearZoneInfoCache();
+	std::shared_ptr<ZoneInfoMemory> GetZoneInfoById(int32 zoneID);
+	std::shared_ptr<ZoneInfoMemory> GetZoneInfoByName(const std::string& zoneName);
+	void AddZoneInfo(int32 zoneID, std::shared_ptr<ZoneInfoMemory> zoneInfo);
+	
 	Mutex MVoiceOvers;
 	
 	static sint64 newValue;
+	
 private:
 	multimap<int32, multimap<int16, VoiceOverStruct>*> voiceover_map[3];
 	int32 suppressed_warning = 0;
@@ -786,5 +825,9 @@ private:
 	map<int32, map<int32, NPCSpell*> > npc_spell_list;
 	
 	WebServer*			world_webserver;
+	
+	std::unordered_map<int32, std::shared_ptr<ZoneInfoMemory>> zoneInfoByID;
+	std::unordered_map<std::string, std::shared_ptr<ZoneInfoMemory>> zoneInfoByName;
+	mutable std::shared_mutex cacheMutex;
 };
 #endif
