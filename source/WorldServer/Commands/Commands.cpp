@@ -3630,12 +3630,18 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 					PrintSep(sep, "ZONE LOCK");
 
 					if(sep->IsNumber(1)) {
-						if(zone_list.GetZone(&zone_details, atoul(sep->arg[1]), "", false, false, false, false)) {
+						if(sep->IsNumber(2) && zone_list.GetDuplicateZoneDetails(&zone_details, "", atoul(sep->arg[1]), atoul(sep->arg[2]))) {
+							zsZone = (ZoneServer*)zone_details.zonePtr;
+						}
+						else if(zone_list.GetZone(&zone_details, atoul(sep->arg[1]), "", false, false, false, false)) {
 							zsZone = (ZoneServer*)zone_details.zonePtr;
 						}
 					}
 					else {
-						if(zone_list.GetZone(&zone_details, 0, std::string(sep->arg[1]), false, false, false, false)) {
+						if(sep->IsNumber(2) && zone_list.GetDuplicateZoneDetails(&zone_details, std::string(sep->arg[1]), 0, atoul(sep->arg[2]))) {
+							zsZone = (ZoneServer*)zone_details.zonePtr;
+						}
+						else if(zone_list.GetZone(&zone_details, 0, std::string(sep->arg[1]), false, false, false, false)) {
 							zsZone = (ZoneServer*)zone_details.zonePtr;
 						}
 					}
@@ -3655,12 +3661,18 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 					PrintSep(sep, "ZONE UNLOCK");
 
 					if(sep->IsNumber(1)) {
-						if(zone_list.GetZone(&zone_details, atoul(sep->arg[1]), "", false, false, false, false)) {
+						if(sep->IsNumber(2) && zone_list.GetDuplicateZoneDetails(&zone_details, "", atoul(sep->arg[1]), atoul(sep->arg[2]))) {
+							zsZone = (ZoneServer*)zone_details.zonePtr;
+						}
+						else if(zone_list.GetZone(&zone_details, atoul(sep->arg[1]), "", false, false, false, false)) {
 							zsZone = (ZoneServer*)zone_details.zonePtr;
 						}
 					}
 					else {
-						if(zone_list.GetZone(&zone_details, 0, std::string(sep->arg[1]), false, false, false, false)) {
+						if(sep->IsNumber(2) && zone_list.GetDuplicateZoneDetails(&zone_details, std::string(sep->arg[1]), 0, atoul(sep->arg[2]))) {
+							zsZone = (ZoneServer*)zone_details.zonePtr;
+						}
+						else if(zone_list.GetZone(&zone_details, 0, std::string(sep->arg[1]), false, false, false, false)) {
 							zsZone = (ZoneServer*)zone_details.zonePtr;
 						}
 					}
@@ -3714,8 +3726,13 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 							client->Message(CHANNEL_COLOR_YELLOW,"Zoning to %s...", zonestr);
 							if(isInstance)
 								client->Zone(&zone_details,(ZoneServer*)zone_details.zonePtr,true,false);
-							else
-								client->Zone(zonestr);
+							else {
+								if(sep->IsNumber(2) && zone_list.GetDuplicateZoneDetails(&zone_details, zone, 0, atoul(sep->arg[2]))) {
+									client->Zone(&zone_details,(ZoneServer*)zone_details.zonePtr,true,false);
+								}
+								else 
+									client->Zone(zonestr);
+							}
 						}
 					}
 					else
@@ -6013,8 +6030,12 @@ void Commands::Command_Claim(Client* client, Seperator* sep)
 		int32 char_id = client->GetCharacterID();
 		int8 my_claim_id = atoi(sep->argplus[0]);
 		vector<ClaimItems> claim = database.LoadCharacterClaimItems(char_id);
-		Item* item = master_item_list.GetItem(claim[my_claim_id].item_id);
-		database.ClaimItem(char_id, item->details.item_id, client);
+		if(my_claim_id < claim.size()) {
+			Item* item = master_item_list.GetItem(claim[my_claim_id].item_id);
+			if(item) {
+				database.ClaimItem(char_id, item->details.item_id, client);
+			}
+		}
 		return;
 	}
 	else {
@@ -12245,6 +12266,25 @@ void Commands::Command_CurePlayer(Client* client, Seperator* sep)
 			// TODO: RAID Support ('r' argument)
 			if(sep->arg[0][0] == 'g' && !mapped_position) {
 				target = (Entity*)client->GetPlayer();
+			}
+			else if(sep->arg[0][0] == 'r') {
+				std::vector<int32> raidGroups;
+				GroupMemberInfo* gmi = client->GetPlayer()->GetGroupMemberInfo();
+				if(gmi)
+					world.GetGroupManager()->GetRaidGroups(gmi->group_id, &raidGroups);
+				if(raidGroups.size() < 1) {
+					if (gmi && gmi->group_id) {
+						raidGroups.push_back(gmi->group_id);
+					}
+				}
+				int8 group_idx = mapped_position / 6;
+				if(group_idx < raidGroups.size()) {
+					PlayerGroup* group = world.GetGroupManager()->GetGroup(raidGroups.at(group_idx));
+					if(group) {
+						int8 actual_idx = mapped_position - (group_idx * 6);
+						target = group->GetGroupMemberByPosition(client->GetPlayer(), actual_idx);
+					}
+				}
 			}
 			else {
 				GroupMemberInfo* gmi = client->GetPlayer()->GetGroupMemberInfo();
