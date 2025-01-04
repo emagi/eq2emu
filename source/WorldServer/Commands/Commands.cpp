@@ -11575,7 +11575,11 @@ void Commands::Command_Weather(Client* client, Seperator* sep)
 void Commands::Command_Select(Client* client, Seperator* sep) {
 	if (sep && sep->arg[1]) {
 		Spawn* spawn = client->GetPlayer()->GetTarget();
-		if (spawn && strlen(sep->arg[1]) > 0)
+		int32 spawn_id = client->dialog_manager.getAcceptValue("select");
+		if(spawn && spawn_id == spawn->GetID()) {
+			client->GetCurrentZone()->CallSpawnScript(spawn, SPAWN_SCRIPT_CASTED_ON, client->GetPlayer(), sep->argplus[0]);
+		}
+		else if (spawn && strlen(sep->arg[1]) > 0)
 			client->GetCurrentZone()->CallSpawnScript(spawn, SPAWN_SCRIPT_CUSTOM, client->GetPlayer(), sep->arg[1]);
 	}
 }
