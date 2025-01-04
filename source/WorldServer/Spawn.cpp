@@ -2648,7 +2648,11 @@ void Spawn::InitializeInfoPacketData(Player* spawn, PacketStruct* packet) {
 		if(!vis_hide_hood && appearance.hide_hood && version > 561) {
 			vis_flag += INFO_VIS_FLAG_HIDE_HOOD;
 		}
-			
+		
+		if(spawn == this && IsPlayer() && ((Player*)this)->GetClient() && ((Player*)this)->GetClient()->GetOnAutoMount()) {
+			classicFlags += INFO_CLASSIC_FLAG_AUTOMOUNT;
+		}
+		
 		if(version <= 561) {
 			packet->setDataByName("flags", classicFlags);
 		}

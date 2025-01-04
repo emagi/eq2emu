@@ -201,6 +201,7 @@
 #define INFO_CLASSIC_FLAG_SHOW_HOOD             2
 #define INFO_CLASSIC_FLAG_NOLOOK                4
 #define INFO_CLASSIC_FLAG_CROUCH                8
+#define INFO_CLASSIC_FLAG_AUTOMOUNT             32
 
 using namespace std;
 class Spell;

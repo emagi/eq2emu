@@ -1035,7 +1035,7 @@ void PlayerGroupManager::SendGroupChatMessage(int32 group_id, int16 channel, con
 	if (m_groups.count(group_id) > 0) {
 		std::vector<int32> raidGroups;
 
-		if (channel == CHANNEL_RAID_SAY || channel == CHANNEL_LOOT_ROLLS)
+		if (channel == CHANNEL_RAID_SAY || channel == CHANNEL_LOOT_ROLLS || channel == CHANNEL_LOOT)
 			m_groups[group_id]->GetRaidGroups(&raidGroups);
 
 		if (raidGroups.size() < 1)

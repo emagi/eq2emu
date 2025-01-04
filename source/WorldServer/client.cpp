@@ -2920,6 +2920,10 @@ bool Client::HandleLootItem(Spawn* entity, Item* item, Spawn* target, bool overr
 			int8 type = CHANNEL_LOOT;
 			if (entity) {
 				lootingClient->Message(type, "You loot %s from the corpse of %s", item->CreateItemLink(GetVersion()).c_str(), entity->GetName());
+				if(entity->GetLootGroupID()) {
+					// TODO: Item link for each client
+					world.GetGroupManager()->SendGroupChatMessage(entity->GetLootGroupID(), CHANNEL_LOOT, "%s looted %s from the corpse of %s.", lootingPlayer->GetName(), item->name.c_str(), entity->GetName());
+				}
 			}
 			else {
 				lootingClient->Message(type, "You found a %s.", item->CreateItemLink(GetVersion()).c_str());
@@ -11637,31 +11641,41 @@ void Client::AttemptStartAutoMount() {
 }
 
 void Client::EndAutoMount() {
-	PacketStruct* packet = configReader.getStruct("WS_ServerControlFlags", GetVersion());
-	if (packet) {
-		packet->setDataByName("parameter1", 128);
-		packet->setDataByName("parameter2", 64);
-		packet->setDataByName("value", 1);
-		QueuePacket(packet->serialize());
-		safe_delete(packet);
+	PacketStruct* packet = nullptr;
+	if(GetVersion() > 561) {
+		packet = configReader.getStruct("WS_ServerControlFlags", GetVersion());
+		if (packet) {
+			packet->setDataByName("parameter1", 128);
+			packet->setDataByName("parameter2", 64);
+			packet->setDataByName("value", 1);
+			QueuePacket(packet->serialize());
+			safe_delete(packet);
+		}
+
+		packet = configReader.getStruct("WS_ServerControlFlags", GetVersion());
+		if (packet) {
+			packet->setDataByName("parameter3", 4);
+			packet->setDataByName("parameter5", 2);
+			packet->setDataByName("value", 0);
+			QueuePacket(packet->serialize());
+			safe_delete(packet);
+		}
+		
+		packet = configReader.getStruct("WS_ClearForLanding", GetVersion());
+		if (packet) {
+			packet->setDataByName("spawn_id", GetPlayer()->GetIDWithPlayerSpawn(GetPlayer()));
+			QueuePacket(packet->serialize());
+			safe_delete(packet);
+		}
 	}
 
-	packet = configReader.getStruct("WS_ServerControlFlags", GetVersion());
-	if (packet) {
-		packet->setDataByName("parameter3", 4);
-		packet->setDataByName("parameter5", 2);
-		packet->setDataByName("value", 0);
-		QueuePacket(packet->serialize());
-		safe_delete(packet);
+	if(GetVersion() <= 561) {
+		packet = configReader.getStruct("WS_CreateBoatTransportMsg", GetVersion());
+		if (packet) {
+			QueuePacket(packet->serialize());
+			safe_delete(packet);
+		}
 	}
-
-	packet = configReader.getStruct("WS_ClearForLanding", GetVersion());
-	if (packet) {
-		packet->setDataByName("spawn_id", GetPlayer()->GetIDWithPlayerSpawn(GetPlayer()));
-		QueuePacket(packet->serialize());
-		safe_delete(packet);
-	}
-
 	on_auto_mount = false;
 
 	player->SetMount(((Player*)player)->GetTempMount());
@@ -12244,7 +12258,6 @@ void Client::SendMoveObjectMode(Spawn* spawn, uint8 placementMode, float unknown
 void Client::SendFlightAutoMount(int32 path_id, int16 mount_id, int8 mount_red_color, int8 mount_green_color, int8 mount_blue_color)
 {
 	SetPendingFlightPath(path_id);
-
 	((Player*)player)->SetTempMount(((Entity*)player)->GetMount());
 	((Player*)player)->SetTempMountColor(((Entity*)player)->GetMountColor());
 	((Player*)player)->SetTempMountSaddleColor(((Entity*)player)->GetMountSaddleColor());

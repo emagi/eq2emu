@@ -19224,6 +19224,8 @@ to zero and treated like placeholders." />
 <Data ElementName="unknown6" Type="int8" Size="1" /> <!--First byte may be range and melee toggle-->
 </Struct>
 <Struct Name="WS_ClearForTakeOff" ClientVersion="1" OpcodeName="OP_ClearForTakeOffMsg">
+</Struct>
+<Struct Name="WS_ClearForTakeOff" ClientVersion="562" OpcodeName="OP_ClearForTakeOffMsg">
 <Data ElementName="spawn_id" Type="int32" />
 <Data ElementName="path_id" Type="int8" />
 <Data ElementName="speed" Type="float" />
@@ -20914,15 +20916,6 @@ to zero and treated like placeholders." />
     <Data ElementName="z" Type="float" />
   </Data>
 </Data>
-<Data ElementName="number_of_routes3" Type="int16" IfVariableNotSet="number_of_routes" />
-<Data ElementName="route_info" Type="Array" ArraySizeVariable="number_of_routes3">
-  <Data ElementName="ground_mount" Type="int8" />
-  <Data ElementName="allow_dismount" Type="int8" />
-</Data>
-<Data ElementName="number_of_routes4" Type="int16" IfVariableNotSet="number_of_routes" />
-<Data ElementName="route_unknown" Type="Array" ArraySizeVariable="number_of_routes4">
-  <Data ElementName="unknown" Type="int16" />
-</Data>
 </Struct>
 <Struct Name="WS_FlightPathsMsg" ClientVersion="1193" OpcodeName="OP_RestartZoneMsg">
 <Data ElementName="number_of_routes" Type="int16" />
@@ -21034,5 +21027,8 @@ to zero and treated like placeholders." />
    <Data ElementName="unknown4" Type="int8"/>
    <Data ElementName="unknown5" Type="int8"/>
    <Data ElementName="unknown6" Type="int8"/>
+</Struct>
+<Struct Name="WS_CreateBoatTransportMsg" ClientVersion="1" OpcodeName="OP_CreateBoatTransportsMsg">
+   <Data ElementName="path_id" Type="int8" />
 </Struct>
 </EQ2Emulator>

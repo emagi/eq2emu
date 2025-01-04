@@ -8738,39 +8738,26 @@ void ZoneServer::SendFlightPathsPackets(Client* client) {
 	if (m_flightPathRoutes.size() > 0) {
 		PacketStruct* packet = configReader.getStruct("WS_FlightPathsMsg", client->GetVersion());
 		if (packet) {
-
 			int32 num_routes = m_flightPaths.size();
 			packet->setArrayLengthByName("number_of_routes", num_routes);
 			packet->setArrayLengthByName("number_of_routes2", num_routes);
 			packet->setArrayLengthByName("number_of_routes3", num_routes);
 			packet->setArrayLengthByName("number_of_routes4", num_routes);
-
 			map<int32, FlightPathInfo*>::iterator itr;
 			int32 i = 0;
 			for (itr = m_flightPaths.begin(); itr != m_flightPaths.end(); itr++, i++) {
 				packet->setArrayDataByName("route_length", m_flightPathRoutes[itr->first].size(), i);
 				packet->setArrayDataByName("ground_mount", itr->second->flying ? 0 : 1, i);
 				packet->setArrayDataByName("allow_dismount", itr->second->dismount ? 1 : 0, i);
-
-
 				packet->setSubArrayLengthByName("route_length2", m_flightPathRoutes[itr->first].size(), i);
 				vector<FlightPathLocation*>::iterator itr2;
 				int32 j = 0;
 				for (itr2 = m_flightPathRoutes[itr->first].begin(); itr2 != m_flightPathRoutes[itr->first].end(); itr2++, j++) {
-					if(client->GetVersion() <= 561) {
-						std::string fieldNum = std::to_string(i) + "_" + std::to_string(j);
-						packet->setDataByName(("x" + fieldNum).c_str(), (*itr2)->X);
-						packet->setDataByName(("y" + fieldNum).c_str(), (*itr2)->Y);
-						packet->setDataByName(("z" + fieldNum).c_str(), (*itr2)->Z);
-					}
-					else {
 						packet->setSubArrayDataByName("x", (*itr2)->X, i, j);
 						packet->setSubArrayDataByName("y", (*itr2)->Y, i, j);
 						packet->setSubArrayDataByName("z", (*itr2)->Z, i, j);
-					}
 				}
 			}
-			//packet->PrintPacket();
 			client->QueuePacket(packet->serialize());
 			safe_delete(packet);
 		}
