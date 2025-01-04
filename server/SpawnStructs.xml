@@ -713,7 +713,7 @@
 <Data ElementName="activity_status" Type="int32" Size="1" /> <!-- 304 -->
 <Data ElementName="unknown5" Type="int8" Size="3" /> <!-- 308 -->
 <!-- some strange model/race change -->
-<Data ElementName="flags" Type="int8" Size="1" /> <!-- 314 -->
+<Data ElementName="flags_unknown" Type="int8" Size="1" /> <!-- 314 -->
 <Data ElementName="unknowndata" Type="int32" Size="1" /> <!-- 327 -->
 <Data ElementName="model_type" Type="int16" Size="1" /> <!-- 331 -->
 <Data ElementName="soga_model_type" Type="int16" Size="1" /> <!-- 333 -->
@@ -773,7 +773,8 @@
 <Data ElementName="soga_hair_highlight" Type="EQ2_Color" /> <!-- 654 -->
 <Data ElementName="combat_voice" Type="int16" Size="1" />
 <Data ElementName="emote_voice" Type="int16" Size="1" />
-<Data ElementName="unknown" Type="int8" Size="3" /> <!-- 657 -->
+<Data ElementName="unknown" Type="int8" Size="2" /> <!-- 657 -->
+<Data ElementName="flags" Type="int8" Size="1" /><!-- 663 1 == invisible, 2 == show_hood, 8 == crouch -->
 <Data ElementName="unknown2" Type="int8" Size="3" /> <!-- 664 -->
 <Data ElementName="temporary_scale" Type="float" Size="1" /> <!-- 667 -->
 <Data ElementName="name" Type="char" Size="64" /> <!-- 671 -->
