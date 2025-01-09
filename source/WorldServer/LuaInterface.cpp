@@ -1577,6 +1577,8 @@ void LuaInterface::RegisterFunctions(lua_State* state) {
 	lua_register(state,"GetZonePlayerMaxLevel", EQ2Emu_lua_GetZonePlayerMaxLevel);
 	lua_register(state,"GetZonePlayerAvgLevel", EQ2Emu_lua_GetZonePlayerAvgLevel);
 	lua_register(state,"GetZonePlayerFirstLevel", EQ2Emu_lua_GetZonePlayerFirstLevel);
+	
+	lua_register(state,"GetSpellRequiredLevel", EQ2Emu_lua_GetSpellRequiredLevel);
 }
 
 void LuaInterface::LogError(const char* error, ...)  {

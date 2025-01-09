@@ -14462,3 +14462,25 @@ int EQ2Emu_lua_GetZonePlayerFirstLevel(lua_State* state) {
 	lua_interface->SetInt32Value(state, level);
 	return 1;
 }
+
+int EQ2Emu_lua_GetSpellRequiredLevel(lua_State* state) {
+	if (!lua_interface)
+		return 0;
+
+	LuaSpell* spell = lua_interface->GetCurrentSpell(state);
+	Spawn* spawn = lua_interface->GetSpawn(state);
+	lua_interface->ResetFunctionStack(state);
+
+	if (!spell) {
+		lua_interface->LogError("%s: LUA GetSpellRequiredLevel command error: you must use this function in a spellscript!", lua_interface->GetScriptName(state));
+		return 0;
+	}
+	if(!spawn || !spawn->IsPlayer()) {
+		lua_interface->LogError("%s: LUA GetSpellRequiredLevel command error: spawn is not provided as first argument or is invalid (not player or null)!", lua_interface->GetScriptName(state));
+		return 0;
+	}
+
+	lua_interface->SetInt32Value(state, spell->spell->GetLevelRequired((Player*)spawn));
+
+	return 1;
+}

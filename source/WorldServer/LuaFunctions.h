@@ -672,4 +672,6 @@ int EQ2Emu_lua_GetZonePlayerMinLevel(lua_State* state);
 int EQ2Emu_lua_GetZonePlayerMaxLevel(lua_State* state);
 int EQ2Emu_lua_GetZonePlayerAvgLevel(lua_State* state);
 int EQ2Emu_lua_GetZonePlayerFirstLevel(lua_State* state);
+
+int EQ2Emu_lua_GetSpellRequiredLevel(lua_State* state);
 #endif
