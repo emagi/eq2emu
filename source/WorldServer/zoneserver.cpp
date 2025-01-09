@@ -5288,7 +5288,7 @@ void ZoneServer::KillSpawn(bool spawnListLocked, Spawn* dead, Spawn* killer, boo
 			else if ( dead->IsObject ( ) )
 				database.CreateInstanceSpawnRemoved(dead->GetSpawnLocationID(),SPAWN_ENTRY_TYPE_OBJECT, dead->GetRespawnTime(),dead->GetZone()->GetInstanceID());
 		}
-		else if(!groupMemberAlive && dead->GetSpawnLocationID() > 0 && !DuplicatedZone()) {
+		else if(!groupMemberAlive && dead->GetSpawnLocationID() > 0 && dead->GetRespawnTime() && !DuplicatedZone()) {
 			if(dead->IsNPC())
 				database.CreatePersistedRespawn(dead->GetSpawnLocationID(),SPAWN_ENTRY_TYPE_NPC,dead->GetRespawnTime(),GetZoneID());
 			else if(dead->IsObject())
