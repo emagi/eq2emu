@@ -2600,7 +2600,7 @@ bool SpellProcess::GetPlayerGroupTargets(Player* target, Spawn* caster, LuaSpell
 
 void SpellProcess::GetSpellTargetsTrueAOE(LuaSpell* luaspell) {
 	if (luaspell && luaspell->caster && luaspell->spell && luaspell->spell->GetSpellData()->max_aoe_targets > 0) {
-		if(luaspell->caster->IsPlayer() && luaspell->spell->GetSpellData()->affect_only_group_members) {
+		if(luaspell->caster->IsPlayer() && luaspell->spell->GetSpellData()->friendly_spell && luaspell->spell->GetSpellData()->affect_only_group_members) {
 			GetPlayerGroupTargets((Player*)luaspell->caster, luaspell->caster, luaspell);
 		}
 		else {
