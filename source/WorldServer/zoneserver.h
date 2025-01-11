@@ -335,7 +335,7 @@ public:
 	void	SendSpawnVisualState(Spawn* spawn, int16 type);
 	void	SendSpellFailedPacket(Client* client, int16 error);
 	void	SendInterruptPacket(Spawn* interrupted, LuaSpell* spell, bool fizzle=false);
-	void	HandleEmote(Spawn* originator, string name);
+	void	HandleEmote(Spawn* originator, string name, Spawn* opt_target = nullptr, bool no_target = false);
 	Spawn*	GetSpawnByDatabaseID(int32 id);
 	Spawn*	GetSpawnByID(int32 id, bool spawnListLocked=false);
 	

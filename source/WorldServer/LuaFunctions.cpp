@@ -7134,6 +7134,39 @@ int EQ2Emu_lua_PlayAnimation(lua_State* state) {
 	return 0;
 }
 
+int EQ2Emu_lua_PlayAnimationString(lua_State* state) {
+	if (!lua_interface)
+		return 0;
+	Spawn* spawn = lua_interface->GetSpawn(state);
+	std::string name = lua_interface->GetStringValue(state, 2);
+	Spawn* opt_target = lua_interface->GetSpawn(state, 3);
+	bool set_no_target = lua_interface->GetBooleanValue(state, 4);
+	bool use_all_spelltargets = lua_interface->GetBooleanValue(state, 5);
+	bool ignore_self = lua_interface->GetBooleanValue(state, 6);
+	LuaSpell* spell = lua_interface->GetCurrentSpell(state);
+	
+	if (!spawn) {
+		lua_interface->LogError("%s: LUA PlayAnimationString command error: spawn is not valid", lua_interface->GetScriptName(state));
+		return 0;
+	}
+	
+	if (spell && spell->caster && spell->caster->GetZone() && use_all_spelltargets) {
+		Spawn* target;
+		spell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
+		for (int8 i = 0; i < spell->targets.size(); i++) {
+			target = spell->caster->GetZone()->GetSpawnByID(spell->targets.at(i));
+			if(target && (!ignore_self || spawn != target)) {
+				spell->caster->GetZone()->HandleEmote(target, name, opt_target, set_no_target);
+			}
+		}
+		spell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
+	}
+	else {
+		spawn->GetZone()->HandleEmote(spawn, name, opt_target, set_no_target);
+	}
+	return 0;
+}
+
 int EQ2Emu_lua_IsPet(lua_State* state) {
 	if (!lua_interface)
 		return 0;
@@ -14249,6 +14282,44 @@ int EQ2Emu_lua_GetSpellInitialTarget(lua_State* state) {
 		}
 		else {
 			lua_interface->LogError("%s: LUA GetSpellInitialTarget command error, could not find initial target %u to map to spawn.", lua_interface->GetScriptName(state), spell->initial_target);
+		}
+	}
+	return 0;
+}
+
+int EQ2Emu_lua_GetSpellTargets(lua_State* state) {
+	if (!lua_interface)
+		return 0;
+	LuaSpell* spell = lua_interface->GetSpell(state);
+	
+	if(!spell) {
+		spell = lua_interface->GetCurrentSpell(state);
+	}
+	
+	lua_interface->ResetFunctionStack(state);
+	
+	if (spell) {
+		if(!spell->caster) {
+			lua_interface->LogError("%s: LUA GetSpellTargets command error, caster does not exist.", lua_interface->GetScriptName(state));
+			return 0;
+		}
+		if(!spell->caster->GetZone()) {
+			lua_interface->LogError("%s: LUA GetSpellTargets command error, zone does not exist.", lua_interface->GetScriptName(state));
+			return 0;
+		}
+		
+		if (spell && spell->caster) {
+			ZoneServer* zone = spell->caster->GetZone();
+			spell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
+			lua_createtable(state, spell->targets.size(), 0);
+			int newTable = lua_gettop(state);
+			for (int32 i = 0; i < spell->targets.size(); i++) {
+				Spawn* spawn = zone->GetSpawnByID(spell->targets.at(i));
+				lua_interface->SetSpawnValue(state, spawn);
+				lua_rawseti(state, newTable, i + 1);
+			}
+			spell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
+			return 1;
 		}
 	}
 	return 0;

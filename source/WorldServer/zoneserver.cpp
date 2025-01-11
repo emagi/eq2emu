@@ -6822,12 +6822,19 @@ void ZoneServer::RemoveSpawnSupportFunctions(Spawn* spawn, bool lock_spell_proce
 		movement_spawns.erase(spawn->GetID());
 }
 
-void ZoneServer::HandleEmote(Spawn* originator, string name) {
+void ZoneServer::HandleEmote(Spawn* originator, string name, Spawn* opt_target, bool no_target) {
 	if (!originator) {
 		LogWrite(ZONE__ERROR, 0, "Zone", "HandleEmote called with an invalid client");
 		return;
 	}
 
+	Spawn* target = originator->GetTarget();
+	if(opt_target)
+		target = opt_target;
+	
+	if(no_target) // override having a target
+		target = nullptr;
+		
 	Client* orig_client = (originator->IsPlayer() && ((Player*)originator)->GetClient()) ? ((Player*)originator)->GetClient() : nullptr;
 	Client* client = 0;
 	int32 cur_client_version = orig_client ? orig_client->GetVersion() : 546;
@@ -6875,10 +6882,10 @@ void ZoneServer::HandleEmote(Spawn* originator, string name) {
 			packet->setDataByName("spawn_id" , client->GetPlayer()->GetIDWithPlayerSpawn(originator));
 			if(!emoteResponse){
 				string message;
-				if(originator->GetTarget() && originator->GetTarget()->GetID() != originator->GetID()){
+				if(target && target->GetID() != originator->GetID()){
 					message = emote->GetTargetedMessageString();
 					if(message.find("%t") < 0xFFFFFFFF)
-						message.replace(message.find("%t"), 2, originator->GetTarget()->GetName());
+						message.replace(message.find("%t"), 2, target->GetName());
 				}
 				if(message.length() == 0)
 					message = emote->GetMessageString();

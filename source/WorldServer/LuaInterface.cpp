@@ -1114,6 +1114,7 @@ void LuaInterface::RegisterFunctions(lua_State* state) {
 	lua_register(state, "PlaySound", EQ2Emu_lua_PlaySound);
 	lua_register(state, "PlayVoice", EQ2Emu_lua_PlayVoice);
 	lua_register(state, "PlayAnimation", EQ2Emu_lua_PlayAnimation);
+	lua_register(state, "PlayAnimationString", EQ2Emu_lua_PlayAnimationString);
 	lua_register(state, "AddLootItem", EQ2Emu_lua_AddLootItem);
 	lua_register(state, "HasLootItem", EQ2Emu_lua_HasLootItem);
 	lua_register(state, "RemoveLootItem", EQ2Emu_lua_RemoveLootItem);
@@ -1563,6 +1564,7 @@ void LuaInterface::RegisterFunctions(lua_State* state) {
 	lua_register(state, "ToggleCharacterFlag", EQ2Emu_lua_ToggleCharacterFlag);
 	
 	lua_register(state, "GetSpellInitialTarget", EQ2Emu_lua_GetSpellInitialTarget);
+	lua_register(state, "GetSpellTargets", EQ2Emu_lua_GetSpellTargets);
 	
 	lua_register(state,"DespawnByLocationID", EQ2Emu_lua_DespawnByLocationID);
 	

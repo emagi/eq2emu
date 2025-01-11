@@ -2583,7 +2583,7 @@ bool SpellProcess::GetPlayerGroupTargets(Player* target, Spawn* caster, LuaSpell
 						continue;
 					else if (info && info->client &&
 						info->client->GetPlayer()->GetZone() == ((Player*)target)->GetZone() && info->client->GetPlayer()->Alive()
-						&& (bypassRangeChecks || caster->GetDistance((Entity*)info->client->GetPlayer()) <= luaspell->spell->GetSpellData()->range))
+						&& (bypassRangeChecks || luaspell->spell->GetSpellData()->range == 0 || (luaspell->spell->GetSpellData()->range > 0 && caster->GetDistance((Entity*)info->client->GetPlayer()) <= luaspell->spell->GetSpellData()->range)))
 					{
 						AddSelfAndPet(luaspell, info->client->GetPlayer());
 					}
@@ -2600,53 +2600,58 @@ bool SpellProcess::GetPlayerGroupTargets(Player* target, Spawn* caster, LuaSpell
 
 void SpellProcess::GetSpellTargetsTrueAOE(LuaSpell* luaspell) {
 	if (luaspell && luaspell->caster && luaspell->spell && luaspell->spell->GetSpellData()->max_aoe_targets > 0) {
-		if (luaspell->caster->HasTarget() && luaspell->caster->GetTarget() != luaspell->caster){
-			//Check if the caster has an implied target
-			if (luaspell->caster->GetDistance(luaspell->caster->GetTarget()) <= luaspell->spell->GetSpellData()->radius)
-			{
-				luaspell->initial_target = luaspell->caster->GetTarget()->GetID();
-				luaspell->initial_target_char_id = (luaspell->caster->GetTarget() && luaspell->caster->GetTarget()->IsPlayer()) ? ((Player*)luaspell->caster->GetTarget())->GetCharacterID() : 0;
-			}
+		if(luaspell->caster->IsPlayer() && luaspell->spell->GetSpellData()->affect_only_group_members) {
+			GetPlayerGroupTargets((Player*)luaspell->caster, luaspell->caster, luaspell);
 		}
-		int32 ignore_target = 0;
-		std::vector<std::pair<int32, float>> spawns = luaspell->caster->GetZone()->GetAttackableSpawnsByDistance(luaspell->caster, luaspell->spell->GetSpellData()->radius);
-		luaspell->MSpellTargets.writelock(__FUNCTION__, __LINE__);
-		int32 i = 0;
-		for (const auto& pair : spawns) {
-			if (i == 0){
-				Spawn* spawn = luaspell->caster->GetZone()->GetSpawnByID(luaspell->initial_target);
-				if (spawn && luaspell->initial_target && luaspell->caster->GetID() != luaspell->initial_target && luaspell->caster->AttackAllowed((Entity*)spawn)){
-					//this is the "Direct" target and aoe can't be avoided
-					AddLuaSpellTarget(luaspell, luaspell->initial_target, false);
-					ignore_target = luaspell->initial_target;
+		else {
+			if (luaspell->caster->HasTarget() && luaspell->caster->GetTarget() != luaspell->caster){
+				//Check if the caster has an implied target
+				if (luaspell->caster->GetDistance(luaspell->caster->GetTarget()) <= luaspell->spell->GetSpellData()->radius)
+				{
+					luaspell->initial_target = luaspell->caster->GetTarget()->GetID();
+					luaspell->initial_target_char_id = (luaspell->caster->GetTarget() && luaspell->caster->GetTarget()->IsPlayer()) ? ((Player*)luaspell->caster->GetTarget())->GetCharacterID() : 0;
 				}
 			}
-			
-			i++;
-			
-			if (luaspell->targets.size() >= luaspell->spell->GetSpellData()->max_aoe_targets)
-				break;
-			
-			int32 target_id = pair.first;
-			Spawn* spawn = luaspell->caster->GetZone()->GetSpawnByID(target_id);
-			if(!spawn) {
-				LogWrite(SPELL__ERROR, 0, "Spell", "Error: Spell target is NULL!  SpellProcess::ProcessSpell for Spell '%s' target id %u", (luaspell->spell != nullptr) ? luaspell->spell->GetName() : "Unknown", target_id);
-			}
-			//If we have already added this spawn, check the next spawn in the list
-			if (spawn && spawn->GetID() == ignore_target || (spawn->IsEntity() && !luaspell->caster->AttackAllowed((Entity*)spawn))){
-				continue;
-			}
-			if (spawn){
-				//If this spawn is immune to aoe, continue
-				if (((Entity*)spawn)->IsAOEImmune() || ((Entity*)spawn)->IsMezzed())
+			int32 ignore_target = 0;
+			std::vector<std::pair<int32, float>> spawns = luaspell->caster->GetZone()->GetAttackableSpawnsByDistance(luaspell->caster, luaspell->spell->GetSpellData()->radius);
+			luaspell->MSpellTargets.writelock(__FUNCTION__, __LINE__);
+			int32 i = 0;
+			for (const auto& pair : spawns) {
+				if (i == 0){
+					Spawn* spawn = luaspell->caster->GetZone()->GetSpawnByID(luaspell->initial_target);
+					if (spawn && luaspell->initial_target && luaspell->caster->GetID() != luaspell->initial_target && luaspell->caster->AttackAllowed((Entity*)spawn)){
+						//this is the "Direct" target and aoe can't be avoided
+						AddLuaSpellTarget(luaspell, luaspell->initial_target, false);
+						ignore_target = luaspell->initial_target;
+					}
+				}
+				
+				i++;
+				
+				if (luaspell->targets.size() >= luaspell->spell->GetSpellData()->max_aoe_targets)
+					break;
+				
+				int32 target_id = pair.first;
+				Spawn* spawn = luaspell->caster->GetZone()->GetSpawnByID(target_id);
+				if(!spawn) {
+					LogWrite(SPELL__ERROR, 0, "Spell", "Error: Spell target is NULL!  SpellProcess::ProcessSpell for Spell '%s' target id %u", (luaspell->spell != nullptr) ? luaspell->spell->GetName() : "Unknown", target_id);
+				}
+				//If we have already added this spawn, check the next spawn in the list
+				if (spawn && spawn->GetID() == ignore_target || (spawn->IsEntity() && !luaspell->caster->AttackAllowed((Entity*)spawn))){
 					continue;
-				AddLuaSpellTarget(luaspell, spawn->GetID(), false);
-			}
+				}
+				if (spawn){
+					//If this spawn is immune to aoe, continue
+					if (((Entity*)spawn)->IsAOEImmune() || ((Entity*)spawn)->IsMezzed())
+						continue;
+					AddLuaSpellTarget(luaspell, spawn->GetID(), false);
+				}
 
-			if (luaspell->targets.size() >= luaspell->spell->GetSpellData()->max_aoe_targets)
-				break;
+				if (luaspell->targets.size() >= luaspell->spell->GetSpellData()->max_aoe_targets)
+					break;
+			}
+			luaspell->MSpellTargets.releasewritelock(__FUNCTION__, __LINE__);
 		}
-		luaspell->MSpellTargets.releasewritelock(__FUNCTION__, __LINE__);
 	}
 	if (luaspell->targets.size() > 20)
 		LogWrite(SPELL__DEBUG, 0, "Spell", "Warning in  SpellProcess::GetSpellTargetsTrueAOE Size of targets array is %u", luaspell->targets.size());

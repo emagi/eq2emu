@@ -202,6 +202,7 @@ int EQ2Emu_lua_PlayFlavorID(lua_State* state);
 int EQ2Emu_lua_PlaySound(lua_State* state);
 int EQ2Emu_lua_PlayVoice(lua_State* state);
 int EQ2Emu_lua_PlayAnimation(lua_State* state);
+int EQ2Emu_lua_PlayAnimationString(lua_State* state);
 int EQ2Emu_lua_AddLootItem(lua_State* state);
 int EQ2Emu_lua_HasLootItem(lua_State* state);
 int EQ2Emu_lua_RemoveLootItem(lua_State* state);
@@ -658,6 +659,7 @@ int EQ2Emu_lua_GetCharacterFlag(lua_State* state);
 int EQ2Emu_lua_ToggleCharacterFlag(lua_State* state);
 
 int EQ2Emu_lua_GetSpellInitialTarget(lua_State* state);
+int EQ2Emu_lua_GetSpellTargets(lua_State* state);
 
 int EQ2Emu_lua_DespawnByLocationID(lua_State* state);
 
