@@ -8169,6 +8169,15 @@ void Client::SellItem(int32 item_id, int16 quantity, int32 unique_id) {
 			if (quantity > item->details.count)
 				quantity = item->details.count;
 
+
+			if (status_sell_price && (spawn->GetMerchantType() & MERCHANT_TYPE_CITYMERCHANT))
+			{
+				int32 guildMaxLevel = 5 + item->details.recommended_level; // client hard codes +5 to the level
+				if (!GetPlayer()->GetGuild() || (GetPlayer()->GetGuild() && GetPlayer()->GetGuild()->GetLevel() >= guildMaxLevel)) {
+					status_sell_price = 0;
+				}
+			}
+			
 			total_status_sell_price = status_sell_price * quantity;
 
 			if (total_status_sell_price > 0 && (!(spawn->GetMerchantType() & MERCHANT_TYPE_CITYMERCHANT)))
@@ -8878,7 +8887,7 @@ void Client::SendSellMerchantList(bool sell) {
 					{
 						packet->setArrayDataByName("status2", item->sell_status, i); //this one is the main status
 						int32 guildMaxLevel = 5 + item->details.recommended_level; // client hard codes +5 to the level
-						if (GetPlayer()->GetGuild() && GetPlayer()->GetGuild()->GetLevel() >= guildMaxLevel) {
+						if (!GetPlayer()->GetGuild() || (GetPlayer()->GetGuild() && GetPlayer()->GetGuild()->GetLevel() >= guildMaxLevel)) {
 							dispFlags += DISPLAY_FLAG_NO_GUILD_STATUS;
 						}
 
