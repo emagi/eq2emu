@@ -11493,7 +11493,10 @@ Mutex* Client::GetResurrectMutex() {
 }
 
 void Client::SendResurrectionWindow() {
-	Spawn* caster = current_rez.caster;
+	if(!GetCurrentZone())
+		return;
+	
+	Spawn* caster = GetCurrentZone()->GetSpawnByID(current_rez.caster);
 	if (!caster || !player)
 		return;
 
@@ -11520,7 +11523,10 @@ void Client::SendResurrectionWindow() {
 }
 
 void Client::AcceptResurrection() {
-	Spawn* caster = current_rez.caster;
+	if(!GetCurrentZone())
+		return;
+	
+	Spawn* caster = GetCurrentZone()->GetSpawnByID(current_rez.caster);
 	if (!player || !caster)
 		return;
 

@@ -126,7 +126,7 @@ struct PendingGuildInvite {
 };
 
 struct PendingResurrection {
-	Spawn* caster;
+	int32 caster; // don't use the spawn pointer as the player can leave and cause a zone crash
 	Timer* expire_timer;
 	string spell_name;
 	string heal_name;
@@ -140,6 +140,10 @@ struct PendingResurrection {
 	bool crit;
 	bool should_delete;
 	int32 spell_visual;
+	int32 orig_spell_id;
+	int8 orig_spell_tier;
+	int32 revive_sickness_spell_id;
+	int8 revive_sickness_spell_tier;
 };
 
 #define PAPERDOLL_TYPE_FULL 0

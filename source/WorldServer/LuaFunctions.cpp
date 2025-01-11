@@ -9134,6 +9134,8 @@ int EQ2Emu_lua_Resurrect(lua_State* state) {
 	string heal_name = lua_interface->GetStringValue(state, 5);
 	int8 crit_mod = lua_interface->GetInt32Value(state, 6);
 	bool no_calcs = lua_interface->GetInt32Value(state, 7) == 1;
+	int32 revive_spell_id = lua_interface->GetInt32Value(state, 8);
+	int8 revive_spell_tier = lua_interface->GetInt32Value(state, 9);
 
 	LuaSpell* spell = lua_interface->GetCurrentSpell(state);
 	lua_interface->ResetFunctionStack(state);
@@ -9173,7 +9175,7 @@ int EQ2Emu_lua_Resurrect(lua_State* state) {
 
 				client->GetResurrectMutex()->writelock(__FUNCTION__, __LINE__);
 				rez->active = true;
-				rez->caster = caster;
+				rez->caster = caster->GetID();
 				rez->expire_timer = new Timer;
 				int32 duration = spell->spell->GetSpellDuration();
 				rez->expire_timer->Start(duration * 100);
@@ -9185,6 +9187,10 @@ int EQ2Emu_lua_Resurrect(lua_State* state) {
 					rez->heal_name = heal_name;
 				else
 					rez->heal_name = rez->spell_name;
+				rez->orig_spell_id = spell->spell->GetSpellID();
+				rez->orig_spell_tier = spell->spell->GetSpellTier();
+				rez->revive_sickness_spell_id = revive_spell_id;
+				rez->revive_sickness_spell_tier = revive_spell_tier;
 				rez->no_calcs = no_calcs;
 				rez->crit_mod = crit_mod;
 				rez->spell_visual = spell->spell->GetSpellData()->spell_visual;
@@ -9214,7 +9220,7 @@ int EQ2Emu_lua_Resurrect(lua_State* state) {
 
 		client->GetResurrectMutex()->writelock(__FUNCTION__, __LINE__);
 		rez->active = true;
-		rez->caster = caster;
+		rez->caster = caster->GetID();
 		rez->expire_timer = new Timer;
 		int32 duration = spell->spell->GetSpellDuration();
 		rez->expire_timer->Start(duration * 100);
@@ -9226,6 +9232,11 @@ int EQ2Emu_lua_Resurrect(lua_State* state) {
 			rez->heal_name = heal_name;
 		else
 			rez->heal_name = rez->spell_name;
+		
+		rez->orig_spell_id = spell->spell->GetSpellID();
+		rez->orig_spell_tier = spell->spell->GetSpellTier();
+		rez->revive_sickness_spell_id = revive_spell_id;
+		rez->revive_sickness_spell_tier = revive_spell_tier;
 		rez->no_calcs = no_calcs;
 		rez->crit_mod = crit_mod;
 		rez->spell_visual = spell->spell->GetSpellData()->spell_visual;

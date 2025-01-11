@@ -7746,13 +7746,17 @@ void ZoneServer::ResurrectSpawn(Spawn* spawn, Client* client) {
 	if(!client || !spawn)
 		return;
 	PendingResurrection* rez = client->GetCurrentRez();
-	if(!rez || !rez->caster)
+	if(!rez)
 		return;
 
 	PacketStruct* packet = 0;
 	float power_perc = rez->mp_perc;
 	float health_perc = rez->hp_perc;
-	Spawn* caster_spawn = rez->caster;
+	Spawn* caster_spawn = GetSpawnByID(rez->caster);
+	
+	if(!caster_spawn)
+		return;
+	
 	sint32 heal_amt = 0;
 	sint32 power_amt = 0;
 	bool no_calcs = rez->no_calcs;
@@ -7844,6 +7848,15 @@ void ZoneServer::ResurrectSpawn(Spawn* spawn, Client* client) {
 	spawn->SendSpawnChanges(true);
 	spawn->SetTempActionState(-1);
 	spawn->appearance.attackable = 1;
+	
+	if(rez->revive_sickness_spell_id) {
+		Spell* spell = master_spell_list.GetSpell(rez->revive_sickness_spell_id, rez->revive_sickness_spell_tier);
+
+		if (spell)
+		{
+			GetSpellProcess()->CastInstant(spell, caster ? caster : (Entity*)client->GetPlayer(), (Entity*)client->GetPlayer());
+		}
+	}
 }
 
 void ZoneServer::SendDispellPacket(Entity* caster, Spawn* target, string dispell_name, string spell_name, int8 dispell_type){
