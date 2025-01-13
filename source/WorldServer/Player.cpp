@@ -4490,6 +4490,8 @@ bool Player::AddXP(int32 xp_amount){
 	GetPlayerInfo()->CalculateXPPercentages();
 	current_xp_percent = ((float)GetXP()/(float)GetNeededXP())*100;
 	if(current_xp_percent >= miniding_min_percent){
+		if(GetClient() && rule_manager.GetGlobalRule(R_Spells, UseClassicSpellLevel)->GetInt8())
+			GetClient()->SendNewAdventureSpells(); // mini ding involves checking spells again in classic level settings
 		SetHP(GetTotalHP());
 		SetPower(GetTotalPower());
 		GetZone()->SendCastSpellPacket(332, this, this); //send mini level up spell effect

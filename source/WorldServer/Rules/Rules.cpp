@@ -394,6 +394,7 @@ void RuleManager::Init()
 	RULE_INIT(R_Spells, MinistrationPowerReductionMax, "15.0"); // max percentage of power reduction for spells with ministration mastery skill (default is 15.0 for 15%)
 	RULE_INIT(R_Spells, MinistrationPowerReductionSkill, "25"); // divides by integer value to establish how much skill req for higher power reduction
 	RULE_INIT(R_Spells, MasterSkillReduceSpellResist, "25"); // divides by integer value to establish how much skill bonus for reducing spell resistance on target
+	RULE_INIT(R_Spells, UseClassicSpellLevel, "0"); // Uses fractional spell levels (eg. you gain spells inbetween levels).
 	
 	RULE_INIT(R_Expansion, GlobalExpansionFlag, "0");
 	RULE_INIT(R_Expansion, GlobalHolidayFlag, "0");

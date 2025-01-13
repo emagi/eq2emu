@@ -218,6 +218,7 @@ struct LevelArray{
 	int8	adventure_class;
 	int8	tradeskill_class;
 	int16	spell_level;
+	float	classic_spell_level;
 };
 struct SpellDisplayEffect{
 	int8	percentage;
@@ -328,7 +329,7 @@ public:
 	EQ2Packet* SerializeSpell(Client* client, bool display, bool trait_display = false, int8 packet_type = 0, int8 sub_packet_type = 0, const char* struct_name = 0, bool send_partial_packet = false);
 	EQ2Packet* SerializeSpecialSpell(Client* client, bool display, int8 packet_type = 0, int8 sub_packet_type = 0);
 	EQ2Packet* SerializeAASpell(Client* client,int8 tier, AltAdvanceData* data, bool display, bool trait_display = false, int8 packet_type = 0, int8 sub_packet_type = 0, const char* struct_name = 0);
-	void AddSpellLevel(int8 adventure_class, int8 tradeskill_class, int16 level);
+	void AddSpellLevel(int8 adventure_class, int8 tradeskill_class, int16 level, float classic_spell_level);
 	void AddSpellEffect(int8 percentage, int8 subbullet, string description);
 	void AddSpellLuaData(int8 type, int int_value, int int_value2, float float_value, float float_value2, bool bool_value, string string_value,string string_value2, string helper);
 	void AddSpellLuaDataInt(int value, int value2, string helper);
@@ -402,7 +403,7 @@ public:
 	map<int32, map<int32, Spell* > > class_spell_list[MAX_CLASSES];
 	map<int32, Spell*> spell_soecrc_map;
 	Spell* GetSpell(int32 id, int8 tier);
-	vector<Spell*>* GetSpellListByAdventureClass(int8 class_id, int16 max_level, int8 max_tier);
+	vector<Spell*>* GetSpellListByAdventureClass(int8 class_id, double max_level, int8 max_tier);
 	vector<Spell*>* GetSpellListByTradeskillClass(int8 class_id, int16 max_level, int8 max_tier);
 	Spell* GetSpellByName(const char* name);
 	Spell* GetSpellByCRC(int32 spell_crc);

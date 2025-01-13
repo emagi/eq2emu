@@ -2505,8 +2505,11 @@ void Entity::CureDetrimentByType(int8 cure_count, int8 det_type, string cure_nam
 			bool has_level_checks = false;
 			for (int32 x = 0; x < levels->size(); x++){
 				has_level_checks = true;
+				int8 use_classic_lvls = rule_manager.GetGlobalRule(R_Spells, UseClassicSpellLevel)->GetInt8();
+				if(levels->at(x)->classic_spell_level == 0.0f)
+					use_classic_lvls = 0;
 				// class checks are worthless we can't guarantee the caster is that class
-				if (!cure_level ||  cure_level >= (levels->at(x)->spell_level / 10)){
+				if (!cure_level || (use_classic_lvls && cure_level >= std::floor(levels->at(x)->classic_spell_level)) || (!use_classic_lvls && cure_level >= (levels->at(x)->spell_level / 10))){
 					pass_level_check = true;
 					break;
 				}
@@ -2555,7 +2558,10 @@ void Entity::CureDetrimentByControlEffect(int8 cure_count, int8 control_type, st
 			info_struct = det->caster->GetInfoStruct();
 			pass_level_check = false;
 			for (int32 x = 0; x < levels->size(); x++){
-				if (!cure_level || cure_level >= (levels->at(x)->spell_level / 10)){
+				int8 use_classic_lvls = rule_manager.GetGlobalRule(R_Spells, UseClassicSpellLevel)->GetInt8();
+				if(levels->at(x)->classic_spell_level == 0.0f)
+					use_classic_lvls = 0;
+				if (!cure_level || (use_classic_lvls && cure_level >= std::floor(levels->at(x)->classic_spell_level)) || (!use_classic_lvls && cure_level >= (levels->at(x)->spell_level / 10))){
 					pass_level_check = true;
 					break;
 				}

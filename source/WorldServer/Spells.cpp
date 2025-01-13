@@ -167,7 +167,7 @@ Spell::Spell(Spell* host_spell, bool unique_spell)
 	for (itr = host_spell->levels.begin(); itr != host_spell->levels.end(); itr++)
 	{
 		LevelArray* lvlArray = *itr;
-		AddSpellLevel(lvlArray->adventure_class, lvlArray->tradeskill_class, lvlArray->spell_level);
+		AddSpellLevel(lvlArray->adventure_class, lvlArray->tradeskill_class, lvlArray->spell_level, lvlArray->classic_spell_level);
 	}
 
 	std::vector<SpellDisplayEffect*>::iterator sdeitr;
@@ -295,7 +295,10 @@ int16 Spell::GetLevelRequired(Player* player){
 	for(itr = levels.begin(); itr != levels.end(); itr++){
 		level = *itr;
 		if(level && level->adventure_class == player->GetAdventureClass()){
-			ret = level->spell_level/10;
+			if(rule_manager.GetGlobalRule(R_Spells, UseClassicSpellLevel)->GetInt8() && level->classic_spell_level > 0.0f)
+				ret = std::floor(level->classic_spell_level);
+			else
+				ret = level->spell_level/10;
 			break;
 		}
 	}
@@ -722,7 +725,12 @@ void Spell::AppendLevelInformation(PacketStruct* packet) {
 		LevelArray* levelData = tmpArray->at(i);
 		packet->setArrayDataByName("adventure_class", levelData->adventure_class, i);
 		packet->setArrayDataByName("tradeskill_class", levelData->tradeskill_class, i);
-		packet->setArrayDataByName("spell_level", levelData->spell_level, i);
+		if(rule_manager.GetGlobalRule(R_Spells, UseClassicSpellLevel)->GetInt8() && levelData->classic_spell_level) {
+			packet->setArrayDataByName("spell_level", (int16)(levelData->classic_spell_level * 10.0f), i);
+		}
+		else {
+			packet->setArrayDataByName("spell_level", levelData->spell_level, i);
+		}
 	}
 }
 
@@ -1270,12 +1278,13 @@ const char* Spell::GetDescription(){
 	return spell->description.data.c_str();
 }
 
-void Spell::AddSpellLevel(int8 adventure_class, int8 tradeskill_class, int16 level){
+void Spell::AddSpellLevel(int8 adventure_class, int8 tradeskill_class, int16 level, float classic_spell_level){
 	std::unique_lock lock(MSpellInfo);
 	LevelArray* lvl = new LevelArray;
 	lvl->adventure_class = adventure_class;
 	lvl->tradeskill_class = tradeskill_class;
 	lvl->spell_level = level;
+	lvl->classic_spell_level = classic_spell_level;
 	
 	levels.push_back(lvl);
 }
@@ -2169,14 +2178,15 @@ vector <LevelArray*>* Spell::GetSpellLevels(){
 bool Spell::ScribeAllowed(Player* player){
 	std::shared_lock lock(MSpellInfo);
 	bool ret = false;
+	double current_xp_percent = ((double)player->GetXP()/(double)player->GetNeededXP())*100;
 	if(player){
 		for(int32 i=0;!ret && i<levels.size();i++){
-			int16 mylevel = player->GetLevel();
-			int16 spelllevels = levels[i]->spell_level;
-			bool advlev = player->GetAdventureClass() == levels[i]->adventure_class;
-			bool tslev = player->GetTradeskillClass() == levels[i]->tradeskill_class;
-			bool levelmatch = player->GetLevel() >= levels[i]->spell_level;
-			if((player->GetAdventureClass() == levels[i]->adventure_class || player->GetTradeskillClass() == levels[i]->tradeskill_class) && player->GetLevel() >= levels[i]->spell_level/10)
+			bool classiclevelmatch = ((double)player->GetLevel()+current_xp_percent) >= levels[i]->classic_spell_level;
+			bool classic_match_only = false;
+			if(levels[i]->classic_spell_level > 0.0f && rule_manager.GetGlobalRule(R_Spells, UseClassicSpellLevel)->GetInt8()) {
+				classic_match_only = true;
+			}
+			if((player->GetAdventureClass() == levels[i]->adventure_class || player->GetTradeskillClass() == levels[i]->tradeskill_class) && ((!classic_match_only && player->GetLevel() >= levels[i]->spell_level/10) || (classic_match_only && classiclevelmatch)))
 				ret = true;
 		}
 	}
@@ -2332,12 +2342,13 @@ EQ2Packet* MasterSpellList::GetSpecialSpellPacket(int32 id, int8 tier, Client* c
 	return 0;
 }
 
-vector<Spell*>* MasterSpellList::GetSpellListByAdventureClass(int8 class_id, int16 max_level, int8 max_tier){
+vector<Spell*>* MasterSpellList::GetSpellListByAdventureClass(int8 class_id, double max_level_classic, int8 max_tier){
 	vector<Spell*>* ret = new vector<Spell*>;
 	if(class_id >= MAX_CLASSES) {
 		return ret;
 	}
 	
+	int8 use_classic_levels = rule_manager.GetGlobalRule(R_Spells, UseClassicSpellLevel)->GetInt8();
 	Spell* spell = 0;
 	vector<LevelArray*>* levels = 0;
 	LevelArray* level = 0;
@@ -2345,7 +2356,7 @@ vector<Spell*>* MasterSpellList::GetSpellListByAdventureClass(int8 class_id, int
 	MMasterSpellList.lock();
 	map<int32, map<int32, Spell*> >::iterator iter;
 	map<int32, Spell*>::iterator iter2;
-	max_level *= 10; //convert to client level format, which is 10 times higher
+	int16 max_level = std::floor(max_level_classic) * 10; //convert to client level format, which is 10 times higher
 	for(iter = class_spell_list[class_id].begin();iter != class_spell_list[class_id].end(); iter++){
 		for(iter2 = iter->second.begin();iter2 != iter->second.end(); iter2++){
 			spell = iter2->second;
@@ -2354,9 +2365,15 @@ vector<Spell*>* MasterSpellList::GetSpellListByAdventureClass(int8 class_id, int
 				levels = spell->GetSpellLevels();
 				for(level_itr = levels->begin(); level_itr != levels->end(); level_itr++){
 					level = *level_itr;
-					if(level->spell_level <= max_level && level->adventure_class == class_id){
-						ret->push_back(spell);
-						break;
+					if(level->adventure_class == class_id){
+						if((!use_classic_levels || level->classic_spell_level == 0.0f) && level->spell_level <= max_level) {
+							ret->push_back(spell);
+							break;
+						}
+						else if(use_classic_levels && level->classic_spell_level <= max_level_classic) {
+							ret->push_back(spell);
+							break;
+						}
 					}
 				}
 			}

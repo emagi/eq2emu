@@ -240,6 +240,7 @@ enum RuleType {
 	MinistrationPowerReductionMax,
 	MinistrationPowerReductionSkill,
 	MasterSkillReduceSpellResist,
+	UseClassicSpellLevel,
 
 	/* ZONE TIMERS */
 	RegenTimer,

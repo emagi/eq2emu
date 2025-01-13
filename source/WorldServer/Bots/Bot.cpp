@@ -154,9 +154,9 @@ void Bot::MessageGroup(string msg) {
 
 void Bot::GetNewSpells() {
 	vector<Spell*> spells;
-	vector<Spell*>* spells1 = master_spell_list.GetSpellListByAdventureClass(GetAdventureClass(), GetLevel(), 1);
-	vector<Spell*>* spells2 = master_spell_list.GetSpellListByAdventureClass(classes.GetBaseClass(GetAdventureClass()), GetLevel(), 1);
-	vector<Spell*>* spells3 = master_spell_list.GetSpellListByAdventureClass(classes.GetSecondaryBaseClass(GetAdventureClass()), GetLevel(), 1);
+	vector<Spell*>* spells1 = master_spell_list.GetSpellListByAdventureClass(GetAdventureClass(), (double)GetLevel(), 1);
+	vector<Spell*>* spells2 = master_spell_list.GetSpellListByAdventureClass(classes.GetBaseClass(GetAdventureClass()), (double)GetLevel(), 1);
+	vector<Spell*>* spells3 = master_spell_list.GetSpellListByAdventureClass(classes.GetSecondaryBaseClass(GetAdventureClass()), (double)GetLevel(), 1);
 
 	spells.insert(spells.end(), spells1->begin(), spells1->end());
 	spells.insert(spells.end(), spells2->begin(), spells2->end());

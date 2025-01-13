@@ -4872,7 +4872,7 @@ void WorldDatabase::SaveQuickBar(int32 char_id, vector<QuickBarItem*>* quickbar_
 map<int32, vector<LevelArray*> >* WorldDatabase::LoadSpellClasses(){
 	map<int32, vector<LevelArray*> >* ret = new map<int32, vector<LevelArray*> >();
 	Query query;
-	MYSQL_RES* result = query.RunQuery2(Q_SELECT, "SELECT spell_id, adventure_class_id, tradeskill_class_id, level FROM spell_classes");
+	MYSQL_RES* result = query.RunQuery2(Q_SELECT, "SELECT spell_id, adventure_class_id, tradeskill_class_id, level, classic_level FROM spell_classes");
 	MYSQL_ROW row;
 	LevelArray* level = 0;
 	while(result && (row = mysql_fetch_row(result))){
@@ -4880,6 +4880,7 @@ map<int32, vector<LevelArray*> >* WorldDatabase::LoadSpellClasses(){
 		level->adventure_class = atoi(row[1]);
 		level->tradeskill_class = atoi(row[2]);
 		level->spell_level = atoi(row[3]);
+		level->classic_spell_level = atof(row[4]);
 		(*ret)[atoul(row[0])].push_back(level);
 	}
 	return ret;
@@ -5101,7 +5102,7 @@ void WorldDatabase::LoadSpells()
 
 				for(int8 i=0; i<level_array->size(); i++)
 				{
-					spell->AddSpellLevel(level_array->at(i)->adventure_class, level_array->at(i)->tradeskill_class, level_array->at(i)->spell_level*10);
+					spell->AddSpellLevel(level_array->at(i)->adventure_class, level_array->at(i)->tradeskill_class, level_array->at(i)->spell_level*10, level_array->at(i)->classic_spell_level);
 				}
 			}
 
