@@ -10168,7 +10168,7 @@ void Client::ProcessTeleportLocation(EQApplicationPacket* app) {
 
 void Client::SendNewSpells(int8 class_id) {
 	if (class_id > 0 && player) {
-		double current_xp_percent = ((double)player->GetXP()/(double)player->GetNeededXP())*100;
+		double current_xp_percent = ((double)player->GetXP()/(double)player->GetNeededXP());
 		vector<Spell*>* spells = master_spell_list.GetSpellListByAdventureClass(class_id, (double)player->GetLevel()+current_xp_percent, 1);
 		AddSendNewSpells(spells);
 		safe_delete(spells);

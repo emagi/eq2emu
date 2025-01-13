@@ -2178,7 +2178,7 @@ vector <LevelArray*>* Spell::GetSpellLevels(){
 bool Spell::ScribeAllowed(Player* player){
 	std::shared_lock lock(MSpellInfo);
 	bool ret = false;
-	double current_xp_percent = ((double)player->GetXP()/(double)player->GetNeededXP())*100;
+	double current_xp_percent = ((double)player->GetXP()/(double)player->GetNeededXP());
 	if(player){
 		for(int32 i=0;!ret && i<levels.size();i++){
 			bool classiclevelmatch = ((double)player->GetLevel()+current_xp_percent) >= levels[i]->classic_spell_level;
