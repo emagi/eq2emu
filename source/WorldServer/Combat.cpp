@@ -808,7 +808,7 @@ int8 Entity::DetermineHit(Spawn* victim, int8 type, int8 damage_type, float ToHi
 	if(is_caster_spell && lua_spell) {
 		if(lua_spell->spell->GetSpellData()->resistibility > 0) {
 			float pivot = 0.6f; // Central resistibility point (we seem to have .65 - .75 for our resistability usually)
-			float scale_factor = 2.0f; // steepness control
+			float scale_factor = 1.25f; // steepness control
 
 			// Clamps to avoid extreme values
 			float resistibility = std::clamp(lua_spell->spell->GetSpellData()->resistibility, 0.0f, 1.0f);
