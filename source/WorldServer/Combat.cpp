@@ -31,6 +31,8 @@
 #include "Rules/Rules.h"
 #include "SpellProcess.h"
 #include "World.h"
+#include <cmath>
+#include <algorithm>
 #include <math.h>
 
 extern Classes classes;
@@ -804,8 +806,18 @@ int8 Entity::DetermineHit(Spawn* victim, int8 type, int8 damage_type, float ToHi
 		bonus += (skill->current_val+skillAddedByWeapon) / 25;
 		
 	if(is_caster_spell && lua_spell) {
-		if(lua_spell->spell->GetSpellData()->resistibility > 0)
-			bonus -= (1.0f - lua_spell->spell->GetSpellData()->resistibility)*100.0f;
+		if(lua_spell->spell->GetSpellData()->resistibility > 0) {
+			float pivot = 0.6f; // Central resistibility point (we seem to have .65 - .75 for our resistability usually)
+			float scale_factor = 2.0f; // steepness control
+
+			// Clamps to avoid extreme values
+			float resistibility = std::clamp(lua_spell->spell->GetSpellData()->resistibility, 0.0f, 1.0f);
+			// Calculate marginalized resistibility
+			float marginalized_resistibility = 1.0f - exp(-scale_factor * (resistibility - pivot));
+
+			// Adjust bonus based on marginalized resistibility
+			bonus -= marginalized_resistibility * 100.0f;
+		}
 	
 		LogWrite(COMBAT__DEBUG, 9, "Combat", "SpellResist: resistibility %f, bonus %f", lua_spell->spell->GetSpellData()->resistibility, bonus);
 		// Here we take into account Subjugation, Disruption and Ordination (debuffs)
