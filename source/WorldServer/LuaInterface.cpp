@@ -854,7 +854,38 @@ void LuaInterface::RemoveSpell(LuaSpell* spell, bool call_remove_function, bool 
 
 			lua_pushstring(spell->state, (char*)reason.c_str());
 			
-			lua_pcall(spell->state, 3, 0, 0);
+			if(spell->spell) {
+				vector<LUAData*>* data = spell->spell->GetLUAData();
+				for(int32 i=0;i<data->size();i++){
+					switch(data->at(i)->type){
+						case 0:{
+							SetSInt32Value(spell->state, data->at(i)->int_value);
+							break;
+						}
+						case 1:{
+							SetFloatValue(spell->state, data->at(i)->float_value);
+							break;
+						}
+						case 2:{
+							SetBooleanValue(spell->state, data->at(i)->bool_value);
+							break;
+						}
+						case 3:{
+							SetStringValue(spell->state, data->at(i)->string_value.c_str());
+							break;
+						}
+						default:{
+							LogWrite(SPELL__ERROR, 0, "Spell", "Error: Unknown LUA Type '%i' in SpellProcess::ProcessSpell for Spell '%s'", (int)data->at(i)->type, spell->spell->GetName());
+						}
+					}
+				}
+			}
+			int8 arg_count = 3;
+			if(spell->spell) {
+				arg_count += spell->spell->GetLUAData()->size();
+			}
+			
+			lua_pcall(spell->state, arg_count, 0, 0);
 		}
 		ResetFunctionStack(spell->state);
 	}
