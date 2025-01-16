@@ -2820,7 +2820,7 @@ void SpellProcess::CheckRemoveTargetFromSpell(LuaSpell* spell, bool allow_delete
 		vector<int32>* remove_targets = 0;
 		Spawn* remove_spawn = 0;
 		bool should_delete = false;
-
+		bool dropped_lock = false;
 		for (remove_itr = remove_target_list.begin(); remove_itr != remove_target_list.end(); remove_itr++){
 			if (remove_itr->first == spell){
 				targets = &spell->targets;
@@ -2856,17 +2856,25 @@ void SpellProcess::CheckRemoveTargetFromSpell(LuaSpell* spell, bool allow_delete
 							}
 							if (targets->size() == 0 && spell->char_id_targets.size() == 0 && allow_delete) {
 								spell->MSpellTargets.releasewritelock(__FUNCTION__, __LINE__);
+								if(!dropped_lock) {
+									MRemoveTargetList.releasewritelock(__FUNCTION__, __LINE__);
+								}
 								if(found_target)
 									lua_interface->RemoveSpell(spell, true, false, !remove_spawn->Alive() ? "target_dead" : "target_removed", false, true, remove_spawn);
 								should_delete = true;
+								dropped_lock = true;
 								break;
 							}
 							else {
 									spell->MSpellTargets.releasewritelock(__FUNCTION__, __LINE__);
+									if(!dropped_lock) {
+										MRemoveTargetList.releasewritelock(__FUNCTION__, __LINE__);
+									}
 									// call remove function "on death"
 									if(found_target)
 										lua_interface->RemoveSpell(spell, true, false, !remove_spawn->Alive() ? "target_dead" : "target_removed", false, true, remove_spawn);
 									spell->MSpellTargets.writelock(__FUNCTION__, __LINE__);
+									dropped_lock = true;
 							}
 						}
 					}
@@ -2875,6 +2883,11 @@ void SpellProcess::CheckRemoveTargetFromSpell(LuaSpell* spell, bool allow_delete
 				break;
 			}
 		}
+		
+		if(dropped_lock) {
+			MRemoveTargetList.writelock(__FUNCTION__, __LINE__);
+		}
+		
 		remove_target_list.erase(spell);
 		if (remove_targets)
 			remove_targets->clear();
