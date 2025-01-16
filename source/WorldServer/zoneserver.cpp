@@ -4331,7 +4331,7 @@ Spawn*	ZoneServer::GetSpawnGroup(int32 id){
 		for (itr = spawn_list.begin(); itr != spawn_list.end(); itr++) {
 			spawn = itr->second;
 			if(spawn){
-				if(spawn->GetSpawnGroupID() == id){
+				if(spawn->Alive() && spawn->GetSpawnGroupID() == id){
 					ret = spawn;
 					quick_group_id_lookup.Put(id, spawn->GetID());
 					break;
@@ -6798,7 +6798,7 @@ void ZoneServer::RemoveSpawnSupportFunctions(Spawn* spawn, bool lock_spell_proce
 
 		if (spawn->GetSpawnGroupID() > 0) {
 			int32 group_id = spawn->GetSpawnGroupID();
-			spawn->RemoveSpawnFromGroup();
+			spawn->RemoveSpawnFromGroup(false, (spawn->IsEntity() && !spawn->Alive()) ? true : false);
 			if (spawn_group_map.count(group_id) > 0)
 				spawn_group_map.Get(group_id).Remove(spawn->GetID());
 		}

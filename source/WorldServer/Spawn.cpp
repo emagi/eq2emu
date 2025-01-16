@@ -4082,15 +4082,16 @@ void Spawn::SetSpawnGroupList(vector<Spawn*>* list, Mutex* mutex){
 	MSpawnGroup = mutex;
 }
 
-void Spawn::RemoveSpawnFromGroup(bool erase_all){
-	SetSpawnGroupID(0);
+void Spawn::RemoveSpawnFromGroup(bool erase_all, bool ignore_death){
+	if(!ignore_death)
+		SetSpawnGroupID(0);
 	bool del = false;
 	if(MSpawnGroup){
 		MSpawnGroup->writelock(__FUNCTION__, __LINE__);
 		if(spawn_group_list){
 			vector<Spawn*>::iterator itr;
 			Spawn* spawn = 0;
-			if(spawn_group_list->size() == 1)
+			if(spawn_group_list->size() == 1 && !ignore_death)
 				erase_all = true;
 			for(itr = spawn_group_list->begin(); itr != spawn_group_list->end(); itr++){
 				spawn = *itr;

@@ -1099,7 +1099,7 @@ public:
 	int32	GetSpawnGroupID();
 	void	AddSpawnToGroup(Spawn* spawn);
 	void	SetSpawnGroupList(vector<Spawn*>* list, Mutex* mutex);
-	void	RemoveSpawnFromGroup(bool erase_all = false);
+	void	RemoveSpawnFromGroup(bool erase_all = false, bool ignore_death = false);
 
 	void	SetRunningTo(Spawn* spawn){ running_to = spawn->GetID(); }
 	Spawn*	GetRunningTo();

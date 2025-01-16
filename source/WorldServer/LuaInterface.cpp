@@ -822,7 +822,7 @@ lua_State* LuaInterface::LoadLuaFile(const char* name) {
 	return 0;
 }
 
-void LuaInterface::RemoveSpell(LuaSpell* spell, bool call_remove_function, bool can_delete, string reason, bool removing_all_spells) {
+void LuaInterface::RemoveSpell(LuaSpell* spell, bool call_remove_function, bool can_delete, string reason, bool removing_all_spells, bool return_after_call_remove, Spawn* overrideTarget) {
 	if(call_remove_function){
 		lua_getglobal(spell->state, "remove");
 		if (!lua_isfunction(spell->state, lua_gettop(spell->state))){
@@ -835,7 +835,9 @@ void LuaInterface::RemoveSpell(LuaSpell* spell, bool call_remove_function, bool 
 			lua_pushlightuserdata(spell->state, spawn_wrapper);
 			if(spell->caster && (spell->initial_target || spell->caster->GetTarget())){
 				spawn_wrapper = new LUASpawnWrapper();
-				if(!spell->initial_target)
+				if(overrideTarget)
+					spawn_wrapper->spawn = overrideTarget;
+				else if(!spell->initial_target)
 					spawn_wrapper->spawn = spell->caster->GetTarget();
 				else if(spell->caster->GetZone()) {
 					spawn_wrapper->spawn = spell->caster->GetZone()->GetSpawnByID(spell->initial_target);
@@ -889,6 +891,9 @@ void LuaInterface::RemoveSpell(LuaSpell* spell, bool call_remove_function, bool 
 		}
 		ResetFunctionStack(spell->state);
 	}
+	
+	if(return_after_call_remove)
+		return;
 	
 	spell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
 	if(spell->caster) {

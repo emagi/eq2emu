@@ -194,7 +194,7 @@ public:
 	bool			LoadRegionScript(const char* name);
 	LuaSpell*		LoadSpellScript(string name);
 	LuaSpell*		LoadSpellScript(const char* name);
-	void			RemoveSpell(LuaSpell* spell, bool call_remove_function = true, bool can_delete = true, string reason = "", bool removing_all_spells = false);
+	void			RemoveSpell(LuaSpell* spell, bool call_remove_function = true, bool can_delete = true, string reason = "", bool removing_all_spells = false, bool return_after_call_remove = false, Spawn* overrideTarget = nullptr);
 	Spawn*			GetSpawn(lua_State* state, int8 arg_num = 1);
 	Item*			GetItem(lua_State* state, int8 arg_num = 1);
 	Quest*			GetQuest(lua_State* state, int8 arg_num = 1);

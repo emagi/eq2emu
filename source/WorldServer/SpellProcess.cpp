@@ -1704,6 +1704,11 @@ void SpellProcess::ProcessEntityCommand(ZoneServer* zone, EntityCommand* entity_
 bool SpellProcess::CastProcessedSpell(LuaSpell* spell, bool passive, bool in_heroic_opp){
 	if(!spell || !spell->caster || !spell->spell || spell->interrupted)
 		return false;
+	
+	if(spell->spell->GetSpellData()->duration1 > 0){
+		AddActiveSpell(spell);
+	}
+	
 	Client* client = 0;
 	if(spell->caster && spell->caster->IsPlayer())
 		client = ((Player*)spell->caster)->GetClient();
@@ -1716,6 +1721,7 @@ bool SpellProcess::CastProcessedSpell(LuaSpell* spell, bool passive, bool in_her
 				SendSpellBookUpdate(client);
 			}
 			spell->caster->GetZone()->SendSpellFailedPacket(client, SPELL_ERROR_NO_TARGETS_IN_RANGE);
+			DeleteActiveSpell(spell, true);
 			return false;
 		}
 	}
@@ -1733,17 +1739,23 @@ bool SpellProcess::CastProcessedSpell(LuaSpell* spell, bool passive, bool in_her
 			zone->RemoveTargetFromSpell(conflictSpell, tmpTarget);
 		}
 	}
-	
-	MutexList<LuaSpell*>::iterator itr = active_spells.begin();
+
 	bool processedSpell = false;
 	
 	bool allTargets = (spell->spell->GetSpellData()->spell_type == SPELL_TYPE_ALLGROUPTARGETS);
+	
 	if (!processedSpell)
 		processedSpell = ProcessSpell(spell, true, 0, 0, allTargets);
 
+	if(spell->resisted && spell->spell->GetSpellData()->duration1) {
+		DeleteActiveSpell(spell, true);
+	}
 	// Quick hack to prevent a crash on spells that zones the caster (Gate)
-	if (!spell->caster)
+	if (!spell->caster) {
+		if(spell->spell->GetSpellData()->duration1)
+			DeleteActiveSpell(spell, true);
 		return true;
+	}
 
 	Skill* skill = spell->caster->GetSkillByID(spell->spell->GetSpellData()->mastery_skill, false);
 	// trigger potential skill increase if we succeed in casting a mastery skill and it still has room to grow (against this spell)
@@ -1805,6 +1817,7 @@ bool SpellProcess::CastProcessedSpell(LuaSpell* spell, bool passive, bool in_her
 	else{
 		if (!passive)
 			SendFinishedCast(spell, client);
+		DeleteActiveSpell(spell, true);
 		return false;
 	}
 	if(!spell->resisted && (spell->spell->GetSpellDuration() > 0 || spell->spell->GetSpellData()->duration_until_cancel || spell->spell->GetSpellData()->spell_book_type == SPELL_BOOK_TYPE_NOT_SHOWN)) {
@@ -1839,8 +1852,6 @@ bool SpellProcess::CastProcessedSpell(LuaSpell* spell, bool passive, bool in_her
 			}
 		}
 
-		active_spells.Add(spell);
-
 		if (spell->num_triggers > 0)
 			ClientPacketFunctions::SendMaintainedExamineUpdate(client, spell->slot_pos, spell->num_triggers, 0);
 		if (spell->damage_remaining > 0)
@@ -1855,9 +1866,7 @@ bool SpellProcess::CastProcessedSpell(LuaSpell* spell, bool passive, bool in_her
 			spell->timer.SetTimer(spell->spell->GetSpellData()->call_frequency*100);
 		else
 			spell->timer.SetTimer(spell->spell->GetSpellData()->duration1*100);
-		if (active_spells.count(spell) < 1) {
-			active_spells.Add(spell);
-		}
+		AddActiveSpell(spell);
 	}
 
 	// if the caster is a player and the spell is a tradeskill spell check for a tradeskill event
@@ -2824,7 +2833,8 @@ void SpellProcess::CheckRemoveTargetFromSpell(LuaSpell* spell, bool allow_delete
 
 						remove_spawn = spell->caster->GetZone()->GetSpawnByID((*remove_target_itr));
 						if (remove_spawn) {
-							if(remove_spawn && remove_spawn->IsPlayer())
+							bool found_target = false;
+							if(remove_spawn->IsPlayer())
 							{
 								multimap<int32,int8>::iterator entries;
 								while((entries = spell->char_id_targets.find(((Player*)remove_spawn)->GetCharacterID())) != spell->char_id_targets.end())
@@ -2834,6 +2844,7 @@ void SpellProcess::CheckRemoveTargetFromSpell(LuaSpell* spell, bool allow_delete
 							}
 							for (target_itr = targets->begin(); target_itr != targets->end(); target_itr++) {
 								if (remove_spawn->GetID() == (*target_itr)) {
+									found_target = true;
 									((Entity*)remove_spawn)->RemoveProc(0, spell);
 									((Entity*)remove_spawn)->RemoveMaintainedSpell(spell);
 									LogWrite(SPELL__DEBUG, 0, "Spell", "%s CheckRemoveTargetFromSpell %s (%u).", spell->spell->GetName(), remove_spawn->GetName(), remove_spawn->GetID());
@@ -2845,8 +2856,17 @@ void SpellProcess::CheckRemoveTargetFromSpell(LuaSpell* spell, bool allow_delete
 							}
 							if (targets->size() == 0 && spell->char_id_targets.size() == 0 && allow_delete) {
 								spell->MSpellTargets.releasewritelock(__FUNCTION__, __LINE__);
+								if(found_target)
+									lua_interface->RemoveSpell(spell, true, false, !remove_spawn->Alive() ? "target_dead" : "target_removed", false, true, remove_spawn);
 								should_delete = true;
 								break;
+							}
+							else {
+									spell->MSpellTargets.releasewritelock(__FUNCTION__, __LINE__);
+									// call remove function "on death"
+									if(found_target)
+										lua_interface->RemoveSpell(spell, true, false, !remove_spawn->Alive() ? "target_dead" : "target_removed", false, true, remove_spawn);
+									spell->MSpellTargets.writelock(__FUNCTION__, __LINE__);
 							}
 						}
 					}
