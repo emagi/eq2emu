@@ -2366,11 +2366,11 @@ vector<Spell*>* MasterSpellList::GetSpellListByAdventureClass(int8 class_id, dou
 				for(level_itr = levels->begin(); level_itr != levels->end(); level_itr++){
 					level = *level_itr;
 					if(level->adventure_class == class_id){
-						if((!use_classic_levels || level->classic_spell_level == 0.0f) && level->spell_level <= max_level) {
+						if((!use_classic_levels || level->classic_spell_level == 0 || level->classic_spell_level == 0.0f) && level->spell_level <= max_level) {
 							ret->push_back(spell);
 							break;
 						}
-						else if(use_classic_levels && level->classic_spell_level <= max_level_classic) {
+						else if(use_classic_levels && level->classic_spell_level <= max_level_classic && level->classic_spell_level > 0.0f) {
 							ret->push_back(spell);
 							break;
 						}
