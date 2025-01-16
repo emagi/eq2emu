@@ -476,8 +476,10 @@ void ZoneServer::DeleteSpellProcess(){
 		if(spawn && spawn->IsNPC())
 			((NPC*)spawn)->SetSpells(0);
 		
-		if(spawn->IsEntity())
+		if(spawn->IsEntity()) {
 			((Entity*)spawn)->RemoveSpellBonus(nullptr, true);
+			((Entity*)spawn)->DeleteSpellEffects(true);
+		}
 	}
 	MSpawnList.releasereadlock(__FUNCTION__, __LINE__);
 
