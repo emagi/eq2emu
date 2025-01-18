@@ -104,6 +104,7 @@ struct LuaSpell{
 	bool			restored; // restored spell cross zone
 	std::atomic<bool> has_proc;
 	ZoneServer*		zone;
+	int16			initial_caster_level;
 };
 
 class LUAUserData{

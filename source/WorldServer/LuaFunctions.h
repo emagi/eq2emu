@@ -659,6 +659,8 @@ int EQ2Emu_lua_GetCharacterFlag(lua_State* state);
 int EQ2Emu_lua_ToggleCharacterFlag(lua_State* state);
 
 int EQ2Emu_lua_GetSpellInitialTarget(lua_State* state);
+int EQ2Emu_lua_GetSpellCaster(lua_State* state);
+int EQ2Emu_lua_GetCasterSpellLevel(lua_State* state);
 int EQ2Emu_lua_GetSpellTargets(lua_State* state);
 
 int EQ2Emu_lua_DespawnByLocationID(lua_State* state);

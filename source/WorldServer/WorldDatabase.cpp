@@ -7971,7 +7971,7 @@ void WorldDatabase::LoadCharacterSpellEffects(int32 char_id, Client* client, int
 
 	multimap<LuaSpell*, Entity*> restoreSpells;
 	// Use -1 on type and subtype to turn the enum into an int and make it a 0 index
-	if (!database_new.Select(&result, "SELECT name, caster_char_id, target_char_id, target_type, spell_id, effect_slot, slot_pos, icon, icon_backdrop, conc_used, tier, total_time, expire_timestamp, lua_file, custom_spell, damage_remaining, effect_bitmask, num_triggers, had_triggers, cancel_after_triggers, crit, last_spellattack_hit, interrupted, resisted, has_damaged, custom_function FROM character_spell_effects WHERE charid = %u and db_effect_type = %u", char_id, db_spell_type)) {
+	if (!database_new.Select(&result, "SELECT name, caster_char_id, target_char_id, target_type, spell_id, effect_slot, slot_pos, icon, icon_backdrop, conc_used, tier, total_time, expire_timestamp, lua_file, custom_spell, damage_remaining, effect_bitmask, num_triggers, had_triggers, cancel_after_triggers, crit, last_spellattack_hit, interrupted, resisted, has_damaged, custom_function, caster_level FROM character_spell_effects WHERE charid = %u and db_effect_type = %u", char_id, db_spell_type)) {
 		LogWrite(DATABASE__ERROR, 0, "DBNew", "MySQL Error %u: %s", database_new.GetError(), database_new.GetErrorMsg());
 		return;
 	}
@@ -8009,6 +8009,7 @@ void WorldDatabase::LoadCharacterSpellEffects(int32 char_id, Client* client, int
 		int8 resisted = result.GetInt32Str("resisted");
 		int8 has_damaged = result.GetInt32Str("has_damaged");
 		std::string custom_function = std::string(result.GetStringStr("custom_function"));
+		int16 caster_level = result.GetInt16Str("caster_level");
 		LuaSpell* lua_spell = 0;
 		if(custom_spell)
 		{
@@ -8133,6 +8134,7 @@ void WorldDatabase::LoadCharacterSpellEffects(int32 char_id, Client* client, int
 			lua_spell->num_triggers = num_triggers;
 			lua_spell->has_damaged = has_damaged;
 			lua_spell->is_damage_spell = has_damaged;
+			lua_spell->initial_caster_level = caster_level;
 		}
 
 		if(lua_spell->initial_target == 0 && target_char_id == 0xFFFFFFFF && player->HasPet())

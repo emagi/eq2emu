@@ -1600,6 +1600,8 @@ void LuaInterface::RegisterFunctions(lua_State* state) {
 	lua_register(state, "ToggleCharacterFlag", EQ2Emu_lua_ToggleCharacterFlag);
 	
 	lua_register(state, "GetSpellInitialTarget", EQ2Emu_lua_GetSpellInitialTarget);
+	lua_register(state, "GetSpellCaster", EQ2Emu_lua_GetSpellCaster);
+	lua_register(state, "GetCasterSpellLevel", EQ2Emu_lua_GetCasterSpellLevel);
 	lua_register(state, "GetSpellTargets", EQ2Emu_lua_GetSpellTargets);
 	
 	lua_register(state,"DespawnByLocationID", EQ2Emu_lua_DespawnByLocationID);
@@ -2114,6 +2116,7 @@ LuaSpell* LuaInterface::LoadSpellScript(const char* name)  {
 		spell->initial_caster_char_id = 0;
 		spell->initial_target_char_id = 0;
 		spell->zone = nullptr;
+		spell->initial_caster_level = 0;
 		
 		MSpells.lock();
 		current_spells[spell->state] = spell;
@@ -2413,6 +2416,7 @@ LuaSpell* LuaInterface::CreateSpellScript(const char* name, lua_State* existStat
 	new_spell->initial_caster_char_id = 0;
 	new_spell->initial_target_char_id = 0;
 	new_spell->zone = nullptr;
+	new_spell->initial_caster_level = 0;
 	
 	current_spells[new_spell->state] = new_spell;
 	return new_spell;

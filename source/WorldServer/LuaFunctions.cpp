@@ -14298,6 +14298,46 @@ int EQ2Emu_lua_GetSpellInitialTarget(lua_State* state) {
 	return 0;
 }
 
+int EQ2Emu_lua_GetSpellCaster(lua_State* state) {
+	LuaSpell* spell = lua_interface->GetSpell(state);
+	
+	if(!spell) {
+		spell = lua_interface->GetCurrentSpell(state);
+	}
+	
+	lua_interface->ResetFunctionStack(state);
+	if (spell) {
+		if(!spell->caster) {
+			lua_interface->LogError("%s: LUA GetSpellCaster command error, caster does not exist.", lua_interface->GetScriptName(state));
+			return 0;
+		}
+		lua_interface->SetSpawnValue(state, spell->caster);
+		return 1;
+	}
+	else {
+		lua_interface->LogError("%s: LUA GetSpellCaster command error, could not find spell.", lua_interface->GetScriptName(state));
+	}
+	return 0;
+}
+
+int EQ2Emu_lua_GetCasterSpellLevel(lua_State* state) {
+	LuaSpell* spell = lua_interface->GetSpell(state);
+	
+	if(!spell) {
+		spell = lua_interface->GetCurrentSpell(state);
+	}
+	
+	lua_interface->ResetFunctionStack(state);
+	if (spell) {
+		lua_interface->SetInt32Value(state, spell->initial_caster_level);
+		return 1;
+	}
+	else {
+		lua_interface->LogError("%s: LUA GetCasterSpellLevel command error, spell does not exist.", lua_interface->GetScriptName(state));
+	}
+	return 0;
+}
+
 int EQ2Emu_lua_GetSpellTargets(lua_State* state) {
 	if (!lua_interface)
 		return 0;
