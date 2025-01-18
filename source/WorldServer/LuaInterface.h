@@ -100,6 +100,7 @@ struct LuaSpell{
 	bool            had_triggers;
 	bool            had_dmg_remaining;
 	Mutex           MSpellTargets;
+	Mutex           MScriptMutex;
 	int32           effect_bitmask;
 	bool			restored; // restored spell cross zone
 	std::atomic<bool> has_proc;

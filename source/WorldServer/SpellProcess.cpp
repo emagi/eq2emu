@@ -551,6 +551,8 @@ bool SpellProcess::DeleteCasterSpell(LuaSpell* spell, string reason, bool removi
 
 bool SpellProcess::ProcessSpell(LuaSpell* spell, bool first_cast, const char* function, SpellScriptTimer* timer, bool all_targets) {
 	bool ret = false;
+	
+	spell->MScriptMutex.writelock(__FUNCTION__, __LINE__);
 	if(!spell->state)
 	{
 		LogWrite(SPELL__ERROR, 0, "Spell", "Error: State is NULL!  SpellProcess::ProcessSpell for Spell '%s'", (spell->spell != nullptr) ? spell->spell->GetName() : "Unknown");
@@ -574,6 +576,7 @@ bool SpellProcess::ProcessSpell(LuaSpell* spell, bool first_cast, const char* fu
 					}
 				}
 			}
+			spell->MScriptMutex.releasewritelock(__FUNCTION__, __LINE__);
 			return true;
 		}
 		std::string functionCall = ApplyLuaFunction(spell, first_cast, function, timer);
@@ -584,6 +587,7 @@ bool SpellProcess::ProcessSpell(LuaSpell* spell, bool first_cast, const char* fu
 		else
 			ret = lua_interface->CallSpellProcess(spell, 2 + spell->spell->GetLUAData()->size(), functionCall);
 	}
+	spell->MScriptMutex.releasewritelock(__FUNCTION__, __LINE__);
 	return ret;
 }
 

@@ -1740,6 +1740,9 @@ bool Entity::CastProc(Proc* proc, int8 type, Spawn* target) {
 	if(item_proc) {
 		mutex = lua_interface->GetItemScriptMutex(proc->item->GetItemScript());
 	}
+	else if(proc->spell) {
+		proc->spell->MScriptMutex.writelock(__FUNCTION__, __LINE__);
+	}
 	
 	if(mutex)
 		mutex->readlock(__FUNCTION__, __LINE__);
@@ -1804,6 +1807,9 @@ bool Entity::CastProc(Proc* proc, int8 type, Spawn* target) {
 				mutex->releasereadlock(__FUNCTION__, __LINE__);
 			if(item_proc)
 				lua_interface->UseItemScript(proc->item->GetItemScript(), state, false);
+			else if(proc->spell) {
+				proc->spell->MScriptMutex.releasewritelock(__FUNCTION__, __LINE__);
+			}
 			return false;
 		}
 	}
@@ -1815,6 +1821,9 @@ bool Entity::CastProc(Proc* proc, int8 type, Spawn* target) {
 		mutex->releasereadlock(__FUNCTION__);
 	if(item_proc)
 		lua_interface->UseItemScript(proc->item->GetItemScript(), state, false);
+	else if(proc->spell) {
+		proc->spell->MScriptMutex.releasewritelock(__FUNCTION__, __LINE__);
+	}
 	return true;
 }
 
