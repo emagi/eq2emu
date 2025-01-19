@@ -705,6 +705,16 @@ int EQ2Emu_lua_GetSpawnByLocationID(lua_State* state) {
 	return 0;
 }
 
+int EQ2Emu_lua_GetID(lua_State* state) {
+	Spawn* spawn = lua_interface->GetSpawn(state);
+	lua_interface->ResetFunctionStack(state);
+	if (spawn) {
+		lua_interface->SetInt32Value(state, spawn->GetID());
+		return 1;
+	}
+	return 0;
+}
+
 int EQ2Emu_lua_GetSpawnID(lua_State* state) {
 	Spawn* spawn = lua_interface->GetSpawn(state);
 	lua_interface->ResetFunctionStack(state);

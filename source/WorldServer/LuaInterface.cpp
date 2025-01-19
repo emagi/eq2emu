@@ -1026,6 +1026,7 @@ void LuaInterface::RegisterFunctions(lua_State* state) {
 	lua_register(state, "GetX", EQ2Emu_lua_GetX);
 	lua_register(state, "GetY", EQ2Emu_lua_GetY);
 	lua_register(state, "GetZ", EQ2Emu_lua_GetZ);
+	lua_register(state, "GetID", EQ2Emu_lua_GetID);
 	lua_register(state, "GetSpawnID", EQ2Emu_lua_GetSpawnID);
 	lua_register(state, "GetSpawnGroupID", EQ2Emu_lua_GetSpawnGroupID);
 	lua_register(state, "SetSpawnGroupID", EQ2Emu_lua_SetSpawnGroupID);

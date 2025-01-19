@@ -127,6 +127,7 @@ int EQ2Emu_lua_GetVariableValue(lua_State* state);
 int EQ2Emu_lua_GetCoinMessage(lua_State* state);
 int EQ2Emu_lua_GetSpawnByGroupID(lua_State* state);
 int EQ2Emu_lua_GetSpawnByLocationID(lua_State* state);
+int EQ2Emu_lua_GetID(lua_State* state);
 int EQ2Emu_lua_GetSpawnID(lua_State* state);
 int EQ2Emu_lua_GetSpawnGroupID(lua_State* state);
 int EQ2Emu_lua_SetSpawnGroupID(lua_State* state);
