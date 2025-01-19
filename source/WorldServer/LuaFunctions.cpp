@@ -8736,8 +8736,11 @@ int EQ2Emu_lua_RemoveProc(lua_State* state) {
 		lua_interface->LogError("%s: LUA RemoveProc command error: can only use with an item provided or inside a spell script", lua_interface->GetScriptName(state));
 		return 0;
 	}
-
-	if (spell && spell->caster && spell->caster->GetZone()) {
+	
+	if(spawn && spawn->IsEntity()) {
+		((Entity*)spawn)->RemoveProc(item, spell);
+	}
+	else if (spell && spell->caster && spell->caster->GetZone()) {
 		Spawn* target;
 		spell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
 		for (int8 i = 0; i < spell->targets.size(); i++) {
@@ -8757,9 +8760,6 @@ int EQ2Emu_lua_RemoveProc(lua_State* state) {
 	else if (!spawn->IsEntity()) {
 		lua_interface->LogError("%s: LUA RemoveProc command error: spawn is not a valid entity", lua_interface->GetScriptName(state));
 		return 0;
-	}
-	else {
-		((Entity*)spawn)->RemoveProc(item, spell);
 	}
 	return 0;
 }
