@@ -2578,7 +2578,12 @@ int EQ2Emu_lua_RemoveSpellBonus(lua_State* state) {
 	Spawn* spawn = lua_interface->GetSpawn(state);
 	LuaSpell* luaspell = lua_interface->GetCurrentSpell(state);
 	lua_interface->ResetFunctionStack(state);
-	if (luaspell && luaspell->spell) {
+	if (spawn && spawn->IsEntity()) {
+		((Entity*)spawn)->RemoveSpellBonus(luaspell);
+		if (spawn->IsPlayer())
+			((Player*)spawn)->SetCharSheetChanged(true);
+	}
+	else if (luaspell && luaspell->spell) {
 		ZoneServer* zone = nullptr;
 		if (luaspell->caster != nullptr)
 			zone = luaspell->caster->GetZone();
@@ -2601,11 +2606,6 @@ int EQ2Emu_lua_RemoveSpellBonus(lua_State* state) {
 		else {
 			LogWrite(LUA__ERROR, 0, "LUA", "Error removing spell bonus buff %s called by %s, zone is not available.", luaspell->spell ? luaspell->spell->GetName() : "NotSet", spawn ? spawn->GetName() : "N/A");
 		}
-	}
-	else if (spawn && spawn->IsEntity()) {
-		((Entity*)spawn)->RemoveSpellBonus(luaspell);
-		if (spawn->IsPlayer())
-			((Player*)spawn)->SetCharSheetChanged(true);
 	}
 	return 0;
 }
