@@ -1676,15 +1676,12 @@ void LuaInterface::DeletePendingSpells(bool all) {
 				if(spell->targets.size() > 0) {
 					spell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
 					for (int8 i = 0; i < spell->targets.size(); i++) {
-						Spawn* target = spell->caster->GetZone()->GetSpawnByID(spell->targets.at(i));
+						Spawn* target = spell->zone->GetSpawnByID(spell->targets.at(i));
 						if (!target || !target->IsEntity())
-							continue;
-						ZoneServer* targetZone = target->GetZone();
-						if(!targetZone)
 							continue;
 						
 						if(!spellDeleted)
-							targetZone->GetSpellProcess()->DeleteActiveSpell(spell, true);
+							spell->zone->GetSpellProcess()->DeleteActiveSpell(spell, true);
 						
 						spellDeleted = true;
 					}

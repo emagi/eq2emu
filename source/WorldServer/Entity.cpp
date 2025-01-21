@@ -1174,6 +1174,7 @@ void Entity::RemoveSpellEffect(LuaSpell* spell) {
 		GetZone()->GetSpellProcess()->RemoveTargetFromSpell(spell, this);
 		memset(&GetInfoStruct()->spell_effects[44], 0, sizeof(SpellEffects));
 		GetInfoStruct()->spell_effects[44].spell_id = 0xFFFFFFFF;
+		GetInfoStruct()->spell_effects[44].spell = nullptr;
 		changed = true;
 		info_changed = true;
 		AddChangedZoneSpawn();
