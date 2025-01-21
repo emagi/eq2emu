@@ -942,6 +942,7 @@ void LuaInterface::RemoveSpell(LuaSpell* spell, bool call_remove_function, bool 
 				spell->caster->GetZone()->GetSpellProcess()->RemoveSpellScriptTimerBySpell(spell, false);
 			}
 			spell->caster->RemoveProc(0, spell);
+			spell->caster->RemoveSpellEffect(spell);
 			spell->caster->RemoveMaintainedSpell(spell);
 
 			if(spell->spell && spell->spell->GetSpellData() && spell->caster->IsPlayer() && !removing_all_spells)
