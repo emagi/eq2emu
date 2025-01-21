@@ -892,8 +892,14 @@ void LuaInterface::RemoveSpell(LuaSpell* spell, bool call_remove_function, bool 
 		ResetFunctionStack(spell->state);
 	}
 	
-	if(return_after_call_remove)
+	if(return_after_call_remove) {
+		if(overrideTarget && overrideTarget->IsEntity()) {
+			((Entity*)overrideTarget)->RemoveProc(0, spell);
+			((Entity*)overrideTarget)->RemoveSpellEffect(spell);
+			((Entity*)overrideTarget)->RemoveSpellBonus(spell);
+		}
 		return;
+	}
 	
 	spell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
 	if(spell->caster) {
