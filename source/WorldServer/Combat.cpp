@@ -128,7 +128,10 @@ bool Entity::AttackAllowed(Entity* target, float distance, bool range_attack) {
 	}
 	
 	if(rule_manager.GetZoneRule(GetZoneID(), R_Combat, LockedEncounterNoAttack)->GetBool()) {
-		if(target->IsNPC() && (target->GetLockedNoLoot() == ENCOUNTER_STATE_LOCKED || target->GetLockedNoLoot() == ENCOUNTER_STATE_OVERMATCHED) && 
+		if(IsNPC() && GetAttackable() == 0 && target->IsNPC()) {
+			return true;
+		}
+		else if(target->IsNPC() && (target->GetLockedNoLoot() == ENCOUNTER_STATE_LOCKED || target->GetLockedNoLoot() == ENCOUNTER_STATE_OVERMATCHED) && 
 			!attacker->IsEngagedBySpawnID(target->GetID())) {
 			return false;
 		}
