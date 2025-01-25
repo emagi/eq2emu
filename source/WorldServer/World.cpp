@@ -2279,6 +2279,10 @@ void World::AddBonuses(Item* item, ItemStatsValues* values, int16 type, sint32 v
 				values->int_ += value;
 				break;
 			}
+			case ITEM_STAT_VS_PHYSICAL:{
+				values->vs_physical += value;
+				break;
+			}
 			case ITEM_STAT_VS_SLASH:{
 				values->vs_slash += value;
 				break;

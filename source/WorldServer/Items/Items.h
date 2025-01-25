@@ -655,6 +655,7 @@ struct ItemStatsValues{
 	sint16			vs_slash;
 	sint16			vs_crush;
 	sint16			vs_pierce;
+	sint16			vs_physical;
 	sint16			vs_heat;
 	sint16			vs_cold;
 	sint16			vs_magic;

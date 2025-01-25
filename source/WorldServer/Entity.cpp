@@ -1512,9 +1512,9 @@ void Entity::CalculateBonuses(){
 
 	info->add_cold(values->vs_cold);
 
-	info->add_mitigation_skill1(values->vs_slash);
-	info->add_mitigation_skill2(values->vs_pierce);
-	info->add_mitigation_skill3(values->vs_crush);
+	info->add_mitigation_skill1(values->vs_slash+values->vs_physical);
+	info->add_mitigation_skill2(values->vs_pierce+values->vs_physical);
+	info->add_mitigation_skill3(values->vs_crush+values->vs_physical);
 	info->add_ability_modifier(values->ability_modifier);
 	info->add_critical_mitigation(values->criticalmitigation);
 	info->add_block_chance(values->extrashieldblockchance);
