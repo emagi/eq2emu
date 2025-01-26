@@ -189,6 +189,7 @@ void Entity::MapInfoStruct()
 	get_int16_funcs["cur_mitigation"] = l::bind(&InfoStruct::get_cur_mitigation, &info_struct);
 	get_int16_funcs["max_mitigation"] = l::bind(&InfoStruct::get_max_mitigation, &info_struct);
 	get_int16_funcs["mitigation_base"] = l::bind(&InfoStruct::get_mitigation_base, &info_struct);
+	get_sint16_funcs["mitigation_modifier"] = l::bind(&InfoStruct::get_mitigation_modifier, &info_struct);
 	get_int16_funcs["avoidance_display"] = l::bind(&InfoStruct::get_avoidance_display, &info_struct);
 	get_float_funcs["cur_avoidance"] = l::bind(&InfoStruct::get_cur_avoidance, &info_struct);
 	get_int16_funcs["base_avoidance_pct"] = l::bind(&InfoStruct::get_base_avoidance_pct, &info_struct);
@@ -395,6 +396,7 @@ void Entity::MapInfoStruct()
 	set_int16_funcs["cur_mitigation"] = l::bind(&InfoStruct::set_cur_mitigation, &info_struct, l::_1);
 	set_int16_funcs["max_mitigation"] = l::bind(&InfoStruct::set_max_mitigation, &info_struct, l::_1);
 	set_int16_funcs["mitigation_base"] = l::bind(&InfoStruct::set_mitigation_base, &info_struct, l::_1);
+	set_sint16_funcs["mitigation_modifier"] = l::bind(&InfoStruct::set_mitigation_modifier, &info_struct, l::_1);
 	set_int16_funcs["avoidance_display"] = l::bind(&InfoStruct::set_avoidance_display, &info_struct, l::_1);
 	set_float_funcs["cur_avoidance"] = l::bind(&InfoStruct::set_cur_avoidance, &info_struct, l::_1);
 	set_int16_funcs["base_avoidance_pct"] = l::bind(&InfoStruct::set_base_avoidance_pct, &info_struct, l::_1);
@@ -1468,6 +1470,10 @@ void Entity::CalculateBonuses(){
 	CalculateSpellBonuses(values);
 	
 	info->set_cur_mitigation(info->get_mitigation_base());
+	
+	sint32 temp_mitigation = static_cast<sint32>(info->get_cur_mitigation()) + info->get_mitigation_modifier();
+	temp_mitigation = std::max(temp_mitigation, 0);
+	info->set_cur_mitigation(static_cast<int16>(temp_mitigation));
 	
 	int32 calc_mit_cap = effective_level * rule_manager.GetZoneRule(GetZoneID(), R_Combat, CalculatedMitigationCapLevel)->GetInt32();
 	info->set_max_mitigation(calc_mit_cap);

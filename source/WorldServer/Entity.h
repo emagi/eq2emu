@@ -116,6 +116,7 @@ struct InfoStruct{
 		cur_mitigation_ = 0;
 		max_mitigation_ = 0;
 		mitigation_base_ = 0;
+		mitigation_modifier_ = 0;
 		avoidance_display_ = 0;
 		cur_avoidance_ = 0.0f;
 		base_avoidance_pct_ = 0;
@@ -322,6 +323,7 @@ struct InfoStruct{
 		cur_mitigation_ = oldStruct->get_cur_mitigation();
 		max_mitigation_ = oldStruct->get_max_mitigation();
 		mitigation_base_ = oldStruct->get_mitigation_base();
+		mitigation_modifier_ = oldStruct->get_mitigation_modifier();
 		avoidance_display_ = oldStruct->get_avoidance_display();
 		cur_avoidance_ = oldStruct->get_cur_avoidance();
 		base_avoidance_pct_ = oldStruct->get_base_avoidance_pct();
@@ -523,6 +525,7 @@ struct InfoStruct{
 	int16	 get_max_mitigation() { std::lock_guard<std::mutex> lk(classMutex); return max_mitigation_; }
 
 	int16	 get_mitigation_base() { std::lock_guard<std::mutex> lk(classMutex); return mitigation_base_; }
+	sint16	 get_mitigation_modifier() { std::lock_guard<std::mutex> lk(classMutex); return mitigation_modifier_; }
 	int16	 get_avoidance_display() { std::lock_guard<std::mutex> lk(classMutex); return avoidance_display_; }
 	float	 get_cur_avoidance() { std::lock_guard<std::mutex> lk(classMutex); return cur_avoidance_; }
 	int16	 get_base_avoidance_pct() { std::lock_guard<std::mutex> lk(classMutex); return base_avoidance_pct_; }
@@ -752,6 +755,7 @@ struct InfoStruct{
 	void	set_max_mitigation(int16 value) { std::lock_guard<std::mutex> lk(classMutex); max_mitigation_ = value; }
 	void	set_mitigation_base(int16 value) { std::lock_guard<std::mutex> lk(classMutex); mitigation_base_ = value; }
 	void	add_mitigation_base(int16 value) { std::lock_guard<std::mutex> lk(classMutex); mitigation_base_ += value; }
+	void	set_mitigation_modifier(sint16 value) { std::lock_guard<std::mutex> lk(classMutex); mitigation_modifier_ = value; }
 
 	void	set_avoidance_display(int16 value) { std::lock_guard<std::mutex> lk(classMutex); avoidance_display_ = value; }
 	void	set_cur_avoidance(float value) { std::lock_guard<std::mutex> lk(classMutex); cur_avoidance_ = value; }
@@ -1076,6 +1080,7 @@ private:
 	int16			cur_mitigation_;
 	int16			max_mitigation_;
 	int16			mitigation_base_;
+	sint16			mitigation_modifier_;
 	int16			avoidance_display_;
 	float			cur_avoidance_;
 	int16			base_avoidance_pct_;
