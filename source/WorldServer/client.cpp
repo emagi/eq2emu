@@ -8136,6 +8136,10 @@ void Client::SellItem(int32 item_id, int16 quantity, int32 unique_id) {
 		if (!item)
 			item = player->item_list.GetItemFromID(item_id);
 		if (item && master_item) {
+			if(item->details.inv_slot_id == -3 || item->details.inv_slot_id == -4) {
+				SimpleMessage(CHANNEL_COLOR_RED, "You cannot sell an item in the bank.");
+				return;
+			}
 			if (item->details.item_locked || item->details.equip_slot_id)
 			{
 				SimpleMessage(CHANNEL_COLOR_RED, "You cannot sell the item in use.");

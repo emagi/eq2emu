@@ -9964,6 +9964,15 @@ void Commands::Command_TradeAddItem(Client* client, Seperator* sep)
 		int32 index = atoi(sep->arg[0]);
 		item = client->GetPlayer()->GetPlayerItemList()->GetItemFromIndex(index);
 		if (item) {
+			if(item->details.item_locked || item->details.equip_slot_id) {
+				client->SimpleMessage(CHANNEL_COLOR_RED, "You cannot trade an item currently in use.");
+				return;
+			}
+			else if(item->details.inv_slot_id == -3 || item->details.inv_slot_id == -4) {
+				client->SimpleMessage(CHANNEL_COLOR_RED, "You cannot trade an item in the bank.");
+				return;
+			}
+			
 			int8 result = client->GetPlayer()->trade->AddItemToTrade(client->GetPlayer(), item, atoi(sep->arg[2]), atoi(sep->arg[1]));
 			if (result == 1)
 				client->SimpleMessage(CHANNEL_COLOR_YELLOW, "Item is already being traded.");
