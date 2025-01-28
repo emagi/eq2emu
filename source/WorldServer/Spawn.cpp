@@ -2112,7 +2112,10 @@ void Spawn::InitializePosPacketData(Player* player, PacketStruct* packet, bool b
 	{
 		m_GridMutex.writelock(__FUNCTION__, __LINE__);
 		std::map<int32,TimedGridData>::iterator itr = established_grid_id.find(version);
-		if ( itr == established_grid_id.end() || itr->second.npc_save || itr->second.timestamp <= (Timer::GetCurrentTime2()))
+		if (!EngagedInCombat() && player->GetMap() == GetMap()) {
+			new_y = GetY();
+		}
+		else if ( itr == established_grid_id.end() || itr->second.npc_save || itr->second.timestamp <= (Timer::GetCurrentTime2()))
 		{
 			if(itr != established_grid_id.end() && itr->second.x == GetX() && itr->second.z == GetZ() && !itr->second.npc_save) {
 				itr->second.timestamp = Timer::GetCurrentTime2()+100;
@@ -3642,10 +3645,12 @@ bool Spawn::CalculateChange(){
 		else {
 			SetX(nx + tar_vx, false);
 			SetZ(nz + tar_vz, false);
-			if ( IsWidget() )
+			if(IsWidget()) {
 				SetY(ny + tar_vy, false, true);
-			else
+			}
+			else {
 				SetY(ny + tar_vy, false);
+			}
 		}
 	
 		int32 newGrid = GetLocation();

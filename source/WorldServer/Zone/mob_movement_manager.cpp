@@ -324,9 +324,9 @@ public:
 		glm::vec2 ndir = glm::normalize(dir);
 		double    distance_moved = frame_time * current_speed * 0.4f * 1.45f;
 
-		mob->SetX(m_move_to_x);
-		mob->SetZ(m_move_to_z);
-		mob->SetY(m_move_to_y);
+		mob->SetX(m_move_to_x, false);
+		mob->SetZ(m_move_to_z, false);
+		mob->SetY(m_move_to_y, true, true);
 		if (distance_moved > len) {
 			return true;
 		}
@@ -338,9 +338,9 @@ public:
 			double start_y = m_move_to_y - m_total_v_dist;
 			double y_at_pos = start_y + (m_total_v_dist * (total_distance_traveled / m_total_h_dist));
 
-			mob->SetX(npos.x);
-			mob->SetZ(npos.y);
-			mob->SetY(y_at_pos);
+			mob->SetX(npos.x, false);
+			mob->SetZ(npos.y, false);
+			mob->SetY(y_at_pos, true, true);
 		}
 
 		return false;
@@ -364,9 +364,9 @@ public:
 
 	virtual bool Process(MobMovementManager* mob_movement_manager, Entity* mob)
 	{
-		mob->SetX(m_teleport_to_x);
-		mob->SetZ(m_teleport_to_z);
-		mob->SetY(m_teleport_to_y);
+		mob->SetX(m_teleport_to_x, false);
+		mob->SetZ(m_teleport_to_z, false);
+		mob->SetY(m_teleport_to_y, true, true);
 		mob->SetHeading(mob_movement_manager->FixHeading(m_teleport_to_heading));
 		//mob_movement_manager->SendCommandToClients(mob, 0.0, 0.0, 0.0, 0.0, 0, ClientRangeAny);
 
