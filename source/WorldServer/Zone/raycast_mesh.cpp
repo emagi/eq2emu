@@ -178,6 +178,14 @@ static inline bool rayIntersectsTriangle(const RmReal *p,const RmReal *d,const R
 
 	vector(e1,v1,v0);
 	vector(e2,v2,v0);
+	const RmReal edgeScale = 1.1f; // Adjust this value as needed
+	e1[0] *= edgeScale;
+	e1[1] *= edgeScale;
+	e1[2] *= edgeScale;
+
+	e2[0] *= edgeScale;
+	e2[1] *= edgeScale;
+	e2[2] *= edgeScale;
 	crossProduct(h,d,e2);
 	a = innerProduct(e1,h);
 
