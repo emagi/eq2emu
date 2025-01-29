@@ -1198,8 +1198,10 @@ int EQ2Emu_lua_MovementLoopAdd(lua_State* state) {
 	
 	int8 num_args = (int8)lua_interface->GetNumberOfArgs(state);
 	float heading = lua_interface->GetFloatValue(state, 8);
+	bool exclude_heading = lua_interface->GetBooleanValue(state, 9);
+	bool use_nav_path = lua_interface->GetBooleanValue(state, 10);
 	if (spawn) {
-		spawn->AddMovementLocation(x, y, z, speed, delay, function.c_str(), heading, (num_args > 7) ? true : false );
+		spawn->AddMovementLocation(x, y, z, speed, delay, function.c_str(), heading, (num_args > 7 && !exclude_heading) ? true : false, use_nav_path);
 		spawn->GetZone()->AddMovementNPC(spawn);
 	}
 	lua_interface->ResetFunctionStack(state);
@@ -1262,12 +1264,13 @@ int EQ2Emu_lua_MoveToLocation(lua_State* state) {
 	float speed = lua_interface->GetFloatValue(state, 5);
 	string lua_function = lua_interface->GetStringValue(state, 6);
 	bool more_points = lua_interface->GetBooleanValue(state, 7);
+	bool use_nav_path = lua_interface->GetBooleanValue(state, 8);
 
 	if (spawn) {
 		if (speed == 0)
 			speed = spawn->GetSpeed();
 
-		spawn->AddRunningLocation(x, y, z, speed, 0.0f, true, !more_points, lua_function);
+		spawn->AddRunningLocation(x, y, z, speed, 0.0f, true, !more_points, lua_function, false, use_nav_path);
 	}
 	lua_interface->ResetFunctionStack(state);
 	return 0;

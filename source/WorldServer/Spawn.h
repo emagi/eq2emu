@@ -224,6 +224,7 @@ struct MovementData{
 	string lua_function;
 	float heading;
 	bool use_movement_location_heading;
+	bool use_nav_path;
 };
 
 struct BasicInfoStruct{
@@ -265,6 +266,7 @@ struct MovementLocation{
 	int32	gridid;
 	int8	stage;
 	bool	reset_hp_on_runback;
+	bool	use_nav_path;
 };
 
 struct SpawnUpdate {
@@ -1142,7 +1144,7 @@ public:
 	void	InitializeFooterPacketData(Player* player, PacketStruct* packet);
 
 	void	MoveToLocation(Spawn* spawn, float distance, bool immediate = true, bool isMappedLocation = false);
-	void	AddMovementLocation(float x, float y, float z, float speed, int16 delay, const char* lua_function, float heading, bool include_heading = false);
+	void	AddMovementLocation(float x, float y, float z, float speed, int16 delay, const char* lua_function, float heading, bool include_heading = false, bool use_nav_path = false);
 	void	ProcessMovement(bool isSpawnListLocked=false);
 	void	ResetMovement();
 	bool	ValidateRunning(bool lockMovementLocation, bool lockMovementLoop);
@@ -1154,7 +1156,7 @@ public:
 	MovementLocation* GetLastRunningLocation();
 	void	NewWaypointChange(MovementLocation* data);
 	bool	CalculateChange();
-	void	AddRunningLocation(float x, float y, float z, float speed, float distance_away = 0, bool attackable = true, bool finished_adding_locations = true, string lua_function = "", bool isMapped=false);
+	void	AddRunningLocation(float x, float y, float z, float speed, float distance_away = 0, bool attackable = true, bool finished_adding_locations = true, string lua_function = "", bool isMapped=false, bool useNavPath=false);
 	bool	RemoveRunningLocation();
 	void	ClearRunningLocations();
 

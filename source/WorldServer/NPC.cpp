@@ -232,6 +232,8 @@ void NPC::SetRunbackLocation(float x, float y, float z, int32 gridid, bool set_h
 	runback->gridid = gridid;
 	runback->stage = 0;
 	runback->reset_hp_on_runback = set_hp_runback;
+	runback->use_nav_path = false;
+	runback->mapped = false;
 }
 
 MovementLocation* NPC::GetRunbackLocation(){

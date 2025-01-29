@@ -3217,12 +3217,13 @@ void Spawn::ProcessMovement(bool isSpawnListLocked){
 							data2 = movement_loop[tmp_index];
 						else
 							data2 = movement_loop[0];
-						AddRunningLocation(data->x, data->y, data->z, data->speed, 0, true, false, "", true);				
-						AddRunningLocation(data2->x, data2->y, data2->z, data2->speed, 0, true, true, "", true);
+						
+						AddRunningLocation(data->x, data->y, data->z, data->speed, 0, true, false, "", true, data->use_nav_path);				
+						AddRunningLocation(data2->x, data2->y, data2->z, data2->speed, 0, true, true, "", true, data2->use_nav_path);
 					}
 					// delay at target location, only need to set 1 location
 					else
-						AddRunningLocation(data->x, data->y, data->z, data->speed);
+						AddRunningLocation(data->x, data->y, data->z, data->speed, 0, true, true, "", true, data->use_nav_path);
 				}
 				movement_start_time = 0;
 				resume_movement = false;
@@ -3299,13 +3300,13 @@ void Spawn::ProcessMovement(bool isSpawnListLocked){
 							else
 								data2 = movement_loop[0];
 							// set the first location (adds it to movement_locations that we just cleared)
-							AddRunningLocation(data->x, data->y, data->z, data->speed, 0, true, false, "", true);
+							AddRunningLocation(data->x, data->y, data->z, data->speed, 0, true, false, "", true, data->use_nav_path);
 							// set the location after that
-							AddRunningLocation(data2->x, data2->y, data2->z, data2->speed, 0, true, true, "", true);
+							AddRunningLocation(data2->x, data2->y, data2->z, data2->speed, 0, true, true, "", true, data2->use_nav_path);
 						}
 						// there is a delay at the next location so we only need to set it
 						else {
-							AddRunningLocation(data->x, data->y, data->z, data->speed, 0, true, true, "", true);
+							AddRunningLocation(data->x, data->y, data->z, data->speed, 0, true, true, "", true, data->use_nav_path);
 						}
 
 						// reset this timer to 0 now that we are moving again
@@ -3320,7 +3321,7 @@ void Spawn::ProcessMovement(bool isSpawnListLocked){
 			// not moving, have a target location but not at it yet
 			else if (data) {
 				SetSpeed(data->speed);
-				AddRunningLocation(data->x, data->y, data->z, data->speed);
+				AddRunningLocation(data->x, data->y, data->z, data->speed, 0, true, true, "", true, data->use_nav_path);
 			}
 		}
 		MMovementLoop.releasewritelock();
@@ -3360,7 +3361,7 @@ void Spawn::ResetMovement(){
 	ValidateRunning(true, true);
 }
 
-void Spawn::AddMovementLocation(float x, float y, float z, float speed, int16 delay, const char* lua_function, float heading, bool include_heading){
+void Spawn::AddMovementLocation(float x, float y, float z, float speed, int16 delay, const char* lua_function, float heading, bool include_heading, bool use_nav_path){
 
 	LogWrite(LUA__DEBUG, 5, "LUA", "AddMovementLocation: x: %.2f, y: %.2f, z: %.2f, speed: %.2f, delay: %i, lua: %s",
 		x, y, z, speed, delay, string(lua_function).c_str());
@@ -3376,6 +3377,7 @@ void Spawn::AddMovementLocation(float x, float y, float z, float speed, int16 de
 	
 	data->heading = heading;
 	data->use_movement_location_heading = include_heading;
+	data->use_nav_path = use_nav_path;
 	MMovementLoop.lock();
 	movement_loop.push_back(data);
 	MMovementLoop.unlock();
@@ -3476,7 +3478,7 @@ MovementLocation* Spawn::GetLastRunningLocation(){
 	return ret;
 }
 
-void Spawn::AddRunningLocation(float x, float y, float z, float speed, float distance_away, bool attackable, bool finished_adding_locations, string lua_function, bool isMapped){
+void Spawn::AddRunningLocation(float x, float y, float z, float speed, float distance_away, bool attackable, bool finished_adding_locations, string lua_function, bool isMapped, bool useNavPath){
 	if(speed == 0)
 		return;
 
@@ -3511,6 +3513,7 @@ void Spawn::AddRunningLocation(float x, float y, float z, float speed, float dis
 	data->lua_function = lua_function;
 	data->gridid = 0; // used for runback defaults
 	data->reset_hp_on_runback = false;
+	data->use_nav_path = useNavPath;
 
 	MMovementLocations.lock_shared();
 	if(movement_locations->size() > 0)
@@ -3714,11 +3717,21 @@ void Spawn::CalculateRunningLocation(bool stop){
 				MovementLocation* current_location = movement_locations->at(0);
 				if (movement_locations->size() > 1) {
 					MovementLocation* data = movement_locations->at(1);
-					RunToLocation(current_location->x, current_location->y, current_location->z, data->x, data->y, data->z);
+					if(current_location->use_nav_path) {
+						GetZone()->movementMgr->NavigateTo((Entity*)this, current_location->x, current_location->y, current_location->z);
+					}
+					else {
+						RunToLocation(current_location->x, current_location->y, current_location->z, data->x, data->y, data->z);
+					}
 				}
-				else
-					RunToLocation(current_location->x, current_location->y, current_location->z, 0, 0, 0);
-				
+				else {
+					if(current_location->use_nav_path) {
+						GetZone()->movementMgr->NavigateTo((Entity*)this, current_location->x, current_location->y, current_location->z);
+					}
+					else {
+						RunToLocation(current_location->x, current_location->y, current_location->z, 0, 0, 0);
+					}
+				}
 				continueElseIf = false;
 			}
 		}
