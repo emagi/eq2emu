@@ -2112,10 +2112,7 @@ void Spawn::InitializePosPacketData(Player* player, PacketStruct* packet, bool b
 	{
 		m_GridMutex.writelock(__FUNCTION__, __LINE__);
 		std::map<int32,TimedGridData>::iterator itr = established_grid_id.find(version);
-		if (!EngagedInCombat() && player->GetMap() == GetMap()) {
-			new_y = GetY();
-		}
-		else if ( itr == established_grid_id.end() || itr->second.npc_save || itr->second.timestamp <= (Timer::GetCurrentTime2()))
+		if ( itr == established_grid_id.end() || itr->second.npc_save || itr->second.timestamp <= (Timer::GetCurrentTime2()))
 		{
 			if(itr != established_grid_id.end() && itr->second.x == GetX() && itr->second.z == GetZ() && !itr->second.npc_save) {
 				itr->second.timestamp = Timer::GetCurrentTime2()+100;
