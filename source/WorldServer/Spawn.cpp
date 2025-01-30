@@ -3705,7 +3705,7 @@ bool Spawn::CalculateChange(){
 void Spawn::CalculateRunningLocation(bool stop){
 
 	bool pauseTimerEnabled = IsPauseMovementTimerActive();
-	if (!pauseTimerEnabled && !stop && (last_location_update + 100) > Timer::GetCurrentTime2())
+	if (!pauseTimerEnabled && !stop && (last_location_update + 10) > Timer::GetCurrentTime2())
 		return;
 	else if (!pauseTimerEnabled && !stop)
 		last_location_update = Timer::GetCurrentTime2();
