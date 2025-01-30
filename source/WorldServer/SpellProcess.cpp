@@ -2800,8 +2800,8 @@ void SpellProcess::ClearSpellScriptTimerList() {
 void SpellProcess::RemoveTargetFromSpell(LuaSpell* spell, Spawn* target, bool removeCaster){
 	if (!spell || !target)
 		return;
-
-	LogWrite(SPELL__DEBUG, 0, "Spell", "%s RemoveTargetFromSpell %s (%u).", spell->spell->GetName(), target->GetName(), target->GetID());
+	
+	LogWrite(SPELL__DEBUG, 0, "Spell", "%s RemoveTargetFromSpell %s (%u).", spell->spell ? spell->spell->GetName() : "INACTIVE_SPELL", target->GetName(), target->GetID());
 	MRemoveTargetList.writelock(__FUNCTION__, __LINE__);
 
 	if(removeCaster && spell->caster && spell->caster == target)
