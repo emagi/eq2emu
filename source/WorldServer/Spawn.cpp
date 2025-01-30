@@ -3604,7 +3604,7 @@ bool Spawn::CalculateChange(){
 				data = &tmpLoc;
 			}
 			// If no target or we are at the target location need to remove this point
-			if(!data || (data->x == GetX() && data->z == GetZ()))
+			if(!data)
 				remove_needed = true;
 			}
 	}
@@ -3617,6 +3617,9 @@ bool Spawn::CalculateChange(){
 		// Speed is per second so we need a time_step (amount of time since the last update) to modify movement by
 		float time_step = (Timer::GetCurrentTime2() - last_movement_update) * 0.001; // * 0.001 is the same as / 1000, float muliplications is suppose to be faster though
 
+		// Ensure time_step has a minimum value to avoid excessively small movements
+		time_step = fmax(time_step, 0.01f); // Minimum time_step of 10ms to ensure meaningful movement
+
 		// Get current location
 		float nx = GetX();
 		float ny = GetY();
@@ -3626,18 +3629,25 @@ bool Spawn::CalculateChange(){
 		float tar_vx = data->x - nx;
 		float tar_vy = data->y - ny;
 		float tar_vz = data->z - nz;
-
-		// Multiply speed by the time_step to get how much should have changed over the last tick
-		float speed = GetSpeed() * time_step;
-
-		// Normalize the forward vector and multiply by speed, this gives us our change in coords, just need to add them to our current coords
+		
 		float len = sqrtf(tar_vx * tar_vx + tar_vy * tar_vy + tar_vz * tar_vz);
-		tar_vx = (tar_vx / len) * speed;
-		tar_vy = (tar_vy / len) * speed;
-		tar_vz = (tar_vz / len) * speed;
+		
+		float lenNoY = sqrtf(tar_vx * tar_vx + tar_vz * tar_vz);
+
+		// Scale speed based on distance, ensuring smooth slow down
+		float base_speed = GetSpeed();
+		float snap_threshold = fmax(0.4f * base_speed, 0.5f); // Minimum threshold of 0.5 ensures entities can snap even at low speeds
+		float speed = fmin(base_speed, len / time_step); // Prevent overshooting by capping speed to remaining distance / time_step
+		
+		// Normalize the forward vector and scale by adjusted speed
+		if (len > 0.0f) { // Avoid division by zero
+			tar_vx = (tar_vx / len) * speed * time_step;
+			tar_vy = (tar_vy / len) * speed * time_step;
+			tar_vz = (tar_vz / len) * speed * time_step;
+		}
 
 		// Distance less then 0.5 just set the npc to the target location
-		if (GetDistance(data->x, data->y, data->z, IsWidget() ? false : true) <= speed) {
+			if (len <= snap_threshold || (!(IsFlyingCreature() || IsWaterCreature() || InWater()) && lenNoY <= snap_threshold)) {
 			SetX(data->x, false);
 			SetZ(data->z, false);
 			SetY(data->y, false, true);
@@ -3695,7 +3705,6 @@ bool Spawn::CalculateChange(){
 void Spawn::CalculateRunningLocation(bool stop){
 
 	bool pauseTimerEnabled = IsPauseMovementTimerActive();
-
 	if (!pauseTimerEnabled && !stop && (last_location_update + 100) > Timer::GetCurrentTime2())
 		return;
 	else if (!pauseTimerEnabled && !stop)
