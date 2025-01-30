@@ -3150,6 +3150,7 @@ void Spawn::ProcessMovement(bool isSpawnListLocked){
 					tmpLoc.x = loc->x;
 					tmpLoc.y = loc->y;
 					tmpLoc.z = loc->z;
+					tmpLoc.use_nav_path = loc->use_nav_path;
 					loc = &tmpLoc;
 				}
 			}
@@ -3599,10 +3600,11 @@ bool Spawn::CalculateChange(){
 				tmpLoc.x = data->x;
 				tmpLoc.y = data->y;
 				tmpLoc.z = data->z;
+				tmpLoc.use_nav_path = data->use_nav_path;
 				data = &tmpLoc;
 			}
 			// If no target or we are at the target location need to remove this point
-			if(!data || (data->x == GetX() && data->y == GetY() && data->z == GetZ()))
+			if(!data || (data->x == GetX() && data->z == GetZ()))
 				remove_needed = true;
 			}
 	}
