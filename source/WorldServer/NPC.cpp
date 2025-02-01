@@ -835,6 +835,9 @@ int32 NPC::GetEquipmentListID(){
 }
 
 Spell* NPC::GetNextSpell(Spawn* target, float distance){
+	if(world.IsReloadingSubsystems())
+		return nullptr;
+	
 	if(!cast_on_aggro_completed) {
 		Spell* ret = nullptr;
 		Spell* tmpSpell = nullptr;
@@ -887,6 +890,9 @@ Spell* NPC::GetNextSpell(Spawn* target, float distance){
 }
 
 Spell* NPC::GetNextSpell(float distance, int8 type){
+	if(world.IsReloadingSubsystems())
+		return nullptr;
+	
 	Spell* ret = 0;
 	if(spells){
 		if(distance < 0)
@@ -920,6 +926,9 @@ Spell* NPC::GetNextSpell(float distance, int8 type){
 }
 
 Spell* NPC::GetNextBuffSpell(Spawn* target) {
+	if(world.IsReloadingSubsystems())
+		return nullptr;
+	
 	if(!target) {
 		target = (Spawn*)this;
 	}

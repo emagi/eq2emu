@@ -283,6 +283,9 @@ bool Bot::IsSpellReady(Spell* spell) {
 }
 
 Spell* Bot::GetDDSpell() {
+	if(world.IsReloadingSubsystems())
+		return nullptr;
+	
 	if (dd_spells.size() == 0)
 		return 0;
 
@@ -299,6 +302,9 @@ Spell* Bot::GetDDSpell() {
 }
 
 Spell* Bot::GetHealSpell() {
+	if(world.IsReloadingSubsystems())
+		return nullptr;
+	
 	if (heal_spells.size() == 0)
 		return 0;
 	
@@ -350,6 +356,9 @@ Spell* Bot::GetHealSpell() {
 }
 
 Spell* Bot::GetTauntSpell() {
+	if(world.IsReloadingSubsystems())
+		return nullptr;
+	
 	if (taunt_spells.size() == 0)
 		return 0;
 
@@ -370,6 +379,9 @@ Spell* Bot::GetTauntSpell() {
 }
 
 Spell* Bot::GetDetauntSpell() {
+	if(world.IsReloadingSubsystems())
+		return nullptr;
+	
 	if (detaunt_spells.size() == 0)
 		return 0;
 
@@ -393,6 +405,9 @@ Spell* Bot::GetDetauntSpell() {
 }
 
 Spell* Bot::GetHoTWardSpell() {
+	if(world.IsReloadingSubsystems())
+		return nullptr;
+	
 	if (hot_ward_spells.size() == 0)
 		return 0;
 
@@ -443,6 +458,9 @@ Spell* Bot::GetHoTWardSpell() {
 	return 0;
 }
 Spell* Bot::GetDebuffSpell() {
+	if(world.IsReloadingSubsystems())
+		return nullptr;
+	
 	if (debuff_spells.size() == 0)
 		return 0;
 
@@ -463,10 +481,16 @@ Spell* Bot::GetDebuffSpell() {
 }
 
 Spell* Bot::GetCombatBuffSpell() {
+	if(world.IsReloadingSubsystems())
+		return nullptr;
+	
 	return 0;
 }
 
 Spell* Bot::GetDoTSpell() {
+	if(world.IsReloadingSubsystems())
+		return nullptr;
+	
 	if (dot_spells.size() == 0)
 		return 0;
 
@@ -487,6 +511,9 @@ Spell* Bot::GetDoTSpell() {
 }
 
 Spell* Bot::GetBuffSpell() {
+	if(world.IsReloadingSubsystems())
+		return nullptr;
+	
 	if (buff_spells.size() == 0)
 		return 0;
 
@@ -522,6 +549,9 @@ Spell* Bot::GetBuffSpell() {
 }
 
 Spell* Bot::GetRezSpell() {
+	if(world.IsReloadingSubsystems())
+		return nullptr;
+	
 	if (rez_spells.size() == 0)
 		return 0;
 
@@ -566,6 +596,9 @@ Spell* Bot::GetRezSpell() {
 }
 
 Spell* Bot::GetCureSpell() {
+	if(world.IsReloadingSubsystems())
+		return nullptr;
+	
 	return 0;
 }
 
