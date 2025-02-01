@@ -2867,7 +2867,7 @@ void SpellProcess::CheckRemoveTargetFromSpell(LuaSpell* spell, bool allow_delete
 									MRemoveTargetList.releasewritelock(__FUNCTION__, __LINE__);
 								}
 								if(found_target)
-									lua_interface->RemoveSpell(spell, true, false, !remove_spawn->Alive() ? "target_dead" : "target_removed", false, true, remove_spawn);
+									lua_interface->RemoveSpell(spell, true, false, !remove_spawn->Alive() ? "target_dead" : "target_removed", false, false, remove_spawn);
 								should_delete = true;
 								dropped_lock = true;
 								break;
