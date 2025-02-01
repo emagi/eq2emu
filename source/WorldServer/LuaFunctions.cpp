@@ -5150,7 +5150,7 @@ int EQ2Emu_lua_SetSpellList(lua_State* state) {
 		secondary_list = lua_interface->GetInt32Value(state, 3);
 		lua_interface->ResetFunctionStack(state);
 
-		if (!spawn->IsNPC()) {
+		if (!spawn || !spawn->IsNPC()) {
 			lua_interface->LogError("%s: LUA SetSpellList command error: Spawn was not a valid NPC", lua_interface->GetScriptName(state));
 			return 0;
 		}
