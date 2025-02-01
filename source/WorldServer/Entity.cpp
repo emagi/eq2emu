@@ -2694,6 +2694,7 @@ void Entity::CancelAllStealth() {
 			}
 			did_change = true;
 		}
+		stealth_list->clear();
 	}
 	MutexList<LuaSpell*>* invis_list = control_effects[CONTROL_EFFECT_TYPE_INVIS];
 	if (invis_list){
@@ -2707,14 +2708,17 @@ void Entity::CancelAllStealth() {
 			}
 			did_change = true;
 		}
+		invis_list->clear();
 	}
 
 	if (did_change){
 		info_changed = true;
 		changed = true;
 		AddChangedZoneSpawn();
-		if (IsPlayer())
+		if (IsPlayer()) {
 			((Player*)this)->SetCharSheetChanged(true);
+			GetZone()->SendAllSpawnsForVisChange(((Player*)this)->GetClient());
+		}
 	}
 }
 
