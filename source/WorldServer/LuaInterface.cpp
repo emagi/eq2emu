@@ -150,6 +150,22 @@ void LuaInterface::DestroySpells() {
 		for(inner_itr = spell_script_itr->second.begin(); inner_itr != spell_script_itr->second.end(); inner_itr++) {
 			LuaSpell* cur_spell = inner_itr->second;
 			MSpellDelete.lock();
+			
+			ZoneServer* zone = nullptr;
+			if(cur_spell && cur_spell->zone) {
+				zone = cur_spell->zone;
+				cur_spell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
+					for (int8 i = 0; i < cur_spell->targets.size(); i++) {
+						Spawn* target = cur_spell->zone->GetSpawnByID(cur_spell->targets.at(i));
+						if (!target || !target->IsEntity())
+							continue;
+						
+						cur_spell->zone->RemoveTargetFromSpell(cur_spell, target);
+					}
+				cur_spell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
+				zone->GetSpellProcess()->CheckRemoveTargetFromSpell(cur_spell, false, true);
+			}
+			SetLuaUserDataStale(cur_spell);
 			RemoveCurrentSpell(inner_itr->first, inner_itr->second, false, true, false);
 			lua_close(inner_itr->first);
 			safe_delete(cur_spell);

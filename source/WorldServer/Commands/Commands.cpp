@@ -1954,10 +1954,10 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 		else {
 			client->SimpleMessage(CHANNEL_COLOR_YELLOW, "Reloading Spells & NPC Spell Lists (Note: Must Reload Spawns/Repop to reset npc spells)...");
 			world.SetReloadingSubsystem("Spells");
-			
-			zone_list.DeleteSpellProcess();
 			if (lua_interface)
 				lua_interface->DestroySpells();
+			
+			zone_list.DeleteSpellProcess();
 			master_spell_list.Reload();
 			zone_list.LoadSpellProcess();
 			world.RemoveReloadingSubSystem("Spells");

@@ -62,6 +62,9 @@ void SpellProcess::RemoveCaster(Spawn* caster, bool lock_spell_process){
 void SpellProcess::RemoveAllSpells(bool reload_spells){
 	ClearSpellScriptTimerList();
 
+	if(reload_spells) {
+		active_spells.clear();
+	}
 	MutexList<LuaSpell*>::iterator active_spells_itr = active_spells.begin();
 	while(active_spells_itr.Next()){
 		DeleteCasterSpell(active_spells_itr->value, "", true, 0, !reload_spells);
@@ -69,11 +72,13 @@ void SpellProcess::RemoveAllSpells(bool reload_spells){
 
 	MSpellProcess.lock();
 	
-	active_spells_itr = active_spells.begin();
-	while(active_spells_itr.Next()){
-		active_spells.Remove(active_spells_itr->value);
+	if(!reload_spells) {
+		active_spells_itr = active_spells.begin();
+		while(active_spells_itr.Next()){
+			active_spells.Remove(active_spells_itr->value);
+		}
+		active_spells.clear();
 	}
-	active_spells.clear();	
 
 	InterruptStruct* interrupt = 0;
 	MutexList<InterruptStruct*>::iterator interrupt_list_itr = interrupt_list.begin();
@@ -2820,6 +2825,7 @@ void SpellProcess::CheckRemoveTargetFromSpell(LuaSpell* spell, bool allow_delete
 
 	MRemoveTargetList.writelock(__FUNCTION__, __LINE__);
 	if (remove_target_list.size() > 0){
+		vector<Spawn*> spawnsToRemove;
 		map<LuaSpell*, vector<int32>*>::iterator remove_itr;
 		vector<int32>::iterator remove_target_itr;
 		vector<int32>::iterator target_itr;
@@ -2828,6 +2834,7 @@ void SpellProcess::CheckRemoveTargetFromSpell(LuaSpell* spell, bool allow_delete
 		Spawn* remove_spawn = 0;
 		bool should_delete = false;
 		bool dropped_lock = false;
+		bool targets_empty = false;
 		for (remove_itr = remove_target_list.begin(); remove_itr != remove_target_list.end(); remove_itr++){
 			if (remove_itr->first == spell){
 				targets = &spell->targets;
@@ -2835,10 +2842,7 @@ void SpellProcess::CheckRemoveTargetFromSpell(LuaSpell* spell, bool allow_delete
 				if (remove_targets && targets){
 					spell->MSpellTargets.writelock(__FUNCTION__, __LINE__);
 					for (remove_target_itr = remove_targets->begin(); remove_target_itr != remove_targets->end(); remove_target_itr++){
-						if(!spell->caster || !spell->caster->GetZone())
-							continue;
-
-						remove_spawn = spell->caster->GetZone()->GetSpawnByID((*remove_target_itr));
+						remove_spawn = spell->zone->GetSpawnByID((*remove_target_itr));
 						if (remove_spawn) {
 							bool found_target = false;
 							if(remove_spawn->IsPlayer())
@@ -2856,32 +2860,18 @@ void SpellProcess::CheckRemoveTargetFromSpell(LuaSpell* spell, bool allow_delete
 									((Entity*)remove_spawn)->RemoveMaintainedSpell(spell);
 									LogWrite(SPELL__DEBUG, 0, "Spell", "%s CheckRemoveTargetFromSpell %s (%u).", spell->spell->GetName(), remove_spawn->GetName(), remove_spawn->GetID());
 									targets->erase(target_itr);
-									if (remove_spawn->IsEntity())
-										((Entity*)remove_spawn)->RemoveEffectsFromLuaSpell(spell);
+									if(remove_spawn && std::find(spawnsToRemove.begin(), spawnsToRemove.end(), remove_spawn) == spawnsToRemove.end())
+										spawnsToRemove.push_back(remove_spawn);
 									break;
 								}
 							}
-							if (targets->size() == 0 && spell->char_id_targets.size() == 0 && allow_delete) {
-								spell->MSpellTargets.releasewritelock(__FUNCTION__, __LINE__);
-								if(!dropped_lock) {
-									MRemoveTargetList.releasewritelock(__FUNCTION__, __LINE__);
-								}
-								if(found_target)
-									lua_interface->RemoveSpell(spell, true, false, !remove_spawn->Alive() ? "target_dead" : "target_removed", false, false, remove_spawn);
+							targets_empty = (targets->size() == 0 && spell->char_id_targets.size() == 0);
+							if (targets_empty && allow_delete) {
 								should_delete = true;
-								dropped_lock = true;
 								break;
 							}
-							else {
-									spell->MSpellTargets.releasewritelock(__FUNCTION__, __LINE__);
-									if(!dropped_lock) {
-										MRemoveTargetList.releasewritelock(__FUNCTION__, __LINE__);
-									}
-									// call remove function "on death"
-									if(found_target)
-										lua_interface->RemoveSpell(spell, true, false, !remove_spawn->Alive() ? "target_dead" : "target_removed", false, true, remove_spawn);
-									spell->MSpellTargets.writelock(__FUNCTION__, __LINE__);
-									dropped_lock = true;
+							else if(remove_spawn && std::find(spawnsToRemove.begin(), spawnsToRemove.end(), remove_spawn) == spawnsToRemove.end()) {
+								spawnsToRemove.push_back(remove_spawn);
 							}
 						}
 					}
@@ -2891,9 +2881,22 @@ void SpellProcess::CheckRemoveTargetFromSpell(LuaSpell* spell, bool allow_delete
 			}
 		}
 		
-		if(dropped_lock) {
-			MRemoveTargetList.writelock(__FUNCTION__, __LINE__);
+		MRemoveTargetList.releasewritelock(__FUNCTION__, __LINE__);
+		for(int s=0;s<spawnsToRemove.size();s++) {
+			Spawn* target = spawnsToRemove.at(s);
+			if(target) {
+				bool not_last_itr = (s != spawnsToRemove.size() - 1);
+				if(target->IsEntity())
+					((Entity*)target)->RemoveEffectsFromLuaSpell(spell);
+				if(targets_empty && allow_delete) {
+					lua_interface->RemoveSpell(spell, true, false, !target->Alive() ? "target_dead" : "target_removed", false, not_last_itr, target);
+				}
+				else
+					lua_interface->RemoveSpell(spell, true, false, !target->Alive() ? "target_dead" : "target_removed", false, true, target);
+			}
 		}
+		
+		MRemoveTargetList.writelock(__FUNCTION__, __LINE__);
 		
 		remove_target_list.erase(spell);
 		if (remove_targets)
