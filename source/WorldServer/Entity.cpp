@@ -106,8 +106,6 @@ Entity::~Entity(){
 	for (itr4 = immunities.begin(); itr4 != immunities.end(); itr4++)
 		safe_delete(itr4->second);
 	immunities.clear();
-	if(!IsPlayer())
-		DeleteSpellEffects(true);
 	safe_delete(m_threatTransfer);
 }
 
