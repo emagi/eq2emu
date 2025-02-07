@@ -623,13 +623,14 @@ LuaSpell* LuaInterface::GetCurrentSpell(lua_State* state, bool needsLock) {
 }
 
 void LuaInterface::RemoveCurrentSpell(lua_State* state, LuaSpell* cur_spell, bool needsLock, bool removeCurSpell, bool removeSpellScript) {
+
+	MSpellScripts.writelock(__FUNCTION__, __LINE__);
 	if(needsLock) {
 		MSpells.lock();
 		MSpellDelete.lock();
 	}
 	map<lua_State*, LuaSpell*>::iterator itr = current_spells.find(state);
 	if(removeSpellScript && itr->second) {
-		MSpellScripts.writelock(__FUNCTION__, __LINE__);
 		map<string, map<lua_State*, LuaSpell*> >::iterator spell_script_itr = spell_scripts.find(cur_spell->file_name);
 		if(spell_script_itr != spell_scripts.end()) {
 			LogWrite(SPELL__DEBUG, 9, "Spell", "LuaInterface::RemoveCurrentSpell spell %s.  Queue Entries %u.", cur_spell->file_name.c_str(), spell_script_itr->second.size());
@@ -641,7 +642,6 @@ void LuaInterface::RemoveCurrentSpell(lua_State* state, LuaSpell* cur_spell, boo
 			}
 			mutex->releasewritelock(__FUNCTION__, __LINE__);
 		}
-		MSpellScripts.releasewritelock(__FUNCTION__, __LINE__);
 	}
 	if(itr != current_spells.end() && removeCurSpell)
 		current_spells.erase(itr);
@@ -649,6 +649,7 @@ void LuaInterface::RemoveCurrentSpell(lua_State* state, LuaSpell* cur_spell, boo
 		MSpellDelete.unlock();
 		MSpells.unlock();
 	}
+	MSpellScripts.releasewritelock(__FUNCTION__, __LINE__);
 }
 
 bool LuaInterface::CallSpellProcess(LuaSpell* spell, int8 num_parameters, std::string customFunction) {
@@ -2385,8 +2386,8 @@ LuaSpell* LuaInterface::GetSpellScript(const char* name, bool create_new, bool u
 	LuaSpell* ret = 0;
 	Mutex* mutex = 0;
 
-	MSpells.lock();
 	MSpellScripts.writelock(__FUNCTION__, __LINE__);
+	MSpells.lock();
 	itr = spell_scripts.find(name);
 	if(itr != spell_scripts.end()) {
 		mutex = GetSpellScriptMutex(name);
@@ -2404,8 +2405,8 @@ LuaSpell* LuaInterface::GetSpellScript(const char* name, bool create_new, bool u
 		}
 		mutex->releasewritelock(__FUNCTION__, __LINE__);
 	}
-	MSpellScripts.releasewritelock(__FUNCTION__, __LINE__);
 	MSpells.unlock();
+	MSpellScripts.releasewritelock(__FUNCTION__, __LINE__);
 	
 	if(!ret && create_new){
 		if(!name || (ret = LoadSpellScript(name)) == nullptr) {
