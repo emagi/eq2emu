@@ -143,7 +143,7 @@ void LuaInterface::Process() {
 }
 
 void LuaInterface::DestroySpells() {
-	MSpellScripts.writelock(__FUNCTION__, __LINE__);
+	MSpells.lock();
 	map<string, map<lua_State*, LuaSpell*> >::iterator spell_script_itr;
 	for(spell_script_itr = spell_scripts.begin(); spell_script_itr != spell_scripts.end(); spell_script_itr++) {
 		map<lua_State*, LuaSpell*>::iterator inner_itr;
@@ -166,9 +166,7 @@ void LuaInterface::DestroySpells() {
 				zone->GetSpellProcess()->CheckRemoveTargetFromSpell(cur_spell, false, true);
 			}
 			SetLuaUserDataStale(cur_spell);
-			MSpells.lock();
 			RemoveCurrentSpell(inner_itr->first, inner_itr->second, false, true, false);
-			MSpells.unlock();
 			lua_close(inner_itr->first);
 			safe_delete(cur_spell);
 			MSpellDelete.unlock();
@@ -177,13 +175,9 @@ void LuaInterface::DestroySpells() {
 		Mutex* mutex = GetSpellScriptMutex(spell_script_itr->first.c_str());
 		safe_delete(mutex);
 	}
+	current_spells.clear();
 	spell_scripts_mutex.clear();
 	spell_scripts.clear();
-	
-	MSpellScripts.releasewritelock(__FUNCTION__, __LINE__);
-	
-	MSpells.lock();
-	current_spells.clear();
 	MSpells.unlock();
 }
 
