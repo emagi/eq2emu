@@ -617,7 +617,12 @@ LuaSpell* LuaInterface::GetCurrentSpell(lua_State* state, bool needsLock) {
 }
 
 void LuaInterface::RemoveCurrentSpell(lua_State* state, LuaSpell* cur_spell, bool needsLock, bool removeCurSpell, bool removeSpellScript) {
-	if(removeSpellScript) {
+	if(needsLock) {
+		MSpells.lock();
+		MSpellDelete.lock();
+	}
+	map<lua_State*, LuaSpell*>::iterator itr = current_spells.find(state);
+	if(removeSpellScript && itr->second) {
 		MSpellScripts.writelock(__FUNCTION__, __LINE__);
 		map<string, map<lua_State*, LuaSpell*> >::iterator spell_script_itr = spell_scripts.find(cur_spell->file_name);
 		if(spell_script_itr != spell_scripts.end()) {
@@ -632,12 +637,6 @@ void LuaInterface::RemoveCurrentSpell(lua_State* state, LuaSpell* cur_spell, boo
 		}
 		MSpellScripts.releasewritelock(__FUNCTION__, __LINE__);
 	}
-	
-	if(needsLock) {
-		MSpells.lock();
-		MSpellDelete.lock();
-	}
-	map<lua_State*, LuaSpell*>::iterator itr = current_spells.find(state);
 	if(itr != current_spells.end() && removeCurSpell)
 		current_spells.erase(itr);
 	if(needsLock) {
@@ -2380,8 +2379,8 @@ LuaSpell* LuaInterface::GetSpellScript(const char* name, bool create_new, bool u
 	LuaSpell* ret = 0;
 	Mutex* mutex = 0;
 
-	MSpellScripts.writelock(__FUNCTION__, __LINE__);
 	MSpells.lock();
+	MSpellScripts.writelock(__FUNCTION__, __LINE__);
 	itr = spell_scripts.find(name);
 	if(itr != spell_scripts.end()) {
 		mutex = GetSpellScriptMutex(name);
@@ -2399,8 +2398,8 @@ LuaSpell* LuaInterface::GetSpellScript(const char* name, bool create_new, bool u
 		}
 		mutex->releasewritelock(__FUNCTION__, __LINE__);
 	}
-	MSpells.unlock();
 	MSpellScripts.releasewritelock(__FUNCTION__, __LINE__);
+	MSpells.unlock();
 	
 	if(!ret && create_new){
 		if(!name || (ret = LoadSpellScript(name)) == nullptr) {
