@@ -256,8 +256,6 @@ void World::Web_worldhandle_reloadcommand(const http::request<http::string_body>
 			world.SetReloadingSubsystem("Spells");
 
 			zone_list.DeleteSpellProcess();
-			if (lua_interface)
-				lua_interface->DestroySpells();
 			master_spell_list.Reload();
 			zone_list.LoadSpellProcess();
 			world.RemoveReloadingSubSystem("Spells");
