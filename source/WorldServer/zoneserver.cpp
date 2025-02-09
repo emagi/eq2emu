@@ -215,6 +215,9 @@ ZoneServer::~ZoneServer() {
 		Sleep(10);
 	}
 	
+	if(spellProcess)
+		spellProcess->RemoveAllSpells(true);
+	
 	MChangedSpawns.lock();
 	changed_spawns.clear();
 	MChangedSpawns.unlock();
