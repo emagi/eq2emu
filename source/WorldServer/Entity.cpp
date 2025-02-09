@@ -113,6 +113,8 @@ void Entity::DeleteSpellEffects(bool removeClient)
 {
 	map<LuaSpell*,bool> deletedPtrs;
 
+	MMaintainedSpells.writelock(__FUNCTION__, __LINE__);
+	MSpellEffects.writelock(__FUNCTION__, __LINE__);
 	for(int i=0;i<45;i++){
 		if(i<30){
 			if(GetInfoStruct()->maintained_effects[i].spell_id != 0xFFFFFFFF)
@@ -120,12 +122,10 @@ void Entity::DeleteSpellEffects(bool removeClient)
 				if(deletedPtrs.find(GetInfoStruct()->maintained_effects[i].spell) == deletedPtrs.end())
 				{
 					deletedPtrs[GetInfoStruct()->maintained_effects[i].spell] = true;
-					
-					lua_interface->RemoveSpell(GetInfoStruct()->maintained_effects[i].spell, false, removeClient, "", removeClient);
-					if (IsPlayer())
-						GetInfoStruct()->maintained_effects[i].icon = 0xFFFF;
 				}
 				
+				if (IsPlayer())
+					GetInfoStruct()->maintained_effects[i].icon = 0xFFFF;
 				GetInfoStruct()->maintained_effects[i].spell_id = 0xFFFFFFFF;
 				GetInfoStruct()->maintained_effects[i].spell = nullptr;
 			}
@@ -136,13 +136,18 @@ void Entity::DeleteSpellEffects(bool removeClient)
 				if(GetInfoStruct()->spell_effects[i].spell && GetInfoStruct()->spell_effects[i].spell->spell && 
 					GetInfoStruct()->spell_effects[i].spell->spell->GetSpellData()->spell_book_type == SPELL_BOOK_TYPE_NOT_SHOWN) {
 					deletedPtrs[GetInfoStruct()->spell_effects[i].spell] = true;
-					
-					lua_interface->RemoveSpell(GetInfoStruct()->spell_effects[i].spell, false, removeClient, "", removeClient);
 				}
 			}
 			GetInfoStruct()->spell_effects[i].spell_id = 0xFFFFFFFF;
 			GetInfoStruct()->spell_effects[i].spell = nullptr;
 		}
+	}
+	MMaintainedSpells.releasewritelock(__FUNCTION__, __LINE__);
+	MSpellEffects.releasewritelock(__FUNCTION__, __LINE__);
+	
+	map<LuaSpell*,bool>::iterator deletedPtrItrs;
+	for(deletedPtrItrs = deletedPtrs.begin(); deletedPtrItrs != deletedPtrs.end(); deletedPtrItrs++) {
+		lua_interface->RemoveSpell(deletedPtrItrs->first, false, removeClient, "", removeClient);
 	}
 }
 
