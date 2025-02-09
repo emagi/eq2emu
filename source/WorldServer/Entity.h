@@ -1010,7 +1010,7 @@ struct InfoStruct{
 	void	set_secondary_weapon_delay(int16 value) { std::lock_guard<std::mutex> lk(classMutex); secondary_weapon_delay_ = value; }
 	void	set_ranged_weapon_delay(int16 value) { std::lock_guard<std::mutex> lk(classMutex); ranged_weapon_delay_ = value; }
 	
-	void	set_override_primary_weapon(int8 value) { std::lock_guard<std::mutex> lk(classMutex); override_secondary_weapon_ = value; }
+	void	set_override_primary_weapon(int8 value) { std::lock_guard<std::mutex> lk(classMutex); override_primary_weapon_ = value; }
 	void	set_override_secondary_weapon(int8 value) { std::lock_guard<std::mutex> lk(classMutex); override_secondary_weapon_ = value; }
 	void	set_override_ranged_weapon(int8 value) { std::lock_guard<std::mutex> lk(classMutex); override_ranged_weapon_ = value; }
 	void	set_friendly_target_npc(int8 value) { std::lock_guard<std::mutex> lk(classMutex); friendly_target_npc_ = value; }
