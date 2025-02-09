@@ -40,7 +40,7 @@ SpellProcess::SpellProcess(){
 }
 
 SpellProcess::~SpellProcess(){
-	RemoveAllSpells();
+	
 }
 
 void SpellProcess::RemoveCaster(Spawn* caster, bool lock_spell_process){
@@ -2881,7 +2881,12 @@ void SpellProcess::CheckRemoveTargetFromSpell(LuaSpell* spell, bool allow_delete
 			}
 		}
 		
+		remove_target_list.erase(spell);
+		if (remove_targets)
+			remove_targets->clear();
+		safe_delete(remove_targets);
 		MRemoveTargetList.releasewritelock(__FUNCTION__, __LINE__);
+		
 		for(int s=0;s<spawnsToRemove.size();s++) {
 			Spawn* target = spawnsToRemove.at(s);
 			if(target) {
@@ -2895,14 +2900,7 @@ void SpellProcess::CheckRemoveTargetFromSpell(LuaSpell* spell, bool allow_delete
 					lua_interface->RemoveSpell(spell, true, false, !target->Alive() ? "target_dead" : "target_removed", false, true, target);
 			}
 		}
-		
-		MRemoveTargetList.writelock(__FUNCTION__, __LINE__);
-		
-		remove_target_list.erase(spell);
-		if (remove_targets)
-			remove_targets->clear();
-		safe_delete(remove_targets);
-		MRemoveTargetList.releasewritelock(__FUNCTION__, __LINE__);
+
 		if (should_delete)
 			DeleteCasterSpell(spell, "purged");
 	}

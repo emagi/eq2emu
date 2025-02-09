@@ -150,34 +150,15 @@ void LuaInterface::DestroySpells() {
 		for(inner_itr = spell_script_itr->second.begin(); inner_itr != spell_script_itr->second.end(); inner_itr++) {
 			LuaSpell* cur_spell = inner_itr->second;
 			MSpellDelete.lock();
-			
-			ZoneServer* zone = nullptr;
-			if(cur_spell && cur_spell->zone) {
-				zone = cur_spell->zone;
-				cur_spell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
-					for (int8 i = 0; i < cur_spell->targets.size(); i++) {
-						Spawn* target = cur_spell->zone->GetSpawnByID(cur_spell->targets.at(i));
-						if (!target || !target->IsEntity())
-							continue;
-						
-						cur_spell->zone->RemoveTargetFromSpell(cur_spell, target);
-					}
-				cur_spell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
-				zone->GetSpellProcess()->CheckRemoveTargetFromSpell(cur_spell, false, true);
-			}
 			SetLuaUserDataStale(cur_spell);
 			RemoveCurrentSpell(inner_itr->first, inner_itr->second, false, true, false);
 			lua_close(inner_itr->first);
 			safe_delete(cur_spell);
 			MSpellDelete.unlock();
 		}
-		
-		Mutex* mutex = GetSpellScriptMutex(spell_script_itr->first.c_str());
-		safe_delete(mutex);
 	}
 	current_spells.clear();
 	
-	spell_scripts_mutex.clear();
 	spell_scripts.clear();
 	MSpellScripts.releasewritelock(__FUNCTION__, __LINE__);
 }
@@ -919,19 +900,17 @@ void LuaInterface::RemoveSpell(LuaSpell* spell, bool call_remove_function, bool 
 	}
 	
 	spell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
-	if(spell->caster) {
-		for (int8 i = 0; i < spell->targets.size(); i++) {
-			if(!spell->caster->GetZone())
-				continue;
-			
-			Spawn* target = spell->caster->GetZone()->GetSpawnByID(spell->targets.at(i));
-			if (!target || !target->IsEntity())
-				continue;
+	for (int8 i = 0; i < spell->targets.size(); i++) {
+		if(!spell->zone)
+			break;
+		
+		Spawn* target = spell->zone->GetSpawnByID(spell->targets.at(i));
+		if (!target || !target->IsEntity())
+			continue;
 
-			((Entity*)target)->RemoveProc(0, spell);
-			((Entity*)target)->RemoveSpellEffect(spell);
-			((Entity*)target)->RemoveSpellBonus(spell);
-		}
+		((Entity*)target)->RemoveProc(0, spell);
+		((Entity*)target)->RemoveSpellEffect(spell);
+		((Entity*)target)->RemoveSpellBonus(spell);
 	}
 
 	multimap<int32,int8>::iterator entries;
