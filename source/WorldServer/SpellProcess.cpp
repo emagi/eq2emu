@@ -2886,7 +2886,6 @@ void SpellProcess::CheckRemoveTargetFromSpell(LuaSpell* spell, bool allow_delete
 			remove_targets->clear();
 		safe_delete(remove_targets);
 		MRemoveTargetList.releasewritelock(__FUNCTION__, __LINE__);
-		
 		for(int s=0;s<spawnsToRemove.size();s++) {
 			Spawn* target = spawnsToRemove.at(s);
 			if(target) {

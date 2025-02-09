@@ -467,9 +467,6 @@ void ZoneServer::InitWeather()
 }
 void ZoneServer::DeleteSpellProcess(){
 	//Just get a lock to make sure we aren't already looping the spawnprocess or clientprocess if this is different than the calling thread
-	if (lua_interface)
-		lua_interface->DestroySpells();
-	
 	MMasterSpawnLock.writelock(__FUNCTION__, __LINE__);
 	MMasterZoneLock->lock();
 	reloading_spellprocess = true;
@@ -484,13 +481,13 @@ void ZoneServer::DeleteSpellProcess(){
 		
 		if(spawn->IsEntity()) {
 			((Entity*)spawn)->RemoveSpellBonus(nullptr, true);
-			((Entity*)spawn)->DeleteSpellEffects();
+			((Entity*)spawn)->DeleteSpellEffects(true);
 		}
 	}
 	MSpawnList.releasereadlock(__FUNCTION__, __LINE__);
-
 	MMasterZoneLock->unlock();
 	MMasterSpawnLock.releasewritelock(__FUNCTION__, __LINE__);
+	
 	DismissAllPets();
 	spellProcess->RemoveAllSpells(true);
 	safe_delete(spellProcess);

@@ -143,24 +143,26 @@ void LuaInterface::Process() {
 }
 
 void LuaInterface::DestroySpells() {
+	MSpells.lock();
+	MSpellDelete.lock();
 	MSpellScripts.writelock(__FUNCTION__, __LINE__);
 	map<string, map<lua_State*, LuaSpell*> >::iterator spell_script_itr;
 	for(spell_script_itr = spell_scripts.begin(); spell_script_itr != spell_scripts.end(); spell_script_itr++) {
 		map<lua_State*, LuaSpell*>::iterator inner_itr;
 		for(inner_itr = spell_script_itr->second.begin(); inner_itr != spell_script_itr->second.end(); inner_itr++) {
 			LuaSpell* cur_spell = inner_itr->second;
-			MSpellDelete.lock();
 			SetLuaUserDataStale(cur_spell);
 			RemoveCurrentSpell(inner_itr->first, inner_itr->second, false, true, false);
 			lua_close(inner_itr->first);
 			safe_delete(cur_spell);
-			MSpellDelete.unlock();
 		}
 	}
 	current_spells.clear();
 	
 	spell_scripts.clear();
 	MSpellScripts.releasewritelock(__FUNCTION__, __LINE__);
+	MSpellDelete.unlock();
+	MSpells.unlock();
 }
 
 void LuaInterface::DestroyQuests(bool reload) {
@@ -895,6 +897,7 @@ void LuaInterface::RemoveSpell(LuaSpell* spell, bool call_remove_function, bool 
 			((Entity*)overrideTarget)->RemoveProc(0, spell);
 			((Entity*)overrideTarget)->RemoveSpellEffect(spell);
 			((Entity*)overrideTarget)->RemoveSpellBonus(spell);
+			((Entity*)overrideTarget)->RemoveEffectsFromLuaSpell(spell);
 		}
 		return;
 	}
@@ -911,6 +914,7 @@ void LuaInterface::RemoveSpell(LuaSpell* spell, bool call_remove_function, bool 
 		((Entity*)target)->RemoveProc(0, spell);
 		((Entity*)target)->RemoveSpellEffect(spell);
 		((Entity*)target)->RemoveSpellBonus(spell);
+		((Entity*)target)->RemoveEffectsFromLuaSpell(spell);
 	}
 
 	multimap<int32,int8>::iterator entries;
@@ -922,6 +926,7 @@ void LuaInterface::RemoveSpell(LuaSpell* spell, bool call_remove_function, bool 
 			tmpClient->GetPlayer()->RemoveProc(0, spell);
 			tmpClient->GetPlayer()->RemoveSpellEffect(spell);
 			tmpClient->GetPlayer()->RemoveSpellBonus(spell);
+			tmpClient->GetPlayer()->RemoveEffectsFromLuaSpell(spell);
 		}
 	}
 	spell->char_id_targets.clear(); // TODO: reach out to those clients in different
@@ -931,21 +936,21 @@ void LuaInterface::RemoveSpell(LuaSpell* spell, bool call_remove_function, bool 
 	spell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
 
 	if(removing_all_spells) {
-		if(spell->caster && spell->caster->GetZone()) {
-			spell->caster->GetZone()->GetSpellProcess()->RemoveSpellScriptTimerBySpell(spell);
-			spell->caster->GetZone()->GetSpellProcess()->DeleteSpell(spell);
+		if(spell->zone && spell->zone->GetSpellProcess()) {
+			spell->zone->GetSpellProcess()->RemoveSpellScriptTimerBySpell(spell);
+			spell->zone->GetSpellProcess()->DeleteSpell(spell);
 		}
 	}
 	else {
-		AddPendingSpellDelete(spell);
 		if (spell->caster)
 		{
-			if(spell->caster->GetZone()) {
-				spell->caster->GetZone()->GetSpellProcess()->RemoveSpellScriptTimerBySpell(spell, false);
+			if(spell->zone && spell->zone->GetSpellProcess()) {
+				spell->zone->GetSpellProcess()->RemoveSpellScriptTimerBySpell(spell, false);
 			}
 			spell->caster->RemoveProc(0, spell);
 			spell->caster->RemoveSpellEffect(spell);
 			spell->caster->RemoveMaintainedSpell(spell);
+			spell->caster->RemoveEffectsFromLuaSpell(spell);
 
 			if(spell->spell && spell->spell->GetSpellData() && spell->caster->IsPlayer() && !removing_all_spells)
 			{
@@ -986,6 +991,7 @@ void LuaInterface::RemoveSpell(LuaSpell* spell, bool call_remove_function, bool 
 				}
 			}
 		}
+		AddPendingSpellDelete(spell);
 	}
 }
 
@@ -1683,7 +1689,7 @@ void LuaInterface::DeletePendingSpells(bool all) {
 						if (!target || !target->IsEntity())
 							continue;
 						
-						if(!spellDeleted)
+						if(!spellDeleted && spell->zone && spell->zone->GetSpellProcess())
 							spell->zone->GetSpellProcess()->DeleteActiveSpell(spell, true);
 						
 						spellDeleted = true;
@@ -1691,7 +1697,7 @@ void LuaInterface::DeletePendingSpells(bool all) {
 					spell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
 				}
 				
-				if(!spellDeleted && spell->zone != nullptr) {
+				if(!spellDeleted && spell->zone && spell->zone->GetSpellProcess()) {
 					spell->zone->GetSpellProcess()->DeleteActiveSpell(spell, true);
 				}
 			}
