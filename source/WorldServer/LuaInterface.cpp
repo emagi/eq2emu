@@ -143,7 +143,7 @@ void LuaInterface::Process() {
 }
 
 void LuaInterface::DestroySpells() {
-	MSpells.lock();
+	MSpellScripts.writelock(__FUNCTION__, __LINE__);
 	map<string, map<lua_State*, LuaSpell*> >::iterator spell_script_itr;
 	for(spell_script_itr = spell_scripts.begin(); spell_script_itr != spell_scripts.end(); spell_script_itr++) {
 		map<lua_State*, LuaSpell*>::iterator inner_itr;
@@ -176,9 +176,10 @@ void LuaInterface::DestroySpells() {
 		safe_delete(mutex);
 	}
 	current_spells.clear();
+	
 	spell_scripts_mutex.clear();
 	spell_scripts.clear();
-	MSpells.unlock();
+	MSpellScripts.releasewritelock(__FUNCTION__, __LINE__);
 }
 
 void LuaInterface::DestroyQuests(bool reload) {
