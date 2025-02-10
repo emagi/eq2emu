@@ -147,7 +147,7 @@ void Entity::DeleteSpellEffects(bool removeClient)
 	
 	map<LuaSpell*,bool>::iterator deletedPtrItrs;
 	for(deletedPtrItrs = deletedPtrs.begin(); deletedPtrItrs != deletedPtrs.end(); deletedPtrItrs++) {
-		if(itr->second)
+		if(deletedPtrItrs->second)
 			lua_interface->RemoveSpell(deletedPtrItrs->first, false, removeClient, "", removeClient, false, this);
 		else
 			lua_interface->RemoveSpell(deletedPtrItrs->first, false, removeClient, "", removeClient, true, this);

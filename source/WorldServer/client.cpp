@@ -4999,7 +4999,7 @@ void Client::Zone(ZoneChangeDetails* new_zone, ZoneServer* opt_zone, bool set_co
 	LogWrite(CCLIENT__DEBUG, 0, "Client", "%s: Removing player from current zone...", __FUNCTION__);
 	GetCurrentZone()->RemoveSpawn(player, false, true, true, true, !is_spell);
 
-	GetPlayer()->DeleteSpellEffects(true);
+	GetPlayer()->DeleteSpellEffects();
 
 	LogWrite(CCLIENT__DEBUG, 0, "Client", "%s: Setting zone to '%s'...", __FUNCTION__, new_zone->zoneName.c_str());
 	SetZoningDestination(opt_zone);
