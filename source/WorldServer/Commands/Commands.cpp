@@ -11267,9 +11267,15 @@ void Commands::Command_WeaponStats(Client* client)
 	client->SimpleMessage(0, "Primary:");
 	if (primary) {
 		client->Message(0, "Name: %s", primary->name.c_str());
-		client->Message(0, "Base Damage: %u - %u", primary->weapon_info->damage_low3, primary->weapon_info->damage_high3);
-		client->Message(0, "Mastery Damage: %u - %u", primary->weapon_info->damage_low2, primary->weapon_info->damage_high2);
-		client->Message(0, "Damage: %u - %u", primary->weapon_info->damage_low1, primary->weapon_info->damage_high1);
+		if(primary->weapon_info) {
+			client->Message(0, "Base Damage: %u - %u", primary->weapon_info->damage_low3, primary->weapon_info->damage_high3);
+			client->Message(0, "Mastery Damage: %u - %u", primary->weapon_info->damage_low2, primary->weapon_info->damage_high2);
+			client->Message(0, "Damage: %u - %u", primary->weapon_info->damage_low1, primary->weapon_info->damage_high1);
+		}
+		else {
+			client->Message(0, "WARNING: WeaponInfo not assigned to primary item");
+		}
+		
 		client->Message(0, "Actual Damage: %u - %u", target ? ((Entity*)target)->GetPrimaryWeaponMinDamage() : player->GetPrimaryWeaponMinDamage(),
 													target ? ((Entity*)target)->GetPrimaryWeaponMaxDamage() : player->GetPrimaryWeaponMaxDamage());
 		client->Message(0, "Actual Delay: %u", target ? ((Entity*)target)->GetPrimaryWeaponDelay() : player->GetPrimaryWeaponDelay());
@@ -11291,9 +11297,14 @@ void Commands::Command_WeaponStats(Client* client)
 	if (secondary) {
 		client->SimpleMessage(0, "Secondary:");
 		client->Message(0, "Name: %s", secondary->name.c_str());
-		client->Message(0, "Base Damage: %u - %u", secondary->weapon_info->damage_low3, secondary->weapon_info->damage_high3);
-		client->Message(0, "Mastery Damage: %u - %u", secondary->weapon_info->damage_low2, secondary->weapon_info->damage_high2);
-		client->Message(0, "Damage: %u - %u", secondary->weapon_info->damage_low1, secondary->weapon_info->damage_high1);
+		if(secondary->weapon_info) {
+			client->Message(0, "Base Damage: %u - %u", secondary->weapon_info->damage_low3, secondary->weapon_info->damage_high3);
+			client->Message(0, "Mastery Damage: %u - %u", secondary->weapon_info->damage_low2, secondary->weapon_info->damage_high2);
+			client->Message(0, "Damage: %u - %u", secondary->weapon_info->damage_low1, secondary->weapon_info->damage_high1);
+		}
+		else {
+			client->Message(0, "WARNING: WeaponInfo not assigned to secondary item");
+		}
 		client->Message(0, "Actual Damage: %u - %u", target ? ((Entity*)target)->GetSecondaryWeaponMinDamage() : player->GetSecondaryWeaponMinDamage(), 
 													 target ? ((Entity*)target)->GetSecondaryWeaponMaxDamage() : player->GetSecondaryWeaponMaxDamage());
 		client->Message(0, "Actual Delay: %d", target ? ((Entity*)target)->GetSecondaryWeaponDelay() : player->GetSecondaryWeaponDelay() * 0.1);
@@ -11305,9 +11316,15 @@ void Commands::Command_WeaponStats(Client* client)
 	client->SimpleMessage(0, "Ranged:");
 	if (ranged) {
 		client->Message(0, "Name: %s", ranged->name.c_str());
-		client->Message(0, "Base Damage: %u - %u", ranged->ranged_info->weapon_info.damage_low3, ranged->ranged_info->weapon_info.damage_high3);
-		client->Message(0, "Mastery Damage: %u - %u", ranged->ranged_info->weapon_info.damage_low2, ranged->ranged_info->weapon_info.damage_high2);
-		client->Message(0, "Damage: %u - %u", ranged->ranged_info->weapon_info.damage_low1, ranged->ranged_info->weapon_info.damage_high1);
+		
+		if(ranged->ranged_info) {
+			client->Message(0, "Base Damage: %u - %u", ranged->ranged_info->weapon_info.damage_low3, ranged->ranged_info->weapon_info.damage_high3);
+			client->Message(0, "Mastery Damage: %u - %u", ranged->ranged_info->weapon_info.damage_low2, ranged->ranged_info->weapon_info.damage_high2);
+			client->Message(0, "Damage: %u - %u", ranged->ranged_info->weapon_info.damage_low1, ranged->ranged_info->weapon_info.damage_high1);
+		}
+		else {
+			client->Message(0, "WARNING: RangedInfo not assigned to ranged item");
+		}
 		client->Message(0, "Actual Damage: %u - %u", target ? ((Entity*)target)->GetRangedWeaponMinDamage() : player->GetRangedWeaponMinDamage(), 
 													 target ? ((Entity*)target)->GetRangedWeaponMaxDamage() : player->GetRangedWeaponMaxDamage());
 		client->Message(0, "Actual Delay: %d",  target ? ((Entity*)target)->GetRangeWeaponDelay() : player->GetRangeWeaponDelay() * 0.1);
