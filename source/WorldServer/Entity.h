@@ -1308,6 +1308,7 @@ struct Proc {
 	bool		target_health;
 	int8		damage_type;
 	bool		extended_version;
+	int32		initial_caster_entity_id;
 };
 
 #define PROC_TYPE_OFFENSIVE				1

@@ -1679,6 +1679,7 @@ void Entity::AddProc(int8 type, float chance, Item* item, LuaSpell* spell, int8 
 
 	MProcList.writelock(__FUNCTION__, __LINE__);
 	Proc* proc = new Proc();
+	proc->initial_caster_entity_id = GetID();
 	proc->chance = chance;
 	proc->item = item;
 	proc->spell = spell;
@@ -1687,6 +1688,8 @@ void Entity::AddProc(int8 type, float chance, Item* item, LuaSpell* spell, int8 
 	}
 	if(spell && spell->spell) {
 		proc->spellid = spell->spell->GetSpellID();
+		if(spell->caster)
+			proc->initial_caster_entity_id = spell->caster->GetID();
 	}
 	proc->health_ratio = hp_ratio;
 	proc->below_health = below_health;
@@ -1756,6 +1759,10 @@ bool Entity::CastProc(Proc* proc, int8 type, Spawn* target) {
 	else {
 		lua_getglobal(state, "proc");
 	}
+	LogWrite(COMBAT__DEBUG, 0, "Proc", "CastProc%s ProcType %u for Caster/Entity %s, Target %s, spell %i tier %i, item script %s", proc->extended_version ? "Ext" : "", type, GetName(), (target != nullptr) ? target->GetName() : "MISSING_TARGET", 
+										(proc->spell != nullptr) ? proc->spell->spell->GetSpellID() : -1, (proc->spell != nullptr) ? proc->spell->spell->GetSpellTier() : -1,
+										(proc->item != nullptr) ? proc->item->GetItemScript() : "NO_ITEM");
+	
 	if (lua_isfunction(state, lua_gettop(state))) {
 		if (item_proc) {
 			num_args++;
@@ -1768,6 +1775,16 @@ bool Entity::CastProc(Proc* proc, int8 type, Spawn* target) {
 		
 		if(proc->extended_version) {
 			lua_interface->SetInt32Value(state, proc->damage_type);
+			
+			Spawn* initial_caster = nullptr;
+			
+			if(proc->initial_caster_entity_id)
+				initial_caster = GetZone()->GetSpawnByID(proc->initial_caster_entity_id);
+			
+			if(!initial_caster)
+				initial_caster = this;
+			
+			lua_interface->SetSpawnValue(state, initial_caster);
 		}
 
 		/*
