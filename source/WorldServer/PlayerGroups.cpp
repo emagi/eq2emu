@@ -1889,12 +1889,12 @@ bool PlayerGroupManager::IdentifyMemberInGroupOrRaid(ZoneChangeDetails* details,
 	deque<GroupMemberInfo*>::iterator itr;
 	for (itr = members->begin(); itr != members->end(); itr++) {
 		// If a group member matches a target
-		if ((*itr)->is_client && (*itr)->member && (*itr)->member->GetZone() && (*itr)->zone_id == zoneID && (*itr)->instance_id == instanceID) {
+		if ((*itr)->is_client && (*itr)->member && (*itr)->member->GetZone() && (*itr)->zone_id == zoneID && (instanceID == 0 || (*itr)->instance_id == instanceID)) {
 			// toggle the flag and break the loop
 			ret = (*itr)->member->GetZone();
 			break;
 		}
-		else if ((*itr)->is_client && (*itr)->zone_id == zoneID && (*itr)->instance_id == instanceID) {
+		else if ((*itr)->is_client && (*itr)->zone_id == zoneID  && (instanceID == 0 || (*itr)->instance_id == instanceID)) {
 			// toggle the flag and break the loop		
 			std::string id = peer_manager.isPeer((*itr)->client_peer_address, (*itr)->client_peer_port);
 			std::shared_ptr<Peer> peer = peer_manager.getPeerById(id);
