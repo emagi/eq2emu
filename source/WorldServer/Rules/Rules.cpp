@@ -248,6 +248,7 @@ void RuleManager::Init()
 	RULE_INIT(R_PVP, LevelRange, "4");
 	RULE_INIT(R_PVP, InvisPlayerDiscoveryRange, "20"); // value > 0 sets radius inner to see, = 0 means always seen, -1 = never seen
 	RULE_INIT(R_PVP, PVPMitigationModByLevel, "25"); // gives a bonus to mitigation for PVP combat to offset the percentage level * mod (default 25)
+	RULE_INIT(R_PVP, PVPType, "0"); // 0 = FFA, 1 = PVPAlignment (Bind zone), 2 = Alignment (assigned via LUA function SetAlignment)
 
 	/* COMBAT */
 	RULE_INIT(R_Combat, MaxCombatRange, "4.0");

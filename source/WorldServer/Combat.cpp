@@ -144,6 +144,7 @@ bool Entity::AttackAllowed(Entity* target, float distance, bool range_attack) {
 	if (attacker->IsPlayer() && target->IsPlayer())
 	{
 		bool pvp_allowed = rule_manager.GetZoneRule(GetZoneID(), R_PVP, AllowPVP)->GetBool();
+		int32 pvp_type = rule_manager.GetZoneRule(GetZoneID(), R_PVP, PVPType)->GetInt32();
 		if (!pvp_allowed) {
 			LogWrite(COMBAT__DEBUG, 3, "AttackAllowed", "Failed to attack: pvp is not allowed");
 			return false;
@@ -157,6 +158,19 @@ bool Entity::AttackAllowed(Entity* target, float distance, bool range_attack) {
 			{
 				LogWrite(COMBAT__DEBUG, 3, "AttackAllowed", "Failed to attack: pvp range of %i exceeded abs(%i-%i).", pvpLevelRange, attackerLevel, defenderLevel);
 				return false;
+			}
+			switch(pvp_type) {
+				// 0 = FFA, skip these checks
+				case 1: {
+					if(((Player*)attacker)->GetPVPAlignment() == ((Player*)target)->GetPVPAlignment())
+						return false;
+					break;
+				}
+				case 2: {
+					if(attacker->GetInfoStruct()->get_alignment() == target->GetInfoStruct()->get_alignment())
+						return false;
+					break;
+				}
 			}
 		}
 	}

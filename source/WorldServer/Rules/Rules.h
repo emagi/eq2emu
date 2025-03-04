@@ -107,6 +107,7 @@ enum RuleType {
 	LevelRange,
 	InvisPlayerDiscoveryRange,
 	PVPMitigationModByLevel,
+	PVPType,
 
 	/* COMBAT */
 	MaxCombatRange,
