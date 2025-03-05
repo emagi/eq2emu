@@ -12310,7 +12310,7 @@ void Client::SendShowBook(Spawn* sender, string title, int8 language, int8 num_p
 {
 	if (!sender)
 	{
-		LogWrite(CCLIENT__ERROR, 0, "Client", "SendShowBook missing sender for Player %s, book title %s", GetPlayer()->GetName(), title);
+		LogWrite(CCLIENT__ERROR, 0, "Client", "SendShowBook missing sender for Player %s, book title %s", GetPlayer()->GetName(), title.c_str());
 		return;
 	}
 
@@ -12336,7 +12336,8 @@ void Client::SendShowBook(Spawn* sender, string title, int8 language, int8 num_p
 	std::string endString("");
 	for (int8 p = 0; p < num_pages; p++)
 	{
-		std::string page = va_arg(args, string);
+		const char* pageChars = va_arg(args, const char*);
+		std::string page(pageChars);
 		switch (GetVersion())
 		{
 			// release client

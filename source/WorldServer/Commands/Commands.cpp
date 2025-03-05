@@ -4974,7 +4974,7 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 				details4 += "\nSpawnScript:		" + std::string(spawnScriptMsg) + "\n";
 
 				string title = string(spawn->GetName()) + "(" + to_string(spawn->GetDatabaseID()) + ")";
-				client->SendShowBook(client->GetPlayer(), title, 0, 4, details, details2, details3, details4);
+				client->SendShowBook(client->GetPlayer(), title, 0, 4, details.c_str(), details2.c_str(), details3.c_str(), details4.c_str());
 			}
 			else {
 				client->SimpleMessage(CHANNEL_COLOR_YELLOW, "Syntax: /spawn details (radius)");

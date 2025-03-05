@@ -829,7 +829,7 @@ bool ZoneList::GetZoneByInstance(ZoneChangeDetails* zone_details, int32 instance
 		if(!ret && check_peers) {
 			std::string peerId = peer_manager.getZonePeerId("", 0, instance_id, zone_details);
 			if(peerId.size() > 0) {
-				LogWrite(WORLD__ERROR, 0, "World", "Peer %s is providing instanced zone %s for zone id %u instance id %u", peerId.c_str(), zone_details->zoneName, zone_id, instance_id);
+				LogWrite(WORLD__ERROR, 0, "World", "Peer %s is providing instanced zone %s for zone id %u instance id %u", peerId.c_str(), zone_details->zoneName.c_str(), zone_id, instance_id);
 				return true;
 			}
 		}
@@ -3261,7 +3261,7 @@ void ZoneList::WatchdogHeartbeat()
 				if (oldest_process.size() > 0) {
 					map<string, int32>::iterator itr = oldest_process.begin();
 					if(itr != oldest_process.end())
-						LogWrite(WORLD__ERROR, 1, "World", "Zone %s is hung for %i milliseconds.. while waiting for %s to reload...attempting shutdown", tmp->GetZoneName(), diff, itr->first);
+						LogWrite(WORLD__ERROR, 1, "World", "Zone %s is hung for %i milliseconds.. while waiting for %s to reload...attempting shutdown", tmp->GetZoneName(), diff, itr->first.c_str());
 					else
 						LogWrite(WORLD__ERROR, 1, "World", "Zone %s is hung for %i milliseconds... attempting shutdown", tmp->GetZoneName(), diff);
 
@@ -3279,7 +3279,7 @@ void ZoneList::WatchdogHeartbeat()
 						if (oldest_process.size() > 0) {
 							map<string, int32>::iterator itr = oldest_process.begin();
 							if(itr != oldest_process.end())
-								LogWrite(WORLD__ERROR, 1, "World", "Zone %s is hung for %i milliseconds.. while waiting for %s to reload...", tmp->GetZoneName(), diff, itr->first);
+								LogWrite(WORLD__ERROR, 1, "World", "Zone %s is hung for %i milliseconds.. while waiting for %s to reload...", tmp->GetZoneName(), diff, itr->first.c_str());
 							else
 								LogWrite(WORLD__ERROR, 1, "World", "Zone %s is hung for %i milliseconds...", tmp->GetZoneName(), diff);
 						}

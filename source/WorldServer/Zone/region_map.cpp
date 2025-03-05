@@ -67,7 +67,7 @@ RegionMap* RegionMap::LoadRegionMapfile(std::string filename, std::string zone_n
 	// Make sure file contents are for the correct zone
 	if (found == std::string::npos) {
 		fclose(f);
-		LogWrite(REGION__ERROR, 0, "Region", "RegionMap::LoadRegionMapfile() map contents (%s) do not match its name (%s).", inFileName, zoneNameLwr.c_str());
+		LogWrite(REGION__ERROR, 0, "Region", "RegionMap::LoadRegionMapfile() map contents (%s) do not match its name (%s).", inFileName.c_str(), zoneNameLwr.c_str());
 		return nullptr;
 	}
 	

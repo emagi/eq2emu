@@ -689,7 +689,7 @@ void HTTPSClientPool::pollPeerHealth(const std::string& server, const std::strin
 				else if (!peer_manager.hasPrimary()) {
 					std::string newPrimary = peer_manager.getPriorityPeer();
 					if (newPrimary.size() > 0) {
-						LogWrite(PEERING__INFO, 0, "Peering", "%s: NEW PRIMARY %s", __FUNCTION__, newPrimary);
+						LogWrite(PEERING__INFO, 0, "Peering", "%s: NEW PRIMARY %s", __FUNCTION__, newPrimary.c_str());
 						peer_manager.setPrimary(newPrimary);
 						net.SetPrimary(false);
 					}
@@ -710,7 +710,7 @@ void HTTPSClientPool::pollPeerHealth(const std::string& server, const std::strin
 	}
 }
 
-void HTTPSClientPool::pollPeerHealthData(auto client, const std::string& id, const std::string& server, const std::string& port) {
+void HTTPSClientPool::pollPeerHealthData(std::shared_ptr<HTTPSClient> client, const std::string& id, const std::string& server, const std::string& port) {
 	if (client == nullptr) {
 
 	}

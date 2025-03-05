@@ -6673,7 +6673,7 @@ int EQ2Emu_lua_GetWardValue(lua_State* state) {
 			else if (boost::iequals(type, "maxhitcount"))
 				lua_interface->SetInt32Value(state, ward->MaxHitCount);
 			else
-				lua_interface->LogError("%s: LUA GetWardValue command argument type '%s' did not match any options", lua_interface->GetScriptName(state), type);
+				lua_interface->LogError("%s: LUA GetWardValue command argument type '%s' did not match any options", lua_interface->GetScriptName(state), type.c_str());
 			
 			spell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
 			return 1;

@@ -58,7 +58,7 @@ public:
 	// Send a request to a peer by ID and parse response as a ptree
 	boost::property_tree::ptree sendRequestToPeer(const std::string& peerId, const std::string& target);
 	boost::property_tree::ptree sendPostRequestToPeer(const std::string& peerId, const std::string& target, const std::string& jsonPayload);
-	void pollPeerHealthData(auto client, const std::string& id, const std::string& server, const std::string& port);
+	void pollPeerHealthData(std::shared_ptr<HTTPSClient> client, const std::string& id, const std::string& server, const std::string& port);
 
 	void startPolling();       // Starts asynchronous polling of peers
 	void stopPolling();        // Stops the polling process
