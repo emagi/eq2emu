@@ -218,25 +218,34 @@ void EQPacket::DumpRaw(FILE *to) const
 EQProtocolPacket::EQProtocolPacket(const unsigned char *buf, uint32 len, int in_opcode)
 {
 	uint32 offset = 0;
-	if(in_opcode>=0)
+	if(in_opcode>=0) {
 		opcode = in_opcode;
-	else{
-		offset=2;
-		opcode=ntohs(*(const uint16 *)buf);
+	}
+	 else {
+		// Ensure there are at least 2 bytes for the opcode
+		if (len < 2 || buf == nullptr) {
+			// Not enough data to read opcode; set defaults or handle error appropriately
+			opcode = 0;   // or set to a designated invalid opcode
+			offset = len; // no payload available
+		} else {
+			offset = 2;
+			opcode = ntohs(*(const uint16 *)buf);
+		}
 	}
 	
-	if (len-offset) {
-		pBuffer= new unsigned char[len-offset];
-		size=len-offset;
+	// Check that there is payload data after the header
+	if (len > offset) {
+		size = len - offset;
+		pBuffer = new unsigned char[size];
 		if(buf)
-			memcpy(pBuffer,buf+offset,len-offset);
+			memcpy(pBuffer, buf + offset, size);
 		else
-			memset(pBuffer,0,size);
-		
+			memset(pBuffer, 0, size);
 	} else {
-		pBuffer=NULL;
-		size=0;
+		pBuffer = nullptr;
+		size = 0;
 	}
+	
 	version = 0;
 	eq2_compressed = false;
 	packet_prepared = false;

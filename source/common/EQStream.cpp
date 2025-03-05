@@ -224,16 +224,29 @@ bool EQStream::HandleEmbeddedPacket(EQProtocolPacket *p, int16 offset, int16 len
 	
 	if(p->size >= ((uint32)(offset+2))){	
 		if(p->pBuffer[offset] == 0 && p->pBuffer[offset+1] == 0x19){
-			if(length == 0)
-				length = p->size-2-offset;
-			else
-				length-=2;
+			uint32 data_length = 0;
+			if(length == 0) {
+				// Ensure there are at least 2 bytes after offset.
+				if(p->size < offset + 2) {
+					return false; // Not enough data.
+				}
+				data_length = p->size - offset - 2;
+			} else {
+				// Ensure provided length is at least 2.
+				if(length < 2) {
+					return false; // Provided length too short.
+				}
+				data_length = length - 2;
+			}
 #ifdef DEBUG_EMBEDDED_PACKETS
 			printf( "Creating OP_AppCombined Packet with offset %u, length %u, p->size %u\n", offset, length, p->size);
 			DumpPacket(p->pBuffer, p->size);
 #endif
-
-			EQProtocolPacket *subp=new EQProtocolPacket(OP_AppCombined, p->pBuffer+2+offset, length);
+			// Verify that offset + 2 + data_length does not exceed p->size.
+			if(offset + 2 + data_length > p->size) {
+				return false; // Out-of-bounds.
+			}
+			EQProtocolPacket *subp = new EQProtocolPacket(OP_AppCombined, p->pBuffer + offset + 2, data_length);
 			subp->copyInfo(p);
 			ProcessPacket(subp, p);
 			safe_delete(subp);
@@ -279,17 +292,18 @@ bool EQStream::HandleEmbeddedPacket(EQProtocolPacket *p, int16 offset, int16 len
 			if(valid)
 				return true;
 		}
-		else if(p->pBuffer[offset] != 0xff && p->pBuffer[offset+1] == 0xff && p->size > (1+offset)) {
-			uint8 new_length = 0;
-			
-			memcpy(&new_length, p->pBuffer+offset, sizeof(int8));
-			if((new_length+offset+2) == p->size) {
-				new_length -= 2;
-			EQProtocolPacket *subp=new EQProtocolPacket(p->pBuffer+offset+2, new_length, OP_Packet);
-			subp->copyInfo(p);
-			ProcessPacket(subp, p);
-			delete subp;
-			return true;
+		else if(p->pBuffer[offset] != 0xff && p->pBuffer[offset+1] == 0xff && p->size >= offset + 3) {
+			// Read the first byte into a wider type to avoid underflow.
+			uint16 total_length = p->pBuffer[offset]; // promote to uint16
+			// Check that there is enough data: we expect offset+2+total_length == p->size.
+			if(total_length + offset + 2 == p->size && total_length >= 2) {
+				uint32 data_length = total_length - 2;
+				// No additional bounds check needed because equality condition ensures it.
+				EQProtocolPacket *subp = new EQProtocolPacket(p->pBuffer + offset + 2, data_length, OP_Packet);
+				subp->copyInfo(p);
+				ProcessPacket(subp, p);
+				delete subp;
+				return true;
 			}
 		}
 	}
