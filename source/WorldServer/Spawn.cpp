@@ -512,6 +512,15 @@ EQ2Packet* Spawn::spawn_serialize(Player* player, int16 version, int16 offset, i
 	}
 
 	PacketStruct* header = player->GetSpawnHeaderStruct();
+	if (!header) {
+		LogWrite(SPAWN__ERROR, 0, "Spawn", "Spawn::spawn_serialize: GetSpawnHeaderStruct returned null!");
+		player->GetZone()->SetSpawnStructs(player->GetClient());
+		header = player->GetSpawnHeaderStruct();
+		if(!header) {
+			LogWrite(SPAWN__ERROR, 0, "Spawn", "Spawn::spawn_serialize: GetSpawnHeaderStruct still null likely to crash!");
+			return nullptr;
+		}
+	}
 	header->ResetData();
 	InitializeHeaderPacketData(player, header, index);
 

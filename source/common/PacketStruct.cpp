@@ -2647,6 +2647,10 @@ void PacketStruct::setItemArrayDataByName(const char* name, Item* item, Player* 
 }
 
 void PacketStruct::ResetData() {
+	if (this == nullptr) {
+		LogWrite(PACKET__ERROR, 0, "PacketStruct", "ResetData called on a null PacketStruct pointer");
+		return;
+	}
 	vector<DataStruct*>::iterator itr;
 	for (itr = structs.begin(); itr != structs.end(); itr++) {
 		DataStruct* ds = *itr;
