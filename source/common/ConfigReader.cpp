@@ -88,7 +88,7 @@ PacketStruct* ConfigReader::getStruct(const char* name, int16 version){
 	}
 	MStructs.unlock();
 	if(!new_latest_version && !latest_version)
-		LogWrite(PACKET__ERROR, 0, "Packet", "Could not find struct named '%s'", name);
+		LogWrite(PACKET__ERROR, 0, "Packet", "Could not find struct named '%s' with version: %i", name, version);
 	return new_latest_version;
 }
 int16 ConfigReader::GetStructVersion(const char* name, int16 version){
