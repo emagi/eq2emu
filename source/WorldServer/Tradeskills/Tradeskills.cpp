@@ -490,12 +490,15 @@ void TradeskillMgr::StopCrafting(Client* client, bool lock) {
 			item->creator = std::string(client->GetPlayer()->GetName());
 			client->AddItem(item);
 			if(byproduct_itemid) {
-				Item* byproductItem = new Item(master_item_list.GetItem(byproduct_itemid));
-				byproductItem->creator = std::string(client->GetPlayer()->GetName());
-				byproductItem->details.count = byproduct_qty;
-				client->Message(CHANNEL_COLOR_CHAT_RELATIONSHIP, "You received %s as a byproduct.", byproductItem->CreateItemLink(client->GetVersion()).c_str());
-				client->AddItem(byproductItem);
-				client->GetPlayer()->CheckQuestsCraftUpdate(byproductItem, byproduct_qty);
+				Item* byproduct = master_item_list.GetItem(byproduct_itemid);
+				if(byproduct) {
+					Item* byproductItem = new Item(byproduct);
+					byproductItem->creator = std::string(client->GetPlayer()->GetName());
+					byproductItem->details.count = byproduct_qty;
+					client->Message(CHANNEL_COLOR_CHAT_RELATIONSHIP, "You received %s as a byproduct.", byproductItem->CreateItemLink(client->GetVersion()).c_str());
+					client->AddItem(byproductItem);
+					client->GetPlayer()->CheckQuestsCraftUpdate(byproductItem, byproduct_qty);
+				}
 			}
 			//Check for crafting quest updates
 			int8 update_amt = 0;
