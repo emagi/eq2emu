@@ -495,6 +495,7 @@ void TradeskillMgr::StopCrafting(Client* client, bool lock) {
 				byproductItem->details.count = byproduct_qty;
 				client->Message(CHANNEL_COLOR_CHAT_RELATIONSHIP, "You received %s as a byproduct.", byproductItem->CreateItemLink(client->GetVersion()).c_str());
 				client->AddItem(byproductItem);
+				client->GetPlayer()->CheckQuestsCraftUpdate(byproductItem, byproduct_qty);
 			}
 			//Check for crafting quest updates
 			int8 update_amt = 0;
