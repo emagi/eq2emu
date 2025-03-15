@@ -331,6 +331,7 @@ public:
 	
 	void				SetQuestShareableFlag(int32 flag) { quest_shareable_flag = flag; }
 	void				SetCanDeleteQuest(bool newval) { can_delete_quest = newval; }
+	void				SetHideReward(bool newval) { hide_reward = newval; }
 	
 	
 	void				SetStatusToEarnMin(int32 value_) { status_to_earn_min = value_; }
@@ -341,6 +342,7 @@ public:
 	
 	int32				GetQuestShareableFlag() { return quest_shareable_flag; }
 	bool				CanDeleteQuest() { return can_delete_quest; }
+	bool				GetHideReward() { return hide_reward; }
 	
 	bool				CanShareQuestCriteria(Client* quest_sharer, bool display_client_msg = true);
 	Mutex				MQuestSteps;
@@ -428,6 +430,7 @@ protected:
 	bool				can_delete_quest;
 	int32				status_to_earn_min;
 	int32				status_to_earn_max;
+	bool				hide_reward;
 };
 
 class MasterQuestList{

@@ -320,6 +320,7 @@ Quest::Quest(int32 in_id){
 	m_status = 0;
 	status_to_earn_min = 0;
 	status_to_earn_max = 0;
+	hide_reward = false;
 }
 
 Quest::Quest(Quest* old_quest){
@@ -399,6 +400,7 @@ Quest::Quest(Quest* old_quest){
 	can_delete_quest = old_quest->CanDeleteQuest();
 	status_to_earn_min = old_quest->GetStatusToEarnMin();
 	status_to_earn_max = old_quest->GetStatusToEarnMax();
+	hide_reward = old_quest->GetHideReward();
 }
 
 Quest::~Quest(){
@@ -906,20 +908,25 @@ EQ2Packet* Quest::OfferQuest(int16 version, Player* player){
 		else
 			packet->setDataByName("unknown", 5);
 		packet->setDataByName("level", level);
-		if(reward_coins > 0){
-			packet->setDataByName("min_coin", reward_coins);
-			if (reward_coins_max)
-				packet->setDataByName("max_coin", reward_coins_max);
+		if(!GetHideReward()) {
+			if(reward_coins > 0){
+				packet->setDataByName("min_coin", reward_coins);
+				if (reward_coins_max)
+					packet->setDataByName("max_coin", reward_coins_max);
+			}
+			packet->setDataByName("status_points", GetStatusEarned() > 0 ? GetStatusEarned() : reward_status);
 		}
-		packet->setDataByName("status_points", GetStatusEarned() > 0 ? GetStatusEarned() : reward_status);
 		if(reward_comment.length() > 0)
 			packet->setDataByName("text", reward_comment.c_str());
-		if(reward_items.size() > 0){
-			player->GetClient()->PopulateQuestRewardItems(&reward_items, packet);
-		}
-		if(selectable_reward_items.size() > 0){
-			player->GetClient()->PopulateQuestRewardItems(&selectable_reward_items, packet, std::string("num_select_rewards"), 
-										std::string("select_reward_id"), std::string("select_item"));
+		
+		if(!GetHideReward()) {
+			if(reward_items.size() > 0){
+				player->GetClient()->PopulateQuestRewardItems(&reward_items, packet);
+			}
+			if(selectable_reward_items.size() > 0){
+				player->GetClient()->PopulateQuestRewardItems(&selectable_reward_items, packet, std::string("num_select_rewards"), 
+											std::string("select_reward_id"), std::string("select_item"));
+			}
 		}
 		map<int32, sint32>* reward_factions = GetRewardFactions();
 		if (reward_factions && reward_factions->size() > 0) {

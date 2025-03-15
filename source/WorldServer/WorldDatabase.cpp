@@ -5349,7 +5349,7 @@ void WorldDatabase::FixBugReport(){
 int32 WorldDatabase::LoadQuests(){
 	Query query;
 	MYSQL_ROW row;
-	std::string querystr = std::string("SELECT `quest_id`, `name`, `type`, `zone`, `level`, `enc_level`, `description`, `lua_script`, `completed_text`, `spawn_id`, `shareable_flag`, `deleteable`, `status_to_earn_min`, `status_to_earn_max` FROM `quests`");
+	std::string querystr = std::string("SELECT `quest_id`, `name`, `type`, `zone`, `level`, `enc_level`, `description`, `lua_script`, `completed_text`, `spawn_id`, `shareable_flag`, `deleteable`, `status_to_earn_min`, `status_to_earn_max`, `hide_reward` FROM `quests`");
 	MYSQL_RES* result = query.RunQuery2(Q_SELECT, querystr.c_str());
 	Quest* quest = 0;
 	char* name = 0;
@@ -5399,6 +5399,7 @@ int32 WorldDatabase::LoadQuests(){
 				quest->SetCanDeleteQuest(atoul(row[11]));
 				quest->SetStatusToEarnMin(atoul(row[12]));
 				quest->SetStatusToEarnMax(atoul(row[13]));
+				quest->SetHideReward(atoul(row[14]));
 				total++;
 				master_quest_list.AddQuest(id, quest);
 			}
