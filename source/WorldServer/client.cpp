@@ -6937,6 +6937,24 @@ void Client::CheckPlayerQuestsSpellUpdate(Spell* spell) {
 }
 
 void Client::AddPendingQuest(Quest* quest, bool forced) {
+	if(!quest->GetStatusEarned() && (quest->GetStatusToEarnMin() || quest->GetStatusToEarnMax())) {
+		int32 min = 0;
+		int32 max = 0;
+		if(quest->GetStatusToEarnMin() > 0 && quest->GetStatusToEarnMin() > quest->GetStatusToEarnMax()) {
+			min = quest->GetStatusToEarnMax();
+			max = quest->GetStatusToEarnMin();
+		}
+		else if(quest->GetStatusToEarnMin() < quest->GetStatusToEarnMax()) {
+			min = quest->GetStatusToEarnMin();
+			max = quest->GetStatusToEarnMax();
+		}
+		else {
+			quest->SetStatusEarned(min);
+		}
+		if(min && max) {
+			quest->SetStatusEarned(MakeRandomInt(min, max));
+		}
+	}
 	if (version <= 372 || forced) { //this client doesn't ask if you want the quest, so auto accept
 		MPendingQuestAccept.lock();
 		player->pending_quests[quest->GetQuestID()] = quest;
@@ -7309,7 +7327,7 @@ void Client::AcceptQuestReward(Quest* quest, int32 item_id) {
 			player->GetInfoStruct()->add_status_points(quest->GetStatusTmpReward());
 		}
 		else {
-			player->GetInfoStruct()->add_status_points(quest->GetStatusPoints());
+			player->GetInfoStruct()->add_status_points(quest->GetStatusEarned() ? quest->GetStatusEarned() : quest->GetStatusPoints());
 		}
 
 		quest->SetQuestTemporaryState(false);
@@ -7493,7 +7511,7 @@ void Client::DisplayQuestComplete(Quest* quest, bool tempReward, std::string cus
 		return;
 
 	if (GetVersion() <= 561) {
-		DisplayQuestRewards(quest, 0, quest->GetRewardItems(), quest->GetSelectableRewardItems(), quest->GetRewardFactions(), "Quest Complete!", quest->GetStatusPoints(), tempReward ? customDescription.c_str() : quest->GetCompletedDescription(), was_displayed);
+		DisplayQuestRewards(quest, 0, quest->GetRewardItems(), quest->GetSelectableRewardItems(), quest->GetRewardFactions(), "Quest Complete!", quest->GetStatusEarned() ? quest->GetStatusEarned() : quest->GetStatusPoints(), tempReward ? customDescription.c_str() : quest->GetCompletedDescription(), was_displayed);
 		return;
 	}
 	PacketStruct* packet = configReader.getStruct("WS_QuestComplete", GetVersion());
@@ -7520,7 +7538,7 @@ void Client::DisplayQuestComplete(Quest* quest, bool tempReward, std::string cus
 		{
 			packet->setDataByName("max_coin", quest->GetCoinTmpReward());
 			packet->setDataByName("min_coin", quest->GetCoinTmpReward());
-			packet->setDataByName("status_points", quest->GetStatusPoints());
+			packet->setDataByName("status_points", quest->GetStatusEarned() ? quest->GetStatusEarned() : quest->GetStatusPoints());
 		}
 		else
 		{
@@ -7534,7 +7552,7 @@ void Client::DisplayQuestComplete(Quest* quest, bool tempReward, std::string cus
 			quest->SetGeneratedCoin(rewarded_coin);
 			packet->setDataByName("max_coin", rewarded_coin);
 			packet->setDataByName("min_coin", rewarded_coin);
-			packet->setDataByName("status_points", quest->GetStatusPoints());
+			packet->setDataByName("status_points", quest->GetStatusEarned() ? quest->GetStatusEarned() : quest->GetStatusPoints());
 		}
 
 		if (tempReward) {

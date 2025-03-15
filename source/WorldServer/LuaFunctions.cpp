@@ -4088,9 +4088,15 @@ int EQ2Emu_lua_SetQuestRewardStatus(lua_State* state) {
 		return 0;
 	Quest* quest = lua_interface->GetQuest(state);
 	int32 status = lua_interface->GetInt32Value(state, 2);
+	int32 min_status_earned = lua_interface->GetInt32Value(state, 3);
+	int32 max_status_earned = lua_interface->GetInt32Value(state, 4);
 	lua_interface->ResetFunctionStack(state);
 	if (quest) {
 		quest->SetRewardStatus(status);
+		if(min_status_earned)
+			quest->SetStatusToEarnMin(min_status_earned);
+		if(max_status_earned)
+			quest->SetStatusToEarnMin(max_status_earned);
 	}
 	return 0;
 }

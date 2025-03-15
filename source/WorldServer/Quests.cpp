@@ -317,6 +317,9 @@ Quest::Quest(int32 in_id){
 	quest_temporary_description = string("");
 	quest_shareable_flag = 0;
 	can_delete_quest = false;
+	m_status = 0;
+	status_to_earn_min = 0;
+	status_to_earn_max = 0;
 }
 
 Quest::Quest(Quest* old_quest){
@@ -348,6 +351,7 @@ Quest::Quest(Quest* old_quest){
 	has_sent_last_update = old_quest->has_sent_last_update;
 	yellow_name = old_quest->yellow_name;
 	m_questFlags = old_quest->m_questFlags;
+	m_status = old_quest->m_status;
 	id = old_quest->id;
 
 	vector<QuestStep*>	quest_steps;
@@ -393,6 +397,8 @@ Quest::Quest(Quest* old_quest){
 	quest_temporary_description = string("");
 	quest_shareable_flag = old_quest->GetQuestShareableFlag();
 	can_delete_quest = old_quest->CanDeleteQuest();
+	status_to_earn_min = old_quest->GetStatusToEarnMin();
+	status_to_earn_max = old_quest->GetStatusToEarnMax();
 }
 
 Quest::~Quest(){
@@ -905,7 +911,7 @@ EQ2Packet* Quest::OfferQuest(int16 version, Player* player){
 			if (reward_coins_max)
 				packet->setDataByName("max_coin", reward_coins_max);
 		}
-		packet->setDataByName("status_points", reward_status);
+		packet->setDataByName("status_points", GetStatusEarned() > 0 ? GetStatusEarned() : reward_status);
 		if(reward_comment.length() > 0)
 			packet->setDataByName("text", reward_comment.c_str());
 		if(reward_items.size() > 0){
@@ -1263,7 +1269,7 @@ EQ2Packet* Quest::QuestJournalReply(int16 version, int32 player_crc, Player* pla
 			packet->setDataByName(tmp.c_str(), reward_coins_max);
 		}
 		tmp = reward_str + "status_points";
-		packet->setDataByName(tmp.c_str(), reward_status);
+		packet->setDataByName(tmp.c_str(), GetStatusEarned() > 0 ? GetStatusEarned() : reward_status);
 		if (reward_comment.length() > 0) {
 			tmp = reward_str + "text";
 			packet->setDataByName(tmp.c_str(), reward_comment.c_str());

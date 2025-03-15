@@ -2795,7 +2795,7 @@ void WorldDatabase::SaveCharacterQuests(Client* client){
 		}
 		if(itr->second && itr->second->GetSaveNeeded()){
 			query.AddQueryAsync(client->GetCharacterID(), this,Q_INSERT, "insert ignore into character_quests (char_id, quest_id, given_date, quest_giver) values(%u, %u, now(), %u)", client->GetCharacterID(), itr->first, itr->second->GetQuestGiver());
-			query.AddQueryAsync(client->GetCharacterID(), this,Q_UPDATE, "update character_quests set tracked = %i, quest_flags = %u, hidden = %i, complete_count = %u where char_id = %u and quest_id = %u", itr->second->IsTracked() ? 1 : 0, itr->second->GetQuestFlags(), itr->second->IsHidden() ? 1 : 0, itr->second->GetCompleteCount(), client->GetCharacterID(), itr->first);
+			query.AddQueryAsync(client->GetCharacterID(), this,Q_UPDATE, "update character_quests set tracked = %i, quest_flags = %u, hidden = %i, complete_count = %u, status_to_earn = %u where char_id = %u and quest_id = %u", itr->second->IsTracked() ? 1 : 0, itr->second->GetQuestFlags(), itr->second->IsHidden() ? 1 : 0, itr->second->GetCompleteCount(), itr->second->GetStatusEarned(), client->GetCharacterID(), itr->first);
 			SaveCharacterQuestProgress(client, itr->second);
 			itr->second->SetSaveNeeded(false);
 		}
@@ -2809,7 +2809,7 @@ void WorldDatabase::SaveCharacterQuests(Client* client){
 
 			/* incase the quest is completed before the quest could be inserted in the PlayerQuests loop, we first try to insert it.  If it already exists then we can just update
 			 * the completed_date */
-			query.AddQueryAsync(client->GetCharacterID(), this,Q_INSERT, "INSERT INTO character_quests (char_id, quest_id, quest_giver, current_quest, given_date, completed_date, complete_count) values (%u,%u,%u,0, now(),now(), %u) ON DUPLICATE KEY UPDATE completed_date = now(), complete_count = %u, current_quest = 0", client->GetCharacterID(), itr->first, itr->second->GetQuestGiver(), itr->second->GetCompleteCount(), itr->second->GetCompleteCount());
+			query.AddQueryAsync(client->GetCharacterID(), this,Q_INSERT, "INSERT INTO character_quests (char_id, quest_id, quest_giver, current_quest, given_date, completed_date, complete_count, status_to_earn) values (%u,%u,%u,0, now(),now(), %u, %u) ON DUPLICATE KEY UPDATE completed_date = now(), complete_count = %u, status_to_earn = %u, current_quest = 0", client->GetCharacterID(), itr->first, itr->second->GetQuestGiver(), itr->second->GetCompleteCount(), itr->second->GetStatusEarned(), itr->second->GetCompleteCount(), itr->second->GetStatusEarned());
 			itr->second->SetSaveNeeded(false);
 		}
 	}
@@ -2877,7 +2877,7 @@ void WorldDatabase::LoadCharacterQuestProgress(Client* client){
 void WorldDatabase::LoadCharacterQuests(Client* client){
 	LogWrite(PLAYER__DEBUG, 0, "Player", "Loading Character Quests...");
 	Query query;
-	MYSQL_RES* result = query.RunQuery2(Q_SELECT, "SELECT quest_id, DAY(given_date), MONTH(given_date), YEAR(given_date), DAY(completed_date), MONTH(completed_date), YEAR(completed_date), quest_giver, tracked, quest_flags, hidden, UNIX_TIMESTAMP(given_date), UNIX_TIMESTAMP(completed_date), complete_count FROM character_quests WHERE char_id=%u ORDER BY current_quest", client->GetCharacterID());
+	MYSQL_RES* result = query.RunQuery2(Q_SELECT, "SELECT quest_id, DAY(given_date), MONTH(given_date), YEAR(given_date), DAY(completed_date), MONTH(completed_date), YEAR(completed_date), quest_giver, tracked, quest_flags, hidden, UNIX_TIMESTAMP(given_date), UNIX_TIMESTAMP(completed_date), complete_count, status_to_earn FROM character_quests WHERE char_id=%u ORDER BY current_quest", client->GetCharacterID());
 	if(result && mysql_num_rows(result) > 0) {
 		MYSQL_ROW row;
 		Quest* quest = 0;
@@ -2914,6 +2914,7 @@ void WorldDatabase::LoadCharacterQuests(Client* client){
 						addQuest = false;
 
 					quest->SetCompleteCount(atoi(row[13]));
+					quest->SetStatusEarned(atoul(row[14]));
 				}
 
 				if (addQuest) {
@@ -5348,7 +5349,7 @@ void WorldDatabase::FixBugReport(){
 int32 WorldDatabase::LoadQuests(){
 	Query query;
 	MYSQL_ROW row;
-	std::string querystr = std::string("SELECT `quest_id`, `name`, `type`, `zone`, `level`, `enc_level`, `description`, `lua_script`, `completed_text`, `spawn_id`, `shareable_flag`, `deleteable` FROM `quests`");
+	std::string querystr = std::string("SELECT `quest_id`, `name`, `type`, `zone`, `level`, `enc_level`, `description`, `lua_script`, `completed_text`, `spawn_id`, `shareable_flag`, `deleteable`, `status_to_earn_min`, `status_to_earn_max` FROM `quests`");
 	MYSQL_RES* result = query.RunQuery2(Q_SELECT, querystr.c_str());
 	Quest* quest = 0;
 	char* name = 0;
@@ -5396,6 +5397,8 @@ int32 WorldDatabase::LoadQuests(){
 				quest->SetEncounterLevel(enc_level);
 				quest->SetQuestShareableFlag(atoul(row[10]));
 				quest->SetCanDeleteQuest(atoul(row[11]));
+				quest->SetStatusToEarnMin(atoul(row[12]));
+				quest->SetStatusToEarnMax(atoul(row[13]));
 				total++;
 				master_quest_list.AddQuest(id, quest);
 			}

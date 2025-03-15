@@ -283,6 +283,13 @@ public:
 	///<summary>Sets the quest hidden flag</summary>
 	///<param name='val'>Value to set the hidden flag to</param>
 	void				SetHidden(bool val) { m_hidden = val; SetSaveNeeded(true); }
+	
+	///<summary>Sets the quest status earned</summary>
+	///<param name='val'>Value to set the quest status earned</param>
+	void				SetStatusEarned(int32 status_) { m_status = status_; SetSaveNeeded(true); }
+
+	///<summary>Gets the quest status earned</summary>
+	int32				GetStatusEarned() { return m_status; }
 
 	///<summary>Gets the step timer</summary>
 	///<returns>Unix timestamp (int32)</returns>
@@ -324,6 +331,13 @@ public:
 	
 	void				SetQuestShareableFlag(int32 flag) { quest_shareable_flag = flag; }
 	void				SetCanDeleteQuest(bool newval) { can_delete_quest = newval; }
+	
+	
+	void				SetStatusToEarnMin(int32 value_) { status_to_earn_min = value_; }
+	void				SetStatusToEarnMax(int32 value_) { status_to_earn_max = value_; }
+	
+	int32				GetStatusToEarnMin() { return status_to_earn_min; }
+	int32				GetStatusToEarnMax() { return status_to_earn_max; }
 	
 	int32				GetQuestShareableFlag() { return quest_shareable_flag; }
 	bool				CanDeleteQuest() { return can_delete_quest; }
@@ -401,6 +415,7 @@ protected:
 	bool                yellow_name;
 	int32				m_questFlags;
 	bool				m_hidden;
+	int32				m_status;
 
 	int32				m_timestamp;	// timer for a quest step
 	int32				m_timerStep;	// used for the fail action when timer expires
@@ -411,6 +426,8 @@ protected:
 	std::string			quest_temporary_description;
 	int32				quest_shareable_flag;
 	bool				can_delete_quest;
+	int32				status_to_earn_min;
+	int32				status_to_earn_max;
 };
 
 class MasterQuestList{
