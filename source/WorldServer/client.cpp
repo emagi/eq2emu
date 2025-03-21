@@ -12339,7 +12339,7 @@ void Client::SendShowBook(Spawn* sender, string title, int8 language, int8 num_p
 {
 	if (!sender)
 	{
-		LogWrite(CCLIENT__ERROR, 0, "Client", "SendShowBook missing sender for Player %s, book title %s", GetPlayer()->GetName(), title.c_str());
+		LogWrite(CCLIENT__ERROR, 0, "Client", "SendShowBook missing sender for Player %s, book title %s", GetPlayer()->GetName(), title);
 		return;
 	}
 
@@ -12365,14 +12365,14 @@ void Client::SendShowBook(Spawn* sender, string title, int8 language, int8 num_p
 	std::string endString("");
 	for (int8 p = 0; p < num_pages; p++)
 	{
-		const char* pageChars = va_arg(args, const char*);
+		std::string page = va_arg(args, string);
 		switch (GetVersion())
 		{
 			// release client
 		case 283:
 		case 373: // trial isle client
 		{
-			endString.append(pageChars);
+			endString.append(page);
 			break;
 		}
 		// DoF trial
@@ -12380,15 +12380,15 @@ void Client::SendShowBook(Spawn* sender, string title, int8 language, int8 num_p
 		case 561:
 		{
 			if (p == 0)
-				packet->setDataByName("cover_page", pageChars);
+				packet->setDataByName("cover_page", page.c_str());
 			else
-				packet->setArrayDataByName("page_text", pageChars, p - 1);
+				packet->setArrayDataByName("page_text", page.c_str(), p - 1);
 			break;
 		}
 		// all other clients
 		default:
 		{
-			packet->setArrayDataByName("page_text", pageChars, p);
+			packet->setArrayDataByName("page_text", page.c_str(), p);
 			break;
 		}
 		}
@@ -12409,7 +12409,7 @@ void Client::SendShowBook(Spawn* sender, string title, int8 language, vector<Ite
 {
 	if (!sender)
 	{
-		LogWrite(CCLIENT__ERROR, 0, "Client", "SendShowBook missing sender for Player %s, book title %s", GetPlayer()->GetName(), title.c_str());
+		LogWrite(CCLIENT__ERROR, 0, "Client", "SendShowBook missing sender for Player %s, book title %s", GetPlayer()->GetName(), title);
 		return;
 	}
 

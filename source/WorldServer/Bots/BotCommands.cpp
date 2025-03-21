@@ -767,7 +767,7 @@ void Commands::Command_Bot_Help(Client* client, Seperator* sep) {
 			details += "18\tSarnak\n";
 			details += "19\tVampire\n";
 			details += "20\tAerakyn\n";
-			client->SendShowBook(client->GetPlayer(), title, 0, 1, details.c_str());
+			client->SendShowBook(client->GetPlayer(), title, 0, 1, details);
 			return;
 		}
 		else if (strncasecmp("class", sep->arg[0], 5) == 0) {
@@ -822,7 +822,7 @@ void Commands::Command_Bot_Help(Client* client, Seperator* sep) {
 			details3 += "43\tSHAPER\n";
 			details3 += "44\tCHANNELER\n";
 
-			client->SendShowBook(client->GetPlayer(), title, 0, 3, details.c_str(), details2.c_str(), details3.c_str());
+			client->SendShowBook(client->GetPlayer(), title, 0, 3, details, details2, details3);
 			return;
 		}
 	}
