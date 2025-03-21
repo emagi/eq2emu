@@ -3747,6 +3747,25 @@ int EQ2Emu_lua_HasQuest(lua_State* state) {
 	return 0;
 }
 
+int EQ2Emu_lua_HasPendingQuest(lua_State* state) {
+	if (!lua_interface)
+		return 0;
+	Spawn* player = lua_interface->GetSpawn(state);
+	int32 quest_id = lua_interface->GetInt32Value(state, 2);
+	lua_interface->ResetFunctionStack(state);
+	if(!player || !player->IsPlayer()) {
+		lua_interface->LogError("%s: LUA HasPendingQuest command error: player is not valid", lua_interface->GetScriptName(state));
+		return 0;
+	}
+	
+	if(!player->GetClient()) {
+		lua_interface->LogError("%s: LUA HasPendingQuest command error: client is not valid", lua_interface->GetScriptName(state));
+		return 0;
+	}
+	lua_interface->SetBooleanValue(state, (((Player*)player)->GetClient()->HasPendingQuest(quest_id)));
+	return 1;
+}
+
 int EQ2Emu_lua_QuestReturnNPC(lua_State* state) {
 	if (!lua_interface)
 		return 0;

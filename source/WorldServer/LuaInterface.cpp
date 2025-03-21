@@ -1262,6 +1262,7 @@ void LuaInterface::RegisterFunctions(lua_State* state) {
 	lua_register(state, "OfferQuest", EQ2Emu_lua_OfferQuest);
 	lua_register(state, "ProvidesQuest", EQ2Emu_lua_ProvidesQuest);	
 	lua_register(state, "HasQuest", EQ2Emu_lua_HasQuest);	
+	lua_register(state, "HasPendingQuest", EQ2Emu_lua_HasPendingQuest);	
 	lua_register(state, "HasCompletedQuest", EQ2Emu_lua_HasCompletedQuest);	
 	lua_register(state, "QuestIsComplete", EQ2Emu_lua_QuestIsComplete);	
 	lua_register(state, "QuestReturnNPC", EQ2Emu_lua_QuestReturnNPC);		

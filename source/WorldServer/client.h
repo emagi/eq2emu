@@ -375,6 +375,7 @@ public:
 	void	CheckPlayerQuestsLocationUpdate();
 	void	AddPendingQuest(Quest* quest, bool forced = false);
 	void	AcceptQuest(int32 quest_id);
+	bool	HasPendingQuest(int32 quest_id);
 	void	RemovePendingQuest(int32 quest_id);
 	void	SetPlayerQuest(Quest* quest, map<int32, int32>* progress);
 	void	AddPlayerQuest(Quest* quest, bool call_accepted = true, bool send_packets = true);

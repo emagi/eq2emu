@@ -302,6 +302,7 @@ int EQ2Emu_lua_UpdateQuestZone(lua_State* state);
 int EQ2Emu_lua_SetCompletedDescription(lua_State* state);
 int EQ2Emu_lua_ProvidesQuest(lua_State* state);
 int EQ2Emu_lua_HasQuest(lua_State* state);
+int EQ2Emu_lua_HasPendingQuest(lua_State* state);
 int EQ2Emu_lua_HasCompletedQuest(lua_State* state);
 int EQ2Emu_lua_QuestIsComplete(lua_State* state);
 int EQ2Emu_lua_QuestReturnNPC(lua_State* state);

@@ -6990,6 +6990,17 @@ void Client::AcceptQuest(int32 quest_id) {
 	MPendingQuestAccept.unlock_shared();
 }
 
+bool Client::HasPendingQuest(int32 quest_id) {
+	std::shared_lock lock(MPendingQuestAccept);
+	if (player->pending_quests.count(quest_id) > 0) {
+		Quest* quest = player->pending_quests[quest_id];
+		if (quest) {
+			return true;
+		}
+	}
+	return false;
+}
+
 void Client::RemovePendingQuest(int32 quest_id) {
 	bool send_updates = false;
 	MPendingQuestAccept.lock_shared();
