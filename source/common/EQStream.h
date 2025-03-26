@@ -151,7 +151,9 @@ class EQStream {
 		uint8 app_opcode_size;
 		EQStreamType StreamType;
 		bool compressed,encoded;
-
+		
+		unsigned char write_buffer[2048];
+		
 		uint32 retransmittimer;
 		uint32 retransmittimeout;
 		//uint32 buffer_len;

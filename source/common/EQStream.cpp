@@ -1503,7 +1503,6 @@ void EQStream::WritePacket(int eq_fd, EQProtocolPacket *p)
 {
 uint32 length = 0;
 sockaddr_in address;
-unsigned char tmpbuffer[2048];
 	address.sin_family = AF_INET;
 	address.sin_addr.s_addr=remote_ip;
 	address.sin_port=remote_port;
@@ -1523,8 +1522,8 @@ unsigned char tmpbuffer[2048];
 	if (p->opcode!=OP_SessionRequest && p->opcode!=OP_SessionResponse) {
 		if (compressed) {
 			BytesWritten -= p->size;
-			uint32 newlen=EQProtocolPacket::Compress(buffer,length,tmpbuffer,2048);
-			memcpy(buffer,tmpbuffer,newlen);
+			uint32 newlen=EQProtocolPacket::Compress(buffer,length,write_buffer,2048);
+			memcpy(buffer,write_buffer,newlen);
 			length=newlen;
 			BytesWritten += newlen;
 		}
