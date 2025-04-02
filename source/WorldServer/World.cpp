@@ -703,7 +703,7 @@ bool ZoneList::GetZone(ZoneChangeDetails* zone_details, int32 opt_zone_id, std::
 				if(max_players < 1) // default of 30
 					max_players = 30;
 					
-				if(!tmp->isZoneShuttingDown() && ((opt_zone_id > 0 && tmp->GetZoneID() == opt_zone_id) || (opt_zone_name.length() > 0 && strncasecmp(tmp->GetZoneName(), opt_zone_name.c_str(), opt_zone_name.length())==0))){
+				if(!tmp->isZoneShuttingDown() && ((opt_zone_id > 0 && tmp->GetZoneID() == opt_zone_id) || (opt_zone_name.length() > 0 && strlen(tmp->GetZoneName()) == opt_zone_name.length() && strncasecmp(tmp->GetZoneName(), opt_zone_name.c_str(), opt_zone_name.length())==0))){
 					if(tmp->NumPlayers() < max_players || tmp->IsCityZone()) {
 						ret = tmp;
 						if(increment_zone) {
