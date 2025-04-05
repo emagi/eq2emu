@@ -2131,8 +2131,9 @@ void Spawn::InitializePosPacketData(Player* player, PacketStruct* packet, bool b
 				new_y = itr->second.offset_y;
 				
 				if(player->GetMap() != GetMap()) {
-					ground_diff = sqrtf((GetY() - itr->second.zone_ground_y) * (GetY() - itr->second.zone_ground_y));
+					ground_diff = itr->second.zone_ground_y - itr->second.offset_y;
 				}
+				itr->second.timestamp = Timer::GetCurrentTime2()+1000;
 			}
 			else {
 				auto loc = glm::vec3(GetX(), GetZ(), GetY());
@@ -2140,6 +2141,7 @@ void Spawn::InitializePosPacketData(Player* player, PacketStruct* packet, bool b
 				float zone_ground_y = new_y;
 				if(player->GetMap() != GetMap()) {
 					zone_ground_y = FindBestZ(loc, nullptr, nullptr, nullptr);
+					ground_diff = zone_ground_y - new_y;
 				}
 				TimedGridData data;
 				data.grid_id = new_grid_id;
@@ -2151,7 +2153,7 @@ void Spawn::InitializePosPacketData(Player* player, PacketStruct* packet, bool b
 				data.zone_ground_y = zone_ground_y;
 				ground_diff = sqrtf((GetY() - zone_ground_y) * (GetY() - zone_ground_y));
 				data.npc_save = false;
-				data.timestamp = Timer::GetCurrentTime2()+100;
+				data.timestamp = Timer::GetCurrentTime2()+1000;
 				established_grid_id.insert(make_pair(packet->GetVersion(), data));
 			}
 		}
@@ -2159,7 +2161,7 @@ void Spawn::InitializePosPacketData(Player* player, PacketStruct* packet, bool b
 			new_grid_id = itr->second.grid_id;
 			new_widget_id = itr->second.widget_id;
 			new_y = itr->second.offset_y;
-			ground_diff = sqrtf((GetY() - itr->second.zone_ground_y) * (GetY() - itr->second.zone_ground_y));
+			ground_diff = itr->second.zone_ground_y - itr->second.offset_y;
 		}
 		m_GridMutex.releasewritelock(__FUNCTION__, __LINE__);
 	}
@@ -2229,7 +2231,8 @@ void Spawn::InitializePosPacketData(Player* player, PacketStruct* packet, bool b
 				result_y = new_y;
 			}
 			if(GetMap() != player->GetMap()) {
-				result_y = new_y;
+				if(!IsWidget() && !IsSign() && !IsObject())
+					result_y = new_y;
 				if(IsFlyingCreature() || IsWaterCreature() || InWater()) {
 					result_y += ground_diff;
 				}
