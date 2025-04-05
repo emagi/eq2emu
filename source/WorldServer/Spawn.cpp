@@ -2151,7 +2151,6 @@ void Spawn::InitializePosPacketData(Player* player, PacketStruct* packet, bool b
 				data.z = GetZ();
 				data.offset_y = new_y;
 				data.zone_ground_y = zone_ground_y;
-				ground_diff = sqrtf((GetY() - zone_ground_y) * (GetY() - zone_ground_y));
 				data.npc_save = false;
 				data.timestamp = Timer::GetCurrentTime2()+1000;
 				established_grid_id.insert(make_pair(packet->GetVersion(), data));
