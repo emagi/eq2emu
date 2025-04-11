@@ -5181,7 +5181,17 @@ void Client::DetermineCharacterUpdates() {
 		LogWrite(MISC__TODO, 1, "TODO", "Armor update req in func: %s, line: %i", __FUNCTION__, __LINE__);
 	}
 	if (flag & NAME_UPDATE_FLAG) {
-		LogWrite(MISC__TODO, 1, "TODO", "Name update req in func: %s, line: %i", __FUNCTION__, __LINE__);
+		int8 name_length = strnlen(GetPlayer()->GetInfoStruct()->get_name().c_str(), 64); // max of 64 to LS the DB limit
+		int32 packet_length = sizeof(CharNameUpdate_Struct) + name_length;
+		ServerPacket* outpack = new ServerPacket(ServerOP_NameCharUpdate, packet_length);
+		memset(outpack->pBuffer, 0, packet_length);
+		CharNameUpdate_Struct* cnu = (CharNameUpdate_Struct*)outpack->pBuffer;
+		cnu->account_id = GetAccountID();
+		cnu->char_id = GetCharacterID();
+		cnu->name_length = name_length;
+		strncpy(cnu->new_name, GetPlayer()->GetInfoStruct()->get_name().c_str(), name_length);
+		loginserver.SendPacket(outpack);
+		safe_delete(outpack);
 	}
 
 	database.UpdateCharacterTimeStamp(GetAccountID(), GetCharacterID(), timestamp);

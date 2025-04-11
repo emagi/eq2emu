@@ -6375,6 +6375,8 @@ void Player::SetPlayerAdventureClass(int8 new_class){
 	charsheet_changed = true;
 	if(GetZone())
 		GetZone()->TriggerCharSheetTimer();
+	if(GetClient())
+		GetClient()->UpdateTimeStampFlag ( CLASS_UPDATE_FLAG );
 }
 
 void Player::AddSkillBonus(int32 spell_id, int32 skill_id, float value) {

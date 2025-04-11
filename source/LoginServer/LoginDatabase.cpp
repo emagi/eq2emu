@@ -617,6 +617,19 @@ bool LoginDatabase::UpdateCharacterGender(int32 account_id, int32 character_id, 
 	return true;
 }
 
+bool LoginDatabase::UpdateCharacterName(int32 account_id, int32 character_id, char* newName, int32 server_id){
+	Query query;
+	string update_charts = string("update login_characters set name='%s' where char_id=%lu and account_id=%lu and server_id=%lu");
+	query.RunQuery2(Q_UPDATE, update_charts.c_str(),newName,character_id,account_id,server_id);
+	if(!query.GetAffectedRows())
+	{
+		LogWrite(LOGIN__ERROR, 0, "Login", "Error in UpdateCharacterName query '%s': %s", query.GetQuery(), query.GetError());
+		return false;
+	}
+
+	return true;
+}
+
 LoginAccount* LoginDatabase::LoadAccount(const char* name, const char* password, bool attemptAccountCreation){
 	LoginAccount* acct = NULL;
 	Query query;

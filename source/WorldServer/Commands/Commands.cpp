@@ -2896,7 +2896,6 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 		case COMMAND_CLASS:{
 			if(sep && sep->arg[ndx][0]){
 				client->GetPlayer()->SetPlayerAdventureClass(atoi(sep->arg[ndx]));
-				client->UpdateTimeStampFlag ( CLASS_UPDATE_FLAG );
 			}else
 				client->SimpleMessage(CHANNEL_COLOR_YELLOW,"Usage:  /class {class_id}");
 			break;
@@ -3205,9 +3204,12 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 			break;
 								  }
 		case COMMAND_NAME:{
-			if(sep && sep->arg[ndx][0]){
-				client->GetPlayer()->GetInfoStruct()->set_name(std::string(sep->arg[ndx]).substr(0,39));
+			if(sep && sep->arg[0]){
+				client->GetPlayer()->GetInfoStruct()->set_name(sep->argplus[0]);
 				client->GetPlayer()->SetCharSheetChanged(true);
+				client->GetPlayer()->info_changed = true;
+				client->GetPlayer()->GetZone()->AddChangedSpawn(client->GetPlayer());
+				client->UpdateTimeStampFlag ( NAME_UPDATE_FLAG );
 			}else
 				client->Message(CHANNEL_COLOR_YELLOW,"Usage: /name {new_name}");
 

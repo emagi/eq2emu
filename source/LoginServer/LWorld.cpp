@@ -421,6 +421,21 @@ bool LWorld::Process() {
 			}
 			break;
 									   }
+		case ServerOP_NameCharUpdate: {
+				CharNameUpdate_Struct* cnu = (CharNameUpdate_Struct*) pack->pBuffer;
+				if (cnu->name_length > 0 && cnu->name_length < 64) {
+					char name_buffer[64];
+
+					// Copy up to name_length characters from cnu->new_name
+					strncpy(name_buffer, cnu->new_name, cnu->name_length);
+
+					// Null-terminate the string just in case
+					name_buffer[cnu->name_length] = '\0';
+					
+					database.UpdateCharacterName(cnu->account_id,cnu->char_id,name_buffer,this->GetAccountID());
+				}
+				break;
+			}
 		case ServerOP_LSInfo: {
 			if (pack->size != sizeof(ServerLSInfo_Struct)) {
 				this->Kick(ERROR_BADVERSION);

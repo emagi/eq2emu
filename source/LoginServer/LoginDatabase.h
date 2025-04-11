@@ -59,6 +59,7 @@ public:
 	bool UpdateCharacterLevel(int32 account_id, int32 character_id, int8 in_level, int32 server_id);
 	bool UpdateCharacterRace(int32 account_id, int32 character_id, int16 in_racetype, int8 in_race, int32 server_id);
 	bool UpdateCharacterClass(int32 account_id, int32 character_id, int8 in_class, int32 server_id);
+	bool UpdateCharacterName(int32 account_id, int32 character_id, char* newName, int32 server_id);
 	bool UpdateCharacterZone(int32 account_id, int32 character_id, int32 zone_id, int32 server_id);
 	bool UpdateCharacterGender(int32 account_id, int32 character_id, int8 in_gender, int32 server_id);
 	int32 GetRaceID(char* name);
