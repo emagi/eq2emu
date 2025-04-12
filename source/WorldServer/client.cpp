@@ -3201,7 +3201,14 @@ void Client::HandleSkillInfoRequest(EQApplicationPacket* app) {
 			if (request->LoadPacketData(app->pBuffer, app->size)) {
 				int32 id = request->getType_int32_ByName("id");
 				int8 tier = request->getType_int32_ByName("unique_id"); //on live this is really unique_id, but I'm going to make it tier instead :)
+				
+				if(tier == 0) {
+					tier  = GetPlayer()->GetSpellTier(id);
+				}
+				
 				Spell* spell = master_spell_list.GetSpell(id, tier);
+				LogWrite(CCLIENT__DEBUG, 5, "Client", "Client::HandleSkillInfoRequest from %s: Type: Spell, Tier: (%u) Spell ID: (%u)", GetPlayer()->GetName(), tier, id);
+
 				PacketStruct* response = configReader.getStruct("WS_SkillInfoResponse", GetVersion());
 				if (response) {
 					response->setDataByName("request_type", 2);
@@ -3215,6 +3222,11 @@ void Client::HandleSkillInfoRequest(EQApplicationPacket* app) {
 					//				DumpPacket(app2);
 					QueuePacket(app2);
 					safe_delete(response);
+					
+					if(spell && GetVersion() > 561) {
+						EQ2Packet* app = spell->SerializeSpell(this, false, false);
+						QueuePacket(app);
+					}
 				}
 			}
 			safe_delete(request);
@@ -3264,6 +3276,13 @@ void Client::HandleExamineInfoRequest(EQApplicationPacket* app) {
 		if (GetVersion() > 373 && GetVersion() <= 561) {
 			trait_tier = request->getType_int32_ByName("unique_id");
 		}
+		if(!IsReadyForUpdates() || tier == 0 || tier > 12) { // zone in lets force all tiers correctly to the players spell book if they have the spell
+			SpellBookEntry* spell_entry = player->GetSpellBookSpell(id);
+			if(spell_entry) {
+				tier = spell_entry->tier;
+			}
+		}
+		
 		bool display = true;
 		if (version <= 373 && request->getType_int8_ByName("display") == 1) // this is really requesting a partial packet
 			display = false;
@@ -3298,11 +3317,13 @@ void Client::HandleExamineInfoRequest(EQApplicationPacket* app) {
 
 		if (!spell) { // fix ui timeout for classic, isle of refuge, dof, kos clients
 			int8 playerTier = GetPlayer()->GetSpellTier(id);
+			if(tier == 0)
+				playerTier = 1;
 			spell = master_spell_list.GetSpell(id, playerTier);
-			LogWrite(CCLIENT__WARNING, 0, "Client", "Client::HandleExamineInfoRequest from %s: Failed to find tier 1 spell.  Last resort try to get the spell from the player book, spell %u, tier %u", GetPlayer()->GetName(), id, playerTier);
+			LogWrite(CCLIENT__WARNING, 0, "Client", "Client::HandleExamineInfoRequest from %s: Failed to find tier %u spell.  Last resort try to get the spell from the player book, spell %u, tier %u", GetPlayer()->GetName(), tier, id, playerTier);
 		}
 
-		if (spell && !CountSentSpell(spell->GetSpellID(), spell->GetSpellTier())) {
+		if (spell && (version > 561 || !CountSentSpell(spell->GetSpellID(), spell->GetSpellTier()))) {
 			if (!spell->IsCopiedSpell())
 				SetSentSpell(spell->GetSpellID(), spell->GetSpellTier());
 
@@ -3316,7 +3337,7 @@ void Client::HandleExamineInfoRequest(EQApplicationPacket* app) {
 			QueuePacket(app);
 		}
 		else {
-			LogWrite(CCLIENT__ERROR, 0, "Client", "Client::HandleExamineInfoRequest from %s: Failed to successfully send Type: (%i) Tier: (%u) Unknown ID: (%u) Item ID: (%u)", GetPlayer()->GetName(), type, tier, trait_tier, id);
+			LogWrite(CCLIENT__ERROR, 0, "Client", "Client::HandleExamineInfoRequest from %s: Failed to successfully send Type: (%i) Tier: (%u) Unknown ID: (%u) Item ID: (%u), CountSpell: %u", GetPlayer()->GetName(), type, tier, trait_tier, id, spell == nullptr ? 0 : CountSentSpell(spell->GetSpellID(), spell->GetSpellTier()));
 		}
 	}
 	else if (type == 0) {
