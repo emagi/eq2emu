@@ -24,11 +24,8 @@ install_packages() {
         log "Detected Debian-based system. Using apt-get to install packages."
         sudo apt-get update
         sudo apt-get install -y git make mariadb-client automake g++ libsdl2-dev libmariadb-dev libboost-all-dev libreadline-dev cmake liblua5.4-dev lua5.4 libcrypto++-dev wget libglfw3-dev libgl1-mesa-dev libglu1-mesa-dev libglm-dev || handle_error "Failed to install packages using apt-get."
-    elif command -v yum >/dev/null; then
-        log "Detected RHEL-based system. Using yum to install packages."
-        sudo yum install -y git make mariadb automake gcc-c++ SDL2-devel mariadb-devel boost-devel readline-devel cmake lua-devel lua crypto++-devel wget glfw-devel mesa-libGL-devel mesa-libGLU-devel glm-devel || handle_error "Failed to install packages using yum."
     elif command -v dnf >/dev/null; then
-        log "Detected Fedora-based system. Using dnf to install packages."
+        log "Detected RHEL/Fedora-based system. Using dnf to install packages."
         sudo dnf install -y git make mariadb automake gcc-c++ SDL2-devel mariadb-devel boost-devel readline-devel cmake lua-devel lua crypto++-devel wget glfw-devel mesa-libGL-devel mesa-libGLU-devel glm-devel || handle_error "Failed to install packages using dnf."
     elif command -v zypper >/dev/null; then
         log "Detected SUSE-based system. Using zypper to install packages."
