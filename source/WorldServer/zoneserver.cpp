@@ -2986,17 +2986,7 @@ void ZoneServer::DeterminePosition(SpawnLocation* spawnlocation, Spawn* spawn){
 	spawn->SetSpawnOrigHeading(spawn->GetHeading());
 	spawn->SetSpawnOrigPitch(spawnlocation->pitch);
 	spawn->SetSpawnOrigRoll(spawnlocation->roll);
-	
-	int32 grid = spawnlocation->grid_id;
 	spawn->SetLocation(spawnlocation->grid_id);
-	if(grid == 0 && !spawn->IsFlyingCreature()) {
-		Map* zonemap = world.GetMap(std::string(GetZoneFile()),0);
-		if(zonemap) {
-			auto loc = glm::vec3(spawn->GetX(), spawn->GetZ(), spawn->GetY());
-			float new_y = zonemap->FindBestZ(loc, nullptr, nullptr, &grid);
-			spawn->SetLocation(grid);
-		}
-	}
 	spawn->SetSpawnLocationPlacementID(spawnlocation->placement_id);
 }
 
