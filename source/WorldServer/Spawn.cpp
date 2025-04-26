@@ -3852,7 +3852,7 @@ void Spawn::FaceTarget(Spawn* target, bool disable_action_state){
 				((NPC*)this)->StartRunback();
 				((NPC*)this)->PauseMovement(30000);
 			}
-			//SetTempActionState(0);
+			SetTempActionState(0);
 		}
 	}
 }
