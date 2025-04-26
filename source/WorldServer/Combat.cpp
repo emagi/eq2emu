@@ -127,7 +127,7 @@ bool Entity::AttackAllowed(Entity* target, float distance, bool range_attack) {
 		return false;
 	}
 	
-	if(rule_manager.GetZoneRule(GetZoneID(), R_Combat, LockedEncounterNoAttack)->GetBool()) {
+	if(GetInfoStruct()->get_lockable_encounter() && rule_manager.GetZoneRule(GetZoneID(), R_Combat, LockedEncounterNoAttack)->GetBool()) {
 		if(IsNPC() && GetAttackable() == 0 && target->IsNPC()) {
 			return true;
 		}

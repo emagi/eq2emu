@@ -277,6 +277,7 @@ struct InfoStruct{
 		last_claim_time_ = 0;
 		
 		engaged_encounter_ = 0;
+		lockable_encounter_ = 1;
 		
 		first_world_login_ = 0;
 		reload_player_spells_ = 0;
@@ -483,6 +484,7 @@ struct InfoStruct{
 		last_claim_time_ = oldStruct->get_last_claim_time();
 		
 		engaged_encounter_ = oldStruct->get_engaged_encounter();
+		lockable_encounter_ = oldStruct->get_lockable_encounter();
 		
 		first_world_login_ = oldStruct->get_first_world_login();
 		reload_player_spells_ = oldStruct->get_reload_player_spells();
@@ -706,6 +708,7 @@ struct InfoStruct{
 	int32	get_last_claim_time() { std::lock_guard<std::mutex> lk(classMutex); return last_claim_time_; }
 	
 	int8	get_engaged_encounter() { std::lock_guard<std::mutex> lk(classMutex); return engaged_encounter_; }
+	int8	get_lockable_encounter() { std::lock_guard<std::mutex> lk(classMutex); return lockable_encounter_; }
 	
 	int8	get_first_world_login() { std::lock_guard<std::mutex> lk(classMutex); return first_world_login_; }
 	
@@ -1017,6 +1020,7 @@ struct InfoStruct{
 	void	set_last_claim_time(int32 value) { std::lock_guard<std::mutex> lk(classMutex); last_claim_time_ = value; }
 	
 	void	set_engaged_encounter(int8 value) { std::lock_guard<std::mutex> lk(classMutex); engaged_encounter_ = value; }
+	void	set_lockable_encounter(int8 value) { std::lock_guard<std::mutex> lk(classMutex); lockable_encounter_ = value; }
 	
 	void	set_first_world_login(int8 value) { std::lock_guard<std::mutex> lk(classMutex); first_world_login_ = value; }
 	
@@ -1247,6 +1251,7 @@ private:
 	int32			last_claim_time_;
 	
 	int8			engaged_encounter_;
+	int8			lockable_encounter_;
 	
 	int8			first_world_login_;
 	int8			reload_player_spells_;
