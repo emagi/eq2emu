@@ -868,7 +868,7 @@ uchar* Spawn::spawn_pos_changes(Player* player, int16 version, int16* pos_packet
 	player->pos_mutex.writelock(__FUNCTION__, __LINE__);
 	uchar* orig_packet = player->GetSpawnPosPacketForXOR(id);
 	packet->ResetData();
-	InitializePosPacketData(player, packet, version > 561 ? true : false);
+	InitializePosPacketData(player, packet);
 	string* data = packet->serializeString();
 	int32 size = data->length();
 	uchar* xor_pos_packet = player->GetTempPosPacketForXOR();
