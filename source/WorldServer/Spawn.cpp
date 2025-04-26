@@ -3845,6 +3845,7 @@ void Spawn::FaceTarget(float x, float z){
 void Spawn::FaceTarget(Spawn* target, bool disable_action_state){
 	if(!target)
 		return;
+	FaceTarget(target->GetX(), target->GetZ());
 	if(GetHP() > 0 && target->IsPlayer() && !EngagedInCombat()){
 		if(!IsPet() && disable_action_state) {
 			if(IsNPC()) {
@@ -3854,7 +3855,6 @@ void Spawn::FaceTarget(Spawn* target, bool disable_action_state){
 			SetTempActionState(0);
 		}
 	}
-	FaceTarget(target->GetX(), target->GetZ());
 }
 
 bool Spawn::MeetsSpawnAccessRequirements(Player* player){
