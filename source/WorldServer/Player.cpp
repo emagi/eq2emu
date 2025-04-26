@@ -6096,7 +6096,8 @@ map<string, int8>* Player::GetIgnoredPlayers(){
 bool Player::CheckLevelStatus(int16 new_level) {
 	int16 LevelCap					= rule_manager.GetGlobalRule(R_Player, MaxLevel)->GetInt16();
 	int16 LevelCapOverrideStatus	= rule_manager.GetGlobalRule(R_Player, MaxLevelOverrideStatus)->GetInt16();
-	if ( GetClient() && (LevelCap < new_level) && (LevelCapOverrideStatus > GetClient()->GetAdminStatus()) )
+	int16 MaxLevelPlayer			= GetInfoStruct()->get_max_level();
+	if ( GetClient() && (LevelCap < new_level) && (LevelCapOverrideStatus > GetClient()->GetAdminStatus()) && (MaxLevelPlayer < 1 || MaxLevelPlayer < new_level) )
 			return false;
 	return true;
 }
