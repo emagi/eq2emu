@@ -339,6 +339,9 @@ public:
 	template <class Field, class Value> void SetPos(Field* field, Value value, bool setUpdateFlags = true){
 		if(setUpdateFlags){
 			position_changed = true;
+			info_changed = true;
+			vis_changed = true;
+			AddChangedZoneSpawn();
 		}
 		Set(field, value, setUpdateFlags);
 	}
