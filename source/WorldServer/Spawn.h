@@ -337,13 +337,14 @@ public:
 		strcpy(field, value);
 	}
 	template <class Field, class Value> void SetPos(Field* field, Value value, bool setUpdateFlags = true){
+		Set(field, value, false);
 		if(setUpdateFlags){
 			position_changed = true;
 			info_changed = true;
 			vis_changed = true;
+			changed = true;
 			AddChangedZoneSpawn();
 		}
-		Set(field, value, setUpdateFlags);
 	}
 	template <class Field, class Value> void SetInfo(Field* field, Value value, bool setUpdateFlags = true){
 		if(setUpdateFlags){
@@ -464,7 +465,7 @@ public:
 		SetPos(&appearance.pos.Z, z, updateFlags);
 	}
 	void SetHeading(sint16 dir1, sint16 dir2, bool updateFlags = true){ 
-		SetPos(&appearance.pos.Dir1, dir1, updateFlags);
+		SetPos(&appearance.pos.Dir1, dir1, false); // we set the update for heading on the second direction do not duplicate the process
 		SetPos(&appearance.pos.Dir2, dir2, updateFlags);
 	}
 	void SetHeading(float heading, bool updateFlags = true){
@@ -474,18 +475,18 @@ public:
 		SetHeading((sint16)heading, (sint16)heading, updateFlags);
 	}
 	void SetPitch(sint16 pitch1, sint16 pitch2, bool updateFlags = true){
-		SetPos(&appearance.pos.Pitch1, (sint16)pitch1, updateFlags);
+		SetPos(&appearance.pos.Pitch1, (sint16)pitch1, false);
 		SetPos(&appearance.pos.Pitch2, (sint16)pitch2, updateFlags);
 	}
 	void SetPitch(float pitch, bool updateFlags = true){
 		if (pitch == 0){
-			SetPos(&appearance.pos.Pitch1, (sint16)0, updateFlags);
+			SetPos(&appearance.pos.Pitch1, (sint16)0, false);
 			SetPos(&appearance.pos.Pitch2, (sint16)0, updateFlags);
 			return;
 		}
 		if (pitch != 180)
 			pitch = (pitch - 180) * 64;
-		SetPos(&appearance.pos.Pitch1, (sint16)pitch, updateFlags);
+		SetPos(&appearance.pos.Pitch1, (sint16)pitch, false);
 		SetPos(&appearance.pos.Pitch2, (sint16)pitch, updateFlags);
 	}
 	void SetRoll(float roll, bool updateFlags = true){
