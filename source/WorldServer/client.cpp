@@ -5450,7 +5450,11 @@ void Client::ChangeLevel(int16 old_level, int16 new_level) {
 		QueuePacket(level_update->serialize());
 		safe_delete(level_update);
 		GetCurrentZone()->StartZoneSpawnsForLevelThread(this);
-		GetCurrentZone()->SendCastSpellPacket(322, player, player); //send level up spell effect
+		int16 visualToSend = 322;
+		if(new_level == 50) {
+			visualToSend = 323; // level 50 sends a custom effect visual
+		}
+		GetCurrentZone()->SendCastSpellPacket(visualToSend, player, player); //send level up spell effect
 		//GetCurrentZone()->SendAllSpawnsForLevelChange(this);
 	}
 
