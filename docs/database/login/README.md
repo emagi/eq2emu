@@ -1,0 +1,23 @@
+# Login Database Schema
+
+## Tables
+- [account](./account.md)
+- [appearances](./appearances.md)
+- [bug_notes](./bug_notes.md)
+- [bugs](./bugs.md)
+- [log_messages](./log_messages.md)
+- [login_bannedips](./login_bannedips.md)
+- [login_char_colors](./login_char_colors.md)
+- [login_characters](./login_characters.md)
+- [login_config](./login_config.md)
+- [login_equipment](./login_equipment.md)
+- [login_versions](./login_versions.md)
+- [login_worldservers](./login_worldservers.md)
+- [login_worldstats](./login_worldstats.md)
+- [ls_character_picture](./ls_character_picture.md)
+- [ls_world_zones](./ls_world_zones.md)
+- [opcodes](./opcodes.md)
+- [visual_states](./visual_states.md)
+- [web_routes](./web_routes.md)
+- [web_users](./web_users.md)
+- [zones](./zones.md)
