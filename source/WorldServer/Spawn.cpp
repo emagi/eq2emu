@@ -2131,7 +2131,7 @@ void Spawn::InitializePosPacketData(Player* player, PacketStruct* packet, bool b
 				new_y = itr->second.offset_y;
 				
 				if(player->GetMap() != GetMap()) {
-					ground_diff = itr->second.zone_ground_y - itr->second.offset_y;
+					ground_diff = sqrtf((GetY() - itr->second.zone_ground_y) * (GetY() - itr->second.zone_ground_y));
 				}
 				itr->second.timestamp = Timer::GetCurrentTime2()+1000;
 			}
@@ -2141,7 +2141,7 @@ void Spawn::InitializePosPacketData(Player* player, PacketStruct* packet, bool b
 				float zone_ground_y = new_y;
 				if(player->GetMap() != GetMap()) {
 					zone_ground_y = FindBestZ(loc, nullptr, nullptr, nullptr);
-					ground_diff = zone_ground_y - new_y;
+					ground_diff = sqrtf((GetY() - zone_ground_y) * (GetY() - zone_ground_y));
 				}
 				TimedGridData data;
 				data.grid_id = new_grid_id;
@@ -3845,7 +3845,9 @@ void Spawn::FaceTarget(float x, float z){
 void Spawn::FaceTarget(Spawn* target, bool disable_action_state){
 	if(!target)
 		return;
+
 	FaceTarget(target->GetX(), target->GetZ());
+
 	if(GetHP() > 0 && target->IsPlayer() && !EngagedInCombat()){
 		if(!IsPet() && disable_action_state) {
 			if(IsNPC()) {
