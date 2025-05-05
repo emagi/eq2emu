@@ -1381,6 +1381,10 @@ int16 Player::ConvertSlotToClient(int8 slot, int16 version) {
 			slot = EQ2_DOF_FOOD_SLOT;
 		else if (slot == EQ2_DRINK_SLOT)
 			slot = EQ2_DOF_DRINK_SLOT;
+		else if (slot == EQ2_CHARM_SLOT_1)
+			slot = EQ2_DOF_CHARM_SLOT_1;
+		else if (slot == EQ2_CHARM_SLOT_2)
+			slot = EQ2_DOF_CHARM_SLOT_2;
 		else if (slot > EQ2_EARS_SLOT_1 && slot <= EQ2_WAIST_SLOT)
 			slot -= 1;
 	}
@@ -1401,6 +1405,10 @@ int16 Player::ConvertSlotFromClient(int8 slot, int16 version) {
 			slot = EQ2_FOOD_SLOT;
 		else if (slot == EQ2_DOF_DRINK_SLOT)
 			slot = EQ2_DRINK_SLOT;
+		else if (slot == EQ2_DOF_CHARM_SLOT_1)
+			slot = EQ2_CHARM_SLOT_1;
+		else if (slot == EQ2_DOF_CHARM_SLOT_2)
+			slot = EQ2_CHARM_SLOT_2;
 		else if (slot > EQ2_EARS_SLOT_1 && slot <= EQ2_WAIST_SLOT)
 			slot += 1;
 	}

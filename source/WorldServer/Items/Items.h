@@ -70,6 +70,8 @@ extern MasterItemList master_item_list;
 #define EQ2_BACK_SLOT 30
 #define EQ2_ORIG_FOOD_SLOT 18
 #define EQ2_ORIG_DRINK_SLOT 19
+#define EQ2_DOF_CHARM_SLOT_1 18
+#define EQ2_DOF_CHARM_SLOT_2 19
 #define EQ2_DOF_FOOD_SLOT 20
 #define EQ2_DOF_DRINK_SLOT 21
 

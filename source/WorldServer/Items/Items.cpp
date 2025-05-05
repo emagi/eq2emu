@@ -2227,6 +2227,10 @@ void Item::serialize(PacketStruct* packet, bool show_name, Player* player, int16
 					slot = EQ2_DOF_FOOD_SLOT;
 				else if (slot == EQ2_DRINK_SLOT)
 					slot = EQ2_DOF_DRINK_SLOT;
+				else if (slot == EQ2_CHARM_SLOT_1)
+					slot = EQ2_DOF_CHARM_SLOT_1;
+				else if (slot == EQ2_CHARM_SLOT_2)
+					slot = EQ2_DOF_CHARM_SLOT_2;
 			}
 			packet->setArrayDataByName("slot", slot, i);
 		}
