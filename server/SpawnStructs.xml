@@ -837,7 +837,7 @@
 <Data ElementName="soga_hair_type_highlight_color" Type="EQ2_Color" />
 <Data ElementName="soga_hair_face_color" Type="EQ2_Color" />
 <Data ElementName="soga_hair_face_highlight_color" Type="EQ2_Color" />
-<Data ElementName="unknown12" Type="EQ2_Color" Size="1" />
+<Data ElementName="skull_type" Type="EQ2_Color" Size="1" />
 <Data ElementName="eye_type" Type="sint8" Size="3" />
 <Data ElementName="ear_type" Type="sint8" Size="3" />
 <Data ElementName="eye_brow_type" Type="sint8" Size="3" />
@@ -925,7 +925,7 @@
 <Data ElementName="soga_hair_type_highlight_color" Type="EQ2_Color" />
 <Data ElementName="soga_hair_face_color" Type="EQ2_Color" />
 <Data ElementName="soga_hair_face_highlight_color" Type="EQ2_Color" />
-<Data ElementName="unknown12" Type="EQ2_Color" Size="1" />
+<Data ElementName="skull_type" Type="EQ2_Color" Size="1" />
 <Data ElementName="eye_type" Type="sint8" Size="3" />
 <Data ElementName="ear_type" Type="sint8" Size="3" />
 <Data ElementName="eye_brow_type" Type="sint8" Size="3" />
@@ -1012,7 +1012,7 @@
 <Data ElementName="soga_hair_type_highlight_color" Type="EQ2_Color" />
 <Data ElementName="soga_hair_face_color" Type="EQ2_Color" />
 <Data ElementName="soga_hair_face_highlight_color" Type="EQ2_Color" />
-<Data ElementName="unknown12" Type="EQ2_Color" Size="1" />
+<Data ElementName="skull_type" Type="EQ2_Color" Size="1" />
 <Data ElementName="eye_type" Type="sint8" Size="3" />
 <Data ElementName="ear_type" Type="sint8" Size="3" />
 <Data ElementName="eye_brow_type" Type="sint8" Size="3" />
@@ -1101,7 +1101,7 @@
 <Data ElementName="soga_hair_type_highlight_color" Type="EQ2_Color" />
 <Data ElementName="soga_hair_face_color" Type="EQ2_Color" />
 <Data ElementName="soga_hair_face_highlight_color" Type="EQ2_Color" />
-<Data ElementName="unknown12" Type="EQ2_Color" Size="1" />
+<Data ElementName="skull_type" Type="EQ2_Color" Size="1" />
 <Data ElementName="eye_type" Type="sint8" Size="3" />
 <Data ElementName="ear_type" Type="sint8" Size="3" />
 <Data ElementName="eye_brow_type" Type="sint8" Size="3" />
@@ -1191,7 +1191,7 @@
 <Data ElementName="soga_hair_type_highlight_color" Type="EQ2_Color" />
 <Data ElementName="soga_hair_face_color" Type="EQ2_Color" />
 <Data ElementName="soga_hair_face_highlight_color" Type="EQ2_Color" />
-<Data ElementName="unknown12" Type="EQ2_Color" Size="1" />
+<Data ElementName="skull_type" Type="EQ2_Color" Size="1" />
 <Data ElementName="eye_type" Type="sint8" Size="3" />
 <Data ElementName="ear_type" Type="sint8" Size="3" />
 <Data ElementName="eye_brow_type" Type="sint8" Size="3" />
@@ -1280,7 +1280,7 @@
 <Data ElementName="soga_hair_type_highlight_color" Type="EQ2_Color" />
 <Data ElementName="soga_hair_face_color" Type="EQ2_Color" />
 <Data ElementName="soga_hair_face_highlight_color" Type="EQ2_Color" />
-<Data ElementName="unknown12" Type="EQ2_Color" Size="1" />
+<Data ElementName="skull_type" Type="EQ2_Color" Size="1" />
 <Data ElementName="eye_type" Type="sint8" Size="3" />
 <Data ElementName="ear_type" Type="sint8" Size="3" />
 <Data ElementName="eye_brow_type" Type="sint8" Size="3" />
@@ -1370,7 +1370,7 @@
 <Data ElementName="soga_hair_type_highlight_color" Type="EQ2_Color" />
 <Data ElementName="soga_hair_face_color" Type="EQ2_Color" />
 <Data ElementName="soga_hair_face_highlight_color" Type="EQ2_Color" />
-<Data ElementName="unknown12" Type="EQ2_Color" Size="1" />
+<Data ElementName="skull_type" Type="EQ2_Color" Size="1" />
 <Data ElementName="eye_type" Type="sint8" Size="3" />
 <Data ElementName="ear_type" Type="sint8" Size="3" />
 <Data ElementName="eye_brow_type" Type="sint8" Size="3" />
@@ -1461,7 +1461,7 @@
 <Data ElementName="soga_hair_type_highlight_color" Type="EQ2_Color" />
 <Data ElementName="soga_hair_face_color" Type="EQ2_Color" />
 <Data ElementName="soga_hair_face_highlight_color" Type="EQ2_Color" />
-<Data ElementName="unknown12" Type="EQ2_Color" Size="1" />
+<Data ElementName="skull_type" Type="EQ2_Color" Size="1" />
 <Data ElementName="eye_type" Type="sint8" Size="3" />
 <Data ElementName="ear_type" Type="sint8" Size="3" />
 <Data ElementName="eye_brow_type" Type="sint8" Size="3" />
@@ -1555,7 +1555,7 @@
 <Data ElementName="soga_hair_type_highlight_color" Type="EQ2_Color" />
 <Data ElementName="soga_hair_face_color" Type="EQ2_Color" />
 <Data ElementName="soga_hair_face_highlight_color" Type="EQ2_Color" />
-<Data ElementName="unknown12" Type="EQ2_Color" Size="1" />
+<Data ElementName="skull_type" Type="EQ2_Color" Size="1" />
 <Data ElementName="eye_type" Type="sint8" Size="3" />
 <Data ElementName="ear_type" Type="sint8" Size="3" />
 <Data ElementName="eye_brow_type" Type="sint8" Size="3" />
@@ -1647,7 +1647,7 @@
 <Data ElementName="soga_hair_type_highlight_color" Type="EQ2_Color" />
 <Data ElementName="soga_hair_face_color" Type="EQ2_Color" />
 <Data ElementName="soga_hair_face_highlight_color" Type="EQ2_Color" />
-<Data ElementName="unknown12" Type="EQ2_Color" Size="1" />
+<Data ElementName="skull_type" Type="EQ2_Color" Size="1" />
 <Data ElementName="eye_type" Type="sint8" Size="3" />
 <Data ElementName="ear_type" Type="sint8" Size="3" />
 <Data ElementName="eye_brow_type" Type="sint8" Size="3" />
@@ -1733,7 +1733,7 @@
 <Data ElementName="soga_hair_type_highlight_color" Type="EQ2_Color" />
 <Data ElementName="soga_hair_face_color" Type="EQ2_Color" />
 <Data ElementName="soga_hair_face_highlight_color" Type="EQ2_Color" />
-<Data ElementName="unknown12" Type="EQ2_Color" Size="1" />
+<Data ElementName="skull_type" Type="EQ2_Color" Size="1" />
 <Data ElementName="eye_type" Type="sint8" Size="3" />
 <Data ElementName="ear_type" Type="sint8" Size="3" />
 <Data ElementName="eye_brow_type" Type="sint8" Size="3" />
@@ -1826,7 +1826,7 @@
 <Data ElementName="soga_hair_type_highlight_color" Type="EQ2_Color" />
 <Data ElementName="soga_hair_face_color" Type="EQ2_Color" />
 <Data ElementName="soga_hair_face_highlight_color" Type="EQ2_Color" />
-<Data ElementName="unknown12" Type="EQ2_Color" Size="1" />
+<Data ElementName="skull_type" Type="EQ2_Color" Size="1" />
 <Data ElementName="eye_type" Type="sint8" Size="3" />
 <Data ElementName="ear_type" Type="sint8" Size="3" />
 <Data ElementName="eye_brow_type" Type="sint8" Size="3" />
@@ -1922,7 +1922,7 @@
 <Data ElementName="soga_hair_type_highlight_color" Type="EQ2_Color" />
 <Data ElementName="soga_hair_face_color" Type="EQ2_Color" />
 <Data ElementName="soga_hair_face_highlight_color" Type="EQ2_Color" />
-<Data ElementName="unknown12" Type="EQ2_Color" Size="1" />
+<Data ElementName="skull_type" Type="EQ2_Color" Size="1" />
 <Data ElementName="eye_type" Type="sint8" Size="3" />
 <Data ElementName="ear_type" Type="sint8" Size="3" />
 <Data ElementName="eye_brow_type" Type="sint8" Size="3" />
@@ -2018,7 +2018,7 @@
 <Data ElementName="soga_hair_type_highlight_color" Type="EQ2_Color" />
 <Data ElementName="soga_hair_face_color" Type="EQ2_Color" />
 <Data ElementName="soga_hair_face_highlight_color" Type="EQ2_Color" />
-<Data ElementName="unknown12" Type="EQ2_Color" Size="1" />
+<Data ElementName="skull_type" Type="EQ2_Color" Size="1" />
 <Data ElementName="eye_type" Type="sint8" Size="3" />
 <Data ElementName="ear_type" Type="sint8" Size="3" />
 <Data ElementName="eye_brow_type" Type="sint8" Size="3" />
@@ -2125,7 +2125,7 @@
 <Data ElementName="soga_hair_type_highlight_color" Type="EQ2_Color" />
 <Data ElementName="soga_hair_face_color" Type="EQ2_Color" />
 <Data ElementName="soga_hair_face_highlight_color" Type="EQ2_Color" />
-<Data ElementName="unknown12" Type="EQ2_Color" Size="1" />
+<Data ElementName="skull_type" Type="EQ2_Color" Size="1" />
 <Data ElementName="eye_type" Type="sint8" Size="3" />
 <Data ElementName="ear_type" Type="sint8" Size="3" />
 <Data ElementName="eye_brow_type" Type="sint8" Size="3" />
@@ -2231,7 +2231,7 @@
 <Data ElementName="soga_hair_type_highlight_color" Type="EQ2_Color" />
 <Data ElementName="soga_hair_face_color" Type="EQ2_Color" />
 <Data ElementName="soga_hair_face_highlight_color" Type="EQ2_Color" />
-<Data ElementName="unknown12" Type="EQ2_Color" Size="1" />
+<Data ElementName="skull_type" Type="EQ2_Color" Size="1" />
 <Data ElementName="eye_type" Type="sint8" Size="3" />
 <Data ElementName="ear_type" Type="sint8" Size="3" />
 <Data ElementName="eye_brow_type" Type="sint8" Size="3" />
@@ -2442,7 +2442,7 @@
 <Data ElementName="soga_skin_color" Type="EQ2_Color" />
 <Data ElementName="kunark_unknown_color1" Type="EQ2_Color" />
 <Data ElementName="kunark_unknown_color2" Type="EQ2_Color" />
-<Data ElementName="unknown12" Type="EQ2_Color" Size="1" />
+<Data ElementName="skull_type" Type="EQ2_Color" Size="1" />
 <Data ElementName="eye_type" Type="sint8" Size="3" />
 <Data ElementName="ear_type" Type="sint8" Size="3" />
 <Data ElementName="eye_brow_type" Type="sint8" Size="3" />
