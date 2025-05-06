@@ -132,6 +132,7 @@ enum RuleType {
 	StrengthOther,
 	MaxSkillBonusByLevel,
 	LockedEncounterNoAttack,
+	MaxChaseDistance,
 
 	/* SPAWN */
 	SpeedMultiplier,

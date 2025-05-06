@@ -297,6 +297,7 @@ struct InfoStruct{
 		
 		max_spell_reduction_ = .1f;
 		max_spell_reduction_override_ = 0;
+		max_chase_distance_ = 0.0f;
 	}
 
 
@@ -504,6 +505,7 @@ struct InfoStruct{
 		
 		max_spell_reduction_ = oldStruct->get_max_spell_reduction();
 		max_spell_reduction_override_ = oldStruct->get_max_spell_reduction_override();
+		max_chase_distance_ = oldStruct->get_max_chase_distance();
 	}
 	//mutable std::shared_mutex mutex_;
     std::string get_name() { std::lock_guard<std::mutex> lk(classMutex); return name_; }
@@ -731,6 +733,8 @@ struct InfoStruct{
 	float	get_max_spell_reduction() { std::lock_guard<std::mutex> lk(classMutex); return max_spell_reduction_; }
 	int8	get_max_spell_reduction_override() { std::lock_guard<std::mutex> lk(classMutex); return max_spell_reduction_override_; }
 	
+	float	get_max_chase_distance() { std::lock_guard<std::mutex> lk(classMutex); return max_chase_distance_; }
+	
 	void	set_name(std::string value) { std::lock_guard<std::mutex> lk(classMutex); name_ = value; }
 	
 	void	set_deity(std::string value) { std::lock_guard<std::mutex> lk(classMutex); deity_ = value; }
@@ -926,6 +930,8 @@ struct InfoStruct{
 	void	set_rain(float value) { std::lock_guard<std::mutex> lk(classMutex); if(value > 1.0f) value = 1.0f; else if(value < 0.0f) value = 0.0f; rain_ = value; }
 	void	set_wind(float value) { std::lock_guard<std::mutex> lk(classMutex); if(value > 1.0f) value = 1.0f; else if(value < 0.0f) value = 0.0f; wind_ = value; }
 
+	void	set_max_chase_distance(float value) { std::lock_guard<std::mutex> lk(classMutex); max_chase_distance_ = value; }
+	
 	void	add_block_chance(float value) { std::lock_guard<std::mutex> lk(classMutex); if(block_chance_ + value < 0.0f) block_chance_ = 0.0f; else block_chance_ += value; }
 	void	add_uncontested_parry(float value) { std::lock_guard<std::mutex> lk(classMutex); if(uncontested_parry_ + value < 0.0f) uncontested_parry_ = 0.0f; else uncontested_parry_ += value; }
 	void	add_uncontested_block(float value) { std::lock_guard<std::mutex> lk(classMutex); if(uncontested_block_ + value < 0.0f) uncontested_block_ = 0.0f; else uncontested_block_ += value; }
@@ -1273,6 +1279,7 @@ private:
 	float			max_spell_reduction_;
 	int8			max_spell_reduction_override_;
 	
+	float			max_chase_distance_;
 	// when PacketStruct is fixed for C++17 this should become a shared_mutex and handle read/write lock
 	std::mutex		classMutex;
 };

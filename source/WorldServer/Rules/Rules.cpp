@@ -273,6 +273,7 @@ void RuleManager::Init()
 	RULE_INIT(R_Combat, StrengthOther, "25"); // divider for strength other than NPC str/x = additional dmg to low/high dmg
 	RULE_INIT(R_Combat, MaxSkillBonusByLevel, "1.5"); // Level * 1.5 = max bonus skill allowed
 	RULE_INIT(R_Combat, LockedEncounterNoAttack, "1"); // when set to 1, players/group members not part of the encounter cannot attack until /yell
+	RULE_INIT(R_Combat, MaxChaseDistance, "0.0"); // Default is 0, uses hard coded define MAX_CHASE_DISTANCE of 80.0.  If set then this is an override for zone/server level.
 
 	/* SPAWN */
 	RULE_INIT(R_Spawn, SpeedMultiplier, "300"); // note: this value was 1280 until 6/1/2009, then was 600 til Sep 2009, when it became 300...?

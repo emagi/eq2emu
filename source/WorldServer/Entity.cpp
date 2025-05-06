@@ -383,6 +383,7 @@ void Entity::MapInfoStruct()
 	
 	get_float_funcs["max_spell_reduction"] = l::bind(&InfoStruct::get_max_spell_reduction, &info_struct);
 	get_int8_funcs["max_spell_reduction_override"] = l::bind(&InfoStruct::get_max_spell_reduction_override, &info_struct);
+	get_float_funcs["max_chase_distance"] = l::bind(&InfoStruct::get_max_chase_distance, &info_struct);
 
 /** SETS **/
 	set_string_funcs["name"] = l::bind(&InfoStruct::set_name, &info_struct, l::_1);
@@ -590,6 +591,7 @@ void Entity::MapInfoStruct()
 
 	set_float_funcs["max_spell_reduction"] = l::bind(&InfoStruct::set_max_spell_reduction, &info_struct, l::_1);
 	set_int8_funcs["max_spell_reduction_override"] = l::bind(&InfoStruct::set_max_spell_reduction_override, &info_struct, l::_1);
+	set_float_funcs["max_chase_distance"] = l::bind(&InfoStruct::set_max_chase_distance, &info_struct, l::_1);
 }
 
 bool Entity::HasMoved(bool include_heading){
