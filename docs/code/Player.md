@@ -1,0 +1,379 @@
+# File: `Player.h`
+
+## Classes
+
+- `HistoryData`
+- `LUAHistory`
+- `SpellBookEntry`
+- `GMTagFilter`
+- `QuickBarItem`
+- `LoginAppearances`
+- `SpawnQueueState`
+- `PlayerLoginAppearance`
+- `InstanceData`
+- `CharacterInstances`
+- `Player`
+- `PlayerGroup`
+- `GroupMemberInfo`
+- `Statistic`
+- `Mail`
+- `PlayerInfo`
+- `PlayerControlFlags`
+- `Player`
+
+## Functions
+
+- `void AddEquipmentToUpdate(int8 slot_id, LoginAppearances* equip)`
+- `void DeleteEquipmentFromUpdate(int8 slot_id, LoginAppearances* equip)`
+- `void RemoveEquipmentUpdates()`
+- `void AddInstance(int32 db_id, int32 instance_id, int32 last_success_timestamp, int32 last_failure_timestamp, int32 success_lockout_time, int32 failure_lockout_time, int32 zone_id, int8 zone_instancetype, string zone_name);`
+- `void RemoveInstances();`
+- `bool RemoveInstanceByZoneID(int32 zone_id);`
+- `bool RemoveInstanceByInstanceID(int32 instance_id);`
+- `vector<InstanceData> GetLockoutInstances();`
+- `vector<InstanceData> GetPersistentInstances();`
+- `void ProcessInstanceTimers(Player* player);`
+- `int32 GetInstanceCount();`
+- `void CalculateXPPercentages();`
+- `void CalculateTSXPPercentages();`
+- `void SetHouseZone(int32 id);`
+- `void SetBindZone(int32 id);`
+- `void SetBindX(float x);`
+- `void SetBindY(float y);`
+- `void SetBindZ(float z);`
+- `void SetBindHeading(float heading);`
+- `void SetAccountAge(int32 days);`
+- `int32 GetHouseZoneID();`
+- `int32 GetBindZoneID();`
+- `float GetBindZoneX();`
+- `float GetBindZoneY();`
+- `float GetBindZoneZ();`
+- `float GetBindZoneHeading();`
+- `float GetBoatX() { return boat_x_offset; }`
+- `float GetBoatY() { return boat_y_offset; }`
+- `float GetBoatZ() { return boat_z_offset; }`
+- `int32 GetBoatSpawn();`
+- `void SetBoatX(float x) { boat_x_offset = x; }`
+- `void SetBoatY(float y) { boat_y_offset = y; }`
+- `void SetBoatZ(float z) { boat_z_offset = z; }`
+- `void SetBoatSpawn(Spawn* boat);`
+- `void RemoveOldPackets();`
+- `void SetPlayerControlFlag(int8 param, int8 param_value, bool is_active);`
+- `bool ControlFlagsChanged();`
+- `void SendControlFlagUpdates(Client* client);`
+- `void SetClient(Client* client) { this->client = client; }`
+- `void SetCharSheetChanged(bool val);`
+- `bool GetCharSheetChanged();`
+- `void SetRaidSheetChanged(bool val);`
+- `bool GetRaidSheetChanged();`
+- `void AddFriend(const char* name, bool save);`
+- `bool IsFriend(const char* name);`
+- `void RemoveFriend(const char* name);`
+- `void AddIgnore(const char* name, bool save);`
+- `bool IsIgnored(const char* name);`
+- `void RemoveIgnore(const char* name);`
+- `void AddPlayerDiscoveredPOI(int32 location_id);`
+- `void	SetArtLevel(int8 new_lvl){`
+- `bool WasSentSpawn(int32 spawn_id);`
+- `bool IsSendingSpawn(int32 spawn_id);`
+- `bool IsRemovingSpawn(int32 spawn_id);`
+- `bool SetSpawnSentState(Spawn* spawn, SpawnState state);`
+- `void CheckSpawnStateQueue();`
+- `void SetSideSpeed(float side_speed, bool updateFlags = true) {`
+- `float GetSideSpeed() {`
+- `void SetVertSpeed(float vert_speed, bool updateFlags = true) {`
+- `float GetVertSpeed() {`
+- `void SetClientHeading1(float heading, bool updateFlags = true) {`
+- `float GetClientHeading1() {`
+- `void SetClientHeading2(float heading, bool updateFlags = true) {`
+- `float GetClientHeading2() {`
+- `void SetClientPitch(float pitch, bool updateFlags = true) {`
+- `float GetClientPitch() {`
+- `int8 GetTutorialStep() {`
+- `void SetTutorialStep(int8 val) {`
+- `void	AddMaintainedSpell(LuaSpell* spell);`
+- `void	AddSpellEffect(LuaSpell* spell, int32 override_expire_time = 0);`
+- `void	RemoveMaintainedSpell(LuaSpell* spell);`
+- `void	RemoveSpellEffect(LuaSpell* spell);`
+- `void	AddQuickbarItem(int32 bar, int32 slot, int32 type, int16 icon, int16 icon_type, int32 id, int8 tier, int32 unique_id, const char* text, bool update = true);`
+- `void	RemoveQuickbarItem(int32 bar, int32 slot, bool update = true);`
+- `void	MoveQuickbarItem(int32 id, int32 new_slot);`
+- `void	ClearQuickbarItems();`
+- `bool DamageEquippedItems(int8 amount = 10, Client* client = 0);`
+- `bool CanEquipItem(Item* item, int8 slot);`
+- `void SetEquippedItemAppearances();`
+- `int16 ConvertSlotToClient(int8 slot, int16 version);`
+- `int16 ConvertSlotFromClient(int8 slot, int16 version);`
+- `int16 GetNumSlotsEquip(int16 version);`
+- `int8 GetMaxBagSlots(int16 version);`
+- `void        SendQuestRequiredSpawns(int32 quest_id);`
+- `void		SendHistoryRequiredSpawns(int32 event_id);`
+- `int32  GetStepProgress(int32 quest_id, int32 step_id);`
+- `bool AddItem(Item* item, AddItemType type = AddItemType::NOT_SET);`
+- `bool AddItemToBank(Item* item);`
+- `int16 GetSpellSlotMappingCount();`
+- `int16 GetSpellPacketCount();`
+- `bool GetQuestStepComplete(int32 quest_id, int32 step_id);`
+- `int16 GetQuestStep(int32 quest_id);`
+- `int16 GetTaskGroupStep(int32 quest_id);`
+- `int8 GetSpellTier(int32 id);`
+- `void SetSpellStatus(Spell* spell, int8 status);`
+- `void RemoveSpellStatus(Spell* spell, int8 status);`
+- `int32 GetCharacterID();`
+- `void SetCharacterID(int32 new_id);`
+- `bool UpdateQuickbarNeeded();`
+- `void ResetQuickbarNeeded();`
+- `void set_character_flag(int flag);`
+- `void reset_character_flag(int flag);`
+- `void toggle_character_flag(int flag);`
+- `bool get_character_flag(int flag);`
+- `void AddCoins(int64 val);`
+- `bool RemoveCoins(int64 val);`
+- `bool HasCoins(int64 val);`
+- `void AddSkill(int32 skill_id, int16 current_val, int16 max_val, bool save_needed = false);`
+- `void RemovePlayerSkill(int32 skill_id, bool save = false);`
+- `void RemoveSkillFromDB(Skill* skill, bool save = false);`
+- `void AddSpellBookEntry(int32 spell_id, int8 tier, sint32 slot, int32 type, int32 timer, bool save_needed = false);`
+- `sint32 GetFreeSpellBookSlot(int32 type);`
+- `vector<int32> GetSpellBookSpellIDBySkill(int32 skill_id);`
+- `void UpdateInventory(int32 bag_id);`
+- `bool IsPlayer(){ return true; }`
+- `int32	GetCoinsCopper();`
+- `int32	GetCoinsSilver();`
+- `int32	GetCoinsGold();`
+- `int32	GetCoinsPlat();`
+- `int32	GetBankCoinsCopper();`
+- `int32	GetBankCoinsSilver();`
+- `int32	GetBankCoinsGold();`
+- `int32	GetBankCoinsPlat();`
+- `int32	GetStatusPoints();`
+- `float	GetXPVitality();`
+- `float	GetTSXPVitality();`
+- `bool	AdventureXPEnabled();`
+- `bool	TradeskillXPEnabled();`
+- `void	SetNeededXP(int32 val);`
+- `void	SetNeededXP();`
+- `void	SetXP(int32 val);`
+- `void	SetNeededTSXP(int32 val);`
+- `void	SetNeededTSXP();`
+- `void	SetTSXP(int32 val);`
+- `int32	GetNeededXP();`
+- `float	GetXPDebt();`
+- `int32	GetXP();`
+- `int32	GetNeededTSXP();`
+- `int32	GetTSXP();`
+- `bool	AddXP(int32 xp_amount);`
+- `bool	AddTSXP(int32 xp_amount);`
+- `bool	DoubleXPEnabled();`
+- `float	CalculateXP(Spawn* victim);`
+- `float	CalculateTSXP(int8 level);`
+- `void	CalculateOfflineDebtRecovery(int32 unix_timestamp);`
+- `void	InCombat(bool val, bool range = false);`
+- `void	PrepareIncomingMovementPacket(int32 len, uchar* data, int16 version);`
+- `void	AddSpawnInfoPacketForXOR(int32 spawn_id, uchar* packet, int16 packet_size);`
+- `void	AddSpawnVisPacketForXOR(int32 spawn_id, uchar* packet, int16 packet_size);`
+- `void	AddSpawnPosPacketForXOR(int32 spawn_id, uchar* packet, int16 packet_size);`
+- `int32	GetTempInfoXorSize() { return info_xor_size; }`
+- `int32	GetTempVisXorSize() { return vis_xor_size; }`
+- `int32	GetTempPosXorSize() { return pos_xor_size; }`
+- `bool	CheckPlayerInfo();`
+- `void	CalculateLocation();`
+- `void	SetSpawnDeleteTime(int32 id, int32 time);`
+- `int32	GetSpawnDeleteTime(int32 id);`
+- `void	ClearRemovalTimers();`
+- `void	ClearEverything();`
+- `bool	IsResurrecting();`
+- `void	SetResurrecting(bool val);`
+- `int8    GetTSArrowColor(int8 level);`
+- `int16	GetIndexForSpawn(Spawn* spawn);`
+- `bool	WasSpawnRemoved(Spawn* spawn);`
+- `void	RemoveSpawn(Spawn* spawn, bool delete_spawn = true);`
+- `bool	ShouldSendSpawn(Spawn* spawn);`
+- `void SetLevel(int16 level, bool setUpdateFlags = true);`
+- `int32 GetIDWithPlayerSpawn(Spawn* spawn){`
+- `int16 GetNextSpawnIndex(Spawn* spawn, bool set_lock = true);`
+- `bool SetSpawnMap(Spawn* spawn);`
+- `void SetSpawnMapIndex(Spawn* spawn, int32 index)`
+- `int16 SetSpawnMapAndIndex(Spawn* spawn);`
+- `void			RemoveQuest(int32 id, bool delete_quest);`
+- `bool HasQuestUpdateRequirement(Spawn* spawn);`
+- `void CheckQuestsCraftUpdate(Item* item, int32 qty);`
+- `void CheckQuestsHarvestUpdate(Item* item, int32 qty);`
+- `bool CheckQuestRemoveFlag(Spawn* spawn);`
+- `int8 CheckQuestFlag(Spawn* spawn);`
+- `bool UpdateQuestReward(int32 quest_id, QuestRewardData* qrd);`
+- `bool AcceptQuestReward(int32 item_id, int32 selectable_item_id);`
+- `bool SendQuestStepUpdate(int32 quest_id, int32 quest_step_id, bool display_quest_helper);`
+- `void SendQuest(int32 quest_id);`
+- `void UpdateQuestCompleteCount(int32 quest_id);`
+- `void GetQuestTemporaryRewards(int32 quest_id, std::vector<Item*>* items);`
+- `void AddQuestTemporaryReward(int32 quest_id, int32 item_id, int16 item_count);`
+- `bool CheckQuestRequired(Spawn* spawn);`
+- `void AddQuestRequiredSpawn(Spawn* spawn, int32 quest_id);`
+- `void AddHistoryRequiredSpawn(Spawn* spawn, int32 event_id);`
+- `bool	HasQuestBeenCompleted(int32 quest_id);`
+- `int32	GetQuestCompletedCount(int32 quest_id);`
+- `void	AddCompletedQuest(Quest* quest);`
+- `bool	HasActiveQuest(int32 quest_id);`
+- `bool	HasAnyQuest(int32 quest_id);`
+- `void				SetFactionValue(int32 faction_id, sint32 value){`
+- `vector<int32> GetQuestIDs();`
+- `bool				HasPendingLootItems(int32 id);`
+- `bool				HasPendingLootItem(int32 id, int32 item_id);`
+- `void				RemovePendingLootItem(int32 id, int32 item_id);`
+- `void				RemovePendingLootItems(int32 id);`
+- `void				AddPendingLootItems(int32 id, vector<Item*>* items);`
+- `int16				GetTierUp(int16 tier);`
+- `bool				HasSpell(int32 spell_id, int8 tier = 255, bool include_higher_tiers = false, bool include_possible_scribe = false);`
+- `bool				HasRecipeBook(int32 recipe_id);`
+- `void				AddPlayerStatistic(int32 stat_id, sint32 stat_value, int32 stat_date);`
+- `void				UpdatePlayerStatistic(int32 stat_id, sint32 stat_value, bool overwrite = false);`
+- `sint64				GetPlayerStatisticValue(int32 stat_id);`
+- `void				WritePlayerStatistics();`
+- `void				SetGroup(PlayerGroup* group);`
+- `bool				IsGroupMember(Entity* player);`
+- `void				SetGroupInformation(PacketStruct* packet);`
+- `void				ResetSavedSpawns();`
+- `bool				IsReturningFromLD();`
+- `void				SetReturningFromLD(bool val);`
+- `bool				CheckLevelStatus(int16 new_level);`
+- `int16				GetLastMovementActivity();`
+- `void				DestroyQuests();`
+- `string				GetAwayMessage() const { return away_message; }`
+- `void				SetAwayMessage(string val) { away_message = val; }`
+- `void				SetRangeAttack(bool val);`
+- `bool				GetRangeAttack();`
+- `bool				AddMail(Mail* mail);`
+- `void				DeleteMail(bool from_database = false);`
+- `void				DeleteMail(int32 mail_id, bool from_database = false);`
+- `void				SetIsTracking(bool val) { is_tracking = val; }`
+- `bool				GetIsTracking() const { return is_tracking; }`
+- `void				SetBiography(string new_biography) { biography = new_biography; }`
+- `string				GetBiography() const { return biography; }`
+- `void				SetPlayerAdventureClass(int8 new_class);`
+- `void				SetGuild(Guild* new_guild) { guild = new_guild; }`
+- `void				AddSkillBonus(int32 spell_id, int32 skill_id, float value);`
+- `bool				CheckChangeInvisHistory(Entity* target);`
+- `void				UpdateTargetInvisHistory(int32 targetID, bool canSeeStatus);`
+- `void				RemoveTargetInvisHistory(int32 targetID);`
+- `bool				HasFreeBankSlot();`
+- `int8				FindFreeBankSlot();`
+- `void				SetPendingCollectionReward(Collection *collection) { pending_collection_reward = collection; }`
+- `void AddPendingSelectableItemReward(int32 source_id, Item* item) {`
+- `void AddPendingItemReward(Item* item) {`
+- `bool HasPendingItemRewards() { return (pending_item_rewards.size() > 0 || pending_selectable_item_rewards.size() > 0); }`
+- `void ClearPendingSelectableItemRewards(int32 source_id, bool all = false) {`
+- `void ClearPendingItemRewards() { //the client doesn't send any reference to where the pending rewards came from, so if they collect one, we should just them all of them at once`
+- `void DeleteSpellBook(int8 type_selection = 0);`
+- `void RemoveSpellBookEntry(int32 spell_id, bool remove_passives_from_list = true);`
+- `void ResortSpellBook(int32 sort_by, int32 order, int32 pattern, int32 maxlvl_only, int32 book_type);`
+- `void GetSpellBookSlotSort(int32 pattern, int32* i, int8* page_book_count, int32* last_start_point);`
+- `int8 GetSpellSlot(int32 spell_id);`
+- `void				AddTitle(sint32 title_id, const char *name, int8 prefix, bool save_needed = false);`
+- `void				AddAAEntry(int16 template_id, int8 tab_id, int32 aa_id, int16 order, int8 treeid);`
+- `void				AddLanguage(int32 id, const char *name, bool save_needed = false);`
+- `bool				HasLanguage(int32 id);`
+- `bool				HasLanguage(const char* name);`
+- `bool                CanReceiveQuest(int32 quest_id, int8* ret = 0);`
+- `float               GetBoatX() { if (info) return info->GetBoatX(); return 0; }`
+- `float               GetBoatY() { if (info) return info->GetBoatY(); return 0; }`
+- `float               GetBoatZ() { if (info) return info->GetBoatZ(); return 0; }`
+- `int32               GetBoatSpawn() { if (info) return info->GetBoatSpawn(); return 0; }`
+- `void                SetBoatX(float x) { if (info) info->SetBoatX(x); }`
+- `void                SetBoatY(float y) { if (info) info->SetBoatY(y); }`
+- `void                SetBoatZ(float z) { if (info) info->SetBoatZ(z); }`
+- `void                SetBoatSpawn(Spawn* boat) { if (info) info->SetBoatSpawn(boat); }`
+- `void                SetPendingDeletion(bool val) { pending_deletion = val; }`
+- `bool                GetPendingDeletion() { return pending_deletion; }`
+- `float               GetPosPacketSpeed() { return pos_packet_speed; }`
+- `bool                ControlFlagsChanged();`
+- `void                SetPlayerControlFlag(int8 param, int8 param_value, bool is_active);`
+- `void                SendControlFlagUpdates(Client* client);`
+- `void ApplyPassiveSpells();`
+- `void RemoveAllPassives();`
+- `int32 GetCurrentRecipe() { return current_recipe; }`
+- `void SetCurrentRecipe(int32 val) { current_recipe = val; }`
+- `void ResetPetInfo();`
+- `void ProcessCombat();`
+- `void UpdatePlayerHistory(int8 type, int8 subtype, int32 value, int32 value2 = 0);`
+- `bool DiscoveredLocation(int32 locationID);`
+- `void LoadPlayerHistory(int8 type, int8 subtype, HistoryData* hd);`
+- `void SaveHistory();`
+- `void LockAllSpells();`
+- `void UnlockAllSpells(bool modify_recast = false, Spell* exception = 0);`
+- `void LockSpell(Spell* spell, int16 recast);`
+- `void UnlockSpell(Spell* spell);`
+- `void LockTSSpells();`
+- `void UnlockTSSpells();`
+- `void QueueSpell(Spell* spell);`
+- `void UnQueueSpell(Spell* spell);`
+- `void SetSpawnInfoStruct(PacketStruct* packet) { safe_delete(spawn_info_struct); spawn_info_struct = packet; }`
+- `void SetSpawnVisStruct(PacketStruct* packet) { safe_delete(spawn_vis_struct); spawn_vis_struct = packet; }`
+- `void SetSpawnPosStruct(PacketStruct* packet) { safe_delete(spawn_pos_struct); spawn_pos_struct = packet; }`
+- `void SetSpawnHeaderStruct(PacketStruct* packet) { safe_delete(spawn_header_struct); spawn_header_struct = packet; }`
+- `void SetSpawnFooterStruct(PacketStruct* packet) { safe_delete(spawn_footer_struct); spawn_footer_struct = packet; }`
+- `void SetSignFooterStruct(PacketStruct* packet) { safe_delete(sign_footer_struct); sign_footer_struct = packet; }`
+- `void SetWidgetFooterStruct(PacketStruct* packet) { safe_delete(widget_footer_struct); widget_footer_struct = packet; }`
+- `void SetTempMount(int32 id) { tmp_mount_model = id; }`
+- `int32 GetTempMount() { return tmp_mount_model; }`
+- `void SetTempMountColor(EQ2_Color* color) { tmp_mount_color = *color; }`
+- `EQ2_Color GetTempMountColor() { return tmp_mount_color; }`
+- `void SetTempMountSaddleColor(EQ2_Color* color) { tmp_mount_saddle_color = *color; }`
+- `EQ2_Color GetTempMountSaddleColor() { return tmp_mount_saddle_color; }`
+- `void LoadLUAHistory(int32 event_id, LUAHistory* history);`
+- `void SaveLUAHistory();`
+- `void UpdateLUAHistory(int32 event_id, int32 value, int32 value2);`
+- `bool HasGMVision() { return gm_vision; }`
+- `void SetGMVision(bool val) { gm_vision = val; }`
+- `void StopCombat(int8 type=0) {`
+- `void DismissAllPets();`
+- `void SaveSpellEffects();`
+- `void SetSaveSpellEffects(bool val) { stop_save_spell_effects = val; }`
+- `bool StopSaveSpellEffects() { return stop_save_spell_effects; }`
+- `void MentorTarget();`
+- `void SetMentorStats(int32 effective_level, int32 target_char_id = 0, bool update_stats = true);`
+- `bool ResetMentorship() {`
+- `void EnableResetMentorship() {`
+- `bool SerializeItemPackets(EquipmentItemList* equipList, vector<EQ2Packet*>* packets, Item* item, int16 version, Item* to_item = 0);`
+- `void AddGMVisualFilter(int32 filter_type, int32 filter_value, char* filter_search_str, int16 visual_tag);`
+- `int16 MatchGMVisualFilter(int32 filter_type, int32 filter_value, char* filter_search_str, bool in_vismutex_lock = false);`
+- `void ClearGMVisualFilters();`
+- `int GetPVPAlignment();`
+- `int32	GetCurrentLanguage() { return current_language_id; }`
+- `void	SetCurrentLanguage(int32 language_id) { current_language_id = language_id; }`
+- `void	SetActiveReward(bool val) { active_reward = val; }`
+- `bool	IsActiveReward() { return active_reward; }`
+- `bool	IsSpawnInRangeList(int32 spawn_id);`
+- `void	SetSpawnInRangeList(int32 spawn_id, bool in_range);`
+- `void	ProcessSpawnRangeUpdates();`
+- `void	CalculatePlayerHPPower(int16 new_level = 0);`
+- `bool	IsAllowedCombatEquip(int8 slot = 255, bool send_message = false);`
+- `void	SetActiveFoodUniqueID(int32 unique_id, bool update_db = true);`
+- `void	SetActiveDrinkUniqueID(int32 unique_id, bool update_db = true);`
+- `int32	GetActiveFoodUniqueID() { return active_food_unique_id; }`
+- `int32	GetActiveDrinkUniqueID() { return active_drink_unique_id; }`
+- `void InitXPTable();`
+- `void				RemovePlayerStatistics();`
+- `void AddPassiveSpell(int32 id, int8 tier);`
+- `void RemovePassive(int32 id, int8 tier, bool remove_from_list = true);`
+- `void HandleHistoryNone(int8 subtype, int32 value, int32 value2);`
+- `void HandleHistoryDeath(int8 subtype, int32 value, int32 value2);`
+- `void HandleHistoryDiscovery(int8 subtype, int32 value, int32 value2);`
+- `void HandleHistoryXP(int8 subtype, int32 value, int32 value2);`
+- `void ModifySpellStatus(SpellBookEntry* spell, sint16 value, bool modify_recast = true, int16 recast = 0);`
+- `void AddSpellStatus(SpellBookEntry* spell, sint16 value, bool modify_recast = true, int16 recast = 0);`
+- `void RemoveSpellStatus(SpellBookEntry* spell, sint16 value, bool modify_recast = true, int16 recast = 0);`
+- `void SetSpellEntryRecast(SpellBookEntry* spell, bool modify_recast, int16 recast);`
+
+## Notable Comments
+
+- /*
+- */
+- /* Character History Type Defines */
+- /* Spell Status */
+- /* Character History Sub Type Defines */
+- /// <summary>Character history data, should match the `character_history` table in the DB</summary>
+- /// <summary>History set through the LUA system</summary>
+- //LoginAppearances data;
+- //data.equip_type = equip->equip_type;
+- //appearanceList[slot_id] = data;

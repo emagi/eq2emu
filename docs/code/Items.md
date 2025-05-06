@@ -1,0 +1,184 @@
+# File: `Items.h`
+
+## Classes
+
+- `MasterItemList`
+- `Player`
+- `Entity`
+- `ItemStatsValues`
+- `ItemCore`
+- `ItemStat`
+- `ItemSet`
+- `Classifications`
+- `ItemLevelOverride`
+- `ItemClass`
+- `ItemAppearance`
+- `QuestRewardData`
+- `PlayerItemList`
+- `Item`
+- `ItemStatString`
+- `Generic_Info`
+- `Armor_Info`
+- `Adornment_Info`
+- `Weapon_Info`
+- `Shield_Info`
+- `Ranged_Info`
+- `Bag_Info`
+- `Food_Info`
+- `Bauble_Info`
+- `Book_Info`
+- `Book_Info_Pages`
+- `Skill_Info`
+- `HouseItem_Info`
+- `HouseContainer_Info`
+- `RecipeBook_Info`
+- `ItemSet_Info`
+- `Thrown_Info`
+- `ItemEffect`
+- `BookPage`
+- `MasterItemList`
+- `PlayerItemList`
+- `EquipmentItemList`
+
+## Functions
+
+- `void AddEffect(string effect, int8 percentage, int8 subbulletflag);`
+- `void AddBookPage(int8 page, string page_text,int8 valign, int8 halign);`
+- `int32 GetMaxSellValue();`
+- `void SetMaxSellValue(int32 val);`
+- `void SetItem(Item* old_item);`
+- `int16 GetOverrideLevel(int8 adventure_class, int8 tradeskill_class);`
+- `void AddLevelOverride(int8 adventure_class, int8 tradeskill_class, int16 level);`
+- `void AddLevelOverride(ItemLevelOverride* class_);`
+- `bool CheckClassLevel(int8 adventure_class, int8 tradeskill_class, int16 level);`
+- `bool CheckClass(int8 adventure_class, int8 tradeskill_class);`
+- `bool CheckArchetypeAdvClass(int8 adventure_class, map<int8, int16>* adv_class_levels = 0);`
+- `bool CheckArchetypeAdvSubclass(int8 adventure_class, map<int8, int16>* adv_class_levels = 0);`
+- `bool CheckLevel(int8 adventure_class, int8 tradeskill_class, int16 level);`
+- `void SetAppearance(int16 type, int8 red, int8 green, int8 blue, int8 highlight_red, int8 highlight_green, int8 highlight_blue);`
+- `void SetAppearance(ItemAppearance* appearance);`
+- `void AddStat(ItemStat* in_stat);`
+- `bool HasStat(uint32 statID, std::string statName = std::string(""));`
+- `void DeleteItemSets();`
+- `void AddSet(ItemSet* in_set);`
+- `void AddStatString(ItemStatString* in_stat);`
+- `void AddStat(int8 type, int16 subtype, float value, int8 level, char* name = 0);`
+- `void AddSet(int32 item_id, int32 item_crc, int16 item_icon, int32 item_stack_size, int32 item_list_color, std::string name, int8 language);`
+- `void SetWeaponType(int8 type);`
+- `int8 GetWeaponType();`
+- `bool HasSlot(int8 slot, int8 slot2 = 255);`
+- `bool HasAdorn0();`
+- `bool HasAdorn1();`
+- `bool HasAdorn2();`
+- `bool IsNormal();`
+- `bool IsWeapon();`
+- `bool IsArmor();`
+- `bool IsDualWieldAble(Client* client, Item* item, int8 slot = -1);`
+- `bool IsRanged();`
+- `bool IsBag();`
+- `bool IsFood();`
+- `bool IsBauble();`
+- `bool IsSkill();`
+- `bool IsHouseItem();`
+- `bool IsHouseContainer();`
+- `bool IsShield();`
+- `bool IsAdornment();`
+- `bool IsAmmo();`
+- `bool IsBook();`
+- `bool IsChainArmor();`
+- `bool IsClothArmor();`
+- `bool IsCollectable();`
+- `bool IsCloak();`
+- `bool IsCrushWeapon();`
+- `bool IsFoodFood();`
+- `bool IsFoodDrink();`
+- `bool IsJewelry();`
+- `bool IsLeatherArmor();`
+- `bool IsMisc();`
+- `bool IsPierceWeapon();`
+- `bool IsPlateArmor();`
+- `bool IsPoison();`
+- `bool IsPotion();`
+- `bool IsRecipeBook();`
+- `bool IsSalesDisplay();`
+- `bool IsSlashWeapon();`
+- `bool IsSpellScroll();`
+- `bool IsTinkered();`
+- `bool IsTradeskill();`
+- `bool IsThrown();`
+- `bool IsHarvest();`
+- `bool IsBodyDrop();`
+- `void SetItemScript(string name);`
+- `int32 CalculateRepairCost();`
+- `string CreateItemLink(int16 client_Version, bool bUseUniqueID=false);`
+- `void SetItemType(int8 in_type);`
+- `void serialize(PacketStruct* packet, bool show_name = false, Player* player = 0, int16 packet_type = 0, int8 subtype = 0, bool loot_item = false, bool inspect = false);`
+- `bool CheckFlag(int32 flag);`
+- `bool CheckFlag2(int32 flag);`
+- `void AddSlot(int8 slot_id);`
+- `void SetSlots(int32 slots);`
+- `int16 GetIcon(int16 version);`
+- `void AddItem(Item* item);`
+- `bool IsBag(int32 item_id);`
+- `void RemoveAll();`
+- `int32 GetItemStatIDByName(std::string name);`
+- `std::string GetItemStatNameByID(int32 id);`
+- `void AddMappedItemStat(int32 id, std::string lower_case_name);`
+- `void AddBrokerItemMapRange(int32 min_version, int32 max_version, int64 client_bitmask, int64 server_bitmask);`
+- `int32 SetMaxItemIndex();`
+- `bool  SharedBankAddAllowed(Item* item);`
+- `bool  HasItem(int32 id, bool include_bank = false);`
+- `void  MoveItem(Item* item, sint32 inv_slot, int16 slot, int8 appearance_type, bool erase_old); // erase old was true`
+- `bool  MoveItem(sint32 to_bag_id, int16 from_index, sint8 to, int8 appearance_type, int8 charges);`
+- `void  EraseItem(Item* item);`
+- `sint32 GetAllStackCountItemFromID(int32 item_id, int8 count = 0, bool include_bank = false, bool lock = true);`
+- `bool  AssignItemToFreeSlot(Item* item);`
+- `int16 GetNumberOfFreeSlots();`
+- `int16 GetNumberOfItems();`
+- `int32 GetWeight();`
+- `bool  HasFreeSlot();`
+- `bool  HasFreeBagSlot();`
+- `void DestroyItem(int16 index);`
+- `void RemoveItem(Item* item, bool delete_item = false);`
+- `bool AddItem(Item* item);`
+- `bool HasFreeBankSlot();`
+- `int8 FindFreeBankSlot();`
+- `bool GetFirstFreeSlot(sint32* bag_id, sint16* slot);`
+- `bool GetFirstFreeBankSlot(sint32* bag_id, sint16* slot);`
+- `bool AddOverflowItem(Item* item);`
+- `void RemoveOverflowItem(Item* item);`
+- `void	ResetPackets();`
+- `int32	CheckSlotConflict(Item* tmp, bool check_lore_only = false, bool lock_mutex = true, int16* lore_stack_count = 0);`
+- `int32   GetItemCountInBag(Item* bag);`
+- `int16	GetFirstNewItem();`
+- `int16	GetNewItemByIndex(int16 in_index);`
+- `void AddItemToPacket(PacketStruct* packet, Player* player, Item* item, int16 i, bool overflow = false, int16 new_index = 0);`
+- `void Stack(Item* orig_item, Item* item);`
+- `void	ResetPackets();`
+- `bool	HasItem(int32 id);`
+- `int8	GetNumberOfItems();`
+- `int32	GetWeight();`
+- `void	SetItem(int8 slot_id, Item* item, bool locked = false);`
+- `void	RemoveItem(int8 slot, bool delete_item = false);`
+- `bool	AddItem(int8 slot, Item* item);`
+- `bool	CheckEquipSlot(Item* tmp, int8 slot);`
+- `bool	CanItemBeEquippedInSlot(Item* tmp, int8 slot);`
+- `int8	GetFreeSlot(Item* tmp, int8 slot_id = 255, int16 version = 0);`
+- `int32	CheckSlotConflict(Item* tmp, bool check_lore_only = false, int16* lore_stack_count = 0);`
+- `int8	GetSlotByItem(Item* item);`
+- `void SendEquippedItems(Player* player);`
+- `void	SetAppearanceType(int8 type) { AppearanceType = type; }`
+- `int8	GetAppearanceType() { return AppearanceType; }`
+
+## Notable Comments
+
+- /*
+- */
+- // FLAGS
+- // FLAGS2
+- //DOV defines everything till 13 is the same
+- //#define ITEM_TYPE_BOOK			  13
+- //#define ITEM_TYPE_ADORNMENT		  14
+- //#define ITEM_TYPE_PATTERN		  15
+- //#define ITEM_TYPE_ARMORSET		  16
+- //#define ITEM_STAT_VS_HEAT				203 //just so no build error

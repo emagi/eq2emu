@@ -1,0 +1,215 @@
+# File: `Commands.h`
+
+## Classes
+
+- `Client`
+- `Spawn`
+- `ZoneServer`
+- `ZoneInfo`
+- `EQ2_CommandString`
+- `EQ2_RemoteCommandString`
+- `RemoteCommands`
+- `Commands`
+
+## Functions
+
+- `void addCommand(EQ2_RemoteCommandString add){ commands.push_back(add); num_commands++;}`
+- `void AddSubCommand(string command, EQ2_RemoteCommandString subcommand){`
+- `bool validSubCommand(string command, string subcommand){`
+- `void addZero(){`
+- `void CheckAddSubCommand(string command, EQ2_RemoteCommandString subcommand){`
+- `void AddDataCommand(EQ2_RemoteCommandString* command){`
+- `int32 GetCommandHandler(const char* name){`
+- `bool SetSpawnCommand(Client* client, Spawn* target, int8 type, const char* value, bool send_update = true, bool temporary = false, string* temp_value = 0, int8 index = 0);`
+- `void UpdateDatabaseAppearance(Client* client, Spawn* target, string fieldName, sint8 r, sint8 g, sint8 b);`
+- `bool SetZoneCommand(Client* client, int32 zone_id, ZoneServer* zone, int8 type, const char* value);`
+- `void	Process(int32 index, EQ2_16BitString* command_parms, Client* client, Spawn* targetOverride=NULL);`
+- `int32 GetCommandHandler(const char* name){`
+- `int32	GetSpawnSetType(string val);`
+- `void Command_AcceptAdvancement(Client* client, Seperator* sep);`
+- `void Command_AFK(Client* client, Seperator* sep);`
+- `void Command_Appearance(Client* client, Seperator* sep, int handler);`
+- `void Command_CancelMaintained(Client* client, Seperator* sep);`
+- `void Command_Claim(Client* client, Seperator* sep);`
+- `void Command_ClearAllQueued(Client* client);`
+- `void Command_Create(Client* client, Seperator* sep);`
+- `void Command_CreateFromRecipe(Client* client, Seperator* sep);`
+- `void Command_Distance(Client* client);`
+- `void Command_Duel(Client* client, Seperator* sep);`
+- `void Command_DuelBet(Client* client, Seperator* sep);`
+- `void Command_DuelAccept(Client* client, Seperator* sep);`
+- `void Command_DuelDecline(Client* client, Seperator* sep);`
+- `void Command_DuelSurrender(Client* client, Seperator* sep);`
+- `void Command_DuelToggle(Client* client, Seperator* sep);`
+- `void Command_EntityCommand(Client* client, Seperator* sep, int handler);`
+- `void Command_Follow(Client* client, Seperator* sep);`
+- `void Command_StopFollow(Client* client, Seperator* sep);`
+- `void Command_Grid(Client* client, Seperator* sep);`
+- `void Command_Guild(Client* client, Seperator* sep);`
+- `void Command_CreateGuild(Client* client, Seperator* sep);`
+- `void Command_SetGuildOfficerNote(Client* client, Seperator* sep);`
+- `void Command_SetGuildMemberNote(Client* client, Seperator* sep);`
+- `void Command_OfficerSay(Client* client, Seperator* sep);`
+- `void Command_GuildSay(Client* client, Seperator* sep);`
+- `void Command_Guilds(Client* client);`
+- `void Command_GuildsAdd(Client* client, Seperator* sep);`
+- `void Command_GuildsCreate(Client* client, Seperator* sep, bool prompted_dialog = false);`
+- `void Command_GuildsDelete(Client* client, Seperator* sep);`
+- `void Command_GuildsList(Client* client);`
+- `void Command_GuildsRemove(Client* client, Seperator* sep);`
+- `void Command_InspectPlayer(Client* client, Seperator* sep);`
+- `void Command_Inventory(Client* client, Seperator* sep, EQ2_RemoteCommandString* command);`
+- `void Command_Languages(Client* client, Seperator* sep);`
+- `void Command_SetLanguage(Client* client, Seperator* sep);`
+- `void Command_LastName(Client* client, Seperator* sep);`
+- `void Command_ConfirmLastName(Client* client, Seperator* sep);`
+- `void Command_Location(Client* client);`
+- `void Command_LocationAdd(Client* client, Seperator* sep);`
+- `void Command_LocationCreate(Client* client, Seperator* sep);`
+- `void Command_LocationDelete(Client* client, Seperator* sep);`
+- `void Command_LocationList(Client* client, Seperator* sep);`
+- `void Command_LocationRemove(Client* client, Seperator* sep);`
+- `void Command_Merchant(Client* client, Seperator* sep, int handler);`
+- `void Command_Mood(Client* client, Seperator* sep);`
+- `void Command_Modify(Client* client); // usage function`
+- `void Command_ModifyCharacter(Client* client, Seperator* sep);`
+- `void Command_ModifyFaction(Client* client, Seperator* sep);`
+- `void Command_ModifyGuild(Client* client, Seperator* sep);`
+- `void Command_ModifyItem(Client* client, Seperator* sep);`
+- `void Command_ModifyQuest(Client* client, Seperator* sep);`
+- `void Command_ModifySkill(Client* client, Seperator* sep);`
+- `void Command_ModifySpawn(Client* client, Seperator* sep);`
+- `void Command_ModifySpell(Client* client, Seperator* sep);`
+- `void Command_ModifyZone(Client* client, Seperator* sep);`
+- `void Command_MOTD(Client* client);`
+- `void Command_Pet(Client* client, Seperator* sep);`
+- `void Command_PetName(Client* client, Seperator* sep);`
+- `void Command_NamePet(Client* client, Seperator* sep);`
+- `void Command_Rename(Client* client, Seperator* sep);`
+- `void Command_ConfirmRename(Client* client, Seperator* sep);`
+- `void Command_PetOptions(Client* client, Seperator* sep);`
+- `void Command_Random(Client* client, Seperator* sep);`
+- `void Command_Randomize(Client* client, Seperator* sep);`
+- `void Command_ReportBug(Client* client, Seperator* sep);`
+- `void Command_ShowCloak(Client* client, Seperator* sep);`
+- `void Command_ShowHelm(Client* client, Seperator* sep);`
+- `void Command_ShowHood(Client* client, Seperator* sep);`
+- `void Command_ShowHoodHelm(Client* client, Seperator* sep);`
+- `void Command_ShowRanged(Client* client, Seperator* sep);`
+- `void Command_Skills(Client* client, Seperator* sep, int handler);`
+- `void Command_SpawnTemplate(Client* client, Seperator* sep);`
+- `void Command_Speed(Client* client, Seperator* sep);`
+- `void Command_StationMarketPlace(Client* client, Seperator* sep);`
+- `void Command_StopEating(Client* client);`
+- `void Command_StopDrinking(Client* client);`
+- `void Command_Test(Client* client, EQ2_16BitString* command_parms);`
+- `void Command_Title(Client* client);`
+- `void Command_TitleList(Client* client);`
+- `void Command_TitleSetPrefix(Client* client, Seperator* sep);`
+- `void Command_TitleSetSuffix(Client* client, Seperator* sep);`
+- `void Command_TitleFix(Client* client, Seperator* sep);`
+- `void Command_Toggle_Anonymous(Client* client);`
+- `void Command_Toggle_AutoConsume(Client* client, Seperator* sep);`
+- `void Command_Toggle_BonusXP(Client* client);`
+- `void Command_Toggle_CombatXP(Client* client);`
+- `void Command_Toggle_GMHide(Client* client);`
+- `void Command_Toggle_GMVanish(Client* client);`
+- `void Command_Toggle_Illusions(Client* client, Seperator* sep);`
+- `void Command_Toggle_LFG(Client* client);`
+- `void Command_Toggle_LFW(Client* client);`
+- `void Command_Toggle_QuestXP(Client* client);`
+- `void Command_Toggle_Roleplaying(Client* client);`
+- `void Command_Toggle_Duels(Client* client);`
+- `void Command_Toggle_Trades(Client* client);`
+- `void Command_Toggle_Guilds(Client* client);`
+- `void Command_Toggle_Groups(Client* client);`
+- `void Command_Toggle_Raids(Client* client);`
+- `void Command_Toggle_LON(Client* client);`
+- `void Command_Toggle_VoiceChat(Client* client);`
+- `void Command_Track(Client* client);`
+- `void Command_TradeStart(Client* client, Seperator* sep);`
+- `void Command_TradeAccept(Client* client, Seperator* sep);`
+- `void Command_TradeReject(Client* client, Seperator* sep);`
+- `void Command_TradeCancel(Client* client, Seperator* sep);`
+- `void Command_TradeSetCoin(Client* client, Seperator* sep);`
+- `void Command_TradeAddCoin(Client* client, Seperator* sep, int handler);`
+- `void Command_TradeRemoveCoin(Client* client, Seperator* sep, int handler);`
+- `void Command_TradeAddItem(Client* client, Seperator* sep);`
+- `void Command_TradeRemoveItem(Client* client, Seperator* sep);`
+- `void Command_TryOn(Client* client, Seperator* sep);`
+- `void Command_JoinChannel(Client *client, Seperator *sep);`
+- `void Command_JoinChannelFromLoad(Client *client, Seperator *sep);`
+- `void Command_TellChannel(Client *client, Seperator *sep);`
+- `void Command_LeaveChannel(Client *client, Seperator *sep);`
+- `void Command_WeaponStats(Client *client);`
+- `void Command_WhoChannel(Client *client, Seperator *sep);`
+- `void Command_ZoneSafeCoords(Client *client, Seperator *sep);`
+- `void Command_ZoneDetails(Client *client, Seperator *sep);`
+- `void Command_ZoneSet(Client *client, Seperator *sep);`
+- `void Command_Rain(Client* client, Seperator* sep);`
+- `void Command_Wind(Client* client, Seperator* sep);`
+- `void Command_SendMerchantWindow(Client* client, Seperator* sep, bool sell = false);`
+- `void Command_Weather(Client* client, Seperator* sep);`
+- `void Command_Select(Client* client, Seperator* sep);`
+- `void Command_ConsumeFood(Client* client, Seperator* sep);`
+- `void Command_Aquaman(Client* client, Seperator* sep);`
+- `void Command_Attune_Inv(Client* client, Seperator* sep);`
+- `void Command_Player(Client* client, Seperator* sep);`
+- `void Command_Player_Coins(Client* client, Seperator* sep);`
+- `void Command_Reset_Zone_Timer(Client* client, Seperator* sep);`
+- `void Command_AchievementAdd(Client* client, Seperator* sep);`
+- `void Command_Editor(Client* client, Seperator* sep);`
+- `void Command_AcceptResurrection(Client* client, Seperator* sep);`
+- `void Command_DeclineResurrection(Client* client, Seperator* set);`
+- `void Command_TargetItem(Client* client, Seperator* set);`
+- `void Command_FindSpawn(Client* client, Seperator* set);`
+- `void Command_MoveCharacter(Client* client, Seperator* set);`
+- `void Command_Bot(Client* client, Seperator* sep);`
+- `void Command_Bot_Create(Client* client, Seperator* sep);`
+- `void Command_Bot_Customize(Client* client, Seperator* sep);`
+- `void Command_Bot_Spawn(Client* client, Seperator* sep);`
+- `void Command_Bot_List(Client* client, Seperator* sep);`
+- `void Command_Bot_Inv(Client* client, Seperator* sep);`
+- `void Command_Bot_Settings(Client* client, Seperator* sep);`
+- `void Command_Bot_Help(Client* client, Seperator* sep);`
+- `void Command_CancelEffect(Client* client, Seperator* sep);`
+- `void Command_CurePlayer(Client* client, Seperator* sep);`
+- `void Command_ShareQuest(Client* client, Seperator* sep);`
+- `void Command_Yell(Client* client, Seperator* sep);`
+- `void Command_SetAutoLootMode(Client* client, Seperator* sep);`
+- `void Command_AutoAttack(Client* client, Seperator* sep);`
+- `void Command_Assist(Client* client, Seperator* sep);`
+- `void Command_Target(Client* client, Seperator* sep);`
+- `void Command_Target_Pet(Client* client, Seperator* sep);`
+- `void Command_WhoGroup(Client* client, Seperator* sep);`
+- `void Command_WhoRaid(Client* client, Seperator* sep);`
+- `void Command_RaidInvite(Client* client, Seperator* sep);`
+- `void Command_Raid_Looter(Client* client, Seperator* sep);`
+- `void Command_KickFromGroup(Client* client, Seperator* sep);`
+- `void Command_KickFromRaid(Client* client, Seperator* sep);`
+- `void Command_LeaveRaid(Client* client, Seperator* sep);`
+- `void Command_Split(Client* client, Seperator* sep);`
+- `void Command_RaidSay(Client* client, Seperator* sep);`
+- `void Command_ReloadZoneInfo(Client* client, Seperator* sep);`
+- `void Get_AA_Xml(Client* client, Seperator* sep);`
+- `void Add_AA(Client* client, Seperator* sep);`
+- `void Commit_AA_Profile(Client* client, Seperator* sep);`
+- `void Begin_AA_Profile(Client* client, Seperator* sep);`
+- `void Back_AA(Client* client, Seperator* sep);`
+- `void Remove_AA(Client* client, Seperator* sep);`
+- `void Switch_AA_Profile(Client* client, Seperator* sep);`
+- `void Cancel_AA_Profile(Client* client, Seperator* sep);`
+- `void Save_AA_Profile(Client* client, Seperator* sep);`
+
+## Notable Comments
+
+- /*
+- */
+- // Combat related chat channels start here
+- // End of combat chat channels
+- // 106 is nothing, message sent with this channel won't display in the client
+- // 108+ will crash the client DO NOT USE
+- /* Using this in the /zone details command so that we do not have to store a whole zone in memory while changing zone attributes.  Also,
+- // TODO: cannot seem to use LogWrite in this .h file!
+- // JA: New Command handlers
+- //devn00b

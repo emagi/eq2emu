@@ -1,0 +1,406 @@
+# File: `WorldDatabase.h`
+
+## Classes
+
+- `StartingItem`
+- `ClaimItems`
+- `Bot`
+- `WorldDatabase`
+
+## Functions
+
+- `bool ConnectNewDatabase();`
+- `void PingNewDB();`
+- `string	GetZoneName(int32 id);`
+- `string	GetZoneDescription(int32 id);`
+- `int32	LoadCharacterSkills(int32 char_id, Player* player);`
+- `void	DeleteCharacterSkill(int32 char_id, Skill* skill);`
+- `void	DeleteCharacterSpell(int32 character_id, int32 spell_id);`
+- `int32	LoadCharacterSpells(int32 char_id, Player* player);`
+- `int32	LoadItemBlueStats();`
+- `void	SaveQuickBar(int32 char_id, vector<QuickBarItem*>* quickbar_items);`
+- `void	SavePlayerSpells(Client* client);`
+- `int32	LoadSkills();`
+- `void	LoadCommandList();`
+- `void	UpdateCharacterMacro(int32 char_id, int8 number, const char* name, int16 icon, vector<string>* updates);`
+- `void	SaveWorldTime(WorldTime* time);`
+- `bool	SaveSpawnInfo(Spawn* spawn);`
+- `int32	GetNextSpawnIDInZone(int32 zone_id);`
+- `bool	SaveSpawnEntry(Spawn* spawn, const char* spawn_location_name, int8 percent, float x_offset, float y_offset, float z_offset, bool save_zonespawn = true, bool create_spawnlocation = true);`
+- `float	GetSpawnLocationPlacementOffsetX(int32 location_id);`
+- `float	GetSpawnLocationPlacementOffsetY(int32 location_id);`
+- `float	GetSpawnLocationPlacementOffsetZ(int32 location_id);`
+- `int32	GetNextSpawnLocation();`
+- `bool	CreateNewSpawnLocation(int32 id, const char* name);`
+- `bool	RemoveSpawnFromSpawnLocation(Spawn* spawn);`
+- `int32	GetSpawnLocationCount(int32 location, Spawn* spawn = 0);`
+- `void	LoadSubCommandList();`
+- `void	LoadGlobalVariables();`
+- `void	UpdateVitality(int32 timestamp, float amount);`
+- `void	SaveVariable(const char* name, const char* value, const char* comment);`
+- `void	LoadVisualStates();`
+- `void	LoadAppearanceMasterList();`
+- `void	Save(Client* client);`
+- `void	SaveItems(Client* client);`
+- `void	SaveItem(int32 account_id, int32 char_id, Item* item, const char* type);`
+- `void	DeleteBuyBack(int32 char_id, int32 item_id, int16 quantity, int32 price);`
+- `void	LoadBuyBacks(Client* client);`
+- `void	SaveBuyBacks(Client* client);`
+- `void	SaveBuyBack(int32 char_id, int32 item_id, int16 quantity, int32 price);`
+- `void	DeleteItem(int32 char_id, Item* item, const char* type);`
+- `void	SaveCharacterColors(int32 char_id, const char* type, EQ2_Color color);`
+- `void	SaveCharacterFloats(int32 char_id, const char* type, float float1, float float2, float float3, float multiplier = 100.0f);`
+- `int16	GetAppearanceID(string name);`
+- `string	GetAppearanceName(int16 appearance_id);`
+- `void	UpdateRandomize(int32 spawn_id, sint32 value);`
+- `int32	SaveCharacter(PacketStruct* create, int32 loginID);`
+- `int32	LoadNPCAppearanceEquipmentData(ZoneServer* zone);`
+- `void	SaveNPCAppearanceEquipment(int32 spawn_id, int8 slot_id, int16 type, int8 red=0, int8 green=0, int8 blue=0, int8 hred=0, int8 hgreen=0, int8 hblue=0);`
+- `void	LoadSpecialZones();`
+- `void	SaveCharacterSkills(Client* client);`
+- `void	SaveCharacterQuests(Client* client);`
+- `void	SaveCharacterQuestProgress(Client* client, Quest* quest);`
+- `void	DeleteCharacterQuest(int32 quest_id, int32 char_id, bool repeated_quest = false);`
+- `void	LoadCharacterQuests(Client* client);`
+- `void	LoadPlayerAA(Player *player);`
+- `void	LoadCharacterQuestProgress(Client* client);`
+- `void	LoadCharacterFriendsIgnoreList(Player* player);`
+- `void	LoadZoneInfo(ZoneServer* zone, int32 minLevel=0, int32 maxLevel=0, int32 avgLevel=0, int32 firstLevel=0);`
+- `void	LoadZonePlayerLevels(ZoneServer* zone);`
+- `void	LoadZoneInfo(ZoneInfo* zone_info);`
+- `int32	GetZoneID(const char* name);`
+- `void	SaveZoneInfo(int32 zone_id, const char* field, sint32 value);`
+- `void	SaveZoneInfo(int32 zone_id, const char* field, float value);`
+- `void	SaveZoneInfo(int32 zone_id, const char* field, const char* value);`
+- `bool	GetZoneRequirements(const char* zoneName,sint16* minStatus, int16* minLevel, int16* maxLevel, int16* minVersion);`
+- `int16	GetMinimumClientVersion(int8 expansion_id);`
+- `string	GetExpansionIDByVersion(int16 version);`
+- `int32	CheckTableVersions(char* tablename);`
+- `bool	RunDatabaseQueries(TableQuery* queries, bool output_result = true, bool data = false);`
+- `void	UpdateTableVersion(char* name, int32 version);`
+- `void	UpdateDataTableVersion(char* name, int32 version);`
+- `void	UpdateStartingFactions(int32 char_id, int8 choice);`
+- `string	GetStartingZoneName(int8 choice);`
+- `void	UpdateStartingZone(int32 char_id, int8 class_id, int8 race_id, PacketStruct* create);`
+- `void	UpdateStartingItems(int32 char_id, int8 class_id, int8 race_id, bool base_class = false);`
+- `void	UpdateStartingSkills(int32 char_id, int8 class_id, int8 race_id);`
+- `void	UpdateStartingSpells(int32 char_id, int8 class_id, int8 race_id);`
+- `void	UpdateStartingSkillbar(int32 char_id, int8 class_id, int8 race_id);`
+- `void	UpdateStartingTitles(int32 char_id, int8 class_id, int8 race_id, int8 gender_id);`
+- `bool	UpdateSpawnLocationSpawns(Spawn* spawn);`
+- `bool	UpdateSpawnWidget(int32 widget_id, char* query);`
+- `bool	CheckVersionTable();`
+- `void	LoadFactionAlliances();`
+- `void	LoadFactionList();`
+- `bool	LoadPlayerFactions(Client* client);`
+- `void	SavePlayerFactions(Client* client);`
+- `bool    VerifyFactionID(int32 char_id, int32 faction_id);`
+- `void	LoadSpawnScriptData();`
+- `void	LoadZoneScriptData();`
+- `int32	LoadSpellScriptData();`
+- `bool	UpdateSpawnScriptData(int32 spawn_id, int32 spawn_location_id, int32 spawnentry_id, const char* name);`
+- `bool	VerifyZone(const char* name);`
+- `int8	GetInstanceTypeByZoneID(int32 zoneID);`
+- `void	LoadNPCAppearances();*/`
+- `void	ResetDatabase();`
+- `void	EnableConstraints();`
+- `void	DisableConstraints();`
+- `int32	SaveCombinedSpawnLocation(ZoneServer* zone, Spawn* spawn, const char* name);`
+- `int32	ProcessSpawnLocations(ZoneServer* zone, const char* sql_query, int8 type);`
+- `int32	LoadSpawnLocationGroupAssociations(ZoneServer* zone);`
+- `int32	LoadSpawnLocationGroups(ZoneServer* zone);`
+- `int32	LoadSpawnGroupChances(ZoneServer* zone);`
+- `bool	SpawnGroupAddAssociation(int32 group1, int32 group2);`
+- `bool	SpawnGroupRemoveAssociation(int32 group1, int32 group2);`
+- `bool	SpawnGroupAddSpawn(Spawn* spawn, int32 group_id);`
+- `bool	SpawnGroupRemoveSpawn(Spawn* spawn, int32 group_id);`
+- `int32	CreateSpawnGroup(Spawn* spawn, string name);`
+- `void	DeleteSpawnGroup(int32 id);`
+- `bool	SetGroupSpawnChance(int32 id, float chance);`
+- `void	LoadGroundSpawnEntries(ZoneServer* zone);`
+- `void	LoadGroundSpawnItems(ZoneServer* zone);`
+- `void	LoadSpawns(ZoneServer* zone);`
+- `int8	GetAppearanceType(string type);`
+- `void	LoadNPCs(ZoneServer* zone);`
+- `void	LoadSpiritShards(ZoneServer* zone);`
+- `int32	LoadAppearances(ZoneServer* zone, Client* client = 0);`
+- `int32	LoadNPCSpells();`
+- `int32	LoadNPCSkills(ZoneServer* zone);`
+- `int32	LoadNPCEquipment(ZoneServer* zone);`
+- `void	LoadObjects(ZoneServer* zone);`
+- `void	LoadGroundSpawns(ZoneServer* zone);`
+- `void	LoadWidgets(ZoneServer* zone);`
+- `void	LoadSigns(ZoneServer* zone);`
+- `void	ReloadItemList(int32 item_id = 0);`
+- `void	LoadItemList(int32 item_id = 0);`
+- `int32	LoadItemStats(int32 item_id = 0);`
+- `int32	LoadItemModStrings(int32 item_id = 0);`
+- `int32	LoadItemAppearances(int32 item_id = 0);`
+- `int32	LoadItemLevelOverride(int32 item_id = 0);`
+- `int32	LoadItemEffects(int32 item_id = 0);`
+- `int32	LoadBookPages(int32 item_id = 0);`
+- `int32	LoadNextUniqueItemID();`
+- `int32	LoadSkillItems(int32 item_id = 0);`
+- `int32	LoadRangeWeapons(int32 item_id = 0);`
+- `int32	LoadThrownWeapons(int32 item_id = 0);`
+- `int32	LoadBaubles(int32 item_id = 0);`
+- `int32	LoadBooks(int32 item_id = 0);`
+- `int32	LoadItemsets(int32 item_id = 0);`
+- `int32	LoadHouseItem(int32 item_id = 0);`
+- `int32	LoadRecipeBookItems(int32 item_id = 0);`
+- `int32	LoadArmor(int32 item_id = 0);`
+- `int32	LoadAdornments(int32 item_id = 0);`
+- `int32	LoadClassifications();`
+- `int32	LoadShields(int32 item_id = 0);`
+- `int32	LoadBags(int32 item_id = 0);`
+- `int32	LoadFoods(int32 item_id = 0);`
+- `int32	LoadWeapons(int32 item_id = 0);`
+- `int32	LoadRanged();`
+- `int32   LoadHouseContainers(int32 item_id = 0);`
+- `void	LoadBrokerItemStats();`
+- `void	SaveSignMark(int32 char_id, int32 sign_id, char* char_name, Client* client);`
+- `string	GetSignMark(int32 char_id, int32 sign_id, char* char_name); // returns the string containing the character name`
+- `void	LoadTransporters(ZoneServer* zone);`
+- `void	LoadTransportMaps(ZoneServer* zone);`
+- `void	LoadDataFromRow(DatabaseResult *result, Item* item);`
+- `void	LoadCharacterItemList(int32 account_id, int32 char_id, Player* player, int16);`
+- `bool	loadCharacter(const char* name, int32 account_id, Client* client);`
+- `std::string	loadCharacterFromLogin(ZoneChangeDetails* details, int32 char_id, int32 account_id);`
+- `bool	LoadCharacterStats(int32 id, int32 account_id, Client* client);`
+- `void	LoadCharacterQuestRewards(Client* client);`
+- `void	LoadCharacterQuestTemporaryRewards(Client* client, int32 quest_id);`
+- `bool	InsertCharacterStats(int32 character_id, int8 class_id, int8 race_id);`
+- `bool	UpdateCharacterTimeStamp(int32 account_id, int32 character_id, int32 timestamp);`
+- `bool	insertCharacterProperty(Client* client, char* propName, char* propValue);`
+- `bool	loadCharacterProperties(Client* client);`
+- `string	GetPlayerName(char* name);`
+- `int32	GetCharacterTimeStamp(int32 character_id, int32 account_id,bool* char_exists);`
+- `int32	GetCharacterTimeStamp(int32 character_id);`
+- `sint32	GetLatestDataTableVersion(char* name);`
+- `sint16	GetLowestCharacterAdminStatus(int32 account_id);`
+- `sint16	GetHighestCharacterAdminStatus(int32 account_id);`
+- `sint16	GetCharacterAdminStatus(char* character_name);`
+- `sint16	GetCharacterAdminStatus(int32 account_id , int32 char_id);`
+- `bool	UpdateAdminStatus(char* character_name, sint16 flag);`
+- `void	LoadMerchantInformation();`
+- `void	LoadMerchantInventory();`
+- `string	GetMerchantDescription(int32 merchant_id);`
+- `void	LoadPlayerStatistics(Player* player, int32 char_id);`
+- `void	WritePlayerStatistic(Player* player, Statistic* stat);`
+- `void	LoadServerStatistics();`
+- `void	WriteServerStatistic(Statistic* stat);`
+- `void	WriteServerStatistic(int32 stat_id, sint32 stat_value);`
+- `void	WriteServerStatisticsNeededQueries();`
+- `void	SavePlayerMail(Mail* mail);`
+- `void	SavePlayerMail(Client* client);`
+- `void	LoadPlayerMail(Client* client, bool new_only = false);`
+- `void	DeletePlayerMail(Mail* mail);`
+- `void GetPetNames(ZoneServer* zone);`
+- `int8	GetCharacterLevel(int32 character_id);`
+- `int16	GetCharacterModelType(int32 character_id);`
+- `int8	GetCharacterClass(int32 character_id);`
+- `int8	GetCharacterGender(int32 character_id);`
+- `int32	GetCharacterID(const char* name);`
+- `int32	GetCharacterCurrentZoneID(int32 character_id);`
+- `int32	GetCharacterAccountID(int32 character_id);`
+- `void	LoadEntityCommands(ZoneServer* zone);`
+- `void	LoadSpells();`
+- `void	LoadSpellEffects();`
+- `void	LoadSpellLuaData();`
+- `void	LoadTraits();`
+- `int32	LoadPlayerSkillbar(Client* client);`
+- `string	GetColumnNames(char* name);`
+- `string	GetZoneName(char* zone_description);`
+- `bool	GetItemResultsToClient (Client* client, const char* varSearch, int maxResults=20);`
+- `void	LoadRevivePoints(vector<RevivePoint*>* revive_points, int32 zone_id);`
+- `void	SaveBugReport(const char* category, const char* subcategory, const char* causes_crash, const char* reproducible, const char* summary, const char* description, const char* version, const char* player, int32 account_id, const char* spawn_name, int32 spawn_id, int32 zone_id);`
+- `void	FixBugReport();`
+- `int32	LoadQuests();`
+- `void	LoadQuestDetails(Quest* quest);`
+- `bool	DeleteCharacter(int32 account_id, int32 character_id);`
+- `int32	GetMaxHotBarID();`
+- `int8	CheckNameFilter(const char* name, int8 min_length = 4, int8 max_length = 15);`
+- `void	LoadFogInit(string zone, PacketStruct* packet);`
+- `void ToggleCharacterOnline();`
+- `void ToggleCharacterOnline(Client* client, int8 toggle);`
+- `int32				CreateNewInstance(int32 zone_id, int32 playersMinLevel=0, int32 playersMaxLevel=0, int32 playersavgLevel=0, int32 playersfirstLevel=0);`
+- `int32				AddCharacterInstance(int32 char_id, int32 instance_id, string zone_name, int8 instance_type, int32 last_success, int32 last_failure, int32 success_lockout, int32 failure_lockout);`
+- `bool				UpdateCharacterInstanceTimers(int32 char_id, int32 instance_id, int32 lockout_time=0, int32 reset_time=0, int32 reenter_time=0 );`
+- `bool				UpdateCharacterInstance(int32 char_id, string zone_name, int32 instance_id, int8 type = 0, int32 timestamp = 0);`
+- `bool				VerifyInstanceID(int32 char_id, int32 instance_id);`
+- `bool				CheckVectorForValue(vector<int32>* vector, int32 value);`
+- `int32				CheckSpawnRemoveInfo(map<int32,int32>* inmap, int32 spawn_location_entry_id);`
+- `bool				UpdateInstancedSpawnRemoved(int32 spawn_location_entry_id, int32 spawn_type, int32 respawn_time, int32 instance_id );`
+- `int32				CreateInstanceSpawnRemoved(int32 spawn_location_entry_id, int32 spawn_type, int32 respawn_time, int32 instance_id );`
+- `bool				DeleteInstance(int32 instance_id);`
+- `bool				DeleteInstanceSpawnRemoved(int32 instance_id, int32 spawn_location_entry_id);`
+- `bool				DeleteCharacterFromInstance(int32 char_id, int32 instance_id);`
+- `bool				LoadCharacterInstances(Client* client);`
+- `bool				DeletePersistedRespawn(int32 zone_id, int32 spawn_location_entry_id);`
+- `int32				CreatePersistedRespawn(int32 spawn_location_entry_id, int32 spawn_type, int32 respawn_time, int32 zone_id);`
+- `void				UpdateLoginEquipment();`
+- `void				UpdateLoginZones();`
+- `void				LoadLocationGrids(ZoneServer* zone);`
+- `bool				LoadLocationGridLocations(LocationGrid* grid);`
+- `int32				CreateLocation(int32 zone_id, int32 grid_id, const char* name, bool include_y);`
+- `bool				AddLocationPoint(int32 location_id, float x, float y, float z);`
+- `bool				DeleteLocation(int32 location_id);`
+- `bool				DeleteLocationPoint(int32 location_point_id);`
+- `void				ListLocations(Client* client);`
+- `void				ListLocationPoints(Client* client, int32 location_id);`
+- `bool				LocationExists(int32 location_id);`
+- `bool				GetTableVersions(vector<TableVersion *> *table_versions);`
+- `bool				QueriesFromFile(const char *file);`
+- `void				LoadAchievements();`
+- `int32				LoadAchievementRequirements(Achievement *achievement);`
+- `int32				LoadAchievementRewards(Achievement *achievement);`
+- `void				LoadPlayerAchievements(Player *player);`
+- `int32				LoadPlayerAchievementsUpdates(Player *player);`
+- `int32				LoadPlayerAchievementsUpdateItems(AchievementUpdate *update, int32 player_id);`
+- `void				LoadAltAdvancements();`
+- `void				LoadTreeNodes();`
+- `void				LoadCollections();`
+- `int32				LoadCollectionItems(Collection *collection);`
+- `int32				LoadCollectionRewards(Collection *collection);`
+- `void				LoadPlayerCollections(Player *player);`
+- `void				LoadPlayerCollectionItems(Player *player, Collection *collection);`
+- `void				SavePlayerCollections(Client *client);`
+- `void				SavePlayerCollection(Client *client, Collection *collection);`
+- `void				SavePlayerCollectionItems(Client *client, Collection *collection);`
+- `void				SavePlayerCollectionItem(Client *client, Collection *collection, int32 item_id);`
+- `int32				SaveSpawnTemplate(int32 placement_id, const char* template_name);`
+- `bool				RemoveSpawnTemplate(int32 template_id);`
+- `int32				CreateSpawnFromTemplateByID(Client* client, int32 template_id);`
+- `int32				CreateSpawnFromTemplateByName(Client* client, const char* template_name);`
+- `bool				SaveZoneSafeCoords(int32 zone_id, float x, float y, float z, float heading);`
+- `bool				SaveSignZoneToCoords(int32 spawn_id, float x, float y, float z, float heading);`
+- `void				LoadGuilds();`
+- `void				LoadGuild(int32 guild_id);`
+- `int32				LoadGuildMembers(Guild* guild);`
+- `void				LoadGuildEvents(Guild* guild);`
+- `void				LoadGuildRanks(Guild* guild);`
+- `void				LoadGuildEventFilters(Guild* guild);`
+- `void				LoadGuildPointsHistory(Guild* guild, GuildMember* guild_member);`
+- `void				LoadGuildRecruiting(Guild* guild);`
+- `void				SaveGuild(Guild* guild, bool new_guild = false);`
+- `void				SaveGuildMembers(Guild* guild);`
+- `void				SaveGuildEvents(Guild* guild);`
+- `void				SaveGuildRanks(Guild* guild);`
+- `void				SaveGuildEventFilters(Guild* guild);`
+- `void				SaveGuildPointsHistory(Guild* guild);`
+- `void				SaveGuildRecruiting(Guild* guild);`
+- `void				DeleteGuild(Guild* guild);`
+- `void				DeleteGuildMember(Guild* guild, int32 character_id);`
+- `void				DeleteGuildEvent(Guild* guild, int64 event_id);`
+- `void				DeleteGuildPointHistory(Guild* guild, int32 character_id, PointHistory* point_history);`
+- `void				ArchiveGuildEvent(Guild* guild, GuildEvent* guild_event);`
+- `void				SaveHiddenGuildEvent(Guild* guild, GuildEvent* guild_event);`
+- `void				LoadGuildDefaultRanks(Guild* guild);`
+- `void				LoadGuildDefaultEventFilters(Guild* guild);`
+- `bool				AddNewPlayerToServerGuild(int32 account_id, int32 char_id);`
+- `int32				GetGuildIDByCharacterID(int32 char_id);`
+- `void LoadChannels();`
+- `void	LoadRecipes();`
+- `void	LoadRecipeBooks();`
+- `void	LoadPlayerRecipes(Player *player);`
+- `int32	LoadPlayerRecipeBooks(int32 char_id, Player *player);`
+- `void	SavePlayerRecipeBook(Player* player, int32 recipebook_id);`
+- `void	LoadRecipeComponents();`
+- `void	UpdatePlayerRecipe(Player* player, int32 recipe_id, int8 highest_rank);`
+- `void	SavePlayerRecipe(Player* player, int32 recipe_id);`
+- `void	LoadTradeskillEvents();`
+- `void LoadGlobalRuleSet();`
+- `void LoadRuleSets(bool reload=false);`
+- `void LoadRuleSetDetails(RuleSet *rule_set);`
+- `sint32				AddMasterTitle(const char* titleName, int8 isPrefix = 0);`
+- `void				LoadTitles();`
+- `sint32				LoadCharacterTitles(int32 char_id, Player *player);`
+- `sint32				GetCharPrefixIndex(int32 char_id, Player *player);`
+- `sint32				GetCharSuffixIndex(int32 char_id, Player *player);`
+- `void				SaveCharPrefixIndex(sint32 index, int32 char_id);`
+- `void				SaveCharSuffixIndex(sint32 index, int32 char_id);`
+- `sint32				AddCharacterTitle(sint32 index, int32 char_id, Spawn* player);`
+- `void				LoadLanguages();`
+- `int32				LoadCharacterLanguages(int32 char_id, Player *player);`
+- `int16				GetCharacterCurrentLang(int32 char_id, Player *player);`
+- `void				SaveCharacterCurrentLang(int32 id, int32 char_id, Client *client);`
+- `void 				UpdateStartingLanguage(int32 char_id, uint8 race_id, int32 starting_city=0);`
+- `void	SaveCharacterLang(int32 char_id, int32 lang_id);`
+- `void				SaveCharacterHistory(Player* player, int8 type, int8 subtype, int32 value, int32 value2, char* location, int32 event_date);`
+- `void				LoadHouseZones();`
+- `int64				AddPlayerHouse(int32 char_id, int32 house_id, int32 instance_id, int32 upkeep_due);`
+- `void				SetHouseUpkeepDue(int32 char_id, int32 house_id, int32 instance_id, int32 upkeep_due);`
+- `void				RemovePlayerHouse(int32 char_id, int32 house_id);`
+- `void				UpdateHouseEscrow(int32 house_id, int32 instance_id, int64 amount_coins, int32 amount_status);`
+- `void				LoadPlayerHouses();`
+- `void				LoadDeposits(PlayerHouse* house);`
+- `void				LoadHistory(PlayerHouse* house);`
+- `void				AddHistory(PlayerHouse* house, char* name, char* reason, int32 timestamp, int64 amount = 0, int32 status = 0, int8 pos_flag = 0);`
+- `bool				CheckBannedIPs(const char* loginIP);`
+- `void				LoadHOStarters();`
+- `void				LoadHOWheel();`
+- `void				LoadClaimItems(int32 char_id);`
+- `int16				CountCharClaimItems(int32 char_id);`
+- `vector<ClaimItems>  LoadCharacterClaimItems(int32 char_id);`
+- `void				ClaimItem(int32 char_id, int32 item_id, Client* client);`
+- `int32				GetAccountAge(int32 account_id);`
+- `void				LoadRaceTypes();`
+- `void				LoadLoot(ZoneServer* zone);`
+- `void				LoadGlobalLoot(ZoneServer* zone);`
+- `bool				LoadSpawnLoot(ZoneServer* zone, Spawn* spawn);`
+- `void				AddLootTableToSpawn(Spawn* spawn, int32 loottable_id);`
+- `bool				RemoveSpawnLootTable(Spawn* spawn, int32 loottable_id);`
+- `void				LoadCharacterHistory(int32 char_id, Player *player);`
+- `void				LoadSpellErrors();`
+- `bool				LoadSign(ZoneServer* zone, int32 spawn_id);`
+- `bool				LoadWidget(ZoneServer* zone, int32 spawn_id);`
+- `bool				LoadObject(ZoneServer* zone, int32 spawn_id);`
+- `bool				LoadGroundSpawn(ZoneServer* zone, int32 spawn_id);`
+- `void				LoadGroundSpawnEntry(ZoneServer* zone, int32 entry_id);`
+- `void				LoadGroundSpawnItems(ZoneServer* zone, int32 entry_id);`
+- `bool				LoadNPC(ZoneServer* zone, int32 spawn_id);`
+- `void				LoadAppearance(ZoneServer* zone, int32 spawn_id);`
+- `void				LoadNPCAppearanceEquipmentData(ZoneServer* zone, int32 spawn_id);`
+- `void				SaveCharacterPicture(int32 characterID, int8 type, uchar* picture, int32 picture_size);`
+- `void				SaveCharRepeatableQuest(Client* client, int32 quest_id, int16 quest_complete_count);`
+- `void				LoadZoneFlightPaths(ZoneServer* zone);`
+- `void				LoadZoneFlightPathLocations(ZoneServer* zone);`
+- `void				SaveCharacterLUAHistory(Player* player, int32 event_id, int32 value, int32 value2);`
+- `void				LoadCharacterLUAHistory(int32 char_id, Player* player);`
+- `int32				CreateNewBot(int32 char_id, string name, int8 race, int8 advClass, int8 gender, int16 model_id, int32& index);`
+- `void				SaveBotAppearance(Bot* bot);`
+- `void				SaveBotColors(int32 bot_id, const char* type, EQ2_Color color);`
+- `void				SaveBotFloats(int32 bot_id, const char* type, float float1, float float2, float float3);`
+- `bool				LoadBot(int32 char_id, int32 bot_index, Bot* bot);`
+- `void				LoadBotAppearance(Bot* bot);`
+- `void				SaveBotItem(int32 bot_id, int32 item_id, int8 slot);`
+- `void				LoadBotEquipment(Bot* bot);`
+- `string				GetBotList(int32 char_id);`
+- `void				DeleteBot(int32 char_id, int32 bot_index);`
+- `void				SetBotStartingItems(Bot* bot, int8 class_id, int8 race_id);`
+- `void                LoadTransmuting();`
+- `void				FindSpell(Client* client, char* findString);`
+- `void				LoadChestTraps();`
+- `bool				CheckExpansionFlags(ZoneServer* zone, int32 spawnXpackFlag);`
+- `bool				CheckHolidayFlags(ZoneServer* zone, int32 spawnHolidayFlag);`
+- `void				GetHouseSpawnInstanceData(ZoneServer* zone, Spawn* spawn);`
+- `int32				FindHouseInstanceSpawn(Spawn* spawn);`
+- `void				LoadStartingSkills(World* world);`
+- `void				LoadStartingSpells(World* world);`
+- `void				LoadVoiceOvers(World* world);`
+- `bool				DeleteSpiritShard(int32 id);`
+- `void				LoadCharacterSpellEffects(int32 char_id, Client *client, int8 db_spell_type);`
+- `int32				GetMysqlExpCurve(int level);`
+
+## Notable Comments
+
+- /*
+- */
+- /*void	loadNPCAppearance(int32 appearance_id);
+- //void	LoadMerchantMultipliers();
+- // Zone Instance DB Functions
+- //int32				AddCharacterInstance(int32 char_id, int32 instance_id, int32 grant_reenter_time_left=0, int32 grant_reset_time_left=0, int32 lockout_time=0);
+- //
+- /* Achievements */
+- /* Alternate Advancement */
+- /* Collections */

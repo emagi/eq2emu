@@ -1,0 +1,792 @@
+# File: `Entity.h`
+
+## Classes
+
+- `Entity`
+- `NPC`
+- `Trade`
+- `LuaSpell`
+- `GroupMemberInfo`
+- `BonusValues`
+- `MaintainedEffects`
+- `SpellEffects`
+- `DetrimentalEffects`
+- `InfoStruct`
+- `WardInfo`
+- `Proc`
+- `ThreatTransfer`
+- `Entity`
+
+## Functions
+
+- `void SetInfoStruct(InfoStruct* oldStruct)`
+- `std::lock_guard<std::mutex> lk(classMutex);`
+- `std::string get_name() { std::lock_guard<std::mutex> lk(classMutex); return name_; }`
+- `int8	 get_class1() { std::lock_guard<std::mutex> lk(classMutex); return class1_; }`
+- `int8	 get_class2() { std::lock_guard<std::mutex> lk(classMutex); return class2_; }`
+- `int8	 get_class3() { std::lock_guard<std::mutex> lk(classMutex); return class3_; }`
+- `int8	 get_race() { std::lock_guard<std::mutex> lk(classMutex); return race_; }`
+- `int8	 get_gender() { std::lock_guard<std::mutex> lk(classMutex); return gender_; }`
+- `int16 	 get_level() { std::lock_guard<std::mutex> lk(classMutex); return level_; }`
+- `int16	 get_max_level() { std::lock_guard<std::mutex> lk(classMutex); return max_level_; }`
+- `int16	 get_effective_level() { std::lock_guard<std::mutex> lk(classMutex); return effective_level_; }`
+- `int16	 get_tradeskill_level() { std::lock_guard<std::mutex> lk(classMutex); return tradeskill_level_; }`
+- `int16	 get_tradeskill_max_level() { std::lock_guard<std::mutex> lk(classMutex); return tradeskill_max_level_; }`
+- `int8	 get_cur_concentration() { std::lock_guard<std::mutex> lk(classMutex); return cur_concentration_; }`
+- `int8	 get_max_concentration() { std::lock_guard<std::mutex> lk(classMutex); return max_concentration_; }`
+- `int8	 get_max_concentration_base() { std::lock_guard<std::mutex> lk(classMutex); return max_concentration_base_; }`
+- `int16	 get_cur_attack() { std::lock_guard<std::mutex> lk(classMutex); return cur_attack_; }`
+- `int16	 get_attack_base() { std::lock_guard<std::mutex> lk(classMutex); return attack_base_; }`
+- `int16	 get_cur_mitigation() { std::lock_guard<std::mutex> lk(classMutex); return cur_mitigation_; }`
+- `int16	 get_max_mitigation() { std::lock_guard<std::mutex> lk(classMutex); return max_mitigation_; }`
+- `int16	 get_mitigation_base() { std::lock_guard<std::mutex> lk(classMutex); return mitigation_base_; }`
+- `sint16	 get_mitigation_modifier() { std::lock_guard<std::mutex> lk(classMutex); return mitigation_modifier_; }`
+- `int16	 get_avoidance_display() { std::lock_guard<std::mutex> lk(classMutex); return avoidance_display_; }`
+- `float	 get_cur_avoidance() { std::lock_guard<std::mutex> lk(classMutex); return cur_avoidance_; }`
+- `int16	 get_base_avoidance_pct() { std::lock_guard<std::mutex> lk(classMutex); return base_avoidance_pct_; }`
+- `int16	 get_avoidance_base() { std::lock_guard<std::mutex> lk(classMutex); return avoidance_base_; }`
+- `float	 get_parry() { std::lock_guard<std::mutex> lk(classMutex); return parry_; }`
+- `float	 get_parry_base() { std::lock_guard<std::mutex> lk(classMutex); return parry_base_; }`
+- `int16	 get_max_avoidance() { std::lock_guard<std::mutex> lk(classMutex); return max_avoidance_; }`
+- `float	 get_deflection() { std::lock_guard<std::mutex> lk(classMutex); return deflection_; }`
+- `int16	 get_deflection_base() { std::lock_guard<std::mutex> lk(classMutex); return deflection_base_; }`
+- `float	 get_block() { std::lock_guard<std::mutex> lk(classMutex); return block_; }`
+- `int16	 get_block_base() { std::lock_guard<std::mutex> lk(classMutex); return block_base_; }`
+- `float	 get_str() { std::lock_guard<std::mutex> lk(classMutex); return str_; }`
+- `float	 get_sta() { std::lock_guard<std::mutex> lk(classMutex); return sta_; }`
+- `float	 get_agi() { std::lock_guard<std::mutex> lk(classMutex); return agi_; }`
+- `float	 get_wis() { std::lock_guard<std::mutex> lk(classMutex); return wis_; }`
+- `float	 get_intel() { std::lock_guard<std::mutex> lk(classMutex); return intel_; }`
+- `float	 get_str_base() { std::lock_guard<std::mutex> lk(classMutex); return str_base_; }`
+- `float	 get_sta_base() { std::lock_guard<std::mutex> lk(classMutex); return sta_base_; }`
+- `float	 get_agi_base() { std::lock_guard<std::mutex> lk(classMutex); return agi_base_; }`
+- `float	 get_wis_base() { std::lock_guard<std::mutex> lk(classMutex); return wis_base_; }`
+- `float	 get_intel_base() { std::lock_guard<std::mutex> lk(classMutex); return intel_base_; }`
+- `int16	 get_heat() { std::lock_guard<std::mutex> lk(classMutex); return heat_; }`
+- `int16	 get_cold() { std::lock_guard<std::mutex> lk(classMutex); return cold_; }`
+- `int16	 get_magic() { std::lock_guard<std::mutex> lk(classMutex); return magic_; }`
+- `int16	 get_mental() { std::lock_guard<std::mutex> lk(classMutex); return mental_; }`
+- `int16	 get_divine() { std::lock_guard<std::mutex> lk(classMutex); return divine_; }`
+- `int16	 get_disease() { std::lock_guard<std::mutex> lk(classMutex); return disease_; }`
+- `int16	 get_poison() { std::lock_guard<std::mutex> lk(classMutex); return poison_; }`
+- `int16	 get_disease_base() { std::lock_guard<std::mutex> lk(classMutex); return disease_base_; }`
+- `int16	 get_cold_base() { std::lock_guard<std::mutex> lk(classMutex); return cold_base_; }`
+- `int16	 get_divine_base() { std::lock_guard<std::mutex> lk(classMutex); return divine_base_; }`
+- `int16	 get_magic_base() { std::lock_guard<std::mutex> lk(classMutex); return magic_base_; }`
+- `int16	 get_mental_base() { std::lock_guard<std::mutex> lk(classMutex); return mental_base_; }`
+- `int16	 get_heat_base() { std::lock_guard<std::mutex> lk(classMutex); return heat_base_; }`
+- `int16	 get_poison_base() { std::lock_guard<std::mutex> lk(classMutex); return poison_base_; }`
+- `int16	 get_elemental_base() { std::lock_guard<std::mutex> lk(classMutex); return elemental_base_; }`
+- `int16	 get_noxious_base() { std::lock_guard<std::mutex> lk(classMutex); return noxious_base_; }`
+- `int16	 get_arcane_base() { std::lock_guard<std::mutex> lk(classMutex); return arcane_base_; }`
+- `int32	 get_coin_copper() { std::lock_guard<std::mutex> lk(classMutex); return coin_copper_; }`
+- `int32	 get_coin_silver() { std::lock_guard<std::mutex> lk(classMutex); return coin_silver_; }`
+- `int32	 get_coin_gold() { std::lock_guard<std::mutex> lk(classMutex); return coin_gold_; }`
+- `int32	 get_coin_plat() { std::lock_guard<std::mutex> lk(classMutex); return coin_plat_; }`
+- `int32	 get_bank_coin_copper() { std::lock_guard<std::mutex> lk(classMutex); return bank_coin_copper_; }`
+- `int32	 get_bank_coin_silver() { std::lock_guard<std::mutex> lk(classMutex); return bank_coin_silver_; }`
+- `int32	 get_bank_coin_gold() { std::lock_guard<std::mutex> lk(classMutex); return bank_coin_gold_; }`
+- `int32	 get_bank_coin_plat() { std::lock_guard<std::mutex> lk(classMutex); return bank_coin_plat_; }`
+- `int32	 get_status_points() { std::lock_guard<std::mutex> lk(classMutex); return status_points_; }`
+- `std::string get_deity() { std::lock_guard<std::mutex> lk(classMutex); return deity_; }`
+- `int32	 get_weight() { std::lock_guard<std::mutex> lk(classMutex); return weight_; }`
+- `int32	 get_max_weight() { std::lock_guard<std::mutex> lk(classMutex); return max_weight_; }`
+- `int8	 get_tradeskill_class1() { std::lock_guard<std::mutex> lk(classMutex); return tradeskill_class1_; }`
+- `int8	 get_tradeskill_class2() { std::lock_guard<std::mutex> lk(classMutex); return tradeskill_class2_; }`
+- `int8	 get_tradeskill_class3() { std::lock_guard<std::mutex> lk(classMutex); return tradeskill_class3_; }`
+- `int32	 get_account_age_base() { std::lock_guard<std::mutex> lk(classMutex); return account_age_base_; }`
+- `int8	 get_account_age_bonus(int8 field) { std::lock_guard<std::mutex> lk(classMutex); return account_age_bonus_[field]; }`
+- `int16	 get_absorb() { std::lock_guard<std::mutex> lk(classMutex); return absorb_; }`
+- `int32	 get_xp() { std::lock_guard<std::mutex> lk(classMutex); return xp_; }`
+- `int32	 get_xp_needed() { std::lock_guard<std::mutex> lk(classMutex); return xp_needed_; }`
+- `float	 get_xp_debt() { std::lock_guard<std::mutex> lk(classMutex); return xp_debt_; }`
+- `int16	 get_xp_yellow() { std::lock_guard<std::mutex> lk(classMutex); return xp_yellow_; }`
+- `int16	 get_xp_yellow_vitality_bar() { std::lock_guard<std::mutex> lk(classMutex); return xp_yellow_vitality_bar_; }`
+- `int16	 get_xp_blue_vitality_bar() { std::lock_guard<std::mutex> lk(classMutex); return xp_blue_vitality_bar_; }`
+- `int16	 get_xp_blue() { std::lock_guard<std::mutex> lk(classMutex); return xp_blue_; }`
+- `int32	 get_ts_xp() { std::lock_guard<std::mutex> lk(classMutex); return ts_xp_; }`
+- `int32	 get_ts_xp_needed() { std::lock_guard<std::mutex> lk(classMutex); return ts_xp_needed_; }`
+- `int16	 get_tradeskill_exp_yellow() { std::lock_guard<std::mutex> lk(classMutex); return tradeskill_exp_yellow_; }`
+- `int16	 get_tradeskill_exp_blue() { std::lock_guard<std::mutex> lk(classMutex); return tradeskill_exp_blue_; }`
+- `int32	 get_flags() { std::lock_guard<std::mutex> lk(classMutex); return flags_; }`
+- `int32	 get_flags2() { std::lock_guard<std::mutex> lk(classMutex); return flags2_; }`
+- `float	 get_xp_vitality() { std::lock_guard<std::mutex> lk(classMutex); return xp_vitality_; }`
+- `float	 get_tradeskill_xp_vitality() { std::lock_guard<std::mutex> lk(classMutex); return tradeskill_xp_vitality_; }`
+- `int16	 get_mitigation_skill1() { std::lock_guard<std::mutex> lk(classMutex); return mitigation_skill1_; }`
+- `int16	 get_mitigation_skill2() { std::lock_guard<std::mutex> lk(classMutex); return mitigation_skill2_; }`
+- `int16	 get_mitigation_skill3() { std::lock_guard<std::mutex> lk(classMutex); return mitigation_skill3_; }`
+- `int16	 get_mitigation_pve() { std::lock_guard<std::mutex> lk(classMutex); return mitigation_pve_; }`
+- `int16	 get_mitigation_pvp() { std::lock_guard<std::mutex> lk(classMutex); return mitigation_pvp_; }`
+- `float	 get_ability_modifier() { std::lock_guard<std::mutex> lk(classMutex); return ability_modifier_; }`
+- `float	 get_critical_mitigation() { std::lock_guard<std::mutex> lk(classMutex); return critical_mitigation_; }`
+- `float	 get_block_chance() { std::lock_guard<std::mutex> lk(classMutex); return block_chance_; }`
+- `float	 get_uncontested_parry() { std::lock_guard<std::mutex> lk(classMutex); return uncontested_parry_; }`
+- `float	 get_uncontested_block() { std::lock_guard<std::mutex> lk(classMutex); return uncontested_block_; }`
+- `float	 get_uncontested_dodge() { std::lock_guard<std::mutex> lk(classMutex); return uncontested_dodge_; }`
+- `float	 get_uncontested_riposte() { std::lock_guard<std::mutex> lk(classMutex); return uncontested_riposte_; }`
+- `float	 get_crit_chance() { std::lock_guard<std::mutex> lk(classMutex); return crit_chance_; }`
+- `float	 get_crit_bonus() { std::lock_guard<std::mutex> lk(classMutex); return crit_bonus_; }`
+- `float	 get_potency() { std::lock_guard<std::mutex> lk(classMutex); return potency_; }`
+- `float	 get_hate_mod() { std::lock_guard<std::mutex> lk(classMutex); return hate_mod_; }`
+- `float	 get_reuse_speed() { std::lock_guard<std::mutex> lk(classMutex); return reuse_speed_; }`
+- `float	 get_casting_speed() { std::lock_guard<std::mutex> lk(classMutex); return casting_speed_; }`
+- `float	 get_recovery_speed() { std::lock_guard<std::mutex> lk(classMutex); return recovery_speed_; }`
+- `float	 get_spell_reuse_speed() { std::lock_guard<std::mutex> lk(classMutex); return spell_reuse_speed_; }`
+- `float	 get_spell_multi_attack() { std::lock_guard<std::mutex> lk(classMutex); return spell_multi_attack_; }`
+- `float	 get_dps() { std::lock_guard<std::mutex> lk(classMutex); return dps_; }`
+- `float	 get_dps_multiplier() { std::lock_guard<std::mutex> lk(classMutex); return dps_multiplier_; }`
+- `float	 get_attackspeed() { std::lock_guard<std::mutex> lk(classMutex); return attackspeed_; }`
+- `float	 get_haste() { std::lock_guard<std::mutex> lk(classMutex); return haste_; }`
+- `float	 get_multi_attack() { std::lock_guard<std::mutex> lk(classMutex); return multi_attack_; }`
+- `float	 get_flurry() { std::lock_guard<std::mutex> lk(classMutex); return flurry_; }`
+- `float	 get_melee_ae() { std::lock_guard<std::mutex> lk(classMutex); return melee_ae_; }`
+- `float	 get_strikethrough() { std::lock_guard<std::mutex> lk(classMutex); return strikethrough_; }`
+- `float	 get_accuracy() { std::lock_guard<std::mutex> lk(classMutex); return accuracy_; }`
+- `float	 get_offensivespeed() { std::lock_guard<std::mutex> lk(classMutex); return offensivespeed_; }`
+- `float	 get_rain() { std::lock_guard<std::mutex> lk(classMutex); return rain_; }`
+- `float	 get_wind() { std::lock_guard<std::mutex> lk(classMutex); return wind_; }`
+- `sint8	 get_alignment() { std::lock_guard<std::mutex> lk(classMutex); return alignment_; }`
+- `int32	 get_pet_id() { std::lock_guard<std::mutex> lk(classMutex); return pet_id_; }`
+- `std::string get_pet_name() { std::lock_guard<std::mutex> lk(classMutex); return pet_name_; }`
+- `float	get_pet_health_pct() { std::lock_guard<std::mutex> lk(classMutex); return pet_health_pct_; }`
+- `float	get_pet_power_pct() { std::lock_guard<std::mutex> lk(classMutex); return pet_power_pct_; }`
+- `int8	get_pet_movement() { std::lock_guard<std::mutex> lk(classMutex); return pet_movement_; }`
+- `int8	get_pet_behavior() { std::lock_guard<std::mutex> lk(classMutex); return pet_behavior_; }`
+- `int32	get_vision() { std::lock_guard<std::mutex> lk(classMutex); return vision_; }`
+- `int8	get_breathe_underwater() { std::lock_guard<std::mutex> lk(classMutex); return breathe_underwater_; }`
+- `std::string get_biography() { std::lock_guard<std::mutex> lk(classMutex); return biography_; }`
+- `float	get_drunk() { std::lock_guard<std::mutex> lk(classMutex); return drunk_; }`
+- `sint16	get_power_regen() { std::lock_guard<std::mutex> lk(classMutex); return power_regen_; }`
+- `sint16	get_hp_regen() { std::lock_guard<std::mutex> lk(classMutex); return hp_regen_; }`
+- `int8	get_power_regen_override() { std::lock_guard<std::mutex> lk(classMutex); return power_regen_override_; }`
+- `int8	get_hp_regen_override() { std::lock_guard<std::mutex> lk(classMutex); return hp_regen_override_; }`
+- `int8	get_water_type() { std::lock_guard<std::mutex> lk(classMutex); return water_type_; }`
+- `int8	get_flying_type() { std::lock_guard<std::mutex> lk(classMutex); return flying_type_; }`
+- `int8	get_no_interrupt() { std::lock_guard<std::mutex> lk(classMutex); return no_interrupt_; }`
+- `int8	get_interaction_flag() { std::lock_guard<std::mutex> lk(classMutex); return interaction_flag_; }`
+- `int8	get_tag1() { std::lock_guard<std::mutex> lk(classMutex); return tag1_; }`
+- `int16	get_mood() { std::lock_guard<std::mutex> lk(classMutex); return mood_; }`
+- `int32	get_range_last_attack_time() { std::lock_guard<std::mutex> lk(classMutex); return range_last_attack_time_; }`
+- `int32	get_primary_last_attack_time() { std::lock_guard<std::mutex> lk(classMutex); return primary_last_attack_time_; }`
+- `int32	get_secondary_last_attack_time() { std::lock_guard<std::mutex> lk(classMutex); return secondary_last_attack_time_; }`
+- `int16	get_primary_attack_delay() { std::lock_guard<std::mutex> lk(classMutex); return primary_attack_delay_; }`
+- `int16	get_secondary_attack_delay() { std::lock_guard<std::mutex> lk(classMutex); return secondary_attack_delay_; }`
+- `int16	get_ranged_attack_delay() { std::lock_guard<std::mutex> lk(classMutex); return ranged_attack_delay_; }`
+- `int8	get_primary_weapon_type() { std::lock_guard<std::mutex> lk(classMutex); return primary_weapon_type_; }`
+- `int8	get_secondary_weapon_type() { std::lock_guard<std::mutex> lk(classMutex); return secondary_weapon_type_; }`
+- `int8	get_ranged_weapon_type() { std::lock_guard<std::mutex> lk(classMutex); return ranged_weapon_type_; }`
+- `int32	get_primary_weapon_damage_low() { std::lock_guard<std::mutex> lk(classMutex); return primary_weapon_damage_low_; }`
+- `int32	get_primary_weapon_damage_high() { std::lock_guard<std::mutex> lk(classMutex); return primary_weapon_damage_high_; }`
+- `int32	get_secondary_weapon_damage_low() { std::lock_guard<std::mutex> lk(classMutex); return secondary_weapon_damage_low_; }`
+- `int32	get_secondary_weapon_damage_high() { std::lock_guard<std::mutex> lk(classMutex); return secondary_weapon_damage_high_; }`
+- `int32	get_ranged_weapon_damage_low() { std::lock_guard<std::mutex> lk(classMutex); return ranged_weapon_damage_low_; }`
+- `int32	get_ranged_weapon_damage_high() { std::lock_guard<std::mutex> lk(classMutex); return ranged_weapon_damage_high_; }`
+- `int8	get_wield_type() { std::lock_guard<std::mutex> lk(classMutex); return wield_type_; }`
+- `int8	get_attack_type() { std::lock_guard<std::mutex> lk(classMutex); return attack_type_; }`
+- `int16	get_primary_weapon_delay() { std::lock_guard<std::mutex> lk(classMutex); return primary_weapon_delay_; }`
+- `int16	get_secondary_weapon_delay() { std::lock_guard<std::mutex> lk(classMutex); return secondary_weapon_delay_; }`
+- `int16	get_ranged_weapon_delay() { std::lock_guard<std::mutex> lk(classMutex); return ranged_weapon_delay_; }`
+- `int8	get_override_primary_weapon() { std::lock_guard<std::mutex> lk(classMutex); return override_primary_weapon_; }`
+- `int8	get_override_secondary_weapon() { std::lock_guard<std::mutex> lk(classMutex); return override_secondary_weapon_; }`
+- `int8	get_override_ranged_weapon() { std::lock_guard<std::mutex> lk(classMutex); return override_ranged_weapon_; }`
+- `int8	get_friendly_target_npc() { std::lock_guard<std::mutex> lk(classMutex); return friendly_target_npc_; }`
+- `int32	get_last_claim_time() { std::lock_guard<std::mutex> lk(classMutex); return last_claim_time_; }`
+- `int8	get_engaged_encounter() { std::lock_guard<std::mutex> lk(classMutex); return engaged_encounter_; }`
+- `int8	get_lockable_encounter() { std::lock_guard<std::mutex> lk(classMutex); return lockable_encounter_; }`
+- `int8	get_first_world_login() { std::lock_guard<std::mutex> lk(classMutex); return first_world_login_; }`
+- `int8	get_reload_player_spells() { std::lock_guard<std::mutex> lk(classMutex); return reload_player_spells_; }`
+- `int8	get_group_loot_method() { std::lock_guard<std::mutex> lk(classMutex); return group_loot_method_; }`
+- `int8	get_group_loot_items_rarity() { std::lock_guard<std::mutex> lk(classMutex); return group_loot_items_rarity_; }`
+- `int8	get_group_auto_split() { std::lock_guard<std::mutex> lk(classMutex); return group_auto_split_; }`
+- `int8	get_group_default_yell() { std::lock_guard<std::mutex> lk(classMutex); return group_default_yell_; }`
+- `int8	get_group_autolock() { std::lock_guard<std::mutex> lk(classMutex); return group_autolock_; }`
+- `int8	get_group_lock_method() { std::lock_guard<std::mutex> lk(classMutex); return group_lock_method_; }`
+- `int8	get_group_solo_autolock() { std::lock_guard<std::mutex> lk(classMutex); return group_solo_autolock_; }`
+- `int8	get_group_auto_loot_method() { std::lock_guard<std::mutex> lk(classMutex); return group_auto_loot_method_; }`
+- `int8	get_assist_auto_attack() { std::lock_guard<std::mutex> lk(classMutex); return assist_auto_attack_; }`
+- `std::string get_action_state() { std::lock_guard<std::mutex> lk(classMutex); return action_state_; }`
+- `std::string get_combat_action_state() { std::lock_guard<std::mutex> lk(classMutex); return combat_action_state_; }`
+- `float	get_max_spell_reduction() { std::lock_guard<std::mutex> lk(classMutex); return max_spell_reduction_; }`
+- `int8	get_max_spell_reduction_override() { std::lock_guard<std::mutex> lk(classMutex); return max_spell_reduction_override_; }`
+- `void	set_name(std::string value) { std::lock_guard<std::mutex> lk(classMutex); name_ = value; }`
+- `void	set_deity(std::string value) { std::lock_guard<std::mutex> lk(classMutex); deity_ = value; }`
+- `void	set_class1(int8 value) { std::lock_guard<std::mutex> lk(classMutex); class1_ = value; }`
+- `void	set_class2(int8 value) { std::lock_guard<std::mutex> lk(classMutex); class2_ = value; }`
+- `void	set_class3(int8 value) { std::lock_guard<std::mutex> lk(classMutex); class3_ = value; }`
+- `void	set_race(int8 value) { std::lock_guard<std::mutex> lk(classMutex); race_ = value; }`
+- `void	set_gender(int8 value) { std::lock_guard<std::mutex> lk(classMutex); gender_ = value; }`
+- `void	set_level(int16 value) { std::lock_guard<std::mutex> lk(classMutex); level_ = value; }`
+- `void	set_max_level(int16 value) { std::lock_guard<std::mutex> lk(classMutex); max_level_ = value; }`
+- `void	set_effective_level(int16 value) { std::lock_guard<std::mutex> lk(classMutex); effective_level_ = value; }`
+- `void	set_cur_concentration(int8 value) { std::lock_guard<std::mutex> lk(classMutex); cur_concentration_ = value; }`
+- `void	set_max_concentration(int8 value) { std::lock_guard<std::mutex> lk(classMutex); max_concentration_ = value; }`
+- `void	set_max_concentration_base(int8 value) { std::lock_guard<std::mutex> lk(classMutex); max_concentration_base_ = value; }`
+- `void	add_cur_concentration(int8 value) { std::lock_guard<std::mutex> lk(classMutex); cur_concentration_ += value; }`
+- `void	add_max_concentration(int8 value) { std::lock_guard<std::mutex> lk(classMutex); max_concentration_ += value; }`
+- `void	set_cur_attack(int16 value) { std::lock_guard<std::mutex> lk(classMutex); cur_attack_ = value; }`
+- `void	set_attack_base(int16 value) { std::lock_guard<std::mutex> lk(classMutex); attack_base_ = value; }`
+- `void	set_cur_mitigation(int16 value) { std::lock_guard<std::mutex> lk(classMutex); cur_mitigation_ = value; }`
+- `void	set_max_mitigation(int16 value) { std::lock_guard<std::mutex> lk(classMutex); max_mitigation_ = value; }`
+- `void	set_mitigation_base(int16 value) { std::lock_guard<std::mutex> lk(classMutex); mitigation_base_ = value; }`
+- `void	add_mitigation_base(int16 value) { std::lock_guard<std::mutex> lk(classMutex); mitigation_base_ += value; }`
+- `void	set_mitigation_modifier(sint16 value) { std::lock_guard<std::mutex> lk(classMutex); mitigation_modifier_ = value; }`
+- `void	set_avoidance_display(int16 value) { std::lock_guard<std::mutex> lk(classMutex); avoidance_display_ = value; }`
+- `void	set_cur_avoidance(float value) { std::lock_guard<std::mutex> lk(classMutex); cur_avoidance_ = value; }`
+- `void	set_base_avoidance_pct(int16 value) { std::lock_guard<std::mutex> lk(classMutex); base_avoidance_pct_ = value; }`
+- `void	set_avoidance_base(int16 value) { std::lock_guard<std::mutex> lk(classMutex); avoidance_base_ = value; }`
+- `void	set_max_avoidance(int16 value) { std::lock_guard<std::mutex> lk(classMutex); max_avoidance_ = value; }`
+- `void	set_parry(float value) { std::lock_guard<std::mutex> lk(classMutex); parry_ = value; }`
+- `void	set_parry_base(float value) { std::lock_guard<std::mutex> lk(classMutex); parry_base_ = value; }`
+- `void	set_deflection(int16 value) { std::lock_guard<std::mutex> lk(classMutex); deflection_ = value; }`
+- `void	set_deflection_base(float value) { std::lock_guard<std::mutex> lk(classMutex); deflection_base_ = value; }`
+- `void	set_block(float value) { std::lock_guard<std::mutex> lk(classMutex); block_ = value; }`
+- `void	set_block_base(int16 value) { std::lock_guard<std::mutex> lk(classMutex); block_base_ = value; }`
+- `void	set_str(float value) { std::lock_guard<std::mutex> lk(classMutex); str_ = value; }`
+- `void	set_sta(float value) { std::lock_guard<std::mutex> lk(classMutex); sta_ = value; }`
+- `void	set_agi(float value) { std::lock_guard<std::mutex> lk(classMutex); agi_ = value; }`
+- `void	set_wis(float value) { std::lock_guard<std::mutex> lk(classMutex); wis_ = value; }`
+- `void	set_intel(float value) { std::lock_guard<std::mutex> lk(classMutex); intel_ = value; }`
+- `void	add_str(float value) { std::lock_guard<std::mutex> lk(classMutex); if(str_ + value < 0.0f) str_ = 0.0f; else str_ += value; }`
+- `void	add_sta(float value) { std::lock_guard<std::mutex> lk(classMutex); if(sta_ + value < 0.0f) sta_ = 0.0f; else sta_ += value; }`
+- `void	add_agi(float value) { std::lock_guard<std::mutex> lk(classMutex); if(agi_ + value < 0.0f) agi_ = 0.0f; else agi_ += value; }`
+- `void	add_wis(float value) { std::lock_guard<std::mutex> lk(classMutex); if(wis_ + value < 0.0f) wis_ = 0.0f; else wis_ += value; }`
+- `void	add_intel(float value) { std::lock_guard<std::mutex> lk(classMutex); if(intel_ + value < 0.0f) intel_ = 0.0f; else intel_ += value; }`
+- `void	set_str_base(float value) { std::lock_guard<std::mutex> lk(classMutex); str_base_ = value; }`
+- `void	set_sta_base(float value) { std::lock_guard<std::mutex> lk(classMutex); sta_base_ = value; }`
+- `void	set_agi_base(float value) { std::lock_guard<std::mutex> lk(classMutex); agi_base_ = value; }`
+- `void	set_wis_base(float value) { std::lock_guard<std::mutex> lk(classMutex); wis_base_ = value; }`
+- `void	set_intel_base(float value) { std::lock_guard<std::mutex> lk(classMutex); intel_base_ = value; }`
+- `void	set_heat(int16 value) { std::lock_guard<std::mutex> lk(classMutex); heat_ = value; }`
+- `void	set_cold(int16 value) { std::lock_guard<std::mutex> lk(classMutex); cold_ = value; }`
+- `void	set_magic(int16 value) { std::lock_guard<std::mutex> lk(classMutex); magic_ = value; }`
+- `void	set_mental(int16 value) { std::lock_guard<std::mutex> lk(classMutex); mental_ = value; }`
+- `void	set_divine(int16 value) { std::lock_guard<std::mutex> lk(classMutex); divine_ = value; }`
+- `void	set_disease(int16 value) { std::lock_guard<std::mutex> lk(classMutex); disease_ = value; }`
+- `void	set_poison(int16 value) { std::lock_guard<std::mutex> lk(classMutex); poison_ = value; }`
+- `void	add_heat(sint16 value) { std::lock_guard<std::mutex> lk(classMutex); if((sint32)heat_ + value < 0) heat_ = 0; else heat_ += value; }`
+- `void	add_cold(sint16 value) { std::lock_guard<std::mutex> lk(classMutex); if((sint32)cold_ + value < 0) cold_ = 0; else cold_ += value; }`
+- `void	add_magic(sint16 value) { std::lock_guard<std::mutex> lk(classMutex); if((sint32)magic_ + value < 0) magic_ = 0; else magic_ += value; }`
+- `void	add_mental(sint16 value) { std::lock_guard<std::mutex> lk(classMutex); if((sint32)mental_ + value < 0) mental_ = 0; else mental_ += value; }`
+- `void	add_divine(sint16 value) { std::lock_guard<std::mutex> lk(classMutex); if((sint32)divine_ + value < 0) divine_ = 0; else divine_ += value; }`
+- `void	add_disease(sint16 value) { std::lock_guard<std::mutex> lk(classMutex); if((sint32)disease_ + value < 0) disease_ = 0; else disease_ += value; }`
+- `void	add_poison(sint16 value) { std::lock_guard<std::mutex> lk(classMutex); if((sint32)poison_ + value < 0) poison_ = 0; else poison_ += value; }`
+- `void	set_disease_base(int16 value) { std::lock_guard<std::mutex> lk(classMutex); disease_base_ = value; }`
+- `void	set_cold_base(int16 value) { std::lock_guard<std::mutex> lk(classMutex); cold_base_ = value; }`
+- `void	set_divine_base(int16 value) { std::lock_guard<std::mutex> lk(classMutex); divine_base_ = value; }`
+- `void	set_magic_base(int16 value) { std::lock_guard<std::mutex> lk(classMutex); magic_base_ = value; }`
+- `void	set_mental_base(int16 value) { std::lock_guard<std::mutex> lk(classMutex); mental_base_ = value; }`
+- `void	set_heat_base(int16 value) { std::lock_guard<std::mutex> lk(classMutex); heat_base_ = value; }`
+- `void	set_poison_base(int16 value) { std::lock_guard<std::mutex> lk(classMutex); poison_base_ = value; }`
+- `void	set_elemental_base(int16 value) { std::lock_guard<std::mutex> lk(classMutex); elemental_base_ = value; }`
+- `void	set_noxious_base(int16 value) { std::lock_guard<std::mutex> lk(classMutex); noxious_base_ = value; }`
+- `void	set_arcane_base(int16 value) { std::lock_guard<std::mutex> lk(classMutex); arcane_base_ = value; }`
+- `void	set_tradeskill_level(int16 value) { std::lock_guard<std::mutex> lk(classMutex); tradeskill_level_ = value; }`
+- `void	set_tradeskill_max_level(int16 value) { std::lock_guard<std::mutex> lk(classMutex); tradeskill_max_level_ = value; }`
+- `void	set_tradeskill_class1(int8 value) { std::lock_guard<std::mutex> lk(classMutex); tradeskill_class1_ = value; }`
+- `void	set_tradeskill_class2(int8 value) { std::lock_guard<std::mutex> lk(classMutex); tradeskill_class2_ = value; }`
+- `void	set_tradeskill_class3(int8 value) { std::lock_guard<std::mutex> lk(classMutex); tradeskill_class3_ = value; }`
+- `void	set_account_age_base(int32 value) { std::lock_guard<std::mutex> lk(classMutex); account_age_base_ = value; }`
+- `void	set_xp_vitality(float value) { std::lock_guard<std::mutex> lk(classMutex); xp_vitality_ = value; }`
+- `void	add_xp_vitality(float value) { std::lock_guard<std::mutex> lk(classMutex); xp_vitality_ += value; }`
+- `void	set_tradeskill_xp_vitality(float value) { std::lock_guard<std::mutex> lk(classMutex); tradeskill_xp_vitality_ = value; }`
+- `void	set_absorb(int16 value) { std::lock_guard<std::mutex> lk(classMutex); absorb_ = value; }`
+- `void	set_xp(int32 value) { std::lock_guard<std::mutex> lk(classMutex); xp_ = value; }`
+- `void	set_xp_needed(int32 value) { std::lock_guard<std::mutex> lk(classMutex); xp_needed_ = value; }`
+- `void	set_xp_debt(float value) { std::lock_guard<std::mutex> lk(classMutex); if(std::isnan(value)) value = 0.0f; xp_debt_ = value; }`
+- `void	set_xp_yellow(int16 value) { std::lock_guard<std::mutex> lk(classMutex); xp_yellow_ = value; }`
+- `void	set_xp_blue(int16 value) { std::lock_guard<std::mutex> lk(classMutex); xp_blue_ = value; }`
+- `void	set_xp_yellow_vitality_bar(int16 value) { std::lock_guard<std::mutex> lk(classMutex); xp_yellow_vitality_bar_ = value; }`
+- `void	set_xp_blue_vitality_bar(int16 value) { std::lock_guard<std::mutex> lk(classMutex); xp_blue_vitality_bar_ = value; }`
+- `void	set_ts_xp(int32 value) { std::lock_guard<std::mutex> lk(classMutex); ts_xp_ = value; }`
+- `void	set_ts_xp_needed(int32 value) { std::lock_guard<std::mutex> lk(classMutex); ts_xp_needed_ = value; }`
+- `void	set_tradeskill_exp_yellow(int16 value) { std::lock_guard<std::mutex> lk(classMutex); tradeskill_exp_yellow_ = value; }`
+- `void	set_tradeskill_exp_blue(int16 value) { std::lock_guard<std::mutex> lk(classMutex); tradeskill_exp_blue_ = value; }`
+- `void	set_flags(int32 value) { std::lock_guard<std::mutex> lk(classMutex); flags_ = value; }`
+- `void	set_flags2(int32 value) { std::lock_guard<std::mutex> lk(classMutex); flags2_ = value; }`
+- `void	set_coin_plat(int32 value) { std::lock_guard<std::mutex> lk(classMutex); coin_plat_ = value; }`
+- `void	set_coin_gold(int32 value) { std::lock_guard<std::mutex> lk(classMutex); coin_gold_ = value; }`
+- `void	set_coin_silver(int32 value) { std::lock_guard<std::mutex> lk(classMutex); coin_silver_ = value; }`
+- `void	set_coin_copper(int32 value) { std::lock_guard<std::mutex> lk(classMutex); coin_copper_ = value; }`
+- `void	add_coin_plat(int32 value) { std::lock_guard<std::mutex> lk(classMutex); if((sint64)coin_plat_ + value < 0) coin_plat_ = 0; else coin_plat_ += value; }`
+- `void	add_coin_gold(int32 value) { std::lock_guard<std::mutex> lk(classMutex); if((sint64)coin_gold_ + value < 0) coin_gold_ = 0; else coin_gold_ += value; }`
+- `void	add_coin_silver(int32 value) { std::lock_guard<std::mutex> lk(classMutex); if((sint64)coin_silver_ + value < 0) coin_silver_ = 0; else coin_silver_ += value; }`
+- `void	add_coin_copper(int32 value) { std::lock_guard<std::mutex> lk(classMutex); if((sint64)coin_copper_ + value < 0) coin_copper_ = 0; else coin_copper_ += value; }`
+- `void	set_bank_coin_plat(int32 value) { std::lock_guard<std::mutex> lk(classMutex); bank_coin_plat_ = value; }`
+- `void	set_bank_coin_gold(int32 value) { std::lock_guard<std::mutex> lk(classMutex); bank_coin_gold_ = value; }`
+- `void	set_bank_coin_silver(int32 value) { std::lock_guard<std::mutex> lk(classMutex); bank_coin_silver_ = value; }`
+- `void	set_bank_coin_copper(int32 value) { std::lock_guard<std::mutex> lk(classMutex); bank_coin_copper_ = value; }`
+- `void	add_bank_coin_plat(int32 value) { std::lock_guard<std::mutex> lk(classMutex); if((sint64)bank_coin_plat_ + value < 0) bank_coin_plat_ = 0; else bank_coin_plat_ += value; }`
+- `void	add_bank_coin_gold(int32 value) { std::lock_guard<std::mutex> lk(classMutex); if((sint64)bank_coin_gold_ + value < 0) bank_coin_gold_ = 0; else bank_coin_gold_ += value; }`
+- `void	add_bank_coin_silver(int32 value) { std::lock_guard<std::mutex> lk(classMutex); if((sint64)bank_coin_silver_ + value < 0) bank_coin_silver_ = 0; else bank_coin_silver_ += value; }`
+- `void	add_bank_coin_copper(int32 value) { std::lock_guard<std::mutex> lk(classMutex); if((sint64)bank_coin_copper_ + value < 0) bank_coin_copper_ = 0; else bank_coin_copper_ += value; }`
+- `void	set_status_points(int32 value) { std::lock_guard<std::mutex> lk(classMutex); status_points_ = value; }`
+- `void	add_status_points(int32 value) { std::lock_guard<std::mutex> lk(classMutex);  if((sint64)status_points_ + value < 0) status_points_ = 0; else status_points_ += value; }`
+- `bool	subtract_status_points(int32 value) { std::lock_guard<std::mutex> lk(classMutex); if(value > status_points_) return false; status_points_ -= value; return true; }`
+- `void	set_mitigation_skill1(int16 value) { std::lock_guard<std::mutex> lk(classMutex); mitigation_skill1_ = value; }`
+- `void	set_mitigation_skill2(int16 value) { std::lock_guard<std::mutex> lk(classMutex); mitigation_skill2_ = value; }`
+- `void	set_mitigation_skill3(int16 value) { std::lock_guard<std::mutex> lk(classMutex); mitigation_skill3_ = value; }`
+- `void	set_mitigation_pve(int16 value) { std::lock_guard<std::mutex> lk(classMutex); mitigation_pve_ = value; }`
+- `void	set_mitigation_pvp(int16 value) { std::lock_guard<std::mutex> lk(classMutex); mitigation_pvp_ = value; }`
+- `void	add_mitigation_skill1(int16 value) { std::lock_guard<std::mutex> lk(classMutex); if((sint32)mitigation_skill1_ + value < 0) mitigation_skill1_ = 0; else mitigation_skill1_ += value; }`
+- `void	add_mitigation_skill2(int16 value) { std::lock_guard<std::mutex> lk(classMutex); if((sint32)mitigation_skill2_ + value < 0) mitigation_skill2_ = 0; else mitigation_skill2_ += value; }`
+- `void	add_mitigation_skill3(int16 value) { std::lock_guard<std::mutex> lk(classMutex); if((sint32)mitigation_skill3_ + value < 0) mitigation_skill3_ = 0; else mitigation_skill3_ += value; }`
+- `void	set_ability_modifier(float value) { std::lock_guard<std::mutex> lk(classMutex); ability_modifier_ = value; }`
+- `void	add_ability_modifier(float value) { std::lock_guard<std::mutex> lk(classMutex); if(ability_modifier_ + value < 0.0f) ability_modifier_ = 0.0f; else ability_modifier_ += value; }`
+- `void	set_critical_mitigation(float value) { std::lock_guard<std::mutex> lk(classMutex); critical_mitigation_ = value; }`
+- `void	add_critical_mitigation(float value) { std::lock_guard<std::mutex> lk(classMutex); if(critical_mitigation_ + value < 0.0f) critical_mitigation_ = 0.0f; else critical_mitigation_ += value; }`
+- `void	set_block_chance(float value) { std::lock_guard<std::mutex> lk(classMutex); block_chance_ = value; }`
+- `void	set_uncontested_parry(float value) { std::lock_guard<std::mutex> lk(classMutex); uncontested_parry_ = value; }`
+- `void	set_uncontested_block(float value) { std::lock_guard<std::mutex> lk(classMutex); uncontested_block_ = value; }`
+- `void	set_uncontested_dodge(float value) { std::lock_guard<std::mutex> lk(classMutex); uncontested_dodge_ = value; }`
+- `void	set_uncontested_riposte(float value) { std::lock_guard<std::mutex> lk(classMutex); uncontested_riposte_ = value; }`
+- `void	set_crit_chance(float value) { std::lock_guard<std::mutex> lk(classMutex); crit_chance_ = value; }`
+- `void	set_crit_bonus(float value) { std::lock_guard<std::mutex> lk(classMutex); crit_bonus_ = value; }`
+- `void	set_potency(float value) { std::lock_guard<std::mutex> lk(classMutex); potency_ = value; }`
+- `void	set_hate_mod(float value) { std::lock_guard<std::mutex> lk(classMutex); hate_mod_ = value; }`
+- `void	set_reuse_speed(float value) { std::lock_guard<std::mutex> lk(classMutex); reuse_speed_ = value; }`
+- `void	set_casting_speed(float value) { std::lock_guard<std::mutex> lk(classMutex); casting_speed_ = value; }`
+- `void	set_recovery_speed(float value) { std::lock_guard<std::mutex> lk(classMutex); recovery_speed_ = value; }`
+- `void	set_spell_reuse_speed(float value) { std::lock_guard<std::mutex> lk(classMutex); spell_reuse_speed_ = value; }`
+- `void	set_spell_multi_attack(float value) { std::lock_guard<std::mutex> lk(classMutex); spell_multi_attack_ = value; }`
+- `void	set_dps(float value) { std::lock_guard<std::mutex> lk(classMutex); dps_ = value; }`
+- `void	set_dps_multiplier(float value) { std::lock_guard<std::mutex> lk(classMutex); dps_multiplier_ = value; }`
+- `void	set_attackspeed(float value) { std::lock_guard<std::mutex> lk(classMutex); attackspeed_ = value; }`
+- `void	set_haste(float value) { std::lock_guard<std::mutex> lk(classMutex); haste_ = value; }`
+- `void	set_multi_attack(float value) { std::lock_guard<std::mutex> lk(classMutex); multi_attack_ = value; }`
+- `void	set_flurry(float value) { std::lock_guard<std::mutex> lk(classMutex); flurry_ = value; }`
+- `void	set_melee_ae(float value) { std::lock_guard<std::mutex> lk(classMutex); melee_ae_ = value; }`
+- `void	set_strikethrough(float value) { std::lock_guard<std::mutex> lk(classMutex); strikethrough_ = value; }`
+- `void	set_accuracy(float value) { std::lock_guard<std::mutex> lk(classMutex); accuracy_ = value; }`
+- `void	set_offensivespeed(float value) { std::lock_guard<std::mutex> lk(classMutex); offensivespeed_ = value; }`
+- `void	set_rain(float value) { std::lock_guard<std::mutex> lk(classMutex); if(value > 1.0f) value = 1.0f; else if(value < 0.0f) value = 0.0f; rain_ = value; }`
+- `void	set_wind(float value) { std::lock_guard<std::mutex> lk(classMutex); if(value > 1.0f) value = 1.0f; else if(value < 0.0f) value = 0.0f; wind_ = value; }`
+- `void	add_block_chance(float value) { std::lock_guard<std::mutex> lk(classMutex); if(block_chance_ + value < 0.0f) block_chance_ = 0.0f; else block_chance_ += value; }`
+- `void	add_uncontested_parry(float value) { std::lock_guard<std::mutex> lk(classMutex); if(uncontested_parry_ + value < 0.0f) uncontested_parry_ = 0.0f; else uncontested_parry_ += value; }`
+- `void	add_uncontested_block(float value) { std::lock_guard<std::mutex> lk(classMutex); if(uncontested_block_ + value < 0.0f) uncontested_block_ = 0.0f; else uncontested_block_ += value; }`
+- `void	add_uncontested_dodge(float value) { std::lock_guard<std::mutex> lk(classMutex); if(uncontested_dodge_ + value < 0.0f) uncontested_dodge_ = 0.0f; else uncontested_dodge_ += value; }`
+- `void	add_uncontested_riposte(float value) { std::lock_guard<std::mutex> lk(classMutex); if(uncontested_riposte_ + value < 0.0f) uncontested_riposte_ = 0.0f; else uncontested_riposte_ += value; }`
+- `void	add_crit_chance(float value) { std::lock_guard<std::mutex> lk(classMutex); if(crit_chance_ + value < 0.0f) crit_chance_ = 0.0f; else crit_chance_ += value; }`
+- `void	add_crit_bonus(float value) { std::lock_guard<std::mutex> lk(classMutex); if(crit_bonus_ + value < 0.0f) crit_bonus_ = 0.0f; else crit_bonus_ += value; }`
+- `void	add_potency(float value) { std::lock_guard<std::mutex> lk(classMutex); if(potency_ + value < 0.0f) potency_ = 0.0f; else potency_ += value; }`
+- `void	add_hate_mod(float value) { std::lock_guard<std::mutex> lk(classMutex); if(hate_mod_ + value < 0.0f) hate_mod_ = 0.0f; else hate_mod_ += value; }`
+- `void	add_reuse_speed(float value) { std::lock_guard<std::mutex> lk(classMutex); reuse_speed_ += value; }`
+- `void	add_casting_speed(float value) { std::lock_guard<std::mutex> lk(classMutex); casting_speed_ += value; }`
+- `void	add_recovery_speed(float value) { std::lock_guard<std::mutex> lk(classMutex); recovery_speed_ += value; }`
+- `void	add_spell_reuse_speed(float value) { std::lock_guard<std::mutex> lk(classMutex); spell_reuse_speed_ += value; }`
+- `void	add_spell_multi_attack(float value) { std::lock_guard<std::mutex> lk(classMutex); spell_multi_attack_ += value; }`
+- `void	add_dps(float value) { std::lock_guard<std::mutex> lk(classMutex); if(dps_ + value < 0.0f) dps_ = 0.0f; else dps_ += value; }`
+- `void	add_dps_multiplier(float value) { std::lock_guard<std::mutex> lk(classMutex); if(dps_multiplier_ + value < 0.0f) dps_multiplier_ = 0.0f; else dps_multiplier_ += value; }`
+- `void	add_attackspeed(float value) { std::lock_guard<std::mutex> lk(classMutex); if(attackspeed_ + value < 0.0f) attackspeed_ = 0.0f; else attackspeed_ += value; }`
+- `void	add_haste(float value) { std::lock_guard<std::mutex> lk(classMutex); if(haste_ + value < 0.0f) haste_ = 0.0f; else haste_ += value; }`
+- `void	add_multi_attack(float value) { std::lock_guard<std::mutex> lk(classMutex); if(multi_attack_ + value < 0.0f) multi_attack_ = 0.0f; else multi_attack_ += value; }`
+- `void	add_flurry(float value) { std::lock_guard<std::mutex> lk(classMutex); if(flurry_ + value < 0.0f) flurry_ = 0.0f; else flurry_ += value; }`
+- `void	add_melee_ae(float value) { std::lock_guard<std::mutex> lk(classMutex); if(melee_ae_ + value < 0.0f) melee_ae_ = 0.0f; else melee_ae_ += value; }`
+- `void	add_strikethrough(float value) { std::lock_guard<std::mutex> lk(classMutex); if(strikethrough_ + value < 0.0f) strikethrough_ = 0.0f; else strikethrough_ += value; }`
+- `void	add_accuracy(float value) { std::lock_guard<std::mutex> lk(classMutex); if(accuracy_ + value < 0.0f) accuracy_ = 0.0f; else accuracy_ += value; }`
+- `void	add_offensivespeed(float value) { std::lock_guard<std::mutex> lk(classMutex); if(offensivespeed_ + value < 0.0f) offensivespeed_ = 0.0f; else offensivespeed_ += value; }`
+- `void	add_rain(float value) { std::lock_guard<std::mutex> lk(classMutex); if(rain_ + value < 0.0f) rain_ = 0.0f; else rain_ += value; }`
+- `void	add_wind(float value) { std::lock_guard<std::mutex> lk(classMutex); if(wind_ + value < 0.0f) wind_ = 0.0f; else wind_ += value; }`
+- `void	set_alignment(int8 value) { std::lock_guard<std::mutex> lk(classMutex); alignment_ = value; }`
+- `void	set_pet_id(int32 value) { std::lock_guard<std::mutex> lk(classMutex); pet_id_ = value; }`
+- `void	set_pet_name(std::string value) { std::lock_guard<std::mutex> lk(classMutex); pet_name_ = value; }`
+- `void	set_pet_movement(int8 value) { std::lock_guard<std::mutex> lk(classMutex); pet_movement_ = value; }`
+- `void	set_pet_behavior(int8 value) { std::lock_guard<std::mutex> lk(classMutex); pet_behavior_ = value; }`
+- `void	set_pet_health_pct(float value) { std::lock_guard<std::mutex> lk(classMutex); pet_health_pct_ = value; }`
+- `void	set_pet_power_pct(float value) { std::lock_guard<std::mutex> lk(classMutex); pet_power_pct_ = value; }`
+- `void	set_weight(int32 value) { std::lock_guard<std::mutex> lk(classMutex); weight_ = value; }`
+- `void	set_max_weight(int32 value) { std::lock_guard<std::mutex> lk(classMutex); max_weight_ = value; }`
+- `void	set_vision(int32 value) { std::lock_guard<std::mutex> lk(classMutex); vision_ = value; }`
+- `void	set_breathe_underwater(int8 value) { std::lock_guard<std::mutex> lk(classMutex); breathe_underwater_ = value; }`
+- `void	set_drunk(float value) { std::lock_guard<std::mutex> lk(classMutex); drunk_ = value; }`
+- `void	set_biography(std::string value) { std::lock_guard<std::mutex> lk(classMutex); biography_ = value; }`
+- `void	set_power_regen(sint16 value) { std::lock_guard<std::mutex> lk(classMutex); power_regen_ = value; }`
+- `void	set_hp_regen(sint16 value) { std::lock_guard<std::mutex> lk(classMutex); hp_regen_ = value; }`
+- `void	set_power_regen_override(int8 value) { std::lock_guard<std::mutex> lk(classMutex); power_regen_override_ = value; }`
+- `void	set_hp_regen_override(int8 value) { std::lock_guard<std::mutex> lk(classMutex); hp_regen_override_ = value; }`
+- `void	set_water_type(int8 value) { std::lock_guard<std::mutex> lk(classMutex); water_type_ = value; }`
+- `void	set_flying_type(int8 value) { std::lock_guard<std::mutex> lk(classMutex); flying_type_ = value; }`
+- `void	set_no_interrupt(int8 value) { std::lock_guard<std::mutex> lk(classMutex); no_interrupt_ = value; }`
+- `void	set_interaction_flag(int8 value) { std::lock_guard<std::mutex> lk(classMutex); interaction_flag_ = value; }`
+- `void	set_tag1(int8 value) { std::lock_guard<std::mutex> lk(classMutex); tag1_ = value; }`
+- `void	set_mood(int16 value) { std::lock_guard<std::mutex> lk(classMutex); mood_ = value; }`
+- `void	set_range_last_attack_time(int32 value) { std::lock_guard<std::mutex> lk(classMutex); range_last_attack_time_ = value; }`
+- `void	set_primary_last_attack_time(int32 value) { std::lock_guard<std::mutex> lk(classMutex); primary_last_attack_time_ = value; }`
+- `void	set_secondary_last_attack_time(int32 value) { std::lock_guard<std::mutex> lk(classMutex); secondary_last_attack_time_ = value; }`
+- `void	set_primary_attack_delay(int16 value) { std::lock_guard<std::mutex> lk(classMutex); primary_attack_delay_ = value; }`
+- `void	set_secondary_attack_delay(int16 value) { std::lock_guard<std::mutex> lk(classMutex); secondary_attack_delay_ = value; }`
+- `void	set_ranged_attack_delay(int16 value) { std::lock_guard<std::mutex> lk(classMutex); ranged_attack_delay_ = value; }`
+- `void	set_primary_weapon_type(int8 value) { std::lock_guard<std::mutex> lk(classMutex); primary_weapon_type_ = value; }`
+- `void	set_secondary_weapon_type(int8 value) { std::lock_guard<std::mutex> lk(classMutex); secondary_weapon_type_ = value; }`
+- `void	set_ranged_weapon_type(int8 value) { std::lock_guard<std::mutex> lk(classMutex); ranged_weapon_type_ = value; }`
+- `void	set_primary_weapon_damage_low(int32 value) { std::lock_guard<std::mutex> lk(classMutex); primary_weapon_damage_low_ = value; }`
+- `void	set_primary_weapon_damage_high(int32 value) { std::lock_guard<std::mutex> lk(classMutex); primary_weapon_damage_high_ = value; }`
+- `void	set_secondary_weapon_damage_low(int32 value) { std::lock_guard<std::mutex> lk(classMutex); secondary_weapon_damage_low_ = value; }`
+- `void	set_secondary_weapon_damage_high(int32 value) { std::lock_guard<std::mutex> lk(classMutex); secondary_weapon_damage_high_ = value; }`
+- `void	set_ranged_weapon_damage_low(int32 value) { std::lock_guard<std::mutex> lk(classMutex); ranged_weapon_damage_low_ = value; }`
+- `void	set_ranged_weapon_damage_high(int32 value) { std::lock_guard<std::mutex> lk(classMutex); ranged_weapon_damage_high_ = value; }`
+- `void	set_wield_type(int8 value) { std::lock_guard<std::mutex> lk(classMutex); wield_type_ = value; }`
+- `void	set_attack_type(int8 value) { std::lock_guard<std::mutex> lk(classMutex); attack_type_ = value; }`
+- `void	set_primary_weapon_delay(int16 value) { std::lock_guard<std::mutex> lk(classMutex); primary_weapon_delay_ = value; }`
+- `void	set_secondary_weapon_delay(int16 value) { std::lock_guard<std::mutex> lk(classMutex); secondary_weapon_delay_ = value; }`
+- `void	set_ranged_weapon_delay(int16 value) { std::lock_guard<std::mutex> lk(classMutex); ranged_weapon_delay_ = value; }`
+- `void	set_override_primary_weapon(int8 value) { std::lock_guard<std::mutex> lk(classMutex); override_primary_weapon_ = value; }`
+- `void	set_override_secondary_weapon(int8 value) { std::lock_guard<std::mutex> lk(classMutex); override_secondary_weapon_ = value; }`
+- `void	set_override_ranged_weapon(int8 value) { std::lock_guard<std::mutex> lk(classMutex); override_ranged_weapon_ = value; }`
+- `void	set_friendly_target_npc(int8 value) { std::lock_guard<std::mutex> lk(classMutex); friendly_target_npc_ = value; }`
+- `void	set_last_claim_time(int32 value) { std::lock_guard<std::mutex> lk(classMutex); last_claim_time_ = value; }`
+- `void	set_engaged_encounter(int8 value) { std::lock_guard<std::mutex> lk(classMutex); engaged_encounter_ = value; }`
+- `void	set_lockable_encounter(int8 value) { std::lock_guard<std::mutex> lk(classMutex); lockable_encounter_ = value; }`
+- `void	set_first_world_login(int8 value) { std::lock_guard<std::mutex> lk(classMutex); first_world_login_ = value; }`
+- `void	set_reload_player_spells(int8 value) { std::lock_guard<std::mutex> lk(classMutex); reload_player_spells_ = value; }`
+- `void	set_group_loot_method(int8 value) { std::lock_guard<std::mutex> lk(classMutex); group_loot_method_ = value; }`
+- `void	set_group_loot_items_rarity(int8 value) { std::lock_guard<std::mutex> lk(classMutex); group_loot_items_rarity_ = value; }`
+- `void	set_group_auto_split(int8 value) { std::lock_guard<std::mutex> lk(classMutex); group_auto_split_ = value;  }`
+- `void	set_group_default_yell(int8 value) { std::lock_guard<std::mutex> lk(classMutex); group_default_yell_ = value; }`
+- `void	set_group_autolock(int8 value) { std::lock_guard<std::mutex> lk(classMutex); group_autolock_ = value;  }`
+- `void	set_group_lock_method(int8 value) { std::lock_guard<std::mutex> lk(classMutex); group_lock_method_ = value;  }`
+- `void	set_group_solo_autolock(int8 value) { std::lock_guard<std::mutex> lk(classMutex); group_solo_autolock_ = value; }`
+- `void	set_group_auto_loot_method(int8 value) { std::lock_guard<std::mutex> lk(classMutex); group_auto_loot_method_ = value; }`
+- `void	set_assist_auto_attack(int8 value) { std::lock_guard<std::mutex> lk(classMutex); assist_auto_attack_ = value; }`
+- `void	set_action_state(std::string value) { std::lock_guard<std::mutex> lk(classMutex); action_state_ = value; }`
+- `void	set_combat_action_state(std::string value) { std::lock_guard<std::mutex> lk(classMutex); combat_action_state_ = value; }`
+- `void	set_max_spell_reduction(float value) { std::lock_guard<std::mutex> lk(classMutex); max_spell_reduction_ = value; }`
+- `void	set_max_spell_reduction_override(int8 value) { std::lock_guard<std::mutex> lk(classMutex); max_spell_reduction_override_ = value; }`
+- `void	ResetEffects(Spawn* spawn)`
+- `void DeleteSpellEffects(bool removeClient = false);`
+- `void RemoveSpells(bool unfriendlyOnly = false);`
+- `void MapInfoStruct();`
+- `void AddDetrimentalSpell(LuaSpell* spell, int32 override_expire_timestamp = 0);`
+- `void RemoveDetrimentalSpell(LuaSpell* spell);`
+- `void	SetDeity(int8 new_deity){`
+- `int8	GetDeity(){ return deity; }`
+- `bool 	IsEntity(){ return true; }`
+- `float 	CalculateSkillStatChance(char* skill, int16 item_stat, float max_cap = 0.0f, float modifier = 0.0f, bool add_to_skill = false);`
+- `float 	CalculateSkillWithBonus(char* skillName, int16 item_stat, bool chance_skill_increase);`
+- `float 	GetRuleSkillMaxBonus();`
+- `void 	CalculateBonuses();`
+- `float	CalculateLevelStatBonus(int16 stat_value);`
+- `void 	CalculateApplyWeight();`
+- `void 	SetRegenValues(int16 effective_level);`
+- `float 	CalculateBonusMod();`
+- `float 	CalculateDPSMultiplier();`
+- `float 	CalculateCastingSpeedMod();`
+- `int16	GetStr();`
+- `int16	GetSta();`
+- `int16	GetInt();`
+- `int16	GetWis();`
+- `int16	GetAgi();`
+- `int16   GetPrimaryStat();`
+- `int16	GetHeatResistance();`
+- `int16	GetColdResistance();`
+- `int16	GetMagicResistance();`
+- `int16	GetMentalResistance();`
+- `int16	GetDivineResistance();`
+- `int16	GetDiseaseResistance();`
+- `int16	GetPoisonResistance();`
+- `int16	GetStrBase();`
+- `int16	GetStaBase();`
+- `int16	GetIntBase();`
+- `int16	GetWisBase();`
+- `int16	GetAgiBase();`
+- `int16	GetHeatResistanceBase();`
+- `int16	GetColdResistanceBase();`
+- `int16	GetMagicResistanceBase();`
+- `int16	GetMentalResistanceBase();`
+- `int16	GetDivineResistanceBase();`
+- `int16	GetDiseaseResistanceBase();`
+- `int16	GetPoisonResistanceBase();`
+- `int8	GetConcentrationCurrent();`
+- `int8	GetConcentrationMax();`
+- `sint8	GetAlignment();`
+- `void	SetAlignment(sint8 new_value);`
+- `bool	HasMoved(bool include_heading);`
+- `void	SetHPRegen(int16 new_val);`
+- `int16	GetHPRegen();`
+- `void	DoRegenUpdate();`
+- `int32 GetFlags() { return info_struct.get_flags(); }`
+- `int32	GetFlags2() { return info_struct.get_flags2(); }`
+- `bool query_flags(int flag) {`
+- `float	GetMaxSpeed();`
+- `void	SetMaxSpeed(float val);`
+- `int32	GetRangeLastAttackTime();`
+- `void	SetRangeLastAttackTime(int32 time);`
+- `int16	GetRangeAttackDelay();`
+- `int16   GetRangeWeaponDelay();`
+- `void    SetRangeWeaponDelay(int16 new_delay);`
+- `void    SetRangeAttackDelay(int16 new_delay);`
+- `int32	GetPrimaryLastAttackTime();`
+- `int16	GetPrimaryAttackDelay();`
+- `void	SetPrimaryAttackDelay(int16 new_delay);`
+- `void	SetPrimaryLastAttackTime(int32 new_time);`
+- `void    SetPrimaryWeaponDelay(int16 new_delay);`
+- `int32	GetSecondaryLastAttackTime();`
+- `int16	GetSecondaryAttackDelay();`
+- `void	SetSecondaryAttackDelay(int16 new_delay);`
+- `void	SetSecondaryLastAttackTime(int32 new_time);`
+- `void    SetSecondaryWeaponDelay(int16 new_delay);`
+- `int32	GetPrimaryWeaponMinDamage();`
+- `int32	GetPrimaryWeaponMaxDamage();`
+- `int32	GetSecondaryWeaponMinDamage();`
+- `int32	GetSecondaryWeaponMaxDamage();`
+- `int32	GetRangedWeaponMinDamage();`
+- `int32	GetRangedWeaponMaxDamage();`
+- `int8	GetPrimaryWeaponType();`
+- `int8	GetSecondaryWeaponType();`
+- `int8	GetRangedWeaponType();`
+- `int8	GetWieldType();`
+- `int16   GetPrimaryWeaponDelay();`
+- `int16   GetSecondaryWeaponDelay();`
+- `bool	IsDualWield();`
+- `bool	BehindTarget(Spawn* target);`
+- `bool	FlankingTarget(Spawn* target);`
+- `void	GetWeaponDamage(Item* item, int32* low_damage, int32* high_damage);`
+- `void	ChangePrimaryWeapon();`
+- `void	ChangeSecondaryWeapon();`
+- `void	ChangeRangedWeapon();`
+- `void	UpdateWeapons();`
+- `int32	GetStrengthDamage();`
+- `bool			AttackAllowed(Entity* target, float distance = 0, bool range_attack = false);`
+- `bool			PrimaryWeaponReady();`
+- `bool			SecondaryWeaponReady();`
+- `bool			RangeWeaponReady();`
+- `void			MeleeAttack(Spawn* victim, float distance, bool primary, bool multi_attack = false);`
+- `void			RangeAttack(Spawn* victim, float distance, Item* weapon, Item* ammo, bool multi_attack = false);`
+- `bool			SpellAttack(Spawn* victim, float distance, LuaSpell* luaspell, int8 damage_type, int32 low_damage, int32 high_damage, int8 crit_mod = 0, bool no_calcs = false, int8 override_packet_type = 0, bool take_power = false);`
+- `bool			ProcAttack(Spawn* victim, int8 damage_type, int32 low_damage, int32 high_damage, string name, string success_msg, string effect_msg);`
+- `bool            SpellHeal(Spawn* target, float distance, LuaSpell* luaspell, string heal_type, int32 low_heal, int32 high_heal, int8 crit_mod = 0, bool no_calcs = false, string custom_spell_name="");`
+- `int8			DetermineHit(Spawn* victim, int8 type, int8 damage_type, float ToHitBonus, bool is_caster_spell, LuaSpell* lua_spell = nullptr);`
+- `float			GetDamageTypeResistPercentage(int8 damage_type);`
+- `bool			DamageSpawn(Entity* victim, int8 type, int8 damage_type, int32 low_damage, int32 high_damage, const char* spell_name, int8 crit_mod = 0, bool is_tick = false, bool no_damage_calcs = false, bool ignore_attacker = false, bool take_power = false, LuaSpell* spell = 0);`
+- `float			CalculateMitigation(int8 type = DAMAGE_PACKET_TYPE_SIMPLE_DAMAGE, int8 damage_type = 0, int16 attacker_level = 0, bool for_pvp = false);`
+- `void			AddHate(Entity* attacker, sint32 hate);`
+- `bool			CheckInterruptSpell(Entity* attacker);`
+- `bool			CheckFizzleSpell(LuaSpell* spell);`
+- `void			KillSpawn(Spawn* dead, int8 type = 0, int8 damage_type = 0, int16 kill_blow_type = 0);`
+- `void			HandleDeathExperienceDebt(Spawn* killer);`
+- `void            SetAttackDelay(bool primary = false, bool ranged = false);`
+- `float           CalculateAttackSpeedMod();`
+- `bool	EngagedInCombat();`
+- `bool	IsCasting();`
+- `void	IsCasting(bool val);`
+- `void SetMount(int16 mount_id, int8 red = 0xFF, int8 green = 0xFF, int8 blue = 0xFF, bool setUpdateFlags = true)`
+- `void SetEquipment(Item* item, int8 slot = 255);`
+- `void SetEquipment(int8 slot, int16 type, int8 red, int8 green, int8 blue, int8 h_r, int8 h_g, int8 h_b){`
+- `std::lock_guard<std::mutex> lk(MEquipment);`
+- `void SetHairType(int16 new_val, bool setUpdateFlags = true){`
+- `void SetHairColor1(EQ2_Color new_val, bool setUpdateFlags = true){`
+- `void SetHairColor2(EQ2_Color new_val, bool setUpdateFlags = true){`
+- `void SetSogaHairColor1(EQ2_Color new_val, bool setUpdateFlags = true){`
+- `void SetSogaHairColor2(EQ2_Color new_val, bool setUpdateFlags = true){`
+- `void SetHairHighlightColor(EQ2_Color new_val, bool setUpdateFlags = true){`
+- `void SetSogaHairHighlightColor(EQ2_Color new_val, bool setUpdateFlags = true){`
+- `void SetHairColor(EQ2_Color new_val, bool setUpdateFlags = true){`
+- `void SetSogaHairColor(EQ2_Color new_val, bool setUpdateFlags = true){`
+- `void SetHairTypeHighlightColor(EQ2_Color new_val, bool setUpdateFlags = true){`
+- `void SetSogaHairTypeHighlightColor(EQ2_Color new_val, bool setUpdateFlags = true){`
+- `void SetFacialHairType(int16 new_val, bool setUpdateFlags = true){`
+- `void SetFacialHairColor(EQ2_Color new_val, bool setUpdateFlags = true){`
+- `void SetSogaFacialHairColor(EQ2_Color new_val, bool setUpdateFlags = true){`
+- `void SetFacialHairHighlightColor(EQ2_Color new_val, bool setUpdateFlags = true){`
+- `void SetSogaFacialHairHighlightColor(EQ2_Color new_val, bool setUpdateFlags = true){`
+- `void SetWingType(int16 new_val, bool setUpdateFlags = true){`
+- `void SetWingColor1(EQ2_Color new_val, bool setUpdateFlags = true){`
+- `void SetWingColor2(EQ2_Color new_val, bool setUpdateFlags = true){`
+- `void SetChestType(int16 new_val, bool setUpdateFlags = true){`
+- `void SetLegsType(int16 new_val, bool setUpdateFlags = true){`
+- `void SetSogaHairType(int16 new_val, bool setUpdateFlags = true){`
+- `void SetSogaFacialHairType(int16 new_val, bool setUpdateFlags = true){`
+- `void SetSogaChestType(int16 new_val, bool setUpdateFlags = true){`
+- `void SetSogaLegType(int16 new_val, bool setUpdateFlags = true){`
+- `void SetSkinColor(EQ2_Color color){`
+- `void SetSogaSkinColor(EQ2_Color color){`
+- `void SetModelColor(EQ2_Color color){`
+- `void SetSogaModelColor(EQ2_Color color){`
+- `void SetCombatVoice(int16 val, bool setUpdateFlags = true) {`
+- `void SetEmoteVoice(int16 val, bool setUpdateFlags = true) {`
+- `int16 GetCombatVoice(){ return features.combat_voice; }`
+- `int16 GetEmoteVoice(){ return features.emote_voice; }`
+- `int16 GetMount(){ return features.mount_model_type; }`
+- `void SetMountSaddleColor(EQ2_Color* color){`
+- `void SetMountColor(EQ2_Color* color){`
+- `void SetEyeColor(EQ2_Color eye_color){`
+- `void SetSogaEyeColor(EQ2_Color eye_color){`
+- `int16 GetHairType(){`
+- `int16 GetFacialHairType(){`
+- `int16 GetWingType(){`
+- `int16 GetChestType(){`
+- `int16 GetLegsType(){`
+- `int16 GetSogaHairType(){`
+- `int16 GetSogaFacialHairType(){`
+- `int16 GetSogaChestType(){`
+- `int16 GetSogaLegType(){`
+- `void AddSpellBonus(LuaSpell* spell, int16 type, float value, int64 class_req =0, vector<int16> race_req = vector<int16>(), vector<int16> faction_req = vector<int16>());`
+- `bool CheckSpellBonusRemoval(LuaSpell* spell, int16 type);`
+- `void RemoveSpellBonus(const LuaSpell* spell, bool remove_all = false);`
+- `void RemoveAllSpellBonuses();`
+- `void CalculateSpellBonuses(ItemStatsValues* stats);`
+- `void AddMezSpell(LuaSpell* spell);`
+- `void RemoveMezSpell(LuaSpell* spell);`
+- `void RemoveAllMezSpells();`
+- `bool IsMezzed();`
+- `void AddStifleSpell(LuaSpell* spell);`
+- `void RemoveStifleSpell(LuaSpell* spell);`
+- `bool IsStifled();`
+- `void AddDazeSpell(LuaSpell* spell);`
+- `void RemoveDazeSpell(LuaSpell* spell);`
+- `bool IsDazed();`
+- `void AddStunSpell(LuaSpell* spell);`
+- `void RemoveStunSpell(LuaSpell* spell);`
+- `bool IsStunned();`
+- `bool IsMezzedOrStunned() {return IsMezzed() || IsStunned();}`
+- `void AddRootSpell(LuaSpell* spell);`
+- `void RemoveRootSpell(LuaSpell* spell);`
+- `bool IsRooted();`
+- `void AddFearSpell(LuaSpell* spell);`
+- `void RemoveFearSpell(LuaSpell* spell);`
+- `bool IsFeared();`
+- `void AddSnareSpell(LuaSpell* spell);`
+- `void RemoveSnareSpell(LuaSpell* spell);`
+- `void SetSnareValue(LuaSpell* spell, float snare_val);`
+- `bool IsSnared();`
+- `float GetHighestSnare();`
+- `bool HasControlEffect(int8 type);`
+- `void HaltMovement();`
+- `void SetCombatPet(Entity* pet) { this->pet = pet; }`
+- `void SetCharmedPet(Entity* pet) { charmedPet = pet; }`
+- `void SetDeityPet(Entity* pet) { deityPet = pet; }`
+- `void SetCosmeticPet(Entity* pet) { cosmeticPet = pet; }`
+- `bool HasPet() { return (pet || charmedPet) ? true : false; }`
+- `void HideDeityPet(bool val);`
+- `void HideCosmeticPet(bool val);`
+- `void DismissPet(Entity* pet, bool from_death = false, bool spawnListLocked = false);`
+- `void DismissAllPets(bool from_death = false, bool spawnListLocked = false);`
+- `void	SetOwner(Entity* owner) { if (owner) { this->owner = owner->GetID(); } else { owner = 0; } }`
+- `int8	GetPetType() { return m_petType; }`
+- `void	SetPetType(int8 val) { m_petType = val; }`
+- `void	SetPetSpellID(int32 val) { m_petSpellID = val; }`
+- `int32	GetPetSpellID() { return m_petSpellID; }`
+- `void	SetPetSpellTier(int8 val) { m_petSpellTier = val; }`
+- `int8	GetPetSpellTier() { return m_petSpellTier; }`
+- `bool IsDismissing() { return m_petDismissing; }`
+- `void SetDismissing(bool val) { m_petDismissing = val; }`
+- `void AddWard(int32 spellID, WardInfo* ward);`
+- `void RemoveWard(int32 spellID);`
+- `int32 CheckWards(Entity* attacker, int32 damage, int8 damage_type);`
+- `void AddProc(int8 type, float chance, Item* item = 0, LuaSpell* spell = 0, int8 damage_type = 0, int8 hp_ratio = 0, bool below_health = false, bool target_health = false, bool extended_version = false);`
+- `void RemoveProc(Item* item = 0, LuaSpell* spell = 0);`
+- `void CheckProcs(int8 type, Spawn* target);`
+- `void ClearProcs();`
+- `float GetSpeed();`
+- `float GetAirSpeed();`
+- `float GetBaseSpeed() { return base_speed; }`
+- `void SetSpeed(float val, bool override_ = false) { if ((base_speed == 0.0f && val > 0.0f) || override_) base_speed = val;  speed = val; }`
+- `void SetSpeedMultiplier(float val) { speed_multiplier = val; }`
+- `void SetThreatTransfer(ThreatTransfer* transfer);`
+- `int8 GetTraumaCount();`
+- `int8 GetArcaneCount();`
+- `int8 GetNoxiousCount();`
+- `int8 GetElementalCount();`
+- `int8 GetCurseCount();`
+- `int8 GetDetTypeCount(int8 det_type);`
+- `int8 GetDetCount();`
+- `bool HasCurableDetrimentType(int8 det_type);`
+- `void ClearAllDetriments();`
+- `void CureDetrimentByType(int8 cure_count, int8 det_type, string cure_name, Entity* caster, int8 cure_level = 0);`
+- `void CureDetrimentByControlEffect(int8 cure_count, int8 det_type, string cure_name, Entity* caster, int8 cure_level = 0);`
+- `void RemoveEffectsFromLuaSpell(LuaSpell* spell);`
+- `void CancelAllStealth();`
+- `bool IsStealthed();`
+- `bool IsInvis();`
+- `void AddInvisSpell(LuaSpell* spell);`
+- `void AddStealthSpell(LuaSpell* spell);`
+- `void RemoveStealthSpell(LuaSpell* spell);`
+- `void RemoveInvisSpell(LuaSpell* spell);`
+- `void AddWaterwalkSpell(LuaSpell* spell);`
+- `void AddWaterjumpSpell(LuaSpell* spell);`
+- `void RemoveWaterwalkSpell(LuaSpell* spell);`
+- `void RemoveWaterjumpSpell(LuaSpell* spell);`
+- `void AddAOEImmunity(LuaSpell* spell);`
+- `bool IsAOEImmune();`
+- `void RemoveAOEImmunity(LuaSpell* spell);`
+- `void AddStunImmunity(LuaSpell* spell);`
+- `void RemoveStunImmunity(LuaSpell* spell);`
+- `bool IsStunImmune();`
+- `void AddStifleImmunity(LuaSpell* spell);`
+- `void RemoveStifleImmunity(LuaSpell* spell);`
+- `bool IsStifleImmune();`
+- `void AddMezImmunity(LuaSpell* spell);`
+- `void RemoveMezImmunity(LuaSpell* spell);`
+- `bool IsMezImmune();`
+- `void AddRootImmunity(LuaSpell* spell);`
+- `void RemoveRootImmunity(LuaSpell* spell);`
+- `bool IsRootImmune();`
+- `void AddFearImmunity(LuaSpell* spell);`
+- `void RemoveFearImmunity(LuaSpell* spell);`
+- `bool IsFearImmune();`
+- `void AddDazeImmunity(LuaSpell* spell);`
+- `void RemoveDazeImmunity(LuaSpell* spell);`
+- `bool IsDazeImmune();`
+- `void AddImmunity(LuaSpell* spell, int8 type);`
+- `void RemoveImmunity(LuaSpell* spell, int8 type);`
+- `bool IsImmune(int8 type);`
+- `void AddFlightSpell(LuaSpell* spell);`
+- `void RemoveFlightSpell(LuaSpell* spell);`
+- `void AddSafefallSpell(LuaSpell* spell);`
+- `void RemoveSafefallSpell(LuaSpell* spell);`
+- `void AddGlideSpell(LuaSpell* spell);`
+- `void RemoveGlideSpell(LuaSpell* spell);`
+- `void SetGroupMemberInfo(GroupMemberInfo* info) { group_member_info = info; }`
+- `void UpdateGroupMemberInfo(bool inGroupMgrLock=false, bool groupMembersLocked=false);`
+- `void CustomizeAppearance(PacketStruct* packet);`
+- `bool IsAggroed() {`
+- `bool HasSeeInvisSpell() { return hasSeeInvisSpell; }`
+- `void SetSeeInvisSpell(bool val) { hasSeeInvisSpell = val; }`
+- `bool HasSeeHideSpell() { return hasSeeHideSpell; }`
+- `void SetSeeHideSpell(bool val) { hasSeeHideSpell = val; }`
+- `void SetInfoStruct(InfoStruct* struct_) { info_struct.SetInfoStruct(struct_); }`
+- `std::string GetInfoStructString(std::string field);`
+- `int8 GetInfoStructInt8(std::string field);`
+- `int16 GetInfoStructInt16(std::string field);`
+- `int32 GetInfoStructInt32(std::string field);`
+- `int64 GetInfoStructInt64(std::string field);`
+- `sint8 GetInfoStructSInt8(std::string field);`
+- `sint16 GetInfoStructSInt16(std::string field);`
+- `sint32 GetInfoStructSInt32(std::string field);`
+- `sint64 GetInfoStructSInt64(std::string field);`
+- `int64 GetInfoStructUInt(std::string field);`
+- `sint64 GetInfoStructSInt(std::string field);`
+- `float GetInfoStructFloat(std::string field);`
+- `bool SetInfoStructString(std::string field, std::string value);`
+- `bool SetInfoStructUInt(std::string field, int64 value);`
+- `bool SetInfoStructSInt(std::string field, sint64 value);`
+- `bool SetInfoStructFloat(std::string field, float value);`
+- `float CalculateSpellDamageReduction(float spellDamage, int16 competitorLevel);`
+- `sint32 CalculateHateAmount(Spawn* target, sint32 amt);`
+- `sint32 CalculateHealAmount(Spawn* target, sint32 amt, int8 crit_mod, bool* crit, bool skip_crit_mod = false);`
+- `sint32 CalculateDamageAmount(Spawn* target, sint32 damage, int8 base_type, int8 damage_type, LuaSpell* spell);`
+- `sint32 CalculateDamageAmount(Spawn* target, sint32 damage, int8 base_type, int8 damage_type, int8 spell_target_type);`
+- `sint32 CalculateFormulaByStat(sint32 value, int16 stat);`
+- `int32 CalculateFormulaByStat(int32 value, int16 stat);`
+- `int32 CalculateFormulaBonus(int32 value, float percent_bonus);`
+- `float CalculateSpellDamageReduction(float spellDamage, float resistancePercentage, int16 attackerLevel);`
+- `float GetStat(int32 item_stat) {`
+- `bool IsEngagedInEncounter(Spawn** res = nullptr);`
+- `bool IsEngagedBySpawnID(int32 id);`
+- `void SendControlEffectDetailsToClient(Client* client);`
+- `std::string GetControlEffectName(int8 control_effect_type) {`
+- `void TerminateTrade();`
+- `void CalculateMaxReduction();`
+- `bool CastProc(Proc* proc, int8 type, Spawn* target);`
+
+## Notable Comments
+
+- /*
+- */
+- // neutral?
+- //mutable std::shared_mutex mutex_;
+- //SpellEffects* & get_spell_effects() { std::lock_guard<std::mutex> lk(classMutex); return spell_effects_; }
+- //MaintainedEffects* & get_maintained_effects() { std::lock_guard<std::mutex> lk(classMutex); return maintained_effects_; }
+- // crash client if float values above 1.0 are sent
+- // maintained via their own mutex
+- // when PacketStruct is fixed for C++17 this should become a shared_mutex and handle read/write lock
+- //class Spell;

@@ -1,0 +1,163 @@
+# File: `World.h`
+
+## Classes
+
+- `MerchantInfo`
+- `MerchantItemInfo`
+- `LootTable`
+- `LootDrop`
+- `GroundSpawnEntry`
+- `GroundSpawnEntryItem`
+- `TransportDestination`
+- `LocationTransportDestination`
+- `LottoPlayer`
+- `HouseZone`
+- `Deposit`
+- `HouseHistory`
+- `PlayerHouse`
+- `Statistic`
+- `PlayerHistory`
+- `GlobalLoot`
+- `StartingStructHeader`
+- `StartingSkill`
+- `StartingSpell`
+- `VoiceOverStruct`
+- `WhoAllPeerPlayer`
+- `ZoneInfoMemory`
+- `ZoneList`
+- `World`
+
+## Functions
+
+- `void LoadFromDatabaseRow(MYSQL_ROW row);`
+- `void Add(ZoneServer* zone);`
+- `void Remove(ZoneServer* zone);`
+- `bool GetZone(ZoneChangeDetails* zone_details, int32 opt_zone_id, std::string opt_zone_name = "", bool loadZone = true, bool skip_existing_zones = false, bool increment_zone = true, bool check_peers = true, bool check_instances = false, bool only_always_loaded = false, bool skip_self = false, bool duplicated_zone = false, int32 minLevel = 0, int32 maxLevel = 0, int32 avgLevel = 0, int32 firstLevel = 0);`
+- `bool GetZoneByInstance(ZoneChangeDetails* zone_details, int32 instance_id, int32 zone_id = 0, bool loadZone = true, bool skip_existing_zones = false, bool increment_zone = true, bool check_peers = true, int32 minLevel = 0, int32 maxLevel = 0, int32 avgLevel = 0, int32 firstLevel = 0);`
+- `bool IsClientConnectedPeer(int32 account_id);`
+- `int32 GetZonesPlayersCount();`
+- `void AddClientToMap(string name, Client* client){`
+- `void CheckFriendList(Client* client);`
+- `void CheckFriendZoned(Client* client);`
+- `bool HandleGlobalChatMessage(Client* from, char* to, int16 channel, const char* message, const char* channel_name = 0, int32 current_language_id = 0);`
+- `void HandleGlobalBroadcast(const char* message);`
+- `void HandleGlobalAnnouncement(const char* message);`
+- `int32 Count();`
+- `void UpdateVitality(float amount);`
+- `void RemoveClientFromMap(string name, Client* client){`
+- `bool ClientConnected(int32 account_id);`
+- `void RemoveClientZoneReference(ZoneServer* zone);`
+- `void ReloadClientQuests();`
+- `bool DepopFinished();`
+- `void Depop();`
+- `void Repop();`
+- `void DeleteSpellProcess();`
+- `void SendZoneWideChannelMessage(std::string fromName, const char* to, int16 channel, const char* message, float distance, const char* channel_name, int32 language);`
+- `void LoadSpellProcess();`
+- `void ProcessWhoQuery(const char* query, Client* client);`
+- `void ProcessWhoQuery(vector<string>* queries, ZoneServer* zone, vector<Entity*>* players, bool isGM);`
+- `void SendZoneList(Client* client);`
+- `void WritePlayerStatistics();`
+- `void ShutDownZones();`
+- `void ReloadMail();`
+- `void ReloadSpawns();`
+- `int32 GetHighestDuplicateID(const std::string& inc_zone_name, int32 inc_zone_id, bool increment_new_value = true);`
+- `bool GetDuplicateZoneDetails(ZoneChangeDetails* zone_details, const std::string& inc_zone_name, int32 inc_zone_id, int32 matchDuplicateId);`
+- `void WatchdogHeartbeat();`
+- `void SendTimeUpdate();`
+- `void	PopulateClientList(boost::property_tree::ptree& pt);`
+- `void	PopulateZoneList(boost::property_tree::ptree& pt);`
+- `int8				GetClassID(const char* name);`
+- `void				Process();`
+- `void				init(std::string web_ipaddr, int16 web_port, std::string cert_file, std::string key_file, std::string key_password, std::string hardcode_user, std::string hardcode_password);`
+- `void				WorldTimeTick();`
+- `float				GetXPRate();`
+- `float				GetTSXPRate();`
+- `void				LoadVitalityInformation();`
+- `void				UpdateVitality();`
+- `ulong GetCurrentThreadID();`
+- `int64 GetThreadUsageCPUTime();`
+- `void				AddNPCAppearance(int32 id, AppearanceData* appearance){ npc_appearance_list[id] = appearance; }`
+- `void ReloadGuilds();`
+- `bool ReportBug(string data, char* player_name, int32 account_id, const char* spawn_name, int32 spawn_id, int32 zone_id);`
+- `void AddSpawnScript(int32 id, const char* name);`
+- `void AddSpawnEntryScript(int32 id, const char* name);`
+- `void AddSpawnLocationScript(int32 id, const char* name);`
+- `void AddZoneScript(int32 id, const char* name);`
+- `void ResetSpawnScripts();`
+- `void ResetZoneScripts();`
+- `int16 GetMerchantItemQuantity(int32 merchant_id, int32 item_id);`
+- `void DecreaseMerchantQuantity(int32 merchant_id, int32 item_id, int16 amount);`
+- `int32 GetInventoryID(int32 merchant_id, int32 item_id);`
+- `void AddMerchantItem(int32 inventory_id, MerchantItemInfo ItemInfo);`
+- `void RemoveMerchantItem(int32 inventory_id, int32 item_id);`
+- `void AddMerchantInfo(int32 merchant_id, MerchantInfo* multiplier);`
+- `void DeleteMerchantsInfo();`
+- `void DeleteMerchantItems();`
+- `void DeleteSpawns();`
+- `void WritePlayerStatistics();`
+- `void WriteServerStatistics();`
+- `void AddServerStatistic(int32 stat_id, sint32 stat_value, int32 stat_date);`
+- `void UpdateServerStatistic(int32 stat_id, sint32 stat_value, bool overwrite = false);`
+- `sint32 GetServerStatisticValue(int32 stat_id);`
+- `void RemoveServerStatistics();`
+- `void SendGroupQuests(PlayerGroup* group, Client* client);`
+- `bool RejoinGroup(Client* client, int32 group_id);`
+- `void AddBonuses(Item* item, ItemStatsValues* values, int16 type, sint32 value, Entity* entity);`
+- `int32 CreateGuild(const char* guild_name, Client* leader = 0, int32 group_id = 0);`
+- `void SaveGuilds();`
+- `void PickRandomLottoDigits(int32* digits);`
+- `void AddLottoPlayer(int32 character_id, int32 end_time);`
+- `void RemoveLottoPlayer(int32 character_id);`
+- `void SetLottoPlayerNumMatches(int32 character_id, int8 num_matches);`
+- `void CheckLottoPlayers();`
+- `void PopulateTOVStatMap();`
+- `int32 LoadItemBlueStats();`
+- `sint16 GetItemStatAOMValue(sint16 subtype);`
+- `sint16 GetItemStatTOVValue(sint16 subtype);`
+- `sint16 GetItemStatDOVValue(sint16 subtype);`
+- `sint16 GetItemStatCOEValue(sint16 subtype);`
+- `sint16 GetItemStatKAValue(sint16 subtype);`
+- `sint16 GetItemStatTESTValue(sint16 subtype);`
+- `int8 TranslateSlotSubTypeToClient(Client* client, int8 stat_type, sint16 sub_type);`
+- `void AddHouseZone(int32 id, string name, int64 cost_coins, int32 cost_status, int64 upkeep_coins, int32 upkeep_status, int8 vault_slots, int8 alignment, int8 guild_level, int32 zone_id, int32 exit_zone_id, float exit_x, float exit_y, float exit_z, float exit_heading);`
+- `void AddPlayerHouse(int32 char_id, int32 house_id, int64 unique_id, int32 instance_id, int32 upkeep_due, int64 escrow_coins, int32 escrow_status, string player_name);`
+- `void ReloadHouseData(PlayerHouse* ph);`
+- `bool CheckTempBugCRC(char* msg);`
+- `void SyncCharacterAbilities(Client* client);`
+- `void LoadStartingLists();`
+- `void PurgeStartingLists();`
+- `void SetReloadingSubsystem(string subsystem);`
+- `void RemoveReloadingSubSystem(string subsystem);`
+- `bool IsReloadingSubsystems();`
+- `int32 GetSuppressedWarningTime() {`
+- `void SetSuppressedWarning() { suppressed_warning = Timer::GetCurrentTime2(); }`
+- `void LoadRegionMaps(std::string zoneFile);`
+- `void LoadMaps(std::string zoneFile);`
+- `void RemoveMaps(std::string zoneFile);`
+- `void SendTimeUpdate();`
+- `void LoadVoiceOvers();`
+- `void PurgeVoiceOvers();`
+- `bool FindVoiceOver(int8 type, int32 id, int16 index, VoiceOverStruct* struct_ = nullptr, bool* find_garbled = nullptr, VoiceOverStruct* garble_struct_ = nullptr);`
+- `void AddVoiceOver(int8 type, int32 id, int16 index, VoiceOverStruct* struct_);`
+- `void CopyVoiceOver(VoiceOverStruct* struct1, VoiceOverStruct* struct2);`
+- `void AddNPCSpell(int32 list_id, int32 spell_id, int8 tier, bool spawn_cast, bool aggro_cast, sint8 req_hp_ratio);`
+- `void PurgeNPCSpells();`
+- `void ClientAuthApproval(int32 success, std::string charName, int32 account_id, std::string zone_name, int32 zoning_id, int32 instance_id, bool first_login);`
+- `void ClearZoneInfoCache();`
+- `std::shared_ptr<ZoneInfoMemory> GetZoneInfoById(int32 zoneID);`
+- `std::shared_ptr<ZoneInfoMemory> GetZoneInfoByName(const std::string& zoneName);`
+- `void AddZoneInfo(int32 zoneID, std::shared_ptr<ZoneInfoMemory> zoneInfo);`
+
+## Notable Comments
+
+- /*
+- */
+- /*int32	faction_id;
+- // Constants for STATs counters
+- // Server Utilization
+- // Server Stats
+- // Player PvE counters
+- // Player PvP counters
+- // MOST stats for players
+- // HIGHEST stats for players

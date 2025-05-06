@@ -1,0 +1,108 @@
+# File: `Recipe.h`
+
+## Classes
+
+- `Item`
+- `RecipeComp`
+- `RecipeProducts`
+- `Recipe`
+- `MasterRecipeList`
+- `MasterRecipeBookList`
+- `PlayerRecipeList`
+- `PlayerRecipeBookList`
+
+## Functions
+
+- `void SetID(int32 id) {this->id = id;}`
+- `void SetSoeID(int32 soe_id) { this->soe_id = soe_id; }`
+- `void SetBookID(int32 book_id) {this->book_id = book_id;}`
+- `void SetName(const char *name) {strncpy(this->name, name, sizeof(this->name));}`
+- `void SetDescription(const char* description) { strncpy(this->description, description, sizeof(this->description)); }`
+- `void SetBookName(const char *book_name) {strncpy(this->book_name, book_name, sizeof(this->book_name));}`
+- `void SetBook(const char *book) {strncpy(this->book, book, sizeof(this->book));}`
+- `void SetDevice(const char *device) {strncpy(this->device, device, sizeof(this->device));}`
+- `void SetLevel(int8 level) {this->level = level;}`
+- `void SetTier(int8 tier) {this->tier = tier;}`
+- `void SetIcon(int16 icon) {this->icon = icon;}`
+- `void SetSkill(int32 skill) {this->skill = skill;}`
+- `void SetTechnique(int32 technique) {this->technique = technique;}`
+- `void SetKnowledge(int32 knowledge) {this->knowledge = knowledge;}`
+- `void SetClasses(int32 classes) {this->classes = classes;}`
+- `void SetDevice_Sub_Type(int8 device_sub_type) {this->device_sub_type = device_sub_type;}`
+- `void SetUnknown1(int8 unknown1) {this->unknown1 = unknown1;}`
+- `void SetUnknown2(int32 unknown2) {this->unknown2 = unknown2;}`
+- `void SetUnknown3(int32 unknown3) {this->unknown3 = unknown3;}`
+- `void SetUnknown4(int32 unknown4) {this->unknown4 = unknown4;}`
+- `void SetProductID(int32 itemID) { product_item_id = itemID; }`
+- `void SetProductQuantity(int8 qty) { product_qty = qty; }`
+- `void SetProductName(const char* productName) { strncpy(product_name, productName, sizeof(product_name)); }`
+- `void SetBuild1ComponentTitle(const char* title) { strncpy(build1_comp_title, title, sizeof(build1_comp_title)); }`
+- `void SetBuild2ComponentTitle(const char* title) { strncpy(build2_comp_title, title, sizeof(build2_comp_title)); }`
+- `void SetBuild3ComponentTitle(const char* title) { strncpy(build3_comp_title, title, sizeof(build3_comp_title)); }`
+- `void SetBuild4ComponentTitle(const char* title) { strncpy(build4_comp_title, title, sizeof(build4_comp_title)); }`
+- `void SetFuelComponentTitle(const char* title) { strncpy(fuel_comp_title, title, sizeof(fuel_comp_title)); }`
+- `void SetPrimaryComponentTitle(const char* title) { strncpy(primary_build_comp_title, title, sizeof(primary_build_comp_title)); }`
+- `void SetBuild1ComponentQuantity(int8 qty) { build1_comp_qty = qty; }`
+- `void SetBuild2ComponentQuantity(int8 qty) { build2_comp_qty = qty; }`
+- `void SetBuild3ComponentQuantity(int8 qty) { build3_comp_qty = qty; }`
+- `void SetBuild4ComponentQuantity(int8 qty) { build4_comp_qty = qty; }`
+- `void SetFuelComponentQuantity(int8 qty) { fuel_comp_qty = qty; }`
+- `void SetPrimaryComponentQuantity(int8 qty) { primary_comp_qty = qty; }`
+- `int32 GetID() {return id;}`
+- `int32 GetSoeID() { return soe_id; }`
+- `int32 GetBookID() {return book_id;}`
+- `int8 GetLevel() {return level;}`
+- `int8 GetTier() {return tier;}`
+- `int16 GetIcon() {return icon;}`
+- `int32 GetSkill() {return skill;}`
+- `int32 GetTechnique() {return technique;}`
+- `int32 GetKnowledge() {return knowledge;}`
+- `int32 GetClasses() {return classes;}`
+- `bool CanUseRecipeByClass(Item* item, int8 class_id) {`
+- `int8 GetDevice_Sub_Type() {return device_sub_type;}`
+- `int8 GetUnknown1() {return unknown1;}`
+- `int32 GetUnknown2() {return unknown2;}`
+- `int32 GetUnknown3() {return unknown3;}`
+- `int32 GetUnknown4() {return unknown4;}`
+- `int32 GetProductID() { return product_item_id; }`
+- `int8 GetProductQuantity() { return product_qty; }`
+- `int16 GetBuild1ComponentQuantity() { return build1_comp_qty; }`
+- `int16 GetBuild2ComponentQuantity() { return build2_comp_qty; }`
+- `int16 GetBuild3ComponentQuantity() { return build3_comp_qty; }`
+- `int16 GetBuild4ComponentQuantity() { return build4_comp_qty; }`
+- `int16 GetFuelComponentQuantity() { return fuel_comp_qty; }`
+- `int16 GetPrimaryComponentQuantity() { return primary_comp_qty; }`
+- `void AddBuildComp(int32 itemID, int8 slot, bool preferred = 0);`
+- `int8 GetHighestStage() { return highestStage; }`
+- `void SetHighestStage(int8 val) { highestStage = val; }`
+- `int8 GetTotalBuildComponents();`
+- `bool ProvidedAllRequiredComponents(Client* client, vector<Item*>* player_components, vector<pair<int32,int16>>* player_component_pair_qty);`
+- `bool PlayerHasComponentByItemID(Client* client, vector<Item*>* player_components, vector<pair<int32,int16>>* player_component_pair_qty, int32 item_id, int8 required_qty);`
+- `int8 GetItemRequiredQuantity(int32 item_id);`
+- `bool AddRecipe(Recipe *recipe);`
+- `void ClearRecipes();`
+- `int32 Size();`
+- `bool AddRecipeBook(Recipe *recipe);`
+- `void ClearRecipeBooks();`
+- `int32 Size();`
+- `bool AddRecipe(Recipe *recipe);`
+- `void ClearRecipes();`
+- `bool RemoveRecipe(int32 recipe_id);`
+- `int32 Size();`
+- `bool AddRecipeBook(Recipe *recipe);`
+- `bool HasRecipeBook(int32 book_id);`
+- `void ClearRecipeBooks();`
+- `int32 Size();`
+
+## Notable Comments
+
+- /*
+- */
+- //class_id = classes.GetTSBaseClass(spawn->GetTradeskillClass())  bit-match on class ids 1-13
+- //secondary_class_id = classes.GetSecondaryTSBaseClass(spawn->GetTradeskillClass()) bit-match on class ids 1-13
+- //tertiary_class_id = spawn->GetTradeskillClass() (direct match)
+- /* any can use bit combination of 1+2
+- */
+- ///<summary>Add a build component to this recipe</summary>
+- ///<param name="itemID">Item id of the component</param>
+- ///<param name="slot">Slot id for this component</param>

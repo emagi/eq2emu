@@ -1,0 +1,191 @@
+# File: `Quests.h`
+
+## Classes
+
+- `QuestFactionPrereq`
+- `Location`
+- `QuestStep`
+- `Player`
+- `Spell`
+- `Quest`
+- `MasterQuestList`
+
+## Functions
+
+- `bool			CheckStepKillRaceReqUpdate(Spawn* spawn);`
+- `bool			CheckStepReferencedID(int32 id);`
+- `bool			CheckStepLocationUpdate(float char_x, float char_y, float char_z, int32 zone_id);`
+- `int32			AddStepProgress(int32 val);`
+- `void			SetStepProgress(int32 val);`
+- `int32			GetStepProgress();`
+- `int8			GetStepType();`
+- `bool			Complete();`
+- `void			SetComplete();`
+- `void			ResetTaskGroup();`
+- `void			SetDescription(string desc);`
+- `int16			GetQuestCurrentQuantity();`
+- `int16			GetQuestNeededQuantity();`
+- `int16			GetIcon();`
+- `void			SetIcon(int16 in_icon);`
+- `void			SetUpdateTargetName(const char* name);`
+- `void			SetUpdateName(const char* name);`
+- `int32			GetStepID();`
+- `int32			GetItemID();`
+- `bool			WasUpdated();`
+- `void			WasUpdated(bool val);`
+- `float			GetPercentage();`
+- `void			SetTaskGroup(string val) { task_group = val; }`
+- `void				RegisterQuest(string in_name, string in_type, string in_zone, int8 in_level, string in_desc);`
+- `void				SetPrereqLevel(int8 lvl);`
+- `void				SetPrereqTSLevel(int8 lvl);`
+- `void                SetPrereqMaxLevel(int8 lvl) {prereq_max_level = lvl;}`
+- `void                SetPrereqMaxTSLevel(int8 lvl) {prereq_max_tslevel = lvl;}`
+- `void				AddPrereqClass(int8 class_id);`
+- `void				AddPrereqTradeskillClass(int8 class_id);`
+- `void				AddPrereqModelType(int16 model_type);`
+- `void				AddPrereqRace(int8 race);`
+- `void				AddPrereqQuest(int32 quest_id);`
+- `void				AddPrereqFaction(int32 faction_id, sint32 min, sint32 max = 0);`
+- `void				AddPrereqItem(Item* item);`
+- `void				AddRewardItem(Item* item);`
+- `void				AddTmpRewardItem(Item* item);`
+- `void				GetTmpRewardItemsByID(std::vector<Item*>* items);`
+- `void				AddRewardItemVec(vector<Item*>* items, Item* item, bool combine_items = true);`
+- `void				AddSelectableRewardItem(Item* item);`
+- `void				AddRewardCoins(int32 copper, int32 silver, int32 gold, int32 plat);`
+- `void                AddRewardCoinsMax(int64 coins);`
+- `void				AddRewardFaction(int32 faction_id, sint32 amount);`
+- `void				SetRewardStatus(int32 amount);`
+- `void				SetRewardComment(string comment);`
+- `void				SetRewardXP(int32 xp);`
+- `void                SetRewardTSXP(int32 xp) { reward_tsexp = xp; }`
+- `bool				AddQuestStep(QuestStep* step);`
+- `bool				SetStepComplete(int32 step);`
+- `bool				AddStepProgress(int32 step_id, int32 progress);`
+- `int16				GetQuestStep();`
+- `int32				GetStepProgress(int32 step_id);`
+- `int16				GetTaskGroupStep();`
+- `bool				QuestStepIsActive(int16 quest_step_id);`
+- `bool				CheckQuestReferencedSpawns(Spawn* spawn);`
+- `bool				CheckQuestKillUpdate(Spawn* spawn, bool update = true);`
+- `bool				CheckQuestChatUpdate(int32 id, bool update = true);`
+- `bool				CheckQuestItemUpdate(int32 id, int8 quantity = 1);`
+- `bool				CheckQuestLocationUpdate(float char_x, float char_y, float char_z, int32 zone_id);`
+- `bool				CheckQuestSpellUpdate(Spell* spell);`
+- `bool                CheckQuestRefIDUpdate(int32 id, int32 quantity = 1);`
+- `int8				GetQuestLevel();`
+- `int8				GetVisible();`
+- `int32				GetQuestID();`
+- `void				SetQuestID(int32 in_id);`
+- `int8				GetPrereqLevel();`
+- `int8				GetPrereqTSLevel();`
+- `int8                GetPrereqMaxLevel() {return prereq_max_level;}`
+- `int8                GetPrereqMaxTSLevel() {return prereq_max_tslevel;}`
+- `void				GiveQuestReward(Player* player);`
+- `void				AddCompleteAction(int32 step, string action);`
+- `void                AddProgressAction(int32 step, string action);`
+- `void				SetName(string in_name);`
+- `void				SetType(string in_type);`
+- `void				SetLevel(int8 in_level);`
+- `void                SetEncounterLevel(int8 level) {enc_level = level;}`
+- `void				SetDescription(string desc);`
+- `void				SetStepDescription(int32 step, string desc);`
+- `void				SetTaskGroupDescription(int32 step, string desc, bool display_bullets);`
+- `void				SetStatusTmpReward(int32 status) { tmp_reward_status = status; }`
+- `int64				GetStatusTmpReward() { return tmp_reward_status; }`
+- `void				SetCoinTmpReward(int64 coins) { tmp_reward_coins = coins; }`
+- `int64				GetCoinTmpReward() { return tmp_reward_coins; }`
+- `int64				GetCoinsReward();`
+- `int64               GetCoinsRewardMax();`
+- `int64               GetGeneratedCoin();`
+- `void                SetGeneratedCoin(int64 coin);`
+- `int8				GetLevel();`
+- `int8                GetEncounterLevel() { return enc_level; }`
+- `void				SetZone(string in_zone);`
+- `int8				GetDay();`
+- `int8				GetMonth();`
+- `int8				GetYear();`
+- `int32				GetStatusPoints();`
+- `void				SetDay(int8 value);`
+- `void				SetMonth(int8 value);`
+- `void				SetYear(int8 value);`
+- `bool				GetQuestStepCompleted(int32 step_id);`
+- `void				SetCompleteAction(string action);`
+- `void				SetQuestGiver(int32 id);`
+- `int32				GetQuestGiver();`
+- `void				SetQuestReturnNPC(int32 id);`
+- `int32				GetQuestReturnNPC();`
+- `void				SetPlayer(Player* in_player);`
+- `bool				GetCompleted();`
+- `bool				HasSentLastUpdate() { return has_sent_last_update; }`
+- `void				SetSentLastUpdate(bool val) { has_sent_last_update = val; }`
+- `void				SetCompletedDescription(string desc);`
+- `int32				GetExpReward();`
+- `int32               GetTSExpReward() { return reward_tsexp; }`
+- `bool				GetDeleted();`
+- `void				SetDeleted(bool val);`
+- `bool				GetUpdateRequired();`
+- `void				SetUpdateRequired(bool val);`
+- `void				SetTurnedIn(bool val);`
+- `bool				GetTurnedIn();`
+- `bool				GetSaveNeeded(){ return needs_save; }`
+- `void				SetSaveNeeded(bool val){ needs_save = val; }`
+- `void				SetFeatherColor(int8 val) { m_featherColor = val; }`
+- `int8				GetFeatherColor() { return m_featherColor; }`
+- `void				SetRepeatable(bool val) { m_repeatable = val; }`
+- `bool				IsRepeatable() { return m_repeatable; }`
+- `void				SetTracked(bool val) { m_tracked = val; }`
+- `bool				GetTracked() { return m_tracked; }`
+- `bool				IsTracked() { return m_tracked && !m_hidden; }`
+- `void                SetCompletedFlag(bool val);`
+- `bool                GetCompletedFlag() {return completed_flag;}`
+- `bool                GetYellowName() {return yellow_name;}`
+- `void                SetYellowName(bool val) {yellow_name = val;}`
+- `bool                CheckCategoryYellow();`
+- `void				SetQuestFlags(int32 flags) { m_questFlags = flags; SetSaveNeeded(true); }`
+- `int32				GetQuestFlags() { return m_questFlags; }`
+- `bool				IsHidden() { return m_hidden; }`
+- `void				SetHidden(bool val) { m_hidden = val; SetSaveNeeded(true); }`
+- `void				SetStatusEarned(int32 status_) { m_status = status_; SetSaveNeeded(true); }`
+- `int32				GetStatusEarned() { return m_status; }`
+- `int32				GetStepTimer() { return m_timestamp; }`
+- `void				SetStepTimer(int32 duration);`
+- `void				SetTimerStep(int32 step) { m_timerStep = step; }`
+- `int32				GetTimerStep() { return m_timerStep; }`
+- `void				AddFailedAction(int32 step, string action);`
+- `void				StepFailed(int32 step);`
+- `bool				RemoveQuestStep(int32 step, Client* client);`
+- `int16				GetCompleteCount() { return m_completeCount; }`
+- `void				SetCompleteCount(int16 val) { m_completeCount = val; }`
+- `void				IncrementCompleteCount() { m_completeCount += 1; }`
+- `void				SetQuestTemporaryState(bool tempState, std::string customDescription = string(""));`
+- `bool				GetQuestTemporaryState() { return quest_state_temporary; }`
+- `std::string			GetQuestTemporaryDescription() { return quest_temporary_description; }`
+- `void				SetQuestShareableFlag(int32 flag) { quest_shareable_flag = flag; }`
+- `void				SetCanDeleteQuest(bool newval) { can_delete_quest = newval; }`
+- `void				SetHideReward(bool newval) { hide_reward = newval; }`
+- `void				SetStatusToEarnMin(int32 value_) { status_to_earn_min = value_; }`
+- `void				SetStatusToEarnMax(int32 value_) { status_to_earn_max = value_; }`
+- `int32				GetStatusToEarnMin() { return status_to_earn_min; }`
+- `int32				GetStatusToEarnMax() { return status_to_earn_max; }`
+- `int32				GetQuestShareableFlag() { return quest_shareable_flag; }`
+- `bool				CanDeleteQuest() { return can_delete_quest; }`
+- `bool				GetHideReward() { return hide_reward; }`
+- `bool				CanShareQuestCriteria(Client* quest_sharer, bool display_client_msg = true);`
+- `void AddQuest(int32 id, Quest* quest){`
+- `void Reload();`
+- `void LockQuests();`
+- `void UnlockQuests();`
+
+## Notable Comments
+
+- /*
+- */
+- ///<summary>Sets the custom flags for use in lua</summary>
+- ///<param name='flags'>Value to set the flags to</param>
+- ///<summary>Gets the custom lua flags</summary>
+- ///<returns>The current flags (int32)</returns>
+- ///<summary>Checks to see if the quest is hidden</summary>
+- ///<returns>True if the quest is hidden</returns>
+- ///<summary>Sets the quest hidden flag</summary>
+- ///<param name='val'>Value to set the hidden flag to</param>

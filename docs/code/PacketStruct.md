@@ -1,0 +1,178 @@
+# File: `PacketStruct.h`
+
+## Classes
+
+- `Item`
+- `Player`
+- `DataStruct`
+- `PacketStruct`
+
+## Functions
+
+- `void	SetType(const char* new_type, int8* output_type);`
+- `void	SetType(int8 new_type);`
+- `void	SetName(const char* new_name);`
+- `void	SetLength(int32 new_length);`
+- `void	SetArraySizeVariable(const char* new_name);`
+- `void	SetDefaultValue(int8 new_val);`
+- `void	SetMaxArraySize(int8 size);`
+- `void	SetOversized(int8 val);`
+- `void	SetOversizedByte(int8 val);`
+- `void	SetAddToStruct(bool val);`
+- `void	SetAddType(int8 new_type);`
+- `void	SetPackedIndex(int8 new_index);`
+- `void	SetPackedSizeVariable(const char* new_name);`
+- `void	SetPacked(const char* value);`
+- `void	SetItemSize(int32 val);`
+- `void	SetIfSetVariable(const char* variable);`
+- `void	SetIfNotSetVariable(const char* variable);`
+- `void	SetIfEqualsVariable(const char* variable);`
+- `void	SetIfNotEqualsVariable(const char* variable);`
+- `void	SetIfFlagSetVariable(const char* variable);`
+- `void	SetIfFlagNotSetVariable(const char* variable);`
+- `void	SetIsSet(bool val);`
+- `void	SetIsOptional(bool val);`
+- `int8	GetPackedIndex();`
+- `int8	GetDefaultValue();`
+- `int8	GetOversized();`
+- `int8	GetOversizedByte();`
+- `int8	GetMaxArraySize();`
+- `int8	GetType();`
+- `int8	GetType2();`
+- `string	GetStringName();`
+- `int32	GetLength();`
+- `bool	AddToStruct();`
+- `int8	GetAddType();`
+- `int32	GetItemSize();`
+- `bool	GetIfSet();`
+- `bool	GetIfNotSet();`
+- `bool	GetIfEquals();`
+- `bool	GetIfNotEquals();`
+- `bool	GetIfFlagSet();`
+- `bool	GetIfFlagNotSet();`
+- `bool	IsSet();`
+- `bool	IsOptional();`
+- `int32 GetDataSizeInBytes();`
+- `string	AppendVariable(string orig, const char* val);`
+- `void	AddIfSetVariable(const char* val) {`
+- `void	AddIfNotSetVariable(const char* val) {`
+- `void add(DataStruct* data);`
+- `void reAddAll(int32 length);`
+- `void add(PacketStruct* packet_struct);`
+- `void addPacketArrays(PacketStruct* packet);`
+- `void deletePacketArrays(PacketStruct* packet);`
+- `void deleteDataStructs(vector<DataStruct*>* data_structs);`
+- `void setSmallStringByName(const char* name, const char* text, int32 index = 0);`
+- `void setMediumStringByName(const char* name, const char* text, int32 index = 0);`
+- `void setLargeStringByName(const char* name, const char* text, int32 index = 0);`
+- `void setSmallString(DataStruct* data_struct, const char* text, int32 index = 0);`
+- `void setMediumString(DataStruct* data_struct, const char* text, int32 index = 0);`
+- `void setLargeString(DataStruct* data_struct, const char* text, int32 index = 0);`
+- `void renameSubstructArray(const char* substruct, int32 index);`
+- `void setArrayAddToPacketByName(const char* name, bool new_val, int32 index1 = 0, int32 index2 = 0) {`
+- `void setAddToPacketByName(const char* name, bool new_val, int32 index = 0) {`
+- `void setAddTypePacketByName(const char* name, int8 new_val, int32 index = 0) {`
+- `bool	IsSubPacket();`
+- `void	IsSubPacket(bool new_val);`
+- `int32	GetSubPacketSize();`
+- `void	SetSubPacketSize(int32 new_size);`
+- `void	SetOpcodeType(const char* opcodeType);`
+- `int32	GetArraySizeByName(const char* name, int32 index);`
+- `int32	GetArraySize(DataStruct* data_struct, int32 index);`
+- `int32	GetArraySize(const char* name, int32 index);`
+- `void	LoadFromPacketStruct(PacketStruct* packet, char* substruct_name = 0);`
+- `bool	GetVariableIsSet(const char* name);`
+- `bool	GetVariableIsNotSet(const char* name);`
+- `int8	getType_int8_ByName(const char* name, int32 index = 0, bool force = false);`
+- `int16	getType_int16_ByName(const char* name, int32 index = 0, bool force = false);`
+- `int32	getType_int32_ByName(const char* name, int32 index = 0, bool force = false);`
+- `int64	getType_int64_ByName(const char* name, int32 index = 0, bool force = false);`
+- `sint8	getType_sint8_ByName(const char* name, int32 index = 0, bool force = false);`
+- `sint16	getType_sint16_ByName(const char* name, int32 index = 0, bool force = false);`
+- `sint32	getType_sint32_ByName(const char* name, int32 index = 0, bool force = false);`
+- `sint64	getType_sint64_ByName(const char* name, int32 index = 0, bool force = false);`
+- `float	getType_float_ByName(const char* name, int32 index = 0, bool force = false);`
+- `double	getType_double_ByName(const char* name, int32 index = 0, bool force = false);`
+- `char	getType_char_ByName(const char* name, int32 index = 0, bool force = false);`
+- `EQ2_8BitString	getType_EQ2_8BitString_ByName(const char* name, int32 index = 0, bool force = false);`
+- `EQ2_16BitString	getType_EQ2_16BitString_ByName(const char* name, int32 index = 0, bool force = false);`
+- `EQ2_32BitString	getType_EQ2_32BitString_ByName(const char* name, int32 index = 0, bool force = false);`
+- `EQ2_Color getType_EQ2_Color_ByName(const char* name, int32 index = 0, bool force = false);`
+- `EQ2_EquipmentItem getType_EQ2_EquipmentItem_ByName(const char* name, int32 index = 0, bool force = false);`
+- `int8	getType_int8(DataStruct* data_struct, int32 index = 0, bool force = false);`
+- `int16	getType_int16(DataStruct* data_struct, int32 index = 0, bool force = false);`
+- `int32	getType_int32(DataStruct* data_struct, int32 index = 0, bool force = false);`
+- `int64	getType_int64(DataStruct* data_struct, int32 index = 0, bool force = false);`
+- `sint8	getType_sint8(DataStruct* data_struct, int32 index = 0, bool force = false);`
+- `sint16	getType_sint16(DataStruct* data_struct, int32 index = 0, bool force = false);`
+- `sint32	getType_sint32(DataStruct* data_struct, int32 index = 0, bool force = false);`
+- `sint64	getType_sint64(DataStruct* data_struct, int32 index = 0, bool force = false);`
+- `float	getType_float(DataStruct* data_struct, int32 index = 0, bool force = false);`
+- `double	getType_double(DataStruct* data_struct, int32 index = 0, bool force = false);`
+- `char	getType_char(DataStruct* data_struct, int32 index = 0, bool force = false);`
+- `EQ2_8BitString	getType_EQ2_8BitString(DataStruct* data_struct, int32 index = 0, bool force = false);`
+- `EQ2_16BitString	getType_EQ2_16BitString(DataStruct* data_struct, int32 index = 0, bool force = false);`
+- `EQ2_32BitString	getType_EQ2_32BitString(DataStruct* data_struct, int32 index = 0, bool force = false);`
+- `EQ2_Color getType_EQ2_Color(DataStruct* data_struct, int32 index = 0, bool force = false);`
+- `EQ2_EquipmentItem getType_EQ2_EquipmentItem(DataStruct* data_struct, int32 index = 0, bool force = false);`
+- `void setDataType(DataStruct* data_struct, char data, int32 index);`
+- `void setDataType(DataStruct* data_struct, int8 data, int32 index);`
+- `void setDataType(DataStruct* data_struct, int16 data, int32 index);`
+- `void setDataType(DataStruct* data_struct, int32 data, int32 index);`
+- `void setDataType(DataStruct* data_struct, int64 data, int32 index);`
+- `void setDataType(DataStruct* data_struct, sint8 data, int32 index);`
+- `void setDataType(DataStruct* data_struct, sint16 data, int32 index);`
+- `void setDataType(DataStruct* data_struct, sint32 data, int32 index);`
+- `void setDataType(DataStruct* data_struct, sint64 data, int32 index);`
+- `void setDataType(DataStruct* data_struct, float data, int32 index);`
+- `void setDataType(DataStruct* data_struct, double data, int32 index);`
+- `void setData(DataStruct* data_struct, EQ2_8BitString* input_string, int32 index, bool use_second_type = false);`
+- `void setData(DataStruct* data_struct, EQ2_16BitString* input_string, int32 index, bool use_second_type = false);`
+- `void setData(DataStruct* data_struct, EQ2_32BitString* input_string, int32 index, bool use_second_type = false);`
+- `else if (type_to_use == DATA_STRUCT_EQ2_16BIT_STRING) {`
+- `void UpdateArrayByArrayLengthName(const char* name, int32 index, int32 size);`
+- `void UpdateArrayByArrayLength(DataStruct* data_struct, int32 index, int32 size);`
+- `bool StructLoadData(DataStruct* data_struct, void* data, int32 len, bool useType2 = false, bool create_color = false);`
+- `bool LoadPacketData(uchar* data, int32 data_len, bool create_color = false);`
+- `bool CheckFlagExists(const char* name);`
+- `void setColorByName(const char* name, EQ2_Color* data, int32 index = 0) {`
+- `void setColorByName(const char* name, EQ2_Color data, int32 index = 0) {`
+- `void setColor(DataStruct* data_struct, EQ2_Color data, int32 index = 0) {`
+- `void setColorByName(const char* name, int8 red, int8 green, int8 blue, int32 index = 0) {`
+- `void setColor(DataStruct* data, int8 red, int8 green, int8 blue, int32 index);`
+- `void setEquipmentByName(DataStruct* data_struct, EQ2_EquipmentItem data, int32 index = 0) {`
+- `void setItem(DataStruct* ds, Item* item, Player* player, int32 index, sint8 offset = 0, bool loot_item = false, bool make_empty_item_packet = false, bool inspect = false);`
+- `void setItemByName(const char* name, Item* item, Player* player, int32 index = 0, sint8 offset = 0, bool loot_item = false, bool make_empty_item_packet = false, bool inspect = false);`
+- `void setItemArrayDataByName(const char* name, Item* item, Player* player, int32 index1 = 0, int32 index2 = 0, sint8 offset = 0, bool loot_item = false, bool make_empty_item_packet = false, bool inspect = false);`
+- `void setEquipmentByName(const char* name, EQ2_EquipmentItem data, int32 index = 0) {`
+- `void setEquipmentByName(const char* name, EQ2_EquipmentItem* data, int32 size) {`
+- `void setEquipmentByName(const char* name, int32 type, int8 c_red, int8 c_blue, int8 c_green, int8 h_red, int8 h_blue, int8 h_green, int32 index = 0) {`
+- `void setEquipment(DataStruct* data, int16 type, int8 c_red, int8 c_blue, int8 c_green, int8 h_red, int8 h_blue, int8 h_green, int32 index);`
+- `void remove(DataStruct* data);`
+- `void remove(const char* name);`
+- `void remove(int32 position);`
+- `void serializePacket(bool clear = true);`
+- `void AddSerializedData(DataStruct* data, int32 index = 0, string* datastring = 0);`
+- `int32 GetVersion() { return version; }`
+- `void SetVersion(int32 in_version) { version = in_version; }`
+- `bool SetOpcode(const char* new_opcode);`
+- `EmuOpcode GetOpcode() { return opcode; }`
+- `int16 GetOpcodeValue(int16 client_version);`
+- `void SetName(const char* in_name) { name = string(in_name); }`
+- `bool LoadedSuccessfully() { return loadedSuccessfully; }`
+- `bool IsStringValueType(string in_name, int32 index);`
+- `bool IsColorValueType(string in_name, int32 index);`
+- `int32 GetTotalPacketSize();`
+- `void PrintPacket();`
+- `string GetSQLQuery(const char* table_name);`
+- `void AddPackedData();`
+- `void ResetData();`
+- `void AddFlag(const char* name);`
+
+## Notable Comments
+
+- /*
+- */
+- // Need to figure out why type2 always seems to be 205
+- // since only items use type2 for now just hardcoded the value needed (BAD!!!)
+- //type_to_use = DATA_STRUCT_SINT16; // 9;

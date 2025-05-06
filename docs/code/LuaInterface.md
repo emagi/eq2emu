@@ -1,0 +1,116 @@
+# File: `LuaInterface.h`
+
+## Classes
+
+- `ConversationOption`
+- `OptionWindowOption`
+- `LuaSpell`
+- `LUAUserData`
+- `LUAConversationOptionWrapper`
+- `LUAOptionWindowWrapper`
+- `LUASpawnWrapper`
+- `LUAZoneWrapper`
+- `LUAQuestWrapper`
+- `LUAItemWrapper`
+- `LUASkillWrapper`
+- `LUASpellWrapper`
+- `LuaInterface`
+
+## Functions
+
+- `bool IsConversationOption();`
+- `bool IsOptionWindow();`
+- `bool IsSpawn();`
+- `bool IsZone();`
+- `bool IsQuest();`
+- `bool IsItem();`
+- `bool IsSkill();`
+- `bool IsSpell();`
+- `int				GetNumberOfArgs(lua_State* state);`
+- `bool			LoadItemScript(string name);`
+- `bool			LoadItemScript(const char* name);`
+- `bool			LoadSpawnScript(string name);`
+- `bool			LoadSpawnScript(const char* name);`
+- `bool			LoadZoneScript(string name);`
+- `bool			LoadZoneScript(const char* name);`
+- `bool			LoadRegionScript(string name);`
+- `bool			LoadRegionScript(const char* name);`
+- `void			RemoveSpell(LuaSpell* spell, bool call_remove_function = true, bool can_delete = true, string reason = "", bool removing_all_spells = false, bool return_after_call_remove = false, Spawn* overrideTarget = nullptr);`
+- `int8			GetInt8Value(lua_State* state, int8 arg_num = 1);`
+- `int16			GetInt16Value(lua_State* state, int8 arg_num = 1);`
+- `int32			GetInt32Value(lua_State* state, int8 arg_num = 1);`
+- `sint32			GetSInt32Value(lua_State* state, int8 arg_num = 1);`
+- `int64			GetInt64Value(lua_State* state, int8 arg_num = 1);`
+- `sint64			GetSInt64Value(lua_State* state, int8 arg_num = 1);`
+- `float			GetFloatValue(lua_State* state, int8 arg_num = 1);`
+- `string			GetStringValue(lua_State* state, int8 arg_num = 1);`
+- `bool			GetBooleanValue(lua_State*state, int8 arg_num = 1);`
+- `void			Process();`
+- `void			SetInt32Value(lua_State* state, int32 value);`
+- `void			SetSInt32Value(lua_State* state, sint32 value);`
+- `void			SetInt64Value(lua_State* state, int64 value);`
+- `void			SetSInt64Value(lua_State* state, sint64 value);`
+- `void			SetFloatValue(lua_State* state, float value);`
+- `void			SetBooleanValue(lua_State* state, bool value);`
+- `void			SetStringValue(lua_State* state, const char* value);`
+- `void			SetSpawnValue(lua_State* state, Spawn* spawn);`
+- `void			SetSkillValue(lua_State* state, Skill* skill);`
+- `void			SetItemValue(lua_State* state, Item* item);`
+- `void			SetQuestValue(lua_State* state, Quest* quest);`
+- `void			SetZoneValue(lua_State* state, ZoneServer* zone);`
+- `void			SetSpellValue(lua_State* state, LuaSpell* spell);`
+- `void			SetConversationValue(lua_State* state, vector<ConversationOption>* conversation);`
+- `void			SetOptionWindowValue(lua_State* state, vector<OptionWindowOption>* optionWindow);`
+- `std::string		AddSpawnPointers(LuaSpell* spell, bool first_cast, bool precast = false, const char* function = 0, SpellScriptTimer* timer = 0, bool passLuaSpell=false, Spawn* altTarget = 0);`
+- `void			RemoveCurrentSpell(lua_State* state, LuaSpell* cur_spell, bool needsLock = true, bool removeCurSpell = true, bool removeSpellScript = true);`
+- `bool			CallSpellProcess(LuaSpell* spell, int8 num_parameters, std::string functionCalled);`
+- `void			UseItemScript(const char* name, lua_State* state, bool val);`
+- `void			UseSpawnScript(const char* name, lua_State* state, bool val);`
+- `void			UseZoneScript(const char* name, lua_State* state, bool val);`
+- `void			UseRegionScript(const char* name, lua_State* state, bool val);`
+- `void			RemoveSpawnScript(const char* name);`
+- `bool			RunItemScript(string script_name, const char* function_name, Item* item, Spawn* spawn = 0, Spawn* target = 0, sint64* returnValue = 0);`
+- `bool			RunItemScriptWithReturnString(string script_name, const char* function_name, Item* item, Spawn* spawn = 0, std::string* returnValue = 0);`
+- `bool			CallItemScript(lua_State* state, int8 num_parameters, std::string* returnValue = 0);`
+- `bool			CallItemScript(lua_State* state, int8 num_parameters, sint64* returnValue = 0);`
+- `bool			RunSpawnScript(string script_name, const char* function_name, Spawn* npc, Spawn* spawn = 0, const char* message = 0, bool is_door_open = false, sint32 input_value = 0, sint32* return_value = 0);`
+- `bool			CallSpawnScript(lua_State* state, int8 num_parameters);`
+- `bool			RunZoneScript(string script_name, const char* function_name, ZoneServer* zone, Spawn* spawn = 0, int32 int32_arg1 = 0, const char* str_arg1 = 0, Spawn* spawn_arg1 = 0, int32 int32_arg2 = 0, const char* str_arg2 = 0, Spawn* spawn_arg2 = 0);`
+- `bool			RunZoneScriptWithReturn(string script_name, const char* function_name, ZoneServer* zone, Spawn* spawn, int32 int32_arg1, int32 int32_arg2, int32 int32_arg3, int32* returnValue = 0);`
+- `bool			CallScriptInt32(lua_State* state, int8 num_parameters, int32* returnValue = 0);`
+- `bool			CallScriptSInt32(lua_State* state, int8 num_parameters, sint32* returnValue = 0);`
+- `bool			RunRegionScript(string script_name, const char* function_name, ZoneServer* zone, Spawn* spawn = 0, sint32 int32_arg1 = 0, int32* returnValue = 0);`
+- `bool			CallRegionScript(lua_State* state, int8 num_parameters, int32* returnValue);`
+- `void			ResetFunctionStack(lua_State* state);`
+- `void			DestroySpells();`
+- `void			DestroySpawnScripts();`
+- `void			DestroyItemScripts();`
+- `void			DestroyQuests(bool reload = false);`
+- `void			DestroyZoneScripts();`
+- `void			DestroyRegionScripts();`
+- `void			SimpleLogError(const char* error);`
+- `void			LogError(const char* error, ...);`
+- `bool			CallQuestFunction(Quest* quest, const char* function, Spawn* player, int32 step_id = 0xFFFFFFFF, int32* returnValue = 0);`
+- `void			RemoveDebugClients(Client* client);`
+- `void			UpdateDebugClients(Client* client);`
+- `void			ProcessErrorMessage(const char* message);`
+- `void			AddUserDataPtr(LUAUserData* data, void* data_ptr = 0);`
+- `void			DeleteUserDataPtrs(bool all);`
+- `void			DeletePendingSpells(bool all);`
+- `void			DeletePendingSpell(LuaSpell* spell);`
+- `void			SetLuaSystemReloading(bool val) { lua_system_reloading = val; }`
+- `bool			IsLuaSystemReloading() { return lua_system_reloading; }`
+- `void			AddPendingSpellDelete(LuaSpell* spell);`
+- `void			AddCustomSpell(LuaSpell* spell);`
+- `void			RemoveCustomSpell(int32 id);`
+- `void			FindCustomSpellLock() { MCustomSpell.readlock(); }`
+- `void			FindCustomSpellUnlock() { MCustomSpell.releasereadlock(); }`
+- `int32			GetFreeCustomSpellID();`
+- `void			SetLuaUserDataStale(void* ptr);`
+- `void			RegisterFunctions(lua_State* state);`
+
+## Notable Comments
+
+- /*
+- */
+- //Bitmask Values

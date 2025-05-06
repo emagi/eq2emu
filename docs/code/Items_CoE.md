@@ -1,0 +1,139 @@
+# File: `Items_CoE.h`
+
+## Classes
+
+- `MasterItemList`
+- `Player`
+- `ItemStatsValues`
+- `ItemCore`
+- `ItemStat`
+- `ItemLevelOverride`
+- `ItemClass`
+- `ItemAppearance`
+- `PlayerItemList`
+- `Item`
+- `ItemStatString`
+- `Generic_Info`
+- `Armor_Info`
+- `Weapon_Info`
+- `Shield_Info`
+- `Ranged_Info`
+- `Bag_Info`
+- `Food_Info`
+- `Bauble_Info`
+- `Book_Info`
+- `Skill_Info`
+- `House_Info`
+- `HouseContainer_Info`
+- `RecipeBook_Info`
+- `Thrown_Info`
+- `ItemEffect`
+- `MasterItemList`
+- `PlayerItemList`
+- `OverFlowItemList`
+- `EquipmentItemList`
+
+## Functions
+
+- `void AddEffect(string effect, int8 percentage, int8 subbulletflag);`
+- `int32 GetMaxSellValue();`
+- `void SetMaxSellValue(int32 val);`
+- `void SetItem(Item* old_item);`
+- `int16 GetOverrideLevel(int8 adventure_class, int8 tradeskill_class);`
+- `void AddLevelOverride(int8 adventure_class, int8 tradeskill_class, int16 level);`
+- `void AddLevelOverride(ItemLevelOverride* class_);`
+- `bool CheckClassLevel(int8 adventure_class, int8 tradeskill_class, int16 level);`
+- `bool CheckClass(int8 adventure_class, int8 tradeskill_class);`
+- `bool CheckLevel(int8 adventure_class, int8 tradeskill_class, int16 level);`
+- `void SetAppearance(int16 type, int8 red, int8 green, int8 blue, int8 highlight_red, int8 highlight_green, int8 highlight_blue);`
+- `void SetAppearance(ItemAppearance* appearance);`
+- `void AddStat(ItemStat* in_stat);`
+- `void AddStatString(ItemStatString* in_stat);`
+- `void AddStat(int8 type, int16 subtype, float value, char* name = 0);`
+- `void SetWeaponType(int8 type);`
+- `int8 GetWeaponType();`
+- `bool HasSlot(int8 slot, int8 slot2 = 255);`
+- `bool IsNormal();`
+- `bool IsWeapon();`
+- `bool IsArmor();`
+- `bool IsRanged();`
+- `bool IsBag();`
+- `bool IsFood();`
+- `bool IsBauble();`
+- `bool IsSkill();`
+- `bool IsHouseItem();`
+- `bool IsHouseContainer();`
+- `bool IsShield();`
+- `bool IsAdornment();`
+- `bool IsAmmo();`
+- `bool IsBook();`
+- `bool IsChainArmor();`
+- `bool IsClothArmor();`
+- `bool IsCollectable();`
+- `bool IsCloak();`
+- `bool IsCrushWeapon();`
+- `bool IsFoodFood();`
+- `bool IsFoodDrink();`
+- `bool IsJewelry();`
+- `bool IsLeatherArmor();`
+- `bool IsMisc();`
+- `bool IsPierceWeapon();`
+- `bool IsPlateArmor();`
+- `bool IsPoison();`
+- `bool IsPotion();`
+- `bool IsRecipeBook();`
+- `bool IsSalesDisplay();`
+- `bool IsSlashWeapon();`
+- `bool IsSpellScroll();`
+- `bool IsTinkered();`
+- `bool IsTradeskill();`
+- `bool IsThrown();`
+- `void SetItemScript(string name);`
+- `int32 CalculateRepairCost();`
+- `void SetItemType(int8 in_type);`
+- `void serialize(PacketStruct* packet, bool show_name = false, Player* player = 0, int16 packet_type = 0, int8 subtype = 0, bool loot_item = false);`
+- `bool CheckFlag(int32 flag);`
+- `void AddSlot(int8 slot_id);`
+- `void SetSlots(int32 slots);`
+- `void AddItem(Item* item);`
+- `bool IsBag(int32 item_id);`
+- `void RemoveAll();`
+- `bool  SharedBankAddAllowed(Item* item);`
+- `bool  HasItem(int32 id, bool include_bank = false);`
+- `void  MoveItem(Item* item, sint32 inv_slot, int16 slot, bool erase_old = true);`
+- `bool  MoveItem(sint32 to_bag_id, int16 from_index, sint8 to, int8 charges);`
+- `bool  AssignItemToFreeSlot(Item* item);`
+- `int16 GetNumberOfFreeSlots();`
+- `int16 GetNumberOfItems();`
+- `bool  HasFreeSlot();`
+- `bool  HasFreeBagSlot();`
+- `void DestroyItem(int16 index);`
+- `void RemoveItem(Item* item, bool delete_item = false);`
+- `void AddItem(Item* item);`
+- `bool HasFreeBankSlot();`
+- `int8 FindFreeBankSlot();`
+- `void Stack(Item* orig_item, Item* item);`
+- `bool OverFlowSlotFull();`
+- `int8 GetNextOverFlowSlot();`
+- `bool AddItem(Item* item);`
+- `bool	HasItem(int32 id);`
+- `int8	GetNumberOfItems();`
+- `void	SetItem(int8 slot_id, Item* item);`
+- `void	RemoveItem(int8 slot, bool delete_item = false);`
+- `bool	AddItem(int8 slot, Item* item);`
+- `bool	CheckEquipSlot(Item* tmp, int8 slot);`
+- `bool	CanItemBeEquippedInSlot(Item* tmp, int8 slot);`
+- `int8	GetFreeSlot(Item* tmp, int8 slot_id = 255);`
+
+## Notable Comments
+
+- /*
+- */
+- //#define ITEM_STAT_VS_SLASH				200
+- //#define ITEM_STAT_VS_CRUSH				201
+- //#define ITEM_STAT_VS_PIERCE				202
+- //#define ITEM_STAT_VS_HEAT				203
+- //#define ITEM_STAT_VS_COLD				204
+- //#define ITEM_STAT_VS_MAGIC				205
+- //#define ITEM_STAT_VS_MENTAL				206
+- //#define ITEM_STAT_VS_DIVINE				207

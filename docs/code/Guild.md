@@ -1,0 +1,141 @@
+# File: `Guild.h`
+
+## Classes
+
+- `ZoneServer`
+- `Client`
+- `Player`
+- `PointHistory`
+- `GuildMember`
+- `GuildEvent`
+- `GuildBankEvent`
+- `Bank`
+- `Guild`
+- `GuildList`
+
+## Functions
+
+- `void SetID(int32 id_in) {id = id_in;}`
+- `void SetName(const char* name, bool send_packet = true);`
+- `void SetLevel(int8 level, bool send_packet = true);`
+- `void SetFormedDate(int32 formed_date_in) {formed_date = formed_date_in;}`
+- `void SetMOTD(const char *motd, bool send_packet = true);`
+- `int32 GetID() const {return id;}`
+- `int8 GetLevel() const {return level;}`
+- `int32 GetFormedDate() const {return formed_date;}`
+- `void SetEXPCurrent(int64 exp, bool send_packet = true);`
+- `void AddEXPCurrent(sint64 exp, bool send_packet = true);`
+- `int64 GetEXPCurrent() const {return exp_current;}`
+- `void SetEXPToNextLevel(int64 exp, bool send_packet = true);`
+- `int64 GetEXPToNextLevel() const {return exp_to_next_level;}`
+- `void SetRecruitingShortDesc(const char* new_desc, bool send_packet = true);`
+- `string GetRecruitingShortDesc() const {return recruiting_short_desc;}`
+- `void SetRecruitingFullDesc(const char* new_desc, bool send_packet = true);`
+- `string GetRecruitingFullDesc() const {return recruiting_full_desc;}`
+- `void SetRecruitingMinLevel(int8 new_level, bool send_packet = true);`
+- `int8 GetRecruitingMinLevel() const {return recruiting_min_level;}`
+- `void SetRecruitingPlayStyle(int8 new_play_style, bool send_packet = true);`
+- `int8 GetRecruitingPlayStyle() const {return recruiting_play_style;}`
+- `bool SetRecruitingDescTag(int8 index, int8 tag, bool send_packet = true);`
+- `int8 GetRecruitingDescTag(int8 index);`
+- `bool SetPermission(int8 rank, int8 permission, int8 value, bool send_packet = true, bool save_needed = true);`
+- `int8 GetPermission(int8 rank, int8 permission);`
+- `bool SetEventFilter(int8 event_id, int8 category, int8 value, bool send_packet = true, bool save_needed = true);`
+- `int8 GetEventFilter(int8 event_id, int8 category);`
+- `int32 GetNumUniqueAccounts();`
+- `int32 GetNumRecruiters();`
+- `int32 GetNextRecruiterID();`
+- `int64 GetNextEventID();`
+- `bool SetRankName(int8 rank, const char* name, bool send_packet = true);`
+- `bool SetRecruitingFlag(int8 flag, int8 value, bool send_packet = true);`
+- `int8 GetRecruitingFlag(int8 flag);`
+- `bool SetGuildRecruiter(Client* client, const char* name, bool value, bool send_packet = true);`
+- `bool SetGuildRecruiterDescription(Client* client, const char* description, bool send_packet = true);`
+- `bool ToggleGuildRecruiterAdventureClass(Client* client, bool send_packet = true);`
+- `bool SetGuildMemberNote(const char* name, const char* note, bool send_packet = true);`
+- `bool SetGuildOfficerNote(const char* name, const char* note, bool send_packet = true);`
+- `bool AddNewGuildMember(Client* client, const char* invited_by = 0, int8 rank = GUILD_RANK_RECRUIT);`
+- `bool AddNewGuildMember(int32 characterID, const char *invited_by, int32 join_timestamp, int8 rank);`
+- `bool AddGuildMember(GuildMember* guild_member);`
+- `void RemoveGuildMember(int32 character_id, bool send_packet = true);`
+- `void RemoveAllGuildMembers();`
+- `bool DemoteGuildMember(Client* client, const char* name, bool send_packet = true);`
+- `bool PromoteGuildMember(Client* client, const char* name, bool send_packet = true);`
+- `int32 KickGuildMember(Client* client, const char* name, bool send_packet = true);`
+- `bool InvitePlayer(Client* client, const char* name, bool send_packet = true);`
+- `bool AddPointsToAll(Client* client, float points, const char* comment = 0, bool send_packet = true);`
+- `bool AddPointsToAllOnline(Client* client, float points, const char* comment = 0, bool send_packet = true);`
+- `bool AddPointsToGroup(Client* client, float points, const char* comment = 0, bool send_packet = true);`
+- `bool AddPointsToRaid(Client* client, float points, const char* comment = 0, bool send_packet = true);`
+- `bool AddPointsToGuildMember(Client* client, float points, const char* name, const char* comment = 0, bool send_packet = true);`
+- `bool AddPointHistory(GuildMember* guild_member, int32 date, const char* modified_by, float points, const char* comment = 0, bool new_point_history = true);`
+- `void ViewGuildMemberPoints(Client* client, const char* name);`
+- `bool ChangeMemberFlag(Client* client, int8 member_flag, int8 value, bool send_packet = true);`
+- `bool UpdateGuildMemberInfo(Player* player);`
+- `bool UpdateGuildStatus(Player *player, int32 Status);`
+- `void AddGuildEvent(int64 event_id, int32 type, const char* description, int32 date, int8 locked);`
+- `void AddNewGuildEvent(int32 type, const char* description, int32 date, bool send_packet = true, ...);`
+- `bool LockGuildEvent(int64 event_id, bool lock, bool send_packet = true);`
+- `bool DeleteGuildEvent(int64 event_id, bool send_packet = true);`
+- `void SendGuildMOTD(Client* client);`
+- `void SendGuildEventList();`
+- `void SendGuildEventList(Client* client);`
+- `void SendGuildEventDetails();`
+- `void SendGuildEventDetails(Client* client);`
+- `void SendAllGuildEvents();`
+- `void SendAllGuildEvents(Client* client);`
+- `void SendOldGuildEvent(Client* client, GuildEvent* guild_event);`
+- `void SendNewGuildEvent(GuildEvent* guild_event);`
+- `void SendNewGuildEvent(Client* client, GuildEvent* guild_event);`
+- `void SendGuildEventAction(int8 action, GuildEvent* guild_event);`
+- `void SendGuildEventAction(Client* client, int8 action, GuildEvent* guild_event);`
+- `void SendGuildBankEventList();`
+- `void SendGuildBankEventList(Client* client);`
+- `void SendGuildUpdate();`
+- `void SendGuildUpdate(Client* client);`
+- `void SendGuildMemberList();`
+- `void SendGuildMemberList(Client* client);`
+- `void SendGuildMember(Player* player, bool include_zone = true);`
+- `void SendGuildMember(GuildMember* gm, bool include_zone = true);`
+- `void SendGuildMember(Client* client, GuildMember* gm, bool include_zone = true);`
+- `void SendGuildModification(float points, vector<int32>* character_ids);`
+- `void SendGuildModification(Client* client, float points, vector<int32>* character_ids);`
+- `void GuildMemberLogin(Client *client, bool first_login = false);`
+- `void GuildMemberLogoff(Player *player);`
+- `void SendGuildMemberLeave(int32 character_id);`
+- `void SendGuildMemberLeave(Client* client, int32 character_id);`
+- `void SendGuildRecruitingDetails(Client* client);`
+- `void SendGuildRecruitingImages(Client* client);`
+- `void SendGuildRecruiterInfo(Client* client, Player* player);`
+- `bool HandleGuildSay(Client* sender, const char* message);`
+- `void HandleGuildSay(std::string senderName, const char* message, int8 language);`
+- `bool HandleOfficerSay(Client* sender, const char* message);`
+- `void HandleOfficerSay(std::string senderName, const char* message, int8 language);`
+- `void SendMessageToGuild(int8 event_type, const char* message, ...);`
+- `void SendGuildChatMessage(const char* message, ...);`
+- `void SetSaveNeeded(bool val) {save_needed = val;}`
+- `bool GetSaveNeeded() {return save_needed;}`
+- `void SetMemberSaveNeeded(bool val) {member_save_needed = val;}`
+- `bool GetMemberSaveNeeded() {return member_save_needed;}`
+- `void SetEventsSaveNeeded(bool val) {events_save_needed = val;}`
+- `bool GetEventsSaveNeeded() {return events_save_needed;}`
+- `void SetRanksSaveNeeded(bool val) {ranks_save_needed = val;}`
+- `bool GetRanksSaveNeeded() {return ranks_save_needed;}`
+- `void SetEventFiltersSaveNeeded(bool val) {event_filters_save_needed = val;}`
+- `bool GetEventFiltersSaveNeeded() {return event_filters_save_needed;}`
+- `void SetPointsHistorySaveNeeded(bool val) {points_history_save_needed = val;}`
+- `bool GetPointsHistorySaveNeeded() {return points_history_save_needed;}`
+- `void SetRecruitingSaveNeeded(bool val) {recruiting_save_needed = val;}`
+- `bool GetRecruitingSaveNeeded() {return recruiting_save_needed;}`
+- `int8 GetRecruitingLookingForPacketValue();`
+- `int32 GetPermissionsPacketValue(int8 rank, int32 start, int32 end);`
+- `int32 GetEventFilterPacketValue(int8 category, int32 start, int32 end);`
+- `bool AddGuild(Guild* guild);`
+- `bool RemoveGuild(Guild* guild, bool delete_data = false);`
+- `bool RemoveGuild(int32 guild_id, bool delete_data = false);`
+- `int32 GetNumGuilds() {return guild_list.size();}`
+
+## Notable Comments
+
+- /*
+- */

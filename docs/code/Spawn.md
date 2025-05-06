@@ -1,0 +1,452 @@
+# File: `Spawn.h`
+
+## Classes
+
+- `Spell`
+- `ZoneServer`
+- `Quest`
+- `LUAHistory`
+- `Cell`
+- `CellInfo`
+- `MovementData`
+- `BasicInfoStruct`
+- `MovementLocation`
+- `SpawnUpdate`
+- `SpawnData`
+- `TimedGridData`
+- `Spawn`
+- `SpawnProximity`
+
+## Functions
+
+- `void AddChangedZoneSpawn();`
+- `void AddPrimaryEntityCommand(const char* name, float distance, const char* command, const char* error_text, int16 cast_time, int32 spell_visual, bool defaultDenyList = false, Player* player = NULL);`
+- `void RemovePrimaryEntityCommand(const char* command);`
+- `bool SetPermissionToEntityCommand(EntityCommand* command, Player* player, bool permissionValue);`
+- `bool SetPermissionToEntityCommandByCharID(EntityCommand* command, int32 charID, bool permissionValue);`
+- `void RemoveSpawnFromPlayer(Player* player);`
+- `void AddSecondaryEntityCommand(const char* name, float distance, const char* command, const char* error_text, int16 cast_time, int32 spell_visual){`
+- `int8 GetLockedNoLoot(){`
+- `int16 GetEmoteState(){`
+- `int8 GetHideHood(){`
+- `void SetLockedNoLoot(int8 new_val, bool updateFlags = true){`
+- `void SetHandFlag(int8 new_val, bool updateFlags = true){`
+- `void SetHideHood(int8 new_val, bool updateFlags = true){`
+- `void SetEmoteState(int8 new_val, bool updateFlags = true){`
+- `void SetName(const char* new_name, bool updateFlags = true){`
+- `void SetPrefixTitle(const char* new_prefix_title, bool updateFlags = true) {`
+- `void SetSuffixTitle(const char* new_suffix_title, bool updateFlags = true) {`
+- `void SetSubTitle(const char* new_sub_title, bool updateFlags = true) {`
+- `void SetLastName(const char* new_last_name, bool updateFlags = true) {`
+- `void SetAdventureClass(int8 new_class, bool updateFlags = true) {`
+- `void SetTradeskillClass(int8 new_class, bool updateFlags = true) {`
+- `void SetSize(int16 new_size, bool updateFlags = true) {`
+- `void SetSpeedX(float speed_x, bool updateFlags = true) {`
+- `void SetSpeedY(float speed_y, bool updateFlags = true) {`
+- `void SetSpeedZ(float speed_z, bool updateFlags = true) {`
+- `void SetX(float x, bool updateFlags = true){`
+- `void SetY(float y, bool updateFlags = true, bool disableYMapFix = false);`
+- `void SetZ(float z, bool updateFlags = true){`
+- `void SetHeading(sint16 dir1, sint16 dir2, bool updateFlags = true){`
+- `void SetHeading(float heading, bool updateFlags = true){`
+- `void SetPitch(sint16 pitch1, sint16 pitch2, bool updateFlags = true){`
+- `void SetPitch(float pitch, bool updateFlags = true){`
+- `void SetRoll(float roll, bool updateFlags = true){`
+- `else if (roll != 180)`
+- `void SetVisualState(int16 state, bool updateFlags = true){`
+- `void SetActionState(int16 state, bool updateFlags = true){`
+- `void SetMoodState(int16 state, bool updateFlags = true){`
+- `void SetInitialState(int16 state, bool updateFlags = true){`
+- `void SetActivityStatus(int16 state, bool updateFlags = true){`
+- `void SetCollisionRadius(int32 radius, bool updateFlags = true){`
+- `int16 GetCollisionRadius(){`
+- `int16 GetVisualState(){`
+- `int16 GetActionState(){`
+- `int16 GetMoodState(){`
+- `int16 GetInitialState(){`
+- `int16 GetActivityStatus(){`
+- `int32 GetPrimaryCommandListID(){`
+- `int32 GetSecondaryCommandListID(){`
+- `void SetID(int32 in_id){`
+- `void SetDifficulty(int8 difficulty, bool setUpdateFlags = true){`
+- `void SetTSLevel(int16 tradeskill_level, bool setUpdateFlags = true){`
+- `void SetGender(int8 gender, bool setUpdateFlags = true){`
+- `void SetShowName(int8 new_val, bool setUpdateFlags = true){`
+- `void SetShowLevel(int8 new_val, bool setUpdateFlags = true){`
+- `void SetHeroic(int8 new_val, bool setUpdateFlags = true){`
+- `void SetTargetable(int8 new_val, bool setUpdateFlags = true){`
+- `void SetShowCommandIcon(int8 new_val, bool setUpdateFlags = true){`
+- `void SetShowHandIcon(int8 new_val, bool setUpdateFlags = true){`
+- `void SetAttackable(int8 new_val, bool setUpdateFlags = true){`
+- `void SetLocation(int32 id, bool setUpdateFlags = true);`
+- `void SetRace(int8 race, bool setUpdateFlags = true){`
+- `void SetIcon(int8 icon, bool setUpdateFlags = true){`
+- `void AddIconValue(int8 val){`
+- `void RemoveIconValue(int8 val){`
+- `int8 GetIconValue(){`
+- `void SetSpawnType(int8 new_type){`
+- `int8 GetSpawnType(){`
+- `void SetDatabaseID(int32 new_id){`
+- `int32 GetDatabaseID(){`
+- `int8 GetShowHandIcon(){`
+- `int32 GetLocation(){`
+- `int8 GetAttackable(){`
+- `int8 GetShowName(){`
+- `int8 GetShowLevel(){`
+- `int8 GetHeroic(){`
+- `int8 GetTargetable(){`
+- `int8 GetShowCommandIcon(){`
+- `int8 GetAdventureClass() {`
+- `int8 GetTradeskillClass() {`
+- `float GetDestinationX(){`
+- `float GetX() {`
+- `float GetSpeedX() {`
+- `float GetSpeedY() {`
+- `float GetSpeedZ() {`
+- `float GetDestinationY(){`
+- `float GetY(){`
+- `float GetDestinationZ(){`
+- `float GetZ(){`
+- `float GetHeading(){`
+- `float GetPitch(){`
+- `float GetRoll(){`
+- `int32 GetID(){`
+- `float GetDistance(float x1, float y1, float z1, float x2, float y2, float z2);`
+- `float GetDistance(float x, float y, float z, float radius, bool ignore_y = false);`
+- `float GetDistance(float x, float y, float z, bool ignore_y = false);`
+- `float GetDistance(Spawn* spawn, bool ignore_y = false, bool includeRadius=true);`
+- `float GetDistance(Spawn* spawn, float x1, float y1, float z1, bool includeRadius=true);`
+- `float CalculateRadius(Spawn* target);`
+- `int8 GetDifficulty(){`
+- `sint32 GetTotalPower();`
+- `sint32 GetPower();`
+- `sint32 GetTotalHP();`
+- `sint32 GetHP();`
+- `sint32 GetTotalHPBase();`
+- `sint32 GetTotalHPBaseInstance();`
+- `sint32 GetTotalPowerBase();`
+- `sint32 GetTotalPowerBaseInstance();`
+- `float GetHPRatio() { return GetHP() == 0 || GetTotalHP() == 0 ? 0 : ((float) GetHP() / GetTotalHP() * 100); }`
+- `int GetIntHPRatio() { return GetTotalHP() == 0 ? 0 : static_cast<int>(GetHPRatio()); }`
+- `sint32 GetTotalSavagery();`
+- `sint32 GetSavagery();`
+- `sint32 GetTotalDissonance();`
+- `sint32 GetDissonance();`
+- `sint32 GetTotalSavageryBase();`
+- `sint32 GetTotalDissonanceBase();`
+- `sint16 GetAssignedAA();`
+- `sint16 GetUnassignedAA();`
+- `sint16 GetTradeskillAA();`
+- `sint16 GetUnassignedTradeskillAA();`
+- `sint16 GetPrestigeAA();`
+- `sint16 GetUnassignedPretigeAA();`
+- `sint16 GetTradeskillPrestigeAA();`
+- `sint16 GetUnassignedTradeskillPrestigeAA();`
+- `int32 GetAAXPRewards();`
+- `void SetTotalPower(sint32 new_val);`
+- `void SetTotalHP(sint32 new_val);`
+- `void SetTotalSavagery(sint32 new_val);`
+- `void SetTotalDissonance(sint32 new_val);`
+- `void SetTotalPowerBase(sint32 new_val);`
+- `void SetTotalPowerBaseInstance(sint32 new_val);`
+- `void SetTotalHPBase(sint32 new_val);`
+- `void SetTotalHPBaseInstance(sint32 new_val);`
+- `void SetTotalSavageryBase(sint32 new_val);`
+- `void SetTotalDissonanceBase(sint32 new_val);`
+- `void SetPower(sint32 power, bool setUpdateFlags = true);`
+- `void SetHP(sint32 new_val, bool setUpdateFlags = true);`
+- `void SetSavagery(sint32 savagery, bool setUpdateFlags = true);`
+- `void SetDissonance(sint32 dissonance, bool setUpdateFlags = true);`
+- `void SetAssignedAA(sint16 new_val);`
+- `void SetUnassignedAA(sint16 new_val);`
+- `void SetTradeskillAA(sint16 new_val);`
+- `void SetUnassignedTradeskillAA(sint16 new_val);`
+- `void SetPrestigeAA(sint16 new_val);`
+- `void SetUnassignedPrestigeAA(sint16 new_val);`
+- `void SetTradeskillPrestigeAA(sint16 new_val);`
+- `void SetUnassignedTradeskillPrestigeAA(sint16 new_val);`
+- `void SetAAXPRewards(int32 amount);`
+- `void SetPrivateQuestSpawn(bool val) {req_quests_private = val;}`
+- `void SetQuestsRequiredOverride(int16 val) {req_quests_override = val;}`
+- `void SetQuestsRequiredContinuedAccess(bool val) {req_quests_continued_access = val;}`
+- `bool GetPrivateQuestSpawn() {return req_quests_private;}`
+- `int16 GetQuestsRequiredOverride() {return req_quests_override;}`
+- `bool GetQuestsRequiredContinuedAccess() {return req_quests_continued_access;}`
+- `bool Alive(){ return is_alive; }`
+- `void SetAlive(bool val) { is_alive = val; }`
+- `int16 GetLevel(){`
+- `int16 GetTSLevel(){`
+- `int8 GetGender(){`
+- `int8 GetRace(){`
+- `int32 GetSize(){`
+- `int32 GetDeviation(){`
+- `void SetDeviation(int32 in_dev){`
+- `float GetSpawnOrigHeading(){`
+- `void SetSpawnOrigHeading(float val){`
+- `float GetSpawnOrigX(){`
+- `float GetSpawnOrigY(){`
+- `float GetSpawnOrigZ(){`
+- `float GetSpawnOrigPitch(){`
+- `float GetSpawnOrigRoll(){`
+- `void SetSpawnOrigX(float val){`
+- `void SetSpawnOrigY(float val){`
+- `void SetSpawnOrigZ(float val){`
+- `void SetSpawnOrigRoll(float val){`
+- `void SetSpawnOrigPitch(float val){`
+- `void SetSogaModelType(int16 new_val, bool setUpdateFlags = true){`
+- `void SetModelType(int16 model_type, bool setUpdateFlags = true){`
+- `int16 GetSogaModelType(){`
+- `int16 GetModelType(){`
+- `bool IsFlyingCreature();`
+- `bool IsWaterCreature();`
+- `bool InWater();`
+- `bool InLava();`
+- `void SetFlyingCreature();`
+- `void SetWaterCreature();`
+- `void SetPrimaryCommand(const char* name, const char* command, float distance = 10);`
+- `void SetPrimaryCommands(vector<EntityCommand*>* commands);`
+- `void SetSecondaryCommands(vector<EntityCommand*>* commands);`
+- `bool			HasInfoChanged(){ return info_changed; }`
+- `bool			HasPositionChanged(){ return position_changed; }`
+- `bool			HasTarget(){ return target ? true : false; }`
+- `int32			GetRespawnTime();`
+- `void			SetRespawnTime(int32 time);`
+- `sint32			GetRespawnOffsetLow();`
+- `void			SetRespawnOffsetLow(sint32 time);`
+- `sint32			GetRespawnOffsetHigh();`
+- `void			SetRespawnOffsetHigh(sint32 time);`
+- `bool			DuplicatedSpawn() { return duplicated_spawn; }`
+- `void			SetDuplicateSpawn(bool val) { duplicated_spawn = val; }`
+- `int32			GetExpireTime() { return expire_time; }`
+- `void			SetExpireTime(int32 new_expire_time) { expire_time = new_expire_time; }`
+- `int32			GetExpireOffsetTime();`
+- `void			SetExpireOffsetTime(int32 time);`
+- `int32			GetSpawnLocationID();`
+- `void			SetSpawnLocationID(int32 id);`
+- `int32			GetSpawnEntryID();`
+- `void			SetSpawnEntryID(int32 id);`
+- `int32			GetSpawnLocationPlacementID();`
+- `void			SetSpawnLocationPlacementID(int32 id);`
+- `float			GetXOffset() { return x_offset; }`
+- `void			SetXOffset(float new_x_offset) { x_offset = new_x_offset; }`
+- `float			GetYOffset() { return y_offset; }`
+- `void			SetYOffset(float new_y_offset) { y_offset = new_y_offset; }`
+- `float			GetZOffset() { return z_offset; }`
+- `void			SetZOffset(float new_z_offset) { z_offset = new_z_offset; }`
+- `bool HasTrapTriggered() {`
+- `int32 GetTrapState() {`
+- `void SetChestDropTime() {`
+- `void SetTrapTriggered(bool triggered, int32 state) {`
+- `int32 GetChestDropTime() {`
+- `int32 GetTrapOpenedTime() {`
+- `void AddLootItem(int32 id, int16 charges = 1) {`
+- `void AddLootItem(Item* item) {`
+- `bool HasLoot() {`
+- `void TransferLoot(Spawn* spawn);`
+- `bool HasLootItemID(int32 id);`
+- `int32 GetLootItemID();`
+- `void LockLoot() {`
+- `void UnlockLoot() {`
+- `void ClearLoot() {`
+- `int32 GetLootCount() {`
+- `void ClearNonBodyLoot() {`
+- `int32 GetLootCoins() {`
+- `void SetLootCoins(int32 val, bool lockloot = true) {`
+- `void AddLootCoins(int32 coins) {`
+- `void			SetTarget(Spawn* spawn);`
+- `void			SetLastAttacker(Spawn* spawn);`
+- `bool			TakeDamage(int32 damage);`
+- `int32			GetZoneID();`
+- `void			SetFactionID(int32 val) { faction_id = val; }`
+- `int32			GetFactionID(){`
+- `else if ((next_id - 255) % 256 == 0) { //we dont want it to end in 255, it will confuse/crash the client`
+- `return NextID();`
+- `void			AddProvidedQuest(int32 val){`
+- `bool			HasProvidedQuests(){`
+- `void	SetSpawnScript(string name);`
+- `bool	HasSpawnGroup();`
+- `bool	IsInSpawnGroup(Spawn* spawn);`
+- `void	UpdateEncounterState(int8 new_state);`
+- `void	CheckEncounterState(Entity* victim, bool test_auto_lock = false);`
+- `void	AddTargetToEncounter(Entity* entity);`
+- `void	SendSpawnChanges(bool val){ send_spawn_changes = val; }`
+- `void	SetSpawnGroupID(int32 id);`
+- `int32	GetSpawnGroupID();`
+- `void	AddSpawnToGroup(Spawn* spawn);`
+- `void	SetSpawnGroupList(vector<Spawn*>* list, Mutex* mutex);`
+- `void	RemoveSpawnFromGroup(bool erase_all = false, bool ignore_death = false);`
+- `void	SetRunningTo(Spawn* spawn){ running_to = spawn->GetID(); }`
+- `void	SetTempVisualState(int val, bool update = true) { SetInfo(&tmp_visual_state, val, update); }`
+- `int  	GetTempVisualState(){ return tmp_visual_state; }`
+- `void	SetTempActionState(int val, bool update = true) { SetInfo(&tmp_action_state, val, update); }`
+- `int  	GetTempActionState(){ return tmp_action_state; }`
+- `void	AddAllowAccessSpawn(Spawn* spawn){ allowed_access[spawn->GetID()] = 1; }`
+- `void	RemoveSpawnAccess(Spawn* spawn);`
+- `bool	IsPrivateSpawn(){ return allowed_access.size() > 0 ;}`
+- `bool	AllowedAccess(Spawn* spawn){ return allowed_access.count(spawn->GetID()) > 0; }`
+- `void	MakeSpawnPublic() { allowed_access.clear(); }`
+- `void	SetSizeOffset(int8 offset);`
+- `int8	GetSizeOffset();`
+- `void	SetMerchantID(int32 val);`
+- `int32	GetMerchantID();`
+- `void	SetMerchantType(int8 val);`
+- `int8	GetMerchantType();`
+- `void	SetCollector(bool is_it) { is_collector = is_it; }`
+- `bool	IsCollector() { return is_collector; }`
+- `void	SetMerchantLevelRange(int32 minLvl = 0, int32 maxLvl = 0);`
+- `bool	IsClientInMerchantLevelRange(Client* ent, bool sendMessageIfDenied = true);`
+- `int32	GetMerchantMinLevel();`
+- `int32	GetMerchantMaxLevel();`
+- `void	SetQuestsRequired(Spawn* new_spawn);`
+- `void	SetQuestsRequired(int32 quest_id, int16 quest_step);`
+- `bool	HasQuestsRequired();`
+- `bool	HasHistoryRequired();`
+- `void	SetRequiredHistory(int32 event_id, int32 value1, int32 value2);`
+- `void	SetTransporterID(int32 id);`
+- `int32	GetTransporterID();`
+- `bool	MeetsSpawnAccessRequirements(Player* player);`
+- `void	RemovePrimaryCommands();`
+- `void	InitializePosPacketData(Player* player, PacketStruct* packet, bool bSpawnUpdate = false);`
+- `void	InitializeInfoPacketData(Player* player, PacketStruct* packet);`
+- `void	InitializeVisPacketData(Player* player, PacketStruct* packet);`
+- `void	InitializeHeaderPacketData(Player* player, PacketStruct* packet, int16 index);`
+- `void	InitializeFooterPacketData(Player* player, PacketStruct* packet);`
+- `void	MoveToLocation(Spawn* spawn, float distance, bool immediate = true, bool isMappedLocation = false);`
+- `void	AddMovementLocation(float x, float y, float z, float speed, int16 delay, const char* lua_function, float heading, bool include_heading = false, bool use_nav_path = false);`
+- `void	ProcessMovement(bool isSpawnListLocked=false);`
+- `void	ResetMovement();`
+- `bool	ValidateRunning(bool lockMovementLocation, bool lockMovementLoop);`
+- `bool	IsRunning();`
+- `void	CalculateRunningLocation(bool stop = false);`
+- `void	RunToLocation(float x, float y, float z, float following_x = 0, float following_y = 0, float following_z = 0);`
+- `void	NewWaypointChange(MovementLocation* data);`
+- `bool	CalculateChange();`
+- `void	AddRunningLocation(float x, float y, float z, float speed, float distance_away = 0, bool attackable = true, bool finished_adding_locations = true, string lua_function = "", bool isMapped=false, bool useNavPath=false);`
+- `bool	RemoveRunningLocation();`
+- `void	ClearRunningLocations();`
+- `void    CopySpawnAppearance(Spawn* spawn);`
+- `bool	MovementInterrupted(){ return movement_interrupted; }`
+- `void	MovementInterrupted(bool val) { movement_interrupted = val; }`
+- `bool	NeedsToResumeMovement(){ return attack_resume_needed; }`
+- `void	NeedsToResumeMovement(bool val) { attack_resume_needed = val; }`
+- `bool	HasMovementLoop(){ return movement_loop.size() > 0; }`
+- `bool	HasMovementLocations() {`
+- `float	GetFaceTarget(float x, float z);`
+- `void	FaceTarget(float x, float z);`
+- `void	FaceTarget(Spawn* target, bool disable_action_state = true);`
+- `void	SetInvulnerable(bool val);`
+- `bool	GetInvulnerable();`
+- `void	SetScaredByStrongPlayers(bool val) { scared_by_strong_players = val; }`
+- `bool	IsScaredByStrongPlayers() { return scared_by_strong_players; }`
+- `bool	IsPet() { return is_pet; }`
+- `void	SetPet(bool val) { is_pet = val; }`
+- `void SetFollowTarget(Spawn* spawn, int32 followDistance=0);`
+- `void AddTempVariable(string var, string val);`
+- `void AddTempVariable(string var, Spawn* val);`
+- `void AddTempVariable(string var, ZoneServer* val);`
+- `void AddTempVariable(string var, Quest* val);`
+- `void AddTempVariable(string var, Item* val);`
+- `string GetTempVariable(string var);`
+- `int8 GetTempVariableType(string var);`
+- `void DeleteTempVariable(string var);`
+- `void SetIllusionModel(int16 val, bool setUpdateFlags = true) {`
+- `int16 GetIllusionModel() { return m_illusionModel; }`
+- `int32 GetSpawnAnim() { return m_spawnAnim; }`
+- `void SetSpawnAnim(int32 value) { m_spawnAnim = value; }`
+- `int32 GetAddedToWorldTimestamp() { return m_addedToWorldTimestamp; }`
+- `void SetAddedToWorldTimestamp(int32 value) { m_addedToWorldTimestamp = value; }`
+- `int16 GetSpawnAnimLeeway() { return m_spawnAnimLeeway; }`
+- `void SetSpawnAnimLeeway(int16 value) { m_spawnAnimLeeway = value; }`
+- `float FindDestGroundZ(glm::vec3 dest, float z_offset);`
+- `float FindBestZ(glm::vec3 loc, glm::vec3* result=nullptr, int32* new_grid_id=nullptr, int32* new_widget_id=nullptr);`
+- `float GetFixedZ(const glm::vec3& destination, int32 z_find_offset = 1);`
+- `void FixZ(bool forceUpdate=false);`
+- `bool CheckLoS(Spawn* target);`
+- `bool CheckLoS(glm::vec3 myloc, glm::vec3 oloc);`
+- `void CalculateNewFearpoint();`
+- `void AddSpawnToProximity(int32 spawnValue, SpawnProximityType type);`
+- `void RemoveSpawnFromProximity(int32 spawnValue, SpawnProximityType type);`
+- `void RemoveSpawnProximities() {`
+- `void	SetPickupItemID(int32 itemid)`
+- `void	SetPickupUniqueItemID(int32 uniqueid)`
+- `int32	GetPickupItemID() { return pickup_item_id; }`
+- `int32	GetPickupUniqueItemID() { return pickup_unique_item_id; }`
+- `bool	IsSoundsDisabled() { return disable_sounds; }`
+- `void	SetSoundsDisabled(bool val) { disable_sounds = val; }`
+- `void DeleteRegion(Region_Node* inNode, ZBSP_Node* rootNode);`
+- `bool InRegion(Region_Node* inNode, ZBSP_Node* rootNode);`
+- `int32 GetRegionType(Region_Node* inNode, ZBSP_Node* rootNode);`
+- `float SpawnAngle(Spawn* target, float selfx, float selfz);`
+- `bool BehindSpawn(Spawn *target, float selfx, float selfz)`
+- `bool InFrontSpawn(Spawn *target, float selfx, float selfz)`
+- `bool IsFlankingSpawn(Spawn *target, float selfx, float selfz)`
+- `bool IsTransportSpawn() { return is_transport_spawn; }`
+- `void SetTransportSpawn(bool val) { is_transport_spawn = val; }`
+- `sint64 GetRailID() { return rail_id; }`
+- `void SetRailID(sint64 val) { rail_id = val; }`
+- `void AddRailPassenger(int32 char_id);`
+- `void RemoveRailPassenger(int32 char_id);`
+- `void SetAppearancePosition(float x, float y, float z);`
+- `void SetOmittedByDBFlag(bool val) { is_omitted_by_db_flag = val; }`
+- `bool IsOmittedByDBFlag() { return is_omitted_by_db_flag; }`
+- `int32 GetLootTier() { return loot_tier; }`
+- `void SetLootTier(int32 tier) { loot_tier = tier; }`
+- `int32 GetLootDropType() { return loot_drop_type; }`
+- `void SetLootDropType(int32 type) { loot_drop_type = type; }`
+- `void SetDeletedSpawn(bool val) { deleted_spawn = val; }`
+- `bool IsDeletedSpawn() { return deleted_spawn; }`
+- `int32 InsertRegionToSpawn(Region_Node* node, ZBSP_Node* bsp_root, WaterRegionType regionType, bool in_region = true);`
+- `bool HasRegionTracked(Region_Node* node, ZBSP_Node* bsp_root, bool in_region);`
+- `int8 GetArrowColor(int8 spawn_level);`
+- `void AddIgnoredWidget(int32 id);`
+- `void SendGroupUpdate();`
+- `void OverrideLootMethod(GroupLootMethod newMethod) { loot_method = newMethod; }`
+- `void SetLootMethod(GroupLootMethod method, int8 item_rarity = 0, int32 group_id = 0);`
+- `int32 GetLootGroupID() { return loot_group_id; }`
+- `GroupLootMethod GetLootMethod() { return loot_method; }`
+- `int8 GetLootRarity() { return loot_rarity; }`
+- `int32 GetLootTimeRemaining() { return loot_timer.GetRemainingTime(); }`
+- `bool IsLootTimerRunning() { return loot_timer.Enabled(); }`
+- `bool CheckLootTimer() { return loot_timer.Check(); }`
+- `void DisableLootTimer() { return loot_timer.Disable(); }`
+- `int32 GetLooterSpawnID() { return looter_spawn_id; }`
+- `void SetLooterSpawnID(int32 id) { looter_spawn_id = id; }`
+- `bool AddNeedGreedItemRequest(int32 item_id, int32 spawn_id, bool need_item);`
+- `bool AddLottoItemRequest(int32 item_id, int32 spawn_id);`
+- `void AddSpawnLootWindowCompleted(int32 spawn_id, bool status_);`
+- `bool SetSpawnLootWindowCompleted(int32 spawn_id);`
+- `bool HasSpawnLootWindowCompleted(int32 spawn_id);`
+- `bool HasSpawnNeedGreedEntry(int32 item_id, int32 spawn_id);`
+- `bool HasSpawnLottoEntry(int32 item_id, int32 spawn_id);`
+- `void GetSpawnLottoEntries(int32 item_id, std::map<int32, int32>* out_entries);`
+- `void GetLootItemsList(std::vector<int32>* out_entries);`
+- `void GetSpawnNeedGreedEntries(int32 item_id, bool need_item, std::map<int32, int32>* out_entries);`
+- `bool HasLootWindowCompleted();`
+- `bool IsLootWindowComplete() { return is_loot_complete; }`
+- `void SetLootDispensed() { is_loot_dispensed = true; }`
+- `bool IsLootDispensed() { return is_loot_dispensed; }`
+- `void StartLootTimer(Spawn* looter);`
+- `void CloseLoot(Spawn* sender);`
+- `void SetLootName(char* name) {`
+- `bool IsItemInLootTier(Item* item);`
+- `void DistributeGroupLoot_RoundRobin(std::vector<int32>* item_list, bool roundRobinTrashLoot = false); // trash loot is what falls under the item tier requirement by group options`
+- `void 		CalculateInitialVelocity(float heading, float distanceHorizontal, float distanceVertical, float distanceDepth, float duration);`
+- `glm::vec3 	CalculateProjectilePosition(glm::vec3 initialVelocity, float time);`
+- `bool 		CalculateSpawnProjectilePosition(float x, float y, float z);`
+- `void 		SetKnockback(Spawn* target, int32 duration, float vertical, float horizontal);`
+- `void 		ResetKnockedBack();`
+- `void CheckProximities();`
+- `bool IsKnockedBack() { return knocked_back; }`
+
+## Notable Comments
+
+- /*
+- */
+- // WE ARE UNSURE OF THESE OLD CLIENT VALUES USED AS TEMP PLACEHOLDERS FOR NEWER CLIENTS
+- //int32	start_time;
+- //int32	end_time;
+- *field = value;
+- /// <summary>Sets a user defined variable</summary>
+- /// <param name='var'>Variable we are setting</param>
+- /// <param name='val'>Value to set the variable to</param>
+- /// <summary>Gets the value for the given variable</summary>

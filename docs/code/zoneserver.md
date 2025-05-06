@@ -1,0 +1,396 @@
+# File: `zoneserver.h`
+
+## Classes
+
+- `SpellProcess`
+- `TradeskillMgr`
+- `Bot`
+- `PlayerProximity`
+- `LocationProximity`
+- `LocationGrid`
+- `GridMap`
+- `TrackedSpawn`
+- `HouseItem`
+- `Widget`
+- `Client`
+- `Sign`
+- `Object`
+- `GroundSpawn`
+- `GroundSpawnEntry`
+- `GroundSpawnEntryItem`
+- `LootTable`
+- `LootDrop`
+- `GlobalLoot`
+- `TransportDestination`
+- `LocationTransportDestination`
+- `RevivePoint`
+- `SpawnScriptTimer`
+- `FlightPathInfo`
+- `FlightPathLocation`
+- `ZoneInfoSlideStructInfo`
+- `ZoneInfoSlideStructTransitionInfo`
+- `ZoneInfoSlideStruct`
+- `ZoneServer`
+
+## Functions
+
+- `void ZoneLoop(void *tmp);`
+- `void SpawnLoop(void *tmp);`
+- `void SendInitialSpawns(void *tmp);`
+- `void SendLevelChangedSpawns(void*tmp);`
+- `void		IncrementIncomingClients();`
+- `void		DecrementIncomingClients();`
+- `void		Init();`
+- `bool		Process();`
+- `bool		SpawnProcess();`
+- `void AddZoneInfoSlideStructTransitionInfo(ZoneInfoSlideStruct* info, int32 x, int32 y, float zoom, float transition_time);`
+- `void	LoadRevivePoints(vector<RevivePoint*>* revive_points);`
+- `void	AddClient(Client* client);`
+- `void	SimpleMessage(int8 type, const char* message, Spawn* from, float distance, bool send_to_sender = true);`
+- `void	HandleChatMessage(Spawn* from, const char* to, int16 channel, const char* message, float distance = 0, const char* channel_name = 0, bool show_bubble = true, int32 language = 0);`
+- `void	HandleChatMessage(Client* client, Spawn* from, const char* to, int16 channel, const char* message, float distance = 0, const char* channel_name = 0, bool show_bubble = true, int32 language = 0);`
+- `void	HandleChatMessage(Client* client, std::string fromName, const char* to, int16 channel, const char* message, float distance = 0, const char* channel_name = 0, int32 language = 0);`
+- `void	HandleChatMessage(std::string fromName, const char* to, int16 channel, const char* message, float distance, const char* channel_name, int32 language);`
+- `void	HandleBroadcast(const char* message);`
+- `void	HandleAnnouncement(const char* message);`
+- `int16	SetSpawnTargetable(Spawn* spawn, float distance);`
+- `int16	SetSpawnTargetable(int32 spawn_id);`
+- `void	ApplySetSpawnCommand(Client* client, Spawn* target, int8 type, const char* value);`
+- `void	SetSpawnCommand(Spawn* spawn, int8 type, char* value, Client* client = 0);`
+- `void	SetSpawnCommand(int32 spawn_id, int8 type, char* value, Client* client = 0);`
+- `void	AddLoot(NPC* npc, Spawn* killer = nullptr, GroupLootMethod loot_method = GroupLootMethod::METHOD_FFA, int8 item_rarity = 0, int32 group_id = 0);`
+- `void	AddSpawn(Spawn* spawn);`
+- `void	RemoveDeadEnemyList(Spawn* spawn);`
+- `void	RemoveDeadSpawn(Spawn* spawn);`
+- `void	AddSpawnGroupLocation(int32 group_id, int32 location_id, int32 spawn_location_id);`
+- `void	AddSpawnGroupAssociation(int32 group_id1, int32 group_id2);`
+- `void	AddSpawnGroupChance(int32 group_id, float percent);`
+- `void	RemoveSpawn(Spawn* spawn, bool delete_spawn = true, bool respawn = true, bool lock = true, bool erase_from_spawn_list = true, bool lock_spell_process = false);`
+- `void	ProcessSpawnLocations();`
+- `void	SendQuestUpdates(Client* client, Spawn* spawn = 0);`
+- `bool	CallSpawnScript(Spawn* npc, int8 type, Spawn* spawn = 0, const char* message = 0, bool is_door_open = false, sint32 input_value = 0, sint32* return_value = 0);`
+- `void	SendSpawnVisualState(Spawn* spawn, int16 type);`
+- `void	SendSpellFailedPacket(Client* client, int16 error);`
+- `void	SendInterruptPacket(Spawn* interrupted, LuaSpell* spell, bool fizzle=false);`
+- `void	HandleEmote(Spawn* originator, string name, Spawn* opt_target = nullptr, bool no_target = false);`
+- `void	PlaySoundFile(Client* client, const char* name, float origin_x, float origin_y, float origin_z);`
+- `void	SendZoneSpawns(Client* client);`
+- `void	StartZoneInitialSpawnThread(Client* client);`
+- `void	SendSpawnChanges();`
+- `void	SendSpawnChanges(Spawn* spawn);`
+- `void	SendSpawnChanges(Spawn* spawn, Client* client, bool override_changes = false, bool override_vis_changes = false);`
+- `void	SendSpawnChangesByDBID(int32 spawn_id, Client* client, bool override_changes = false, bool override_vis_changes = false);`
+- `void	SendPlayerPositionChanges(Player* player);`
+- `void	UpdateVitality(float amount);`
+- `void	KillSpawn(bool spawnListLocked, Spawn* dead, Spawn* killer, bool send_packet = true, int8 type = 0, int8 damage_type = 0, int16 kill_blow_type = 0);`
+- `void	SendDamagePacket(Spawn* attacker, Spawn* victim, int8 type1, int8 type2, int8 damage_type, int16 damage, const char* spell_name);`
+- `void    SendHealPacket(Spawn* caster, Spawn* target, int16 type, int32 heal_amt, const char* spell_name);`
+- `void	SendCastSpellPacket(LuaSpell* spell, Entity* caster, int32 spell_visual_override = 0, int16 casttime_override = 0xFFFF);`
+- `void	SendCastSpellPacket(int32 spell_visual, Spawn* target, Spawn* caster = 0);`
+- `void	SendCastEntityCommandPacket(EntityCommand* entity_command, int32 spawn_id, int32 target_id);`
+- `void	TriggerCharSheetTimer();`
+- `void	SendTimeUpdateToAllClients();`
+- `void	AddWidgetTimer(Spawn* widget, float time);`
+- `bool	HasWidgetTimer(Spawn* widget);`
+- `void	Despawn(Spawn* spawn, int32 timer);`
+- `void	RepopSpawns(Client* client, Spawn* spawn);`
+- `bool	AddCloseSpawnsToSpawnGroup(Spawn* spawn, float radius);`
+- `void	Depop(bool respawns = false, bool repop = false);`
+- `bool	IsSpawnGroupAlive(int32 id);`
+- `void	AddEnemyList(NPC* npc);`
+- `void	ReloadClientQuests();`
+- `void	SendAllSpawnsForLevelChange(Client* client);`
+- `void	SendAllSpawnsForSeeInvisChange(Client* client);`
+- `void	SendAllSpawnsForVisChange(Client* client, bool limitToEntities=true);`
+- `void	AddLocationGrid(LocationGrid* grid);`
+- `void	RemoveLocationGrids();`
+- `void	DeleteTransporters();`
+- `void	CheckTransporters(Client* client);`
+- `void	WritePlayerStatistics();`
+- `bool	SendRadiusSpawnInfo(Client* client, float radius);`
+- `void	FindSpawn(Client* client, char* regSearchStr);`
+- `void	AddChangedSpawn(Spawn* spawn);`
+- `void	AddDamagedSpawn(Spawn* spawn);`
+- `void	AddDrowningVictim(Player* player);`
+- `void	RemoveDrowningVictim(Player* player);`
+- `void	DeleteSpellProcess();`
+- `void	LoadSpellProcess();`
+- `void	LockAllSpells(Player* player);`
+- `void	UnlockAllSpells(Player* player);`
+- `void	RemoveSpellTimersFromSpawn(Spawn* spawn, bool remove_all, bool delete_recast = true, bool call_expire_function = true, bool lock_spell_process = false);`
+- `void	Interrupted(Entity* caster, Spawn* interruptor, int16 error_code, bool cancel = false, bool from_movement = false);`
+- `void	ProcessSpell(Spell* spell, Entity* caster, Spawn* target = 0, bool lock = true, bool harvest_spell = false, LuaSpell* customSpell = 0, int16 custom_cast_time = 0, bool in_heroic_opp = false);`
+- `void	ProcessEntityCommand(EntityCommand* entity_command, Entity* caster, Spawn* target, bool lock = true);`
+- `void	AddPlayerTracking(Player* player);`
+- `void	RemovePlayerTracking(Player* player, int8 mode);`
+- `void	SendUpdateTitles(Client *client, Title *suffix = 0, Title *prefix = 0);`
+- `void	SendUpdateTitles(Spawn *spawn, Title *suffix = 0, Title *prefix = 0);`
+- `void    RemoveTargetFromSpell(LuaSpell* spell, Spawn* target, bool remove_caster = false);`
+- `void	SetRain(float val);`
+- `void	SetWind(float val);`
+- `void	ProcessWeather();`
+- `void    ResurrectSpawn(Spawn* spawn, Client* client);`
+- `void	HidePrivateSpawn(Spawn* spawn);`
+- `bool SetPlayerTargetByName(Client* originator, char* targetName, float distance);`
+- `std::vector<int32> GetGridsByLocation(Spawn* originator, glm::vec3 loc, float distance);`
+- `void StartZoneSpawnsForLevelThread(Client* client);`
+- `void SendDispellPacket(Entity* caster, Spawn* target, string dispell_name, string spell_name, int8 dispell_type);`
+- `void SetupInstance(int32 createdInstanceID=0);`
+- `void SendUpdateDefaultCommand(Spawn* spawn, const char* command, float distance, Spawn* toplayer = NULL);`
+- `int32			GetClosestLocation(Spawn* spawn);`
+- `void			PlayFlavor(Client* client, Spawn* spawn, const char* mp3, const char* text, const char* emote, int32 key1, int32 key2, int8 language);`
+- `void			PlayVoice(Client* client, Spawn* spawn, const char* mp3, int32 key1, int32 key2);`
+- `void			PlayFlavor(Spawn* spawn, const char* mp3, const char* text, const char* emote, int32 key1, int32 key2, int8 language);`
+- `void			PlayFlavorID(Spawn* spawn, int8 type, int32 id, int16 index, int8 language);`
+- `void			PlayVoice(Spawn* spawn, const char* mp3, int32 key1, int32 key2);`
+- `void			SendThreatPacket(Spawn* caster, Spawn* target, int32 threat_amt, const char* spell_name);`
+- `void			SendYellPacket(Spawn* yeller, float max_distance=50.0f);`
+- `void			KillSpawnByDistance(Spawn* spawn, float max_distance, bool include_players = false, bool send_packet = false);`
+- `void			SpawnSetByDistance(Spawn* spawn, float max_distance, string field, string value);`
+- `void			AddSpawnScriptTimer(SpawnScriptTimer* timer);`
+- `void			AddMovementNPC(Spawn* spawn);`
+- `void			AddPlayerProximity(Spawn* spawn, float distance, string in_range_function, string leaving_range_function);`
+- `void			AddLocationProximity(float x, float y, float z, float max_variation, string in_range_function, string leaving_range_function);`
+- `void			PlayAnimation(Spawn* spawn, int32 visual_state, Spawn* spawn2 = 0, int8 type = 1);`
+- `void			AddTransportSpawn(Spawn* spawn);`
+- `void			RemovePlayerPassenger(int32 char_id);`
+- `bool			IsDusk() { return isDusk; }										// never used, probably meant for lua though`
+- `void	SetZoneName(char* new_zone) {`
+- `void	SetZoneFile(char* zone) {`
+- `void	SetZoneSkyFile(char* zone) {`
+- `void	SetZoneDescription(char* desc) {`
+- `void			SetUnderWorld(float under){ underworld = under; }`
+- `float			GetUnderWorld(){ return underworld; }`
+- `void			SetZoneID(int32 new_id){ zoneID = new_id; }`
+- `void			SetCityZone(bool val) { cityzone = val; }`
+- `void			SetAlwaysLoaded(bool val) { always_loaded = val; }`
+- `void			SetDuplicatedZone(bool val) { duplicated_zone = val; }`
+- `void			SetDuplicatedID(int32 id) { duplicated_id = id; }`
+- `int32			NumPlayers()	{ return pNumPlayers; }`
+- `void			SetMinimumStatus(sint16 minStatus) { minimumStatus = minStatus; }`
+- `sint16			GetMinimumStatus() { return minimumStatus; }`
+- `void			SetMinimumLevel(int16 minLevel) { minimumLevel = minLevel; }`
+- `void			SetMaximumLevel(int16 maxLevel) { maximumLevel = maxLevel; }`
+- `void			SetMinimumVersion(int16 minVersion) { minimumVersion = minVersion; }`
+- `int16			GetMinimumLevel() { return minimumLevel; }`
+- `int16			GetMaximumLevel() { return maximumLevel; }`
+- `int16			GetMinimumVersion() { return minimumVersion; }`
+- `void			SetZoneLockState(bool lock_state) { locked = lock_state; }	// JA: /zone lock|unlock`
+- `int32			GetInstanceID() { return instanceID; }`
+- `bool			IsInstanceZone() { return isInstance; }`
+- `void			SetInstanceID(int32 newInstanceID) { instanceID = newInstanceID; }`
+- `void SetShutdownTimer(int val){`
+- `void AddSpawnLocation(int32 id, SpawnLocation* spawnlocation) {`
+- `void			SetInstanceType(int16 type) { InstanceType = (Instance_Type)type; if(type>0)isInstance=true; else isInstance=false; }`
+- `Instance_Type	GetInstanceType() { return InstanceType; }`
+- `float			GetSafeX(){ return safe_x; }`
+- `float			GetSafeY(){ return safe_y; }`
+- `float			GetSafeZ(){ return safe_z; }`
+- `float			GetSafeHeading() { return safe_heading; }`
+- `void			SetSafeX(float val){ safe_x = val; }`
+- `void			SetSafeY(float val){ safe_y = val; }`
+- `void			SetSafeZ(float val){ safe_z = val; }`
+- `void			SetSafeHeading(float val) { safe_heading = val; }`
+- `float			GetXPModifier() { return xp_mod; }`
+- `void			SetXPModifier(float val) { xp_mod = val; }`
+- `void			SetZoneMOTD(string z_motd) { zone_motd = z_motd; }`
+- `string			GetZoneMOTD() { return zone_motd; }`
+- `bool			isZoneShuttingDown ( ) { return zoneShuttingDown; }`
+- `void			Shutdown(){ zoneShuttingDown = true; }`
+- `int32			GetClientCount(){ return clients.size(); }`
+- `int32			GetDefaultLockoutTime() { return def_lockout_time; }`
+- `int32			GetDefaultReenterTime() { return def_reenter_time; }`
+- `int32			GetDefaultResetTime() { return def_reset_time; }`
+- `int8			GetForceGroupZoneOption() { return group_zone_option; }`
+- `void			SetDefaultLockoutTime(int32 val) { def_lockout_time = val; }`
+- `void			SetDefaultReenterTime(int32 val) { def_reenter_time = val; }`
+- `void			SetDefaultResetTime(int32 val) { def_reset_time = val; }`
+- `void			SetForceGroupZoneOption(int8 val) { group_zone_option = val; }`
+- `bool			FinishedDepop(){ return finished_depop; }`
+- `bool	isWeatherEnabled() { return weather_enabled; }`
+- `void	SetWeatherEnabled(bool val) { weather_enabled = val; }`
+- `bool	isWeatherAllowed() { return weather_allowed; }`
+- `void	SetWeatherAllowed(bool val) { weather_allowed = val; }`
+- `int8	GetWeatherType() { return weather_type; }`
+- `void	SetWeatherType(int8 val) { weather_type = val; }`
+- `int32	GetWeatherFrequency() { return weather_frequency; }`
+- `void	SetWeatherFrequency(int32 val) { weather_frequency = val; }`
+- `float	GetWeatherMinSeverity() { return weather_min_severity; }`
+- `void	SetWeatherMinSeverity(float val) { weather_min_severity = val; }`
+- `float	GetWeatherMaxSeverity() { return weather_max_severity; }`
+- `void	SetWeatherMaxSeverity(float val) { weather_max_severity = val; }`
+- `float	GetWeatherChangeAmount() { return weather_change_amount; }`
+- `void	SetWeatherChangeAmount(float val) { weather_change_amount = val; }`
+- `float	GetWeatherDynamicOffset() { return weather_dynamic_offset; }`
+- `void	SetWeatherDynamicOffset(float val) { weather_dynamic_offset = val; }`
+- `int8	GetWeatherChance() { return weather_change_chance; }`
+- `void	SetWeatherChance(int8 val) { weather_change_chance = val; }`
+- `float	GetCurrentWeather() { return weather_current_severity; }`
+- `void	SetCurrentWeather(float val) { weather_current_severity = val; }`
+- `int8	GetWeatherPattern() { return weather_pattern; }`
+- `void	SetWeatherPattern(int8 val) { weather_pattern = val; }`
+- `void	SetWeatherLastChangedTime(int32 val) { weather_last_changed_time = val; }`
+- `int32	GetExpansionFlag() { return expansion_flag; }`
+- `void	SetExpansionFlag(int32 val) { expansion_flag = val; }`
+- `int32	GetHolidayFlag() { return holiday_flag; }`
+- `void	SetHolidayFlag(int32 val) { holiday_flag = val; }`
+- `int32	GetCanBind() { return can_bind; }`
+- `void	SetCanBind(int32 val) { can_bind = val; }`
+- `bool	GetCanGate() { return can_gate; }`
+- `void	SetCanGate(int32 val) { can_gate = val; }`
+- `bool	GetCanEvac() { return can_evac; }`
+- `void	SetCanEvac(int32 val) { can_evac = val; }`
+- `void	RemoveClientImmediately(Client* client);`
+- `void	ClearHate(Entity* entity);`
+- `void AddFlightPath(int32 id, FlightPathInfo* info);`
+- `void AddFlightPathLocation(int32 id, FlightPathLocation* location);`
+- `void DeleteFlightPaths();`
+- `void SendFlightPathsPackets(Client* client);`
+- `int32 GetFlightPathIndex(int32 id);`
+- `float GetFlightPathSpeed(int32 id);`
+- `void	SendSpawn(Spawn* spawn, Client* client);														// moved from private to public for bots`
+- `void ProcessSpawnConditional(int8 condition);`
+- `void SetSpawnStructs(Client* client);`
+- `void AddSpawnProximities(Spawn* spawn);`
+- `void RemoveSpawnProximities(Spawn* spawn);`
+- `void SetSpawnScript(SpawnEntry* entry, Spawn* spawn);`
+- `bool IsLoading() {`
+- `vector<HouseItem> GetHouseItems(Client* client);`
+- `void SendHouseItems(Client* client);`
+- `int32 GetWatchdogTime() { return watchdogTimestamp; }`
+- `void SetWatchdogTime(int32 time) { watchdogTimestamp = time; }`
+- `void CancelThreads();`
+- `void AddPendingSpawnRemove(int32 id);`
+- `void ProcessSpawnRemovals();`
+- `bool	SendRemoveSpawn(Client* client, Spawn* spawn, PacketStruct* packet = 0, bool delete_spawn = false);`
+- `void	AddSpawnToGroup(Spawn* spawn, int32 group_id);`
+- `void	QueueStateCommandToClients(int32 spawn_id, int32 state);`
+- `void	QueueDefaultCommand(int32 spawn_id, std::string command, float distance);`
+- `void	ProcessQueuedStateCommands();`
+- `void	RemoveClientsFromZone(ZoneServer* zone);`
+- `void	WorldTimeUpdateTrigger() { sync_game_time_timer.Trigger(); }`
+- `void	StopSpawnScriptTimer(Spawn* spawn, std::string functionName);`
+- `void	SendSubSpawnUpdates(SUBSPAWN_TYPES subtype);`
+- `bool	HouseItemSpawnExists(int32 item_id);`
+- `void	ProcessPendingSpawns();`
+- `void 	AddSpawnToGrid(Spawn* spawn, int32 grid_id);`
+- `void	RemoveSpawnFromGrid(Spawn* spawn, int32 grid_id);`
+- `int32	GetSpawnCountInGrid(int32 grid_id);`
+- `void	SendClientSpawnListInGrid(Client* client, int32 grid_id);`
+- `void 	AddIgnoredWidget(int32 id);`
+- `void	AddRespawn(Spawn* spawn);`
+- `void	AddRespawn(int32 locationID, int32 respawnTime);`
+- `void	SendRespawnTimerList(Client* client);`
+- `void	AddTransporter(LocationTransportDestination* loc);`
+- `void	CheckDeadSpawnRemoval();`
+- `void	DeleteData(bool boot_clients = true);`
+- `void	DeleteFactionLists();`
+- `void	ProcessDepop(bool respawns_allowed = false, bool repop = false);`
+- `void	ClientProcess(bool ignore_shutdown_timer = false);													// never used outside zone server`
+- `void	RemoveClient(Client* client);																		// never used outside zone server`
+- `void	DeterminePosition(SpawnLocation* spawnlocation, Spawn* spawn);										// never used outside zone server`
+- `void	AddDeadSpawn(Spawn* spawn, int32 timer = 0xFFFFFFFF);												// never used outside zone server`
+- `int32	CalculateSpawnGroup(SpawnLocation* spawnlocation, bool respawn = false);							// never used outside zone server`
+- `float	GetSpawnGroupChance(int32 group_id);																// never used outside zone server`
+- `void	ProcessSpawnLocation(int32 location_id, map<int32,int32>* instNPCs, map<int32,int32>* instGroundSpawns, map<int32,int32>* instObjSpawns, map<int32,int32>* instWidgetSpawns, map<int32,int32>* instSignSpawns, bool respawn = false);										// never used outside zone server`
+- `void	SendRaidSheetChanges();																				// never used outside zone server`
+- `void	SendCharSheetChanges();																				// never used outside zone server`
+- `void	SendCharSheetChanges(Client* client);																// never used outside zone server`
+- `void	SaveClients();																						// never used outside zone server`
+- `void	CheckSendSpawnToClient();																			// never used outside zone server`
+- `void	CheckSendSpawnToClient(Client* client, bool initial_login = false);									// never used outside zone server`
+- `void	CheckRemoveSpawnFromClient(Spawn* spawn);															// never used outside zone server`
+- `void	SaveClient(Client* client);																			// never used outside zone server`
+- `void	ProcessFaction(Spawn* spawn, Client* client);														// never used outside zone server`
+- `void	RegenUpdate();																						// never used outside zone server`
+- `void	SendCalculatedXP(Player* player, Spawn* victim);													// never used outside zone server, might not be used at all any more`
+- `void	SendTimeUpdate(Client* client);																		// never used outside zone server`
+- `void	CheckWidgetTimers();																				// never used outside zone server`
+- `void	CheckRespawns();																					// never used outside zone server`
+- `void	CheckSpawnExpireTimers();																			// never used outside zone server`
+- `void	AddSpawnExpireTimer(Spawn* spawn, int32 expire_time, int32 expire_offset = 0);						// never used outside zone server`
+- `void	CheckSpawnRange(Client* client, Spawn* spawn, bool initial_login = false);							// never used outside zone server`
+- `void	CheckSpawnRange(Spawn* spawn);																		// never used outside zone server`
+- `void	DeleteSpawnScriptTimers(Spawn* spawn, bool all = false);											// never used outside zone server`
+- `void	DeleteSpawnScriptTimers();																			// never used outside zone server`
+- `void	CheckSpawnScriptTimers();																			// never used outside zone server`
+- `bool	PrepareSpawnID(Player* player, Spawn* spawn);														// never used outside zone server`
+- `void	RemoveMovementNPC(Spawn* spawn);																	// never used outside zone server`
+- `bool	CheckNPCAttacks(NPC* npc, Spawn* victim, Client* client = 0);										// never used outside zone server`
+- `bool	AggroVictim(NPC* npc, Spawn* victim, Client* client = 0);											// never used outside zone server`
+- `bool	CheckEnemyList(NPC* npc);																			// never used outside zone server`
+- `void	RemovePlayerProximity(Spawn* spawn, bool all = false);												// never used outside zone server`
+- `void	RemovePlayerProximity(Client* client);																// never used outside zone server`
+- `void	CheckPlayerProximity(Spawn* spawn, Client* client);													// never used outside zone server`
+- `void	RemoveLocationProximities();																		// never used outside zone server`
+- `void	CheckLocationProximity();																			// never used outside zone server`
+- `void	CheckLocationGrids();																				// never used outside zone server`
+- `void	RemoveSpawnSupportFunctions(Spawn* spawn, bool lock_spell_process = false, bool shutdown = false);	// never used outside zone server`
+- `void	ReloadTransporters();																				// never used outside zone server`
+- `void	DeleteSpawns(bool delete_all);																		// never used outside zone server`
+- `void	AddPendingDelete(Spawn* spawn);																		// never used outside zone server`
+- `void	ClearDeadSpawns();																					// never used outside zone server`
+- `void	RemoveChangedSpawn(Spawn* spawn);																	// never used outside zone server`
+- `void	ProcessDrowning();																					// never used outside zone server`
+- `void	RemoveDamagedSpawn(Spawn* spawn);																	// never used outside zone server`
+- `void	ProcessTracking();																					// never used outside zone server`
+- `void	ProcessTracking(Client* client);																	// never used outside zone server`
+- `void	SendEpicMobDeathToGuild(Player* killer, Spawn* victim);												// never used outside zone server`
+- `void	ProcessAggroChecks(Spawn* spawn);																	// never used outside zone server`
+- `bool CombatProcess(Spawn* spawn);																			// never used outside zone server`
+- `void LootProcess(Spawn* spawn);`
+- `void CloseSpawnLootWindow(Spawn* spawn);`
+- `void	InitWeather();																						// never used outside zone server`
+- `void DismissAllPets();																						// never used outside zone server`
+- `void				SetEntityCommandList(int32 id, EntityCommand* command);`
+- `void				ClearEntityCommands();`
+- `void				AddNPC(int32 id, NPC* npc);`
+- `void AddNPCSkill(int32 list_id, int32 skill_id, int16 value);`
+- `void AddNPCEquipment(int32 list_id, int32 item_id);`
+- `void SetNPCEquipment(NPC* npc);`
+- `void				AddObject(int32 id, Object* object){ object_list[id] = object; }`
+- `void				AddSign(int32 id, Sign* sign){ sign_list[id] = sign; }`
+- `void				AddWidget(int32 id, Widget* widget);`
+- `void AddGroundSpawnEntry(int32 groundspawn_id, int16 min_skill_level, int16 min_adventure_level, int8 bonus_table, float harvest1, float harvest3, float harvest5, float harvest_imbue, float harvest_rare, float harvest10, int32 harvest_coin);`
+- `void AddGroundSpawnItem(int32 groundspawn_id, int32 item_id, int8 is_rare, int32 grid_id);`
+- `void LoadGroundSpawnEntries();`
+- `void LoadGroundSpawnItems();`
+- `void DeleteGroundSpawnItems();`
+- `void				AddGroundSpawn(int32 id, GroundSpawn* spawn);`
+- `void				AddLootTable(int32 id, LootTable* table);`
+- `void				AddLootDrop(int32 id, LootDrop* drop);`
+- `void				AddSpawnLootList(int32 spawn_id, int32 id);`
+- `void				ClearSpawnLootList(int32 spawn_id);`
+- `void				AddLevelLootList(GlobalLoot* loot);`
+- `void				AddRacialLootList(int16 racial_id, GlobalLoot* loot);`
+- `void				AddZoneLootList(int32 zone, GlobalLoot* loot);`
+- `void				ClearLootTables();`
+- `vector<int32>		GetSpawnLootList(int32 spawn_id, int32 zone_id, int8 spawn_level, int16 racial_id, Spawn* spawn = 0);`
+- `void AddLocationTransporter(int32 zone_id, string message, float trigger_x, float trigger_y, float trigger_z, float trigger_radius, int32 destination_zone_id, float destination_x, float destination_y, float destination_z, float destination_heading, int32 cost, int32 unique_id);`
+- `void GetTransporters(vector<TransportDestination*>* returnList, Client* client, int32 transport_id);`
+- `void DeleteGlobalTransporters();`
+- `void AddTransportMap(int32 id, string name);`
+- `bool TransportHasMap(int32 id);`
+- `string GetTransportMap(int32 id);`
+- `void DeleteTransporterMaps();`
+- `void DeleteGlobalSpawns();`
+- `void ReloadSpawns();`
+- `void SendStateCommand(Spawn* spawn, int32 state);`
+- `int32 getGroupraidMinLevel() const {`
+- `int32 getGroupraidMaxLevel() const {`
+- `int32 getGroupraidAvgLevel() const {`
+- `int32 getGroupraidFirstLevel() const {`
+- `void setGroupRaidLevels(int32 min_level, int32 max_level, int32 avg_level, int32 first_level) {`
+
+## Notable Comments
+
+- /*
+- */
+- // Can't verify these 3 values
+- // 32768 - SF
+- // 131072 - AoD
+- /* JA: TODO Turn into R_World Rules */
+- // need to attempt to clean this up and add xml comments, remove unused code, find a logical way to sort the functions maybe by get/set/process/add etc...
+- /// <summary>Sends the game time packet to all connected clients</summary>
+- /// <summary>Set the rain levl in the zone</summary>
+- /// <param name='val'>Level of rain in the zone 0.0 - 1.1 (rain starts at 0.76)</param>
