@@ -3583,6 +3583,9 @@ to zero and treated like placeholders." />
 <Data ElementName="unknown2" Type="float" Size="1" />
 <Data ElementName="unknown3" Type="float" Size="1" />
 </Struct>
+<Struct Name="WS_EntityVerbsVerbBackup" ClientVersion="1" OpcodeName="OP_EntityVerbsVerbMsg">
+<Data ElementName="spawn_id" Type="int32" Size="1" />
+</Struct>
 <Struct Name="WS_EntityVerbsVerb" ClientVersion="1" OpcodeName="OP_EntityVerbsVerbMsg">
 <Data ElementName="spawn_id" Type="int32" Size="1" />
 <Data ElementName="command" Type="EQ2_16Bit_String" Size="1" />

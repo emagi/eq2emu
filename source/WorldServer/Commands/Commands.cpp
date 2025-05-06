@@ -2321,21 +2321,17 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 						  }
 		case COMMAND_USE_EQUIPPED_ITEM:{
 			if (sep && sep->arg[0] && sep->IsNumber(0)){
-				int32 slot_id = atoul(sep->arg[0]);
+				int16 slot_id = 0;
+				if(client->GetVersion() > 561) {
+					slot_id = atoul(sep->arg[0]);
+				}
+				else if(strlen(sep->argplus[0]) > 0) { // the way that the arguments are pulled the length is truncated, it will always be 2.  So just try to convert what we did get in the string to an integer
+					const char* bufPtr = sep->argplus[0];
+					slot_id = client->GetPlayer()->ConvertSlotFromClient(atoul(bufPtr), client->GetVersion());
+				}
 				Item* item = player->GetEquipmentList()->GetItem(slot_id);
 				if (item && item->generic_info.usable && item->GetItemScript()) {
-					if(!item->CheckFlag2(INDESTRUCTABLE) && item->generic_info.condition == 0) {
-						client->SimpleMessage(CHANNEL_COLOR_RED, "This item is broken and must be repaired at a mender before it can be used");
-					}
-					else if (item->CheckFlag(EVIL_ONLY) && client->GetPlayer()->GetAlignment() != ALIGNMENT_EVIL) {
-							client->Message(0, "%s requires an evil race.", item->name.c_str());
-					}
-					else if (item->CheckFlag(GOOD_ONLY) && client->GetPlayer()->GetAlignment() != ALIGNMENT_GOOD) {
-							client->Message(0, "%s requires a good race.", item->name.c_str());
-					}
-					else {
-						lua_interface->RunItemScript(item->GetItemScript(), "used", item, player, player->GetTarget());
-					}
+					client->UseItem(item, player->GetTarget(), true, slot_id);
 				}
 			}
 			break;

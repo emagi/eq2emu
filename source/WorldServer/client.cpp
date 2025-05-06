@@ -1960,73 +1960,80 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
 		LogWrite(OPCODE__DEBUG, 1, "Opcode", "Opcode 0x%X (%i): OP_EntityVerbsVerbMsg", opcode, opcode);
 		PacketStruct* packet = configReader.getStruct("WS_EntityVerbsVerb", GetVersion());
 		if (packet) {
-			if (packet->LoadPacketData(app->pBuffer, app->size)) {
-				int32 spawn_id = packet->getType_int32_ByName("spawn_id");
-				Spawn* spawn = player->GetSpawnWithPlayerID(spawn_id); // fixed using GetTarget and the target was never set causing commands not to work
-				player->SetTarget(spawn);
-				if (spawn && !spawn->IsNPC() && !spawn->IsPlayer()) {
-					string command = packet->getType_EQ2_16BitString_ByName("command").data;
+			if(!packet->LoadPacketData(app->pBuffer, app->size)) {
+				safe_delete(packet);
+				packet = configReader.getStruct("WS_EntityVerbsVerbBackup", GetVersion());
+				if(!packet->LoadPacketData(app->pBuffer, app->size)) {
+					LogWrite(WORLD__ERROR, 0, "World", "Failed to properly load WS_EntityVerbsVerb for client.");
+					safe_delete(packet);
+					break;
+				}
+			}
+			int32 spawn_id = packet->getType_int32_ByName("spawn_id");
+			Spawn* spawn = player->GetSpawnWithPlayerID(spawn_id); // fixed using GetTarget and the target was never set causing commands not to work
+			player->SetTarget(spawn);
+			if (spawn && !spawn->IsNPC() && !spawn->IsPlayer()) {
+				string command = packet->getType_EQ2_16BitString_ByName("command").data;
 
-					if (!HandleHouseEntityCommands(spawn, spawn_id, command))
-					{
-						if (EntityCommandPrecheck(spawn, command.c_str())) {
-							if (spawn->IsGroundSpawn())
-								((GroundSpawn*)spawn)->HandleUse(this, command);
-							else if (spawn->IsObject())
-								((Object*)spawn)->HandleUse(this, command);
-							else if (spawn->IsWidget())
-								((Widget*)spawn)->HandleUse(this, command);
-							else if (spawn->IsSign())
-								((Sign*)spawn)->HandleUse(this, command);
-						}
+				if (!HandleHouseEntityCommands(spawn, spawn_id, command))
+				{
+					if (EntityCommandPrecheck(spawn, command.c_str())) {
+						if (spawn->IsGroundSpawn())
+							((GroundSpawn*)spawn)->HandleUse(this, command);
+						else if (spawn->IsObject())
+							((Object*)spawn)->HandleUse(this, command);
+						else if (spawn->IsWidget())
+							((Widget*)spawn)->HandleUse(this, command);
+						else if (spawn->IsSign())
+							((Sign*)spawn)->HandleUse(this, command);
 					}
 				}
-				else {
-					EQ2_16BitString command = packet->getType_EQ2_16BitString_ByName("command");
-					if (command.size > 0) {
-						string command_name = command.data;
-						if (command_name.find(" ") < 0xFFFFFFFF) {
-							if (GetVersion() <= 561) { //this version uses commands in the form "Buy From Merchant" instead of buy_from_merchant
-								string::size_type pos = command_name.find(" ");
-								while (pos != string::npos) {
-									command_name.replace(pos, 1, "_");
-									pos = command_name.find(" ");
-								}
+			}
+			else {
+				EQ2_16BitString command = packet->getType_EQ2_16BitString_ByName("command");
+				if (command.size > 0) {
+					string command_name = command.data;
+					if (command_name.find(" ") < 0xFFFFFFFF) {
+						if (GetVersion() <= 561) { //this version uses commands in the form "Buy From Merchant" instead of buy_from_merchant
+							string::size_type pos = command_name.find(" ");
+							while (pos != string::npos) {
+								command_name.replace(pos, 1, "_");
+								pos = command_name.find(" ");
 							}
-							else
-								command_name = command_name.substr(0, command_name.find(" "));
 						}
-						int32 handler = commands.GetCommandHandler(command_name.c_str());
-						if (handler != 0xFFFFFFFF) {
-							if (command.data == command_name) {
-								command.data = "";
-								command.size = 0;
-							}
-							else {
-								command.data = command.data.substr(command.data.find(" ") + 1);
-								command.size = command.data.length();
-							}
-							commands.Process(handler, &command, this);
+						else
+							command_name = command_name.substr(0, command_name.find(" "));
+					}
+					int32 handler = commands.GetCommandHandler(command_name.c_str());
+					if (handler != 0xFFFFFFFF) {
+						if (command.data == command_name) {
+							command.data = "";
+							command.size = 0;
 						}
 						else {
-							if (spawn && spawn->IsNPC()) {
-								if (EntityCommandPrecheck(spawn, command.data.c_str())) {
-									if (!((NPC*)spawn)->HandleUse(this, command.data)) {
-										command_name = command.data;
-										string::size_type pos = command_name.find(" ");
-										while (pos != string::npos) {
-											command_name.replace(pos, 1, "_");
-											pos = command_name.find(" ");
-										}
-										if (!((NPC*)spawn)->HandleUse(this, command_name)) { //convert the spaces to underscores and see if that makes a difference
-											LogWrite(WORLD__ERROR, 0, "World", "Unhandled command in OP_EntityVerbsVerbMsg: %s", command.data.c_str());
-										}
+							command.data = command.data.substr(command.data.find(" ") + 1);
+							command.size = command.data.length();
+						}
+						commands.Process(handler, &command, this);
+					}
+					else {
+						if (spawn && spawn->IsNPC()) {
+							if (EntityCommandPrecheck(spawn, command.data.c_str())) {
+								if (!((NPC*)spawn)->HandleUse(this, command.data)) {
+									command_name = command.data;
+									string::size_type pos = command_name.find(" ");
+									while (pos != string::npos) {
+										command_name.replace(pos, 1, "_");
+										pos = command_name.find(" ");
+									}
+									if (!((NPC*)spawn)->HandleUse(this, command_name)) { //convert the spaces to underscores and see if that makes a difference
+										LogWrite(WORLD__ERROR, 0, "World", "Unhandled command in OP_EntityVerbsVerbMsg: %s", command.data.c_str());
 									}
 								}
 							}
-							else
-								LogWrite(WORLD__ERROR, 0, "World", "Unknown command in OP_EntityVerbsVerbMsg: %s", command.data.c_str());
 						}
+						else
+							LogWrite(WORLD__ERROR, 0, "World", "Unknown command in OP_EntityVerbsVerbMsg: %s", command.data.c_str());
 					}
 				}
 			}
@@ -12819,7 +12826,7 @@ void Client::SetPlayer(Player* new_player) {
 	player->SetClient(this);
 }
 
-bool Client::UseItem(Item* item, Spawn* target) {
+bool Client::UseItem(Item* item, Spawn* target, bool equippedItem, int16 equipSlot) {
 	if (item && item->GetItemScript()) {
 		int16 item_index = item->details.index;
 		if (!item->CheckFlag2(INDESTRUCTABLE) && item->generic_info.condition == 0) {
@@ -12843,7 +12850,10 @@ bool Client::UseItem(Item* item, Spawn* target) {
 				if (lua_interface->RunItemScript(item->GetItemScript(), "used", item, player, target, &flags) && flags >= 0)
 				{
 					//reobtain item make sure it wasn't removed
-					item = player->item_list.GetItemFromIndex(item_index);
+					if(equippedItem)
+						item = player->GetEquipmentList()->GetItem(equipSlot);
+					else
+						item = player->item_list.GetItemFromIndex(item_index);
 					if (!item) {
 						LogWrite(PLAYER__WARNING, 0, "Command", "%s: Item %s (%i) was used, however after the item looks to be removed.", GetPlayer()->GetName(), itemName.c_str(), item_id);
 						return true;
@@ -12857,10 +12867,21 @@ bool Client::UseItem(Item* item, Spawn* target) {
 					{
 						item->details.count--; // charges
 						item->save_needed = true;
-						QueuePacket(item->serialize(GetVersion(), false, GetPlayer()));
+						if(equippedItem) {
+							QueuePacket(player->GetEquipmentList()->serialize(GetVersion(), player));
+							QueuePacket(item->serialize(version, false, player));
+						}
+						else {
+							QueuePacket(item->serialize(GetVersion(), false, GetPlayer()));
+						}
 						if (!item->details.count) {
-							Message(CHANNEL_NARRATIVE, "%s is out of charges.  It has been removed.", item->name.c_str());
-							RemoveItem(item, 1); // end of a set of charges OR an item that uses a stack count of actual item quantity
+							if(equippedItem) {
+								Message(CHANNEL_NARRATIVE, "%s is out of charges.", item->name.c_str());
+							}
+							else {
+								Message(CHANNEL_NARRATIVE, "%s is out of charges.  It has been removed.", item->name.c_str());
+								RemoveItem(item, 1); // end of a set of charges OR an item that uses a stack count of actual item quantity
+							}
 						}
 						return true;
 					}

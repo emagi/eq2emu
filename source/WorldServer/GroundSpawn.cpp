@@ -552,7 +552,7 @@ string GroundSpawn::GetHarvestSpellName() {
 }
 
 void GroundSpawn::HandleUse(Client* client, string type){
-	if(!client || type.length() == 0)
+	if(!client || (client->GetVersion() > 561 && type.length() == 0)) // older clients do not send the type
 		return;
 	//The following check disables the use of the groundspawn if spawn access is not granted
 	if (client) {
@@ -564,6 +564,9 @@ void GroundSpawn::HandleUse(Client* client, string type){
 	}
 
 	MHarvestUse.lock();
+	if(type == "" && client->GetVersion() <= 561)
+		type = GetHarvestSpellType();
+	
 	if (type == GetHarvestSpellType() && MeetsSpawnAccessRequirements(client->GetPlayer())) {
 		Spell* spell = master_spell_list.GetSpellByName(GetHarvestSpellName().c_str());
 		if (spell)

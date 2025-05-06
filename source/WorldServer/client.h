@@ -670,7 +670,7 @@ public:
 		zoning_h = h;
 	}
 
-	bool	UseItem(Item* item, Spawn* target = nullptr);
+	bool	UseItem(Item* item, Spawn* target = nullptr, bool equippedItem = false, int16 equipSlot = 0);
 
 	void	SendPlayFlavor(Spawn* spawn, int8 language, VoiceOverStruct* non_garble, VoiceOverStruct* garble, bool success = false, bool garble_success = false);
 	void	SaveQuestRewardData(bool force_refresh = false);
