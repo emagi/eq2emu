@@ -564,7 +564,8 @@ void GroundSpawn::HandleUse(Client* client, string type){
 	}
 
 	MHarvestUse.lock();
-	if((type == "" || type == "collect") && client->GetVersion() <= 561)
+	std::string typeLwr = ToLower(type);
+	if((typeLwr == "" || typeLwr == "collect" || typeLwr == "gather") && client->GetVersion() <= 561)
 		type = GetHarvestSpellType();
 	
 	if (type == GetHarvestSpellType() && MeetsSpawnAccessRequirements(client->GetPlayer())) {
