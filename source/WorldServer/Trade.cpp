@@ -44,13 +44,18 @@ int8 Trade::AddItemToTrade(Entity* character, Item* item, int8 quantity, int8 sl
 	LogWrite(PLAYER__ERROR, 0, "Trade", "Player (%s) adding item (%u) to slot %u of the trade window", character->GetName(), item->details.item_id, slot);
 	if (slot == 255)
 		slot = GetNextFreeSlot(character);
-
+	if(!quantity)
+		quantity = 1;
+	
 	if (slot < 0) {
 		LogWrite(PLAYER__ERROR, 0, "Trade", "Player (%s) tried to add an item to an invalid trade slot (%u)", character->GetName(), slot);
 		return 255;
 	}
 	else if(slot >= trade_max_slots) {
 		return 254;
+	}
+	else if(quantity > item->details.count) {
+		return 253;
 	}
 
 	Entity* other = GetTradee(character);

@@ -9979,6 +9979,8 @@ void Commands::Command_TradeAddItem(Client* client, Seperator* sep)
 				client->SimpleMessage(CHANNEL_COLOR_YELLOW, "You can't trade NO-TRADE items.");
 			else if (result == 3)
 				client->SimpleMessage(CHANNEL_COLOR_YELLOW, "You can't trade HEIRLOOM items.");
+			else if (result == 253)
+				client->Message(CHANNEL_COLOR_YELLOW, "You do not have enough quantity...");
 			else if (result == 254)
 				client->Message(CHANNEL_COLOR_YELLOW, "You are trading with an older client with a %u trade slot restriction...", client->GetPlayer()->trade->MaxSlots());
 			else if (result == 255)
