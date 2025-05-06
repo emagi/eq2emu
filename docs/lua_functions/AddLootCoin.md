@@ -1,17 +1,17 @@
-### Function: AddLootCoin(param1, param2)
+### Function: AddLootCoin(Spawn, Amount)
 
 **Description:**
-Placeholder description.
+Adds coin to the Spawn's loot table for the current instance when they die.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: int32 - Integer value.
+- `Spawn`: Spawn - The spawn or entity to add loot coin.
+- `Amount`: int32 - Amount in copper.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-AddLootCoin(..., ...)
+-- Example usage: Add 50 copper to Spawn's loot table for when it dies.
+AddLootCoin(Spawn, 50)
 ```

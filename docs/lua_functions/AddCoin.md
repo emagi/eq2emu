@@ -1,20 +1,17 @@
-### Function: AddCoin(param1, param2, param3, param4, param5)
+### Function: AddCoin(Player, Amount)
 
 **Description:**
-Placeholder description.
+Provide the Amount of coin provided in copper which will translate the value into copper, silver, gold, platinum respectively to the Player.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: unknown - Unknown type.
-- `param5`: int32 - Integer value.
+- `Player`: Spawn - The Spawn (Player) to provide the coin.
+- `Amount`: UInt32 - Amount in copper to provide Player.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-AddCoin(..., ..., ..., ..., ...)
+-- Example usage, provide 5 copper to Player. 50 copper = 5 silver, 500 copper = 5 gold, 5000 copper = 5 platinum.
+AddCoin(Player, 5)
 ```

@@ -1,24 +1,31 @@
-### Function: AddProc(param1, param2, param3, param4, param5, param6, param7, param8, param9)
+### Function: AddProc(Spawn, Type, Chance, Item, UseAllSpellTargets)
 
 **Description:**
-Placeholder description.
+Add's a proc for a Spell and calls function proc when proc succeeds.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: unknown - Unknown type.
-- `param5`: unknown - Unknown type.
-- `param6`: int8 - Small integer or boolean flag.
-- `param7`: float - Floating point value.
-- `param8`: Item - An item reference.
-- `param9`: int8 - Small integer or boolean flag.
+- `Spawn`: Spawn - The spawn or entity involved.
+- `Type`: int8 - See PROC_TYPE defines.
+- `Chance`: float - Chance of proc 1-100.
+- `Item`: Item - An item reference.
+- `UseAllSpellTargets`: int8 - Default is 0, when set to 1 all spell targets will apply the proc not the Spawn
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-AddProc(..., ..., ..., ..., ..., ..., ..., ..., ...)
+-- Example usage: Example Spell Script, when casted Target has 10% chance to trigger proc on type 15 (PROC_TYPE_DAMAGED) when damaged.
+
+function cast(Caster, Target)
+    -- 10% chance to dispel when target takes damage
+    AddProc(Target, 15, 10.0)
+end
+
+function proc(Caster, Target, Type)
+    if Type == 15 then
+        CancelSpell()
+    end
+end
+
 ```

@@ -1,23 +1,21 @@
-### Function: AddControlEffect(param1, param2, param3, param4, param5, param6, param7, param8)
+### Function: AddControlEffect(Spawn, Type, OnlyAddSpawn)
 
 **Description:**
-Placeholder description.
+Apply a Control Effect to a Spawn, this includes Mesmerize, Stun, Root, so on.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: unknown - Unknown type.
-- `param5`: unknown - Unknown type.
-- `param6`: unknown - Unknown type.
-- `param7`: int32 - Integer value.
-- `param8`: int8 - Small integer or boolean flag.
+- `Spawn`: Spawn - The spawn or entity involved.
+- `Type`: UInt8 - Control Effect Type
+- `OnlyAddSpawn`: Boolean (Optional) - False by default, set to True will only apply Control Effect to Spawn.  Otherwise if Spell all Spawn Targets will apply control effect.
 
 **Returns:** None.
+
+**Notes:**
+- See CONTROL_EFFECT_TYPE defines for more details.
 
 **Example:**
 
 ```lua
--- Example usage
-AddControlEffect(..., ..., ..., ..., ..., ..., ..., ...)
+-- Example usage: Will apply Control Effect to Spawn, or if in a Spell Script all Spell Targets, Type 1 is Mesmerize.
+AddControlEffect(Spawn, 1)
 ```

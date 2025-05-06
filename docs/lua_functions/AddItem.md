@@ -1,18 +1,18 @@
-### Function: AddItem(param1, param2, param3)
+### Function: AddItem(Spawn, ItemID, Quantity)
 
 **Description:**
-Placeholder description.
+Add an Item to a Spawn/Player with the defined Item ID and Quantity.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: int32 - Integer value.
-- `param3`: int32 - Integer value.
+- `Spawn`: Spawn - The spawn or entity involved.
+- `ItemID`: UInt32 - Item id to assign to Spawn.
+- `Quantity`: UInt32 - Quantity of item to assign to Spawn (default 1).
 
-**Returns:** None.
+**Returns:** Boolean: True if successfully assigned the item, otherwise return's False.
 
 **Example:**
 
 ```lua
--- Example usage
-AddItem(..., ..., ...)
+-- Example usage: Assigns Spawn the ItemID 1696 (a fishman scale amulet) with Quantity of 1.
+AddItem(Spawn, 1696)
 ```

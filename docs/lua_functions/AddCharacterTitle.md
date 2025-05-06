@@ -1,20 +1,17 @@
-### Function: AddCharacterTitle(param1, param2, param3, param4, param5)
+### Function: AddCharacterTitle(Spawn, TitleName)
 
 **Description:**
-Placeholder description.
+Provides the Spawn (Player Character) a new title they can apply from their Profile.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: unknown - Unknown type.
-- `param5`: string - String value.
+- `Player`: Spawn - The Spawn (Player only) to provide the new title.
+- `TitleName`: String - Title to set to the Spawn.
 
-**Returns:** None.
+**Returns:** SInt32 -1 if invalid, otherwise provides Title database ID.
 
 **Example:**
 
 ```lua
 -- Example usage
-AddCharacterTitle(..., ..., ..., ..., ...)
+AddCharacterTitle(Player, "My New Title!")
 ```

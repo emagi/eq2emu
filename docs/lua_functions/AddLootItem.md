@@ -1,18 +1,18 @@
-### Function: AddLootItem(param1, param2, param3)
+### Function: AddLootItem(Spawn, ItemID, Charges)
 
 **Description:**
-Placeholder description.
+Add an item and its charges (quantity) to a Spawn's loot table for this instance.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: int32 - Integer value.
-- `param3`: int16 - Short integer value.
+- `Spawn`: Spawn - The spawn or entity to add the loot item.
+- `ItemID`: int32 - ItemID from the items table.
+- `Charges`: int16 - Amount of charges for the item (or quantity), default is 1.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-AddLootItem(..., ..., ...)
+-- Example usage: Add to Spawn ItemID 1696 (a fishman scale amulet) with Quantity of 1.
+AddLootItem(Spawn, 1696)
 ```

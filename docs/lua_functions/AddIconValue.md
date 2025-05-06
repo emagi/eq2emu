@@ -1,18 +1,17 @@
-### Function: AddIconValue(param1, param2, param3)
+### Function: AddIconValue(Spawn, Value)
 
 **Description:**
-Placeholder description.
+Add an icon value to the Spawn.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: int32 - Integer value.
+- `Spawn`: Spawn - The spawn or entity involved.
+- `Value`: UInt32 - icon value to be added.
 
-**Returns:** None.
+**Returns:** Boolean: True if successful, otherwise False..
 
 **Example:**
 
 ```lua
 -- Example usage
-AddIconValue(..., ..., ...)
+AddIconValue(Spawn, Value)
 ```

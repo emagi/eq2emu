@@ -1,20 +1,21 @@
-### Function: AddImmunitySpell(param1, param2, param3, param4, param5)
+### Function: AddImmunitySpell(ImmunityType, Spawn)
 
 **Description:**
-Placeholder description.
+Add an Immunity to the Spawn by the Immunity Type.
 
 **Parameters:**
-- `param1`: unknown - Unknown type.
-- `param2`: int8 - Small integer or boolean flag.
-- `param3`: unknown - Unknown type.
-- `param4`: unknown - Unknown type.
-- `param5`: Spawn - The spawn or entity involved.
+- `ImmunityType`: UInt8 - Immunity Type to add.
+- `Spawn`: Spawn - Spawn to apply immunity.
 
 **Returns:** None.
+
+**Notes:**
+- See IMMUNITY_TYPE defines for more details.
+- If Spawn is specified only the Spawn receives the Immunity, otherwise if it is in a Spell Script we will apply to all Spell Targets.
 
 **Example:**
 
 ```lua
--- Example usage
-AddImmunitySpell(..., ..., ..., ..., ...)
+-- Example usage: Immunity Type 7 makes NPC immune to AOE spells.
+AddImmunitySpell(7, NPC)
 ```
