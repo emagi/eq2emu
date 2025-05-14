@@ -1,20 +1,15 @@
-### Function: BlurVision(param1, param2, param3, param4, param5)
+Function: BlurVision(Spawn, Intensity)
 
-**Description:**
-Placeholder description.
+Description: For use in Spell Script or against a Spawn directly.  Sets the intensity of drunkness on the player.  When used in Spell Script applies to all Spell Targets.
 
-**Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: unknown - Unknown type.
-- `param5`: float - Floating point value.
+Parameters:
 
-**Returns:** None.
+    Spawn: Spawn – The player whose vision to affect.
+    Intensity: Float – Intensity of the player being drunk, setting to 0.0 will mean player is not drunk.  The higher the more extreme the screen distortion.
 
-**Example:**
+Returns: None.
 
-```lua
--- Example usage
-BlurVision(..., ..., ..., ..., ...)
-```
+Example:
+
+-- Example usage (blur player's vision while under a drunken effect)
+BlurVision(Player, 0.5)

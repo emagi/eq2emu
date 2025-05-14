@@ -1,16 +1,16 @@
-### Function: IsPlayer(param1)
+### Function: IsPlayer(Player)
 
 **Description:**
-Placeholder description.
+Checks if Player is an actual Player or Spawn.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
+- `Player`: Spawn - The spawn or entity to check.
 
-**Returns:** None.
+Returns: Boolean – true if this spawn is a Player; false if not.
 
 **Example:**
 
-```lua
--- Example usage
-IsPlayer(...)
-```
+-- Example usage (NPC will attack stealthed players only if it can see invis)
+if IsPlayer(Target) or CanSeeInvis(NPC, Target) then
+    Attack(NPC, Target)
+end

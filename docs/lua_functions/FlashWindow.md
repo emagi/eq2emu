@@ -1,18 +1,16 @@
-### Function: FlashWindow(param1, param2, param3)
+Function: FlashWindow(Player, WindowName, FlashSeconds)
 
-**Description:**
-Placeholder description.
+Description: Causes a UI window to flash (usually its icon or border) on the client to draw attention. For example, flashing the quest journal icon when a new quest is added.
 
-**Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: string - String value.
-- `param3`: float - Floating point value.
+Parameters:
 
-**Returns:** None.
+    Player: Spawn – The player whose UI to affect.
+    WindowName: String – The window or UI element name to flash.
+    FlashSeconds: Float - Flash time of the window in seconds.
+	
+Returns: None.
 
-**Example:**
+Example:
 
-```lua
--- Example usage
-FlashWindow(..., ..., ...)
-```
+-- Example usage (flash the quest journal when a quest is updated for 2 seconds).
+FlashWindow(Player, "MainHUD.StartMenu.quest_journal", 2.0)

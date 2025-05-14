@@ -1,23 +1,23 @@
-### Function: AddSpawnSpellBonus(param1, param2, param3, param4, param5, param6, param7, param8)
+Function: AddSpawnSpellBonus(Spawn, BonusType, Value)
 
-**Description:**
-Placeholder description.
+Description: Used only in a Spell Script.  Applies a spell bonus or modifier to the specified spawn, versus AddSpellBonus applying to all targets of the Spell. This could be things like increased stats, mitigation, damage, etc., as defined by BonusType.
 
-**Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: unknown - Unknown type.
-- `param5`: unknown - Unknown type.
-- `param6`: unknown - Unknown type.
-- `param7`: int16 - Short integer value.
-- `param8`: unknown - Unknown type.
+Parameters:
 
-**Returns:** None.
+    Spawn: Spawn – The entity to receive the bonus.
+    BonusType: UInt16 – The type of bonus to apply (as defined in game constants, e.g., a particular stat or resist).  These are based on the item stat types.
+    Value: SInt32 – The value of the bonus to add (could be absolute or percentage depending on type).
 
-**Example:**
+Returns: None.
 
-```lua
--- Example usage
-AddSpawnSpellBonus(..., ..., ..., ..., ..., ..., ..., ...)
-```
+Example:
+-- See item stat types for BonusType ID's: https://raw.githubusercontent.com/emagi/eq2emu/refs/heads/main/docs/data_types/item_stat_types.md
+-- Spell Script Example usage (increase NPC's defense by 50 temporarily during spell's lifetime)
+function cast(Caster, Target)
+    AddSpawnSpellBonus(Target, 106, 50.0)
+end
+
+function remove(Caster, Target)
+    RemoveSpawnSpellBonus(Target)
+end
+

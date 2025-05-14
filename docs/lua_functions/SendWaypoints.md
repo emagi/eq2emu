@@ -1,16 +1,15 @@
-### Function: SendWaypoints(param1)
+Function: SendWaypoints(Player)
 
-**Description:**
-Placeholder description.
+Description: Sends the Player the visual/guiding waypoints provided through AddWaypoint.
 
-**Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
+Parameters:
 
-**Returns:** None.
+    Player: Spawn – The Player to update their waypoints by sending the packet update.
 
-**Example:**
+Returns: None.
 
-```lua
--- Example usage
-SendWaypoints(...)
-```
+Example:
+
+-- Add a waypoint to the client and send the waypoints
+AddWaypoint(Player, "Lets go here!", 102.5, -12.3, 230.0)
+SendWaypoints(Player)

@@ -1,17 +1,16 @@
-### Function: RemoveWaypoint(param1, param2)
+Function: RemoveWaypoint(Player, WaypointIndex)
 
-**Description:**
-Placeholder description.
+Description: Removes the guiding waypoint for the Player.  SendWaypoints should also be sent after.
 
-**Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: string - String value.
+Parameters:
 
-**Returns:** None.
+    Player: Spawn – The NPC whose waypoint path to modify.
+    Name: String - The name of the waypoint supplied originally when AddWaypoint was called.
 
-**Example:**
+Returns: None.
 
-```lua
--- Example usage
-RemoveWaypoint(..., ...)
-```
+Example:
+
+-- Example usage (remove a previously added waypoint)
+RemoveWaypoint(Player, "PreviousWaypoint")
+SendWaypoints(Player)

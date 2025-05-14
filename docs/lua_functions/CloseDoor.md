@@ -1,18 +1,15 @@
-### Function: CloseDoor(param1, param2, param3)
+Function: CloseDoor(DoorSpawn, DisableCloseSound)
 
-**Description:**
-Placeholder description.
+Description: Closes an open door spawn, playing its closing animation and sound.
 
-**Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: bool - Boolean value (true/false).
+Parameters:
 
-**Returns:** None.
+    DoorSpawn: Spawn – The door object to close.
+    DisableCloseSound: Boolean - Default is false, when set to true, no door close sound will be made.
 
-**Example:**
+Returns: None.
 
-```lua
--- Example usage
-CloseDoor(..., ..., ...)
-```
+Example:
+
+-- Example usage (close the door after some time or event)
+CloseDoor(CastleGate)

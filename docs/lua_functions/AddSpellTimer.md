@@ -1,23 +1,29 @@
-### Function: AddSpellTimer(param1, param2, param3, param4, param5, param6, param7, param8)
+Function: AddSpellTimer(DelayMS, FunctionName, Caster, Target)
 
-**Description:**
-Placeholder description.
+Description: Used only in a Spell Script.  Schedules a call to a function (by name) in the spawn’s script after a specified delay in milliseconds. This is typically used within NPC scripts to create timed events (like delayed attacks or actions) without blocking the main thread.
 
-**Parameters:**
-- `param1`: int32 - Integer value.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: unknown - Unknown type.
-- `param5`: unknown - Unknown type.
-- `param6`: string - String value.
-- `param7`: Spawn - The spawn or entity involved.
-- `param8`: Spawn - The spawn or entity involved.
+Parameters:
 
-**Returns:** None.
+    DelayMS: Int32 – The delay in milliseconds before the function is called.
+    FunctionName: String – The name of the function in the NPC’s Lua script to call when the timer expires.
+    Caster: Spawn – The source spawn who was the caster/originator.
+    Target: Spawn – The target spawn who will be included as a secondary argument
 
-**Example:**
+Returns: None.
 
-```lua
--- Example usage
-AddSpellTimer(..., ..., ..., ..., ..., ..., ..., ...)
-```
+Example:
+-- taken from Spells/Commoner/Knockdown.lua
+-- Timer argument taken from spell data in the database, after Timer elapses we call RemoveStunBlur
+function cast(Caster, Target, Timer)
+if not IsEpic(Target) then
+        PlayAnimation(Target, 72)
+		AddControlEffect(Target, 4)
+        BlurVision(Target, 1.0)
+        AddSpellTimer(Timer, "RemoveStunBlur")
+    end
+end
+
+function RemoveStunBlur(Caster, Target)
+    RemoveControlEffect(Target, 4)
+    BlurVision(Target, 0)
+end

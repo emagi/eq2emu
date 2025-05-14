@@ -1,20 +1,15 @@
-### Function: ClearHate(param1, param2, param3, param4, param5)
+Function: ClearHate(NPC, Hated)
 
-**Description:**
-Placeholder description.
+Description: Removes the `Hated` target on the NPC's hate list.
 
-**Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: unknown - Unknown type.
-- `param5`: Spawn - The spawn or entity involved.
+Parameters:
 
-**Returns:** None.
+    NPC: Spawn – The NPC whose hate list should be cleared.
+    Hated: Spawn – The hated target that is to be removed from the hate list.
 
-**Example:**
+Returns: None.
 
-```lua
--- Example usage
-ClearHate(..., ..., ..., ..., ...)
-```
+Example:
+
+-- Example usage (an NPC stops attacking/hating Target)
+ClearHate(NPC, Target)

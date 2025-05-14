@@ -1,16 +1,15 @@
-### Function: GetShardCreatedTimestamp(param1)
+Function: GetShardCreatedTimestamp(ShardID)
 
-**Description:**
-Placeholder description.
+Description: Returns the Unix timestamp (or similar) of when the spirit shard was created (i.e., the time of the player’s death that generated it).
 
-**Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
+Parameters:
 
-**Returns:** None.
+    ShardID: Int32 – The spirit shard’s ID.
 
-**Example:**
+Returns: Int64 – The creation timestamp of the shard.
 
-```lua
--- Example usage
-GetShardCreatedTimestamp(...)
-```
+Example:
+
+-- Example usage (calculate how old a shard is for some mechanic)
+local shardTime = GetShardCreatedTimestamp(shardID)
+local ageSeconds = os.time() - shardTime
