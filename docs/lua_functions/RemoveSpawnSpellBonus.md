@@ -1,20 +1,16 @@
-### Function: RemoveSpawnSpellBonus(param1, param2, param3, param4, param5)
+Function: RemoveSpawnSpellBonus(Spawn)
 
-**Description:**
-Placeholder description.
+Description: Used in a Spell Script Only.  Removes a previously applied spell bonus from the spawn
 
-**Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: unknown - Unknown type.
-- `param5`: unknown - Unknown type.
+Parameters:
 
-**Returns:** None.
+    Spawn: Spawn – The entity to remove the bonus from.
 
-**Example:**
+Returns: None.
 
-```lua
--- Example usage
-RemoveSpawnSpellBonus(..., ..., ..., ..., ...)
-```
+Example:
+
+-- Example usage (remove the defense bonus when buff ends)
+function remove(Caster, Target)
+	RemoveSpawnSpellBonus(Spawn)
+end
