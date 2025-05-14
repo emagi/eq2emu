@@ -1,17 +1,14 @@
-### Function: GetOrigY(param1, param2)
+Function: GetOrigY(Spawn)
 
-**Description:**
-Placeholder description.
+Description: Returns the original Y coordinate (vertical position) of the spawn’s starting point in the zone.
 
-**Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
+Parameters:
 
-**Returns:** None.
+    Spawn: Spawn – The entity in question.
 
-**Example:**
+Returns: Float – The Y coordinate of its original spawn location.
 
-```lua
--- Example usage
-GetOrigY(..., ...)
-```
+Example:
+
+-- Example usage (for debugging an NPC's elevation change)
+print("NPC original Y: " .. GetOrigY(NPC) .. ", current Y: " .. GetY(NPC))

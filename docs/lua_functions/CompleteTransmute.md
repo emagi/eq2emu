@@ -1,18 +1,14 @@
-### Function: CompleteTransmute(param1, param2, param3)
+Function: CompleteTransmute(Player)
 
-**Description:**
-Placeholder description.
+Description: Finalizes a transmuting action for the player, typically yielding the transmuted components. This would be called after StartTransmute once the process should complete (if not automatic).
 
-**Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
+Parameters:
 
-**Returns:** None.
+    Player: Spawn – The player finishing transmuting.
 
-**Example:**
+Returns: None.
 
-```lua
--- Example usage
-CompleteTransmute(..., ..., ...)
-```
+Example:
+
+-- Example usage (complete the transmuting process after a delay or confirmation)
+CompleteTransmute(Player)

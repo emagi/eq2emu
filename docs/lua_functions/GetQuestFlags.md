@@ -1,17 +1,15 @@
-### Function: GetQuestFlags(param1, param2)
+Function: GetQuestFlags(Quest)
 
-**Description:**
-Placeholder description.
+Description: Retrieves the bitwise flags set for a quest. These flags might denote various quest properties (such as hidden, completed, failed, etc.). This is more of an internal function for quest data management.
 
-**Parameters:**
-- `param1`: unknown - Unknown type.
-- `param2`: unknown - Unknown type.
+Parameters:
 
-**Returns:** None.
+    Quest: Quest – The quest object in question.
 
-**Example:**
+Returns: Int32 – The flags value for the quest.
 
-```lua
--- Example usage
-GetQuestFlags(..., ...)
-```
+Example:
+
+-- Example usage (debugging quest state flags)
+local flags = GetQuestFlags(Quest)
+print("Quest flags: " .. flags)

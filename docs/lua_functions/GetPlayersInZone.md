@@ -1,17 +1,16 @@
-### Function: GetPlayersInZone(param1, param2)
+Function: GetPlayersInZone(Zone)
 
-**Description:**
-Placeholder description.
+Description: Retrieves a list of all player spawns currently present in the specified zone.
 
-**Parameters:**
-- `param1`: ZoneServer - The zone object.
-- `param2`: unknown - Unknown type.
+Parameters:
 
-**Returns:** None.
+    Zone: Zone – The zone object or context to search in.
 
-**Example:**
+Returns: Table – A list (array) of player Spawn objects in that zone.
 
-```lua
--- Example usage
-GetPlayersInZone(..., ...)
-```
+Example:
+
+-- Example usage (announce a message to all players in the zone)
+for _, player in ipairs(GetPlayersInZone(GetZone(NPC))) do
+    SendMessage(player, "The dragon roars in the distance!", "red")
+end

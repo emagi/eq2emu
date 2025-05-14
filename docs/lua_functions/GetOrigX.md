@@ -1,17 +1,14 @@
-### Function: GetOrigX(param1, param2)
+Function: GetOrigX(Spawn)
 
-**Description:**
-Placeholder description.
+Description: Returns the original X coordinate of the specified spawn’s spawn point (where it was initially placed in the zone).
 
-**Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
+Parameters:
 
-**Returns:** None.
+    Spawn: Spawn – The entity to query.
 
-**Example:**
+Returns: Float – The X position of the spawn’s original location.
 
-```lua
--- Example usage
-GetOrigX(..., ...)
-```
+Example:
+
+-- Example usage (see how far an NPC has moved from its spawn point on X axis)
+local deltaX = math.abs(GetX(NPC) - GetOrigX(NPC))

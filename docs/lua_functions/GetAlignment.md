@@ -1,18 +1,20 @@
-### Function: GetAlignment(param1, param2, param3)
+Function: GetAlignment(Player)
 
-**Description:**
-Placeholder description.
+Description: Returns the alignment of the player character – typically Good, Neutral, or Evil in EQ2. Alignment often affects starting city and some quest options.
 
-**Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
+Parameters:
 
-**Returns:** None.
+    Player: Spawn – The player to query.
 
-**Example:**
+Returns: Int32 – An alignment value (e.g., 0=Neutral, 1=Good, 2=Evil as commonly used).
 
-```lua
--- Example usage
-GetAlignment(..., ..., ...)
-```
+Example:
+
+-- Example usage (greet players differently by alignment)
+if GetAlignment(Player) == 1 then
+    Say(NPC, "Well met, friend of Qeynos.")
+elseif GetAlignment(Player) == 0 then
+    Say(NPC, "I smell the stench of Freeport on you.")
+elseif GetAlignment(Player) == 2 then
+    Say(NPC, "Neutrality you say?")
+end

@@ -1,17 +1,18 @@
-### Function: CheckLOS(param1, param2)
+Function: CheckLOS(Origin, Target)
 
-**Description:**
-Placeholder description.
+Description: Checks line-of-sight between two spawns. Returns true if Origin can “see” Target (no significant obstacles in between), false if line of sight is blocked.
 
-**Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: Spawn - The spawn or entity involved.
+Parameters:
 
-**Returns:** None.
+    Origin: Spawn – The entity from whose perspective to check line of sight.
 
-**Example:**
+    Target: Spawn – The entity to check if visible.
 
-```lua
--- Example usage
-CheckLOS(..., ...)
-```
+Returns: Boolean – true if there is line-of-sight; false if something blocks the view between origin and target.
+
+Example:
+
+-- Example usage (sniper NPC only shoots if it has line of sight to the player)
+if CheckLOS(SniperNPC, Player) then
+    CastSpell(SniperNPC, SNIPER_SHOT_ID, 1, Player)
+end

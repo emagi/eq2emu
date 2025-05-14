@@ -1,19 +1,14 @@
-### Function: EndAutoMount(param1, param2, param3, param4)
+Function: EndAutoMount(Spawn)
 
-**Description:**
-Placeholder description.
+Description: Dismounts a player who was auto-mounted via StartAutoMount. Typically called at the end of an automated travel route or upon leaving the area where auto-mount is enforced.
 
-**Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: unknown - Unknown type.
+Parameters:
 
-**Returns:** None.
+    Spawn: Spawn – The player to dismount.
 
-**Example:**
+Returns: None.
 
-```lua
--- Example usage
-EndAutoMount(..., ..., ..., ...)
-```
+Example:
+
+-- Example usage (dismount the player after griffon flight ends)
+EndAutoMount(Player)

@@ -1,17 +1,14 @@
-### Function: GetOrigZ(param1, param2)
+Function: GetOrigZ(Spawn)
 
-**Description:**
-Placeholder description.
+Description: Returns the original Z coordinate of where the spawn was initially placed.
 
-**Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
+Parameters:
 
-**Returns:** None.
+    Spawn: Spawn – The entity to check.
 
-**Example:**
+Returns: Float – The Z position of the spawn’s original location.
 
-```lua
--- Example usage
-GetOrigZ(..., ...)
-```
+Example:
+
+-- Example usage (calculate how far NPC roamed from spawn point horizontally)
+local distanceFromSpawn = math.sqrt((GetX(NPC)-GetOrigX(NPC))^2 + (GetZ(NPC)-GetOrigZ(NPC))^2)

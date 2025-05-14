@@ -1,16 +1,16 @@
-### Function: GetClientVersion(param1)
+Function: GetClientVersion(Spawn)
 
-**Description:**
-Placeholder description.
+Description: Retrieves the game client version of the specified player (useful if the server supports multiple client versions). This can determine differences in available features or UI.
 
-**Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
+Parameters:
 
-**Returns:** None.
+    Spawn: Spawn – The player whose client version to get.
 
-**Example:**
+Returns: Int32 – The client version number (for example, corresponding to certain expansions or patches).
 
-```lua
--- Example usage
-GetClientVersion(...)
-```
+Example:
+
+-- Example usage (check if player’s client supports a feature)
+if GetClientVersion(Player) < REQUIRED_CLIENT_VERSION then
+    SendMessage(Player, "Please update your client for the best experience.", "yellow")
+end

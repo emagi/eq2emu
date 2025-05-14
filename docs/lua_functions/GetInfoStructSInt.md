@@ -1,18 +1,16 @@
-### Function: GetInfoStructSInt(param1, param2, param3)
+Function: GetInfoStructSInt(Spawn, FieldName)
 
-**Description:**
-Placeholder description.
+Description: Gets a signed integer field from the spawn’s info struct. Similar to GetInfoStructUInt but for fields that can be negative.
 
-**Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: string - String value.
+Parameters:
 
-**Returns:** None.
+    Spawn: Spawn – The entity to query.
 
-**Example:**
+    FieldName: String – The field name to retrieve.
 
-```lua
--- Example usage
-GetInfoStructSInt(..., ..., ...)
-```
+Returns: Int32 – The value of that field.
+
+Example:
+
+-- Example usage (get an NPC's faction alignment which could be negative or positive)
+local faction = GetInfoStructSInt(NPC, "faction_id")

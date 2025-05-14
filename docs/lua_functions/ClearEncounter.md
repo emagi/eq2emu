@@ -1,18 +1,14 @@
-### Function: ClearEncounter(param1, param2, param3)
+Function: ClearEncounter(Spawn)
 
-**Description:**
-Placeholder description.
+Description: Clears the encounter association for the given spawn. In EQ2, NPCs engaged in combat are part of an “encounter” group. This function removes the spawn from any encounter, effectively resetting its fight grouping.
 
-**Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
+Parameters:
 
-**Returns:** None.
+    Spawn: Spawn – The NPC or player whose encounter to clear.
 
-**Example:**
+Returns: None.
 
-```lua
--- Example usage
-ClearEncounter(..., ..., ...)
-```
+Example:
+
+-- Example usage (after battle ends, remove any leftover encounter tags)
+ClearEncounter(NPC)

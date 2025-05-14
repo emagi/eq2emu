@@ -1,19 +1,22 @@
-### Function: CheckLOSByCoordinates(param1, param2, param3, param4)
+Function: CheckLOSByCoordinates(Origin, X, Y, Z)
 
-**Description:**
-Placeholder description.
+Description: Checks line-of-sight from a spawn to a specific point in the world coordinates. Useful for verifying a location’s visibility (for example, whether a ground target spell can reach a point).
 
-**Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: float - Floating point value.
-- `param3`: float - Floating point value.
-- `param4`: float - Floating point value.
+Parameters:
 
-**Returns:** None.
+    Origin: Spawn – The entity from which to check LOS.
 
-**Example:**
+    X: Float – X coordinate of the target point.
 
-```lua
--- Example usage
-CheckLOSByCoordinates(..., ..., ..., ...)
-```
+    Y: Float – Y coordinate of the target point.
+
+    Z: Float – Z coordinate of the target point.
+
+Returns: Boolean – true if the line from Origin to (X,Y,Z) is clear; false if it’s obstructed.
+
+Example:
+
+-- Example usage (check if a spot is reachable by ranged attack)
+if CheckLOSByCoordinates(Player, targetX, targetY, targetZ) then
+    LaunchProjectile(Player, targetX, targetY, targetZ)
+end

@@ -1,19 +1,18 @@
-### Function: CompareSpawns(param1, param2, param3, param4)
+Function: CompareSpawns(SpawnA, SpawnB)
 
-**Description:**
-Placeholder description.
+Description: Compares two spawn objects to determine if they refer to the same actual entity in the world.
 
-**Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: Spawn - The spawn or entity involved.
+Parameters:
 
-**Returns:** None.
+    SpawnA: Spawn – The first spawn to compare.
 
-**Example:**
+    SpawnB: Spawn – The second spawn to compare.
 
-```lua
--- Example usage
-CompareSpawns(..., ..., ..., ...)
-```
+Returns: Boolean – true if both SpawnA and SpawnB represent the same spawn (same entity); false if they are different.
+
+Example:
+
+-- Example usage (make sure a target hasn’t changed before proceeding)
+if CompareSpawns(CurrentTarget, GetTarget(Player)) then
+    -- proceed assuming target remains the same
+end

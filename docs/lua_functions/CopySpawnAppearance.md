@@ -1,19 +1,16 @@
-### Function: CopySpawnAppearance(param1, param2, param3, param4)
+Function: CopySpawnAppearance(SourceSpawn, TargetSpawn)
 
-**Description:**
-Placeholder description.
+Description: Copies the appearance (race, gender, outfit, etc.) from one spawn to another. This effectively makes the target look identical to the source. Often used for illusion or clone effects.
 
-**Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: Spawn - The spawn or entity involved.
+Parameters:
 
-**Returns:** None.
+    SourceSpawn: Spawn – The entity whose appearance to copy.
 
-**Example:**
+    TargetSpawn: Spawn – The entity that will receive the appearance.
 
-```lua
--- Example usage
-CopySpawnAppearance(..., ..., ..., ...)
-```
+Returns: None.
+
+Example:
+
+-- Example usage (make a decoy NPC look like the player)
+CopySpawnAppearance(Player, DecoyNPC)

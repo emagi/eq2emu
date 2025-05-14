@@ -1,18 +1,14 @@
-### Function: ClearRunback(param1, param2, param3)
+Function: ClearRunback(NPC)
 
-**Description:**
-Placeholder description.
+Description: Stops the NPC from trying to return to its “runback” point (the spot it was originally at or a designated safe point). Often used when you want to stop an NPC from automatically fleeing back or resetting.
 
-**Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
+Parameters:
 
-**Returns:** None.
+    NPC: Spawn – The NPC to clear runback for.
 
-**Example:**
+Returns: None.
 
-```lua
--- Example usage
-ClearRunback(..., ..., ...)
-```
+Example:
+
+-- Example usage (prevent an NPC from running back to spawn point after combat)
+ClearRunback(NPC)

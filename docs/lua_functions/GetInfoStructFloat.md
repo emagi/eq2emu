@@ -1,18 +1,16 @@
-### Function: GetInfoStructFloat(param1, param2, param3)
+Function: GetInfoStructFloat(Spawn, FieldName)
 
-**Description:**
-Placeholder description.
+Description: Retrieves a floating-point field from a spawn’s info data. Could be used for precise position, speed multipliers, etc. if stored there.
 
-**Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: string - String value.
+Parameters:
 
-**Returns:** None.
+    Spawn: Spawn – The entity whose info to check.
 
-**Example:**
+    FieldName: String – The name of the float field.
 
-```lua
--- Example usage
-GetInfoStructFloat(..., ..., ...)
-```
+Returns: Float – The value of the field.
+
+Example:
+
+-- Example usage (get an entity's size scale factor)
+local scale = GetInfoStructFloat(NPC, "size")

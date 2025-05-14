@@ -1,18 +1,16 @@
-### Function: GetInfoStructString(param1, param2, param3)
+Function: GetInfoStructString(Spawn, FieldName)
 
-**Description:**
-Placeholder description.
+Description: Retrieves a string field from the spawn’s info data structure. The info struct contains various attributes of a spawn (like name, last name, guild, etc.). FieldName is the identifier of the string field.
 
-**Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: string - String value.
+Parameters:
 
-**Returns:** None.
+    Spawn: Spawn – The entity to query.
 
-**Example:**
+    FieldName: String – The field to retrieve (e.g., "last_name", "guild_name").
 
-```lua
--- Example usage
-GetInfoStructString(..., ..., ...)
-```
+Returns: String – The value of that field, or an empty string if not set.
+
+Example:
+
+-- Example usage (get a player's surname)
+local surname = GetInfoStructString(Player, "last_name")

@@ -1,16 +1,16 @@
-### Function: GetDeityPet(param1)
+Function: GetDeityPet(Spawn)
 
-**Description:**
-Placeholder description.
+Description: Retrieves the deity pet entity belonging to the specified player, if the deity pet is currently summoned.
 
-**Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
+Parameters:
 
-**Returns:** None.
+    Spawn: Spawn – The player whose deity pet to get.
 
-**Example:**
+Returns: Spawn – The deity pet spawn if it is currently active, or nil if no deity pet is out.
 
-```lua
--- Example usage
-GetDeityPet(...)
-```
+Example:
+
+-- Example usage (check for deity pet presence)
+if GetDeityPet(Player) ~= nil then
+    SendMessage(Player, "Your deity companion watches over you.", "white")
+end

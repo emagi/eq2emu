@@ -1,19 +1,12 @@
-### Function: CancelSpell(param1, param2, param3, param4)
+Function: CancelSpell()
 
-**Description:**
-Placeholder description.
+Description: Cancels the current spell in the script being ran.
 
-**Parameters:**
-- `param1`: unknown - Unknown type.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: unknown - Unknown type.
+Parameters: None.
 
-**Returns:** None.
+Returns: None.
 
-**Example:**
+Example:
 
-```lua
--- Example usage
-CancelSpell(..., ..., ..., ...)
-```
+-- Example usage (Inside a Spell Script)
+CancelSpell()

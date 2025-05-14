@@ -1,18 +1,14 @@
-### Function: DismissPet(param1, param2, param3)
+Function: DismissPet(Spawn)
 
-**Description:**
-Placeholder description.
+Description: Dismisses (despawns) the specified player’s active pet. This works for combat pets, cosmetic pets, deity pets, etc., causing them to vanish as if the player dismissed them manually.
 
-**Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
+Parameters:
 
-**Returns:** None.
+    Spawn: Spawn – The player whose pet should be dismissed.
 
-**Example:**
+Returns: None.
 
-```lua
--- Example usage
-DismissPet(..., ..., ...)
-```
+Example:
+
+-- Example usage (dismissing a pet at the end of an event)
+DismissPet(Player)

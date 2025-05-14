@@ -1,19 +1,20 @@
-### Function: GetPlayerHistory(param1, param2, param3, param4)
+Function: GetPlayerHistory(Player, HistoryID)
 
-**Description:**
-Placeholder description.
+Description: Retrieves the value of a specific player history flag. This tells if a player has a certain historical event or choice recorded (and what value it is).
 
-**Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: int32 - Integer value.
+Parameters:
 
-**Returns:** None.
+    Player: Spawn – The player to check.
 
-**Example:**
+    HistoryID: Int32 – The history flag ID to retrieve.
 
-```lua
--- Example usage
-GetPlayerHistory(..., ..., ..., ...)
-```
+Returns: Int32 – The value of that history entry for the player (commonly 0 or 1, but could be other integers if used as counters).
+
+Example:
+
+-- Example usage (branch dialog if player has a specific history flag)
+if GetPlayerHistory(Player, ALLIED_WITH_GNOLLS_HISTORY_ID) == 1 then
+    Say(NPC, "Welcome, friend of the Gnolls!")
+else
+    Say(NPC, "Stranger, tread carefully...")
+end

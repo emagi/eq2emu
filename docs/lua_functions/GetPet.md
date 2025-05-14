@@ -1,16 +1,17 @@
-### Function: GetPet(param1)
+Function: GetPet(Spawn)
 
-**Description:**
-Placeholder description.
+Description: Retrieves the pet entity of the given spawn, if one exists. For players, this returns their current summoned combat pet (summoner or necromancer pet, etc.), or for NPCs, a charmed pet or warder.
 
-**Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
+Parameters:
 
-**Returns:** None.
+    Spawn: Spawn – The owner whose pet we want to get.
 
-**Example:**
+Returns: Spawn – The pet entity of the owner, or nil if no pet is present.
 
-```lua
--- Example usage
-GetPet(...)
-```
+Example:
+
+-- Example usage (command a player's pet to attack if it exists)
+local pet = GetPet(Player)
+if pet ~= nil then
+    Attack(pet, TargetNPC)
+end

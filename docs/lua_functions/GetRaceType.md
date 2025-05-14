@@ -1,17 +1,16 @@
-### Function: GetRaceType(param1, param2)
+Function: GetRaceType(Spawn)
 
-**Description:**
-Placeholder description.
+Description: Retrieves the race type category ID of the specified spawn. Instead of the specific race (human, elf, etc.), this returns a broader category (e.g., humanoid, animal, etc.).
 
-**Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
+Parameters:
 
-**Returns:** None.
+    Spawn: Spawn – The entity whose race type to get.
 
-**Example:**
+Returns: Int32 – The race type ID of the spawn (corresponding to categories in game data).
 
-```lua
--- Example usage
-GetRaceType(..., ...)
-```
+Example:
+
+-- Example usage (determine if NPC is animal-type for a charm spell)
+if GetRaceType(NPC) == RACE_TYPE_ANIMAL then
+    SendMessage(Player, "This creature can be charmed by your spell.", "white")
+end

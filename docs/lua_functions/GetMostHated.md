@@ -1,18 +1,17 @@
-### Function: GetMostHated(param1, param2, param3)
+Function: GetMostHated(NPC)
 
-**Description:**
-Placeholder description.
+Description: Retrieves the spawn that currently has the highest hate (aggro) on the specified NPC’s hate list. This is usually the NPC’s current primary target in combat.
 
-**Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
+Parameters:
 
-**Returns:** None.
+    NPC: Spawn – The NPC whose hate list to examine.
 
-**Example:**
+Returns: Spawn – The entity with top hate on the NPC (often the tank or highest damage dealer), or nil if the NPC has no hate list.
 
-```lua
--- Example usage
-GetMostHated(..., ..., ...)
-```
+Example:
+
+-- Example usage (make the boss shout at whoever has top aggro)
+local topAggro = GetMostHated(BossNPC)
+if topAggro ~= nil then
+    Say(BossNPC, "I will destroy you, " .. GetName(topAggro) .. "!")
+end

@@ -1,20 +1,16 @@
-### Function: BreatheUnderwater(param1, param2, param3, param4, param5)
+Function: BreatheUnderwater(Spawn, Allow)
 
-**Description:**
-Placeholder description.
+Description: Toggles the underwater breathing ability for the given spawn (typically a player). When allowed, the spawn can breathe indefinitely underwater (no drowning). This is usually triggered by buffs or items like water-breathing spells.  When ran in a Spell Script applies to all Targets of the spell.  Otherwise it will apply only to the Spawn specified, Spawn is required.
 
-**Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: unknown - Unknown type.
-- `param5`: bool - Boolean value (true/false).
+Parameters:
 
-**Returns:** None.
+    Spawn: Spawn – The character whose underwater breathing is being set.
 
-**Example:**
+    Allow: Boolean – true to grant underwater breathing; false to require normal breath (drowning applies).
 
-```lua
--- Example usage
-BreatheUnderwater(..., ..., ..., ..., ...)
-```
+Returns: None.
+
+Example:
+
+-- Example usage:
+BreatheUnderwater(Player, true)

@@ -1,21 +1,18 @@
-### Function: AddQuestStepFailureAction(param1, param2, param3, param4, param5, param6)
+Function: AddQuestStepFailureAction(Quest, Step, FunctionName)
 
-**Description:**
-Placeholder description.
+Description: Associates a Lua function (by name) to be called if the specified quest step fails. This allows custom script handling when a step’s failure condition is met (e.g., timer runs out).
 
-**Parameters:**
-- `param1`: unknown - Unknown type.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: unknown - Unknown type.
-- `param5`: int32 - Integer value.
-- `param6`: string - String value.
+Parameters:
 
-**Returns:** None.
+    Quest: Quest – The quest object.
 
-**Example:**
+    Step: Int32 – The step number to attach the failure action to.
 
-```lua
--- Example usage
-AddQuestStepFailureAction(..., ..., ..., ..., ..., ...)
-```
+    FunctionName: String – The name of a Lua function to call on failure.
+
+Returns: None.
+
+Example:
+
+-- Example usage (if step 2 fails, call "OnStealthFail" in the quest script)
+AddQuestStepFailureAction(Quest, 2, "OnStealthFail")

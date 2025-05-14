@@ -1,19 +1,16 @@
-### Function: Charm(param1, param2, param3, param4)
+Function: Charm(Spawn, Target)
 
-**Description:**
-Placeholder description.
+Description: Must be used inside a Spell Script.  Sets the Target to become a Pet of the Spawn (Owner).
 
-**Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: Spawn - The spawn or entity involved.
+Parameters:
 
-**Returns:** None.
+    Spawn: Spawn – The entity casting the charm (e.g., a player or NPC that will become the controller).
 
-**Example:**
+    Target: Spawn – The NPC to be charmed.
 
-```lua
--- Example usage
-Charm(..., ..., ..., ...)
-```
+Returns: None.
+
+Example:
+
+-- Example usage (NPC charms another NPC during an encounter)
+Charm(NPC, EnemyNPC)

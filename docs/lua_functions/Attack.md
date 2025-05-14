@@ -1,11 +1,11 @@
-### Function: Attack(param1, param2)
+### Function: Attack(NPC, Target)
 
 **Description:**
-Placeholder description.
+NPC will attack its target (NPC/Player/Bot).
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: Spawn - The spawn or entity involved.
+- `NPC`: Spawn - The spawn or entity involved.
+- `Target`: Spawn - The spawn or entity involved.
 
 **Returns:** None.
 
@@ -13,5 +13,5 @@ Placeholder description.
 
 ```lua
 -- Example usage
-Attack(..., ...)
+Attack(NPC, Target)
 ```

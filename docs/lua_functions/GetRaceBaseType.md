@@ -1,17 +1,16 @@
-### Function: GetRaceBaseType(param1, param2)
+Function: GetRaceBaseType(Spawn)
 
-**Description:**
-Placeholder description.
+Description: Returns the base race category of the spawn, which may be similar to GetRaceType but often refers to an even broader grouping (like “Player” vs “NPC” races or base model types).
 
-**Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
+Parameters:
 
-**Returns:** None.
+    Spawn: Spawn – The entity to check.
 
-**Example:**
+Returns: Int32 – An identifier for the base race category.
 
-```lua
--- Example usage
-GetRaceBaseType(..., ...)
-```
+Example:
+
+-- Example usage (check if a target is a player character or an NPC by base type)
+if GetRaceBaseType(Target) == BASE_RACE_PLAYER then
+    Say(NPC, "Greetings, adventurer.")
+end

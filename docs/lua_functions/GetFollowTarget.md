@@ -1,17 +1,17 @@
-### Function: GetFollowTarget(param1, param2)
+Function: GetFollowTarget(Spawn)
 
-**Description:**
-Placeholder description.
+Description: Retrieves the current follow target of a given NPC or pet. If the spawn is following someone, this returns the entity being followed.
 
-**Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
+Parameters:
 
-**Returns:** None.
+    Spawn: Spawn – The NPC (or player’s pet) that might be following a target.
 
-**Example:**
+Returns: Spawn – The entity that Spawn is currently following, or nil if it’s not following anyone.
 
-```lua
--- Example usage
-GetFollowTarget(..., ...)
-```
+Example:
+
+-- Example usage (check who an escort NPC is following)
+local leader = GetFollowTarget(EscortNPC)
+if leader == Player then
+    Say(EscortNPC, "I am right behind you!")
+end
