@@ -1,19 +1,17 @@
-### Function: SetTarget(param1, param2, param3, param4)
+Function: SetTarget(Originator, Target)
 
-**Description:**
-Placeholder description.
+Description: Forces one spawn (Originator) to target another (Target). This can make an NPC switch targets mid-combat or cause a player’s target to change under certain conditions.
 
-**Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: Spawn - The spawn or entity involved.
+Parameters:
 
-**Returns:** None.
+    Originator: Spawn – The entity whose target will be changed.
 
-**Example:**
+    Target: Spawn – The entity to set as the new target.
 
-```lua
--- Example usage
-SetTarget(..., ..., ..., ...)
-```
+Returns: None.
+
+Example:
+
+-- Example usage (boss switches target to a healer)
+SetTarget(BossNPC, HealerNPC)
+SetInfoFlag(BossNPC) -- assures we send the changes out immediately versus waiting for process loop

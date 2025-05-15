@@ -1,17 +1,16 @@
-### Function: PauseMovement(param1, param2)
+Function: PauseMovement(Spawn, DurationMS)
 
-**Description:**
-Placeholder description.
+Description: Pauses the given NPC’s movement for the specified duration (in milliseconds). The NPC will stop moving along waypoints or patrols, and then resume after the pause.
 
-**Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: int32 - Integer value.
+Parameters:
 
-**Returns:** None.
+    Spawn: Spawn – The NPC to pause.
 
-**Example:**
+    DurationMS: Int32 – How long to pause movement, in milliseconds.
 
-```lua
--- Example usage
-PauseMovement(..., ...)
-```
+Returns: None.
+
+Example:
+
+-- Example usage (stop a guard for 5 seconds when hailed)
+PauseMovement(GuardNPC, 5000)

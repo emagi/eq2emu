@@ -1,17 +1,16 @@
-### Function: SetInvulnerable(param1, param2)
+Function: SetInvulnerable(Spawn, Enable)
 
-**Description:**
-Placeholder description.
+Description: Toggles an entity’s invulnerability. When set to true, the spawn will not take damage from any source.
 
-**Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: bool - Boolean value (true/false).
+Parameters:
 
-**Returns:** None.
+    Spawn: Spawn – The entity to modify.
 
-**Example:**
+    Enable: Boolean – true to make invulnerable; false to remove invulnerability.
 
-```lua
--- Example usage
-SetInvulnerable(..., ...)
-```
+Returns: None.
+
+Example:
+
+-- Example usage (make an NPC invulnerable during a dialogue scene)
+SetInvulnerable(QuestNPC, true)

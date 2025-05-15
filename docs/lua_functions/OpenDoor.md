@@ -1,18 +1,14 @@
-### Function: OpenDoor(param1, param2, param3)
+Function: OpenDoor(DoorSpawn)
 
-**Description:**
-Placeholder description.
+Description: Opens a door spawn in the world. This will play the door’s open animation and typically allow passage. The door remains open until closed by script or by its own auto-close timer if any.
 
-**Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: bool - Boolean value (true/false).
+Parameters:
 
-**Returns:** None.
+    DoorSpawn: Spawn – The door object to open (must be a door interactive spawn).
 
-**Example:**
+Returns: None.
 
-```lua
--- Example usage
-OpenDoor(..., ..., ...)
-```
+Example:
+
+-- Example usage (open a secret door when puzzle is solved)
+OpenDoor(SecretDoor)

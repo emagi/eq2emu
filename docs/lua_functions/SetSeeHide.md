@@ -1,27 +1,16 @@
-### Function: SetSeeHide(param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11, param12)
+Function: SetSeeHide(Spawn, Enable)
 
-**Description:**
-Placeholder description.
+Description: Toggles an NPC’s ability to see hidden/stealthed entities on or off. “Hide” usually refers to stealth as opposed to magical invisibility.
 
-**Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: Spawn - The spawn or entity involved.
-- `param3`: Spawn - The spawn or entity involved.
-- `param4`: Spawn - The spawn or entity involved.
-- `param5`: int8 - Small integer or boolean flag.
-- `param6`: Spawn - The spawn or entity involved.
-- `param7`: int32 - Integer value.
-- `param8`: string - String value.
-- `param9`: string - String value.
-- `param10`: string - String value.
-- `param11`: int8 - Small integer or boolean flag.
-- `param12`: int8 - Small integer or boolean flag.
+Parameters:
 
-**Returns:** None.
+    Spawn: Spawn – The NPC in question.
 
-**Example:**
+    Enable: Boolean – true to grant see-stealth; false to remove it.
 
-```lua
--- Example usage
-SetSeeHide(..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ...)
-```
+Returns: None.
+
+Example:
+
+-- Example usage (guards become alert and can see stealth during an alarm event)
+SetSeeHide(GuardNPC, true)

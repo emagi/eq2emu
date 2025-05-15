@@ -1,21 +1,16 @@
-### Function: SetPlayerLevel(param1, param2, param3, param4, param5, param6)
+Function: SetPlayerLevel(Player, Level)
 
-**Description:**
-Placeholder description.
+Description: Sets the player’s adventure level to the specified value. This is an administrative function (normally level changes by experience gain), allowing GM or script to directly change level.
 
-**Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: unknown - Unknown type.
-- `param5`: unknown - Unknown type.
-- `param6`: int8 - Small integer or boolean flag.
+Parameters:
 
-**Returns:** None.
+    Player: Spawn – The player whose level to change.
 
-**Example:**
+    Level: Int32 – The new level to set.
 
-```lua
--- Example usage
-SetPlayerLevel(..., ..., ..., ..., ..., ...)
-```
+Returns: None.
+
+Example:
+
+-- Example usage (GM tool leveling a player to 50)
+SetPlayerLevel(Player, 50)
