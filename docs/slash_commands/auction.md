@@ -13,4 +13,4 @@
 - ` /auction {message}");`
 
 **Notes:**
-- Sends a mesasge to the auction channel.
+- Sends a message to the auction channel.
