@@ -1,23 +1,18 @@
-### Function: ProcHate(param1, param2, param3, param4, param5, param6, param7, param8)
+Function: ProcHate(Source, Target, HateAmount)
 
-**Description:**
-Placeholder description.
+Description: Directly modifies hate by a given amount as a result of a proc or effect. This will increase (or decrease, if negative) the hate that the source has toward the target or vice versa (depending on internal implementation; likely it adds hate from Source towards Target).
 
-**Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: unknown - Unknown type.
-- `param5`: unknown - Unknown type.
-- `param6`: Spawn - The spawn or entity involved.
-- `param7`: int32 - Integer value.
-- `param8`: string - String value.
+Parameters:
 
-**Returns:** None.
+    Source: Spawn – The entity generating hate.
 
-**Example:**
+    Target: Spawn – The entity receiving hate (being hated more).
 
-```lua
--- Example usage
-ProcHate(..., ..., ..., ..., ..., ..., ..., ...)
-```
+    HateAmount: Int32 – The amount of hate to add (or remove if negative).
+
+Returns: None.
+
+Example:
+
+-- Example usage (increase hate of an NPC toward the player as a taunt proc)
+ProcHate(Player, NPC, 500)

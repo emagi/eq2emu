@@ -1,18 +1,15 @@
-### Function: Harvest(param1, param2, param3)
+Function: Harvest(Player, GroundSpawn)
 
-**Description:**
-Placeholder description.
+Description: Forces a harvest action on the specified harvestable object or resource node. When called on a harvestable spawn (like a resource node), it attempts to collect from it as if a player harvested it.
 
-**Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: Spawn - The spawn or entity involved.
+Parameters:
 
-**Returns:** None.
+    Player: Spawn – The Player to harvest the node.
+	GroundSpawn: Spawn - The Spawn that represents the GroundSpawn.
 
-**Example:**
+Returns: None (the harvesting results — items or updates — are handled by the system).
 
-```lua
--- Example usage
-Harvest(..., ..., ...)
-```
+Example:
+
+-- Example usage (not commonly used in scripts; simulated harvest of a node)
+Harvest(Player, Node)

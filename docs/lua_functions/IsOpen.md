@@ -1,16 +1,16 @@
-### Function: IsOpen(param1)
+Function: IsOpen(DoorSpawn)
 
-**Description:**
-Placeholder description.
+Description: Checks whether a given door spawn is currently open.
 
-**Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
+Parameters:
 
-**Returns:** None.
+    DoorSpawn: Spawn – The door object to check.
 
-**Example:**
+Returns: Boolean – true if the door is currently open; false if closed.
 
-```lua
--- Example usage
-IsOpen(...)
-```
+Example:
+
+-- Example usage (guard reacts if the town gate is open past curfew)
+if IsOpen(TownGate) then
+    Say(GuardNPC, "Close the gates for the night!")
+end

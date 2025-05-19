@@ -1,18 +1,20 @@
-### Function: HasItem(param1, param2, param3)
+Function: HasItem(Player, ItemID, IncludeBank)
 
-**Description:**
-Placeholder description.
+Description: Determines whether a given player possesses an item with the specified Item ID.
 
-**Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: int32 - Integer value.
-- `param3`: int8 - Small integer or boolean flag.
+Parameters:
 
-**Returns:** None.
+    Player: Spawn – The player or NPC to check for the item. (Typically a Player.)
 
-**Example:**
+    ItemID: Int32 – The unique ID of the item to check for.
 
-```lua
--- Example usage
-HasItem(..., ..., ...)
-```
+    IncudeBank: Boolean – If we should check the bank also
+
+Returns: Boolean – true (1) if the spawn’s inventory contains at least one of the specified item; false (0) if the item is not present.
+
+Example:
+
+-- Example usage from: ItemScripts/GeldranisVial.lua
+if HasItem(Player, FilledVial) == false then
+    SummonItem(Player, FilledVial, 1)
+end

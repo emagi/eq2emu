@@ -1,18 +1,14 @@
-### Function: Runback(param1, param2, param3)
+Function: Runback(NPC)
 
-**Description:**
-Placeholder description.
+Description: Forces the NPC to run back to its designated home point or spawn point. This is typically invoked when an encounter ends or the NPC needs to retreat/reset to its origin.
 
-**Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
+Parameters:
 
-**Returns:** None.
+    NPC: Spawn – The NPC that should run back.
 
-**Example:**
+Returns: None.
 
-```lua
--- Example usage
-Runback(..., ..., ...)
-```
+Example:
+
+-- Example usage (an NPC flees and returns home)
+Runback(NPC)

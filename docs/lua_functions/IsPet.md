@@ -1,17 +1,16 @@
-### Function: IsPet(param1, param2)
+Function: IsPet(Spawn)
 
-**Description:**
-Placeholder description.
+Description: Checks whether the given spawn is a pet (either a player’s pet or some kind of charmed/temporary pet).
 
-**Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
+Parameters:
 
-**Returns:** None.
+    Spawn: Spawn – The entity to check.
 
-**Example:**
+Returns: Boolean – true if the spawn is a pet under someone’s control; false otherwise.
 
-```lua
--- Example usage
-IsPet(..., ...)
-```
+Example:
+
+-- Example usage (skip certain actions if the spawn is just a pet)
+if not IsPet(TargetSpawn) then
+    Attack(NPC, TargetSpawn)
+end
