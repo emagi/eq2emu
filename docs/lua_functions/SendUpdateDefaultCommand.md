@@ -1,19 +1,20 @@
-### Function: SendUpdateDefaultCommand(param1, param2, param3, param4)
+Function: SendUpdateDefaultCommand(Spawn, Distance, CommandString, Player)
 
-**Description:**
-Placeholder description.
+Description: Updates the default highlighted command for an entity, as seen on hover or target window. This is often used after changing accessible commands to ensure the correct default action (usually the first allowed command) is highlighted.
 
-**Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: float - Floating point value.
-- `param3`: string - String value.
-- `param4`: Spawn - The spawn or entity involved.
+Parameters:
 
-**Returns:** None.
+    Spawn: Spawn – The entity to update.
 
-**Example:**
+    Distance: Float – The maximum distance the command can be used.
 
-```lua
--- Example usage
-SendUpdateDefaultCommand(..., ..., ..., ...)
-```
+    CommandString: String – The command to provide access.
+
+    Player: Spawn – The player whom has access to the command (optional to specify a specific Player).
+
+Returns: None.
+
+Example:
+
+-- Example usage (after toggling commands on an NPC, refresh its default action)
+SendUpdateDefaultCommand(NPC, 10.0, "hail")

@@ -1,18 +1,14 @@
-### Function: ResetCharacterTitleSuffix(param1, param2, param3)
+Function: ResetCharacterTitleSuffix(Player)
 
-**Description:**
-Placeholder description.
+Description: Removes any suffix title currently displayed on the player, resetting it to none.
 
-**Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
+Parameters:
 
-**Returns:** None.
+    Player: Spawn – The player whose suffix title to clear.
 
-**Example:**
+Returns: None.
 
-```lua
--- Example usage
-ResetCharacterTitleSuffix(..., ..., ...)
-```
+Example:
+
+-- Example usage (player chooses to hide their suffix title)
+ResetCharacterTitleSuffix(Player)

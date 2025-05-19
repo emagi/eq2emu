@@ -1,18 +1,14 @@
-### Function: ResetCharacterTitlePrefix(param1, param2, param3)
+Function: ResetCharacterTitlePrefix(Player)
 
-**Description:**
-Placeholder description.
+Description: Clears the player’s current prefix title, so no prefix is shown before their name.
 
-**Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
+Parameters:
 
-**Returns:** None.
+    Player: Spawn – The player whose prefix to clear.
 
-**Example:**
+Returns: None.
 
-```lua
--- Example usage
-ResetCharacterTitlePrefix(..., ..., ...)
-```
+Example:
+
+-- Example usage (player relinquishes a bestowed noble title)
+ResetCharacterTitlePrefix(Player)
