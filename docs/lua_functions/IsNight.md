@@ -1,17 +1,23 @@
-### Function: IsNight(param1, param2)
+### Function: IsNight(Zone)
 
-**Description:**
-Placeholder description.
+***Description:***
+Checks if it is currently nighttime in the specified zone. This usually refers to the game’s day/night cycle.
 
 **Parameters:**
-- `param1`: ZoneServer - The zone object.
-- `param2`: unknown - Unknown type.
+- `Zone`: Zone - The zone to check if the time is night.
 
-**Returns:** None.
+**Returns:** Return's true if the current time is dusk/night.  Otherwise return's false.
 
 **Example:**
 
 ```lua
--- Example usage
-IsNight(..., ...)
+-- Example usage: On hail tell the user if it is night or day
+
+function hail(NPC,Spawn)
+	if IsNight(GetZone(NPC)) then
+		Say(NPC, "It is night!")
+	else
+		Say(NPC, "It is day!")
+	end
+end
 ```

@@ -1,20 +1,17 @@
-### Function: RemoveCoin(param1, param2, param3, param4, param5)
+### Function: RemoveCoin(Spawn, Amount)
 
 **Description:**
-Placeholder description.
+Deducts the specified amount of coin (in copper) from the spawn’s money. If the spawn does not have enough, this could reduce them to zero or potentially go negative (though typically it will not allow negative).
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: unknown - Unknown type.
-- `param5`: int32 - Integer value.
+- `Spawn`: Spawn - The player from whom to take coin.
+- `Amount`: UInt32 - The amount in copper to remove.
 
-**Returns:** None.
+**Returns:** Return's true if the Player has enough coin to remove, otherwise return's false.
 
 **Example:**
 
 ```lua
--- Example usage
-RemoveCoin(..., ..., ..., ..., ...)
+-- Example usage (charge a fee of 2 silver, 50 copper i.e., 250 copper total)
+RemoveCoin(Player, 250)
 ```
