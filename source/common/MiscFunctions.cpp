@@ -954,14 +954,14 @@ int64 getCurrentTimestamp() {
     return duration.count();
 }
 
-std::tuple<int, int, int, int> convertTimestampDuration(int64 total_seconds) {
-	std::chrono::milliseconds duration(total_seconds);
+std::tuple<int64, int64, int64, int64> convertTimestampDuration(int64 total_milliseconds) {
+    std::chrono::milliseconds duration(total_milliseconds);
     // Convert to days, hours, minutes, and seconds
-    auto days = std::chrono::duration_cast<std::chrono::duration<int, std::ratio<86400000>>>(duration);
-    duration -= days;
-
     auto hours = std::chrono::duration_cast<std::chrono::hours>(duration);
     duration -= hours;
+
+    int64 days = static_cast<int64>(total_hours / 24);
+    hours -= days * 24;
 
     auto minutes = std::chrono::duration_cast<std::chrono::minutes>(duration);
     duration -= minutes;
