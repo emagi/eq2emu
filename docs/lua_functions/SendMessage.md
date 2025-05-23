@@ -1,18 +1,68 @@
-### Function: SendMessage(param1, param2, param3)
+### Function: SendMessage(spawn, message, color_str)
 
 **Description:**
-Placeholder description.
+Sends a direct channel message to the Spawn/Player.  The color_str is optional, default is white, "red" and "yellow" is offered.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: string - String value.
-- `param3`: string - String value.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
+- `message` (string) - String `message`.
+- `color_str` (string) - String `color_str`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-SendMessage(..., ..., ...)
+-- From ItemScripts/aBagofBasicProvisions.lua
+function examined(Item, Player)
+RemoveItem(Player,1001011,1)
+SummonItem(Player, 36684,0)
+SummonItem(Player, 36684,0)
+SummonItem(Player, 36684,0)
+SummonItem(Player, 36684,0)
+SummonItem(Player, 36684,0)
+SummonItem(Player, 36684,0)
+SummonItem(Player, 36684,0)
+SummonItem(Player, 36684,0)
+SummonItem(Player, 36684,0)
+SummonItem(Player, 36684,0)
+SummonItem(Player, 36684,0)
+SummonItem(Player, 36684,0)
+SummonItem(Player, 36684,0)
+SummonItem(Player, 36684,0)
+SummonItem(Player, 36684,0)
+SummonItem(Player, 36684,0)
+SummonItem(Player, 36684,0)
+SummonItem(Player, 36684,0)
+SummonItem(Player, 36684,0)
+SummonItem(Player, 36684,0)
+SummonItem(Player, 36211,0)
+SummonItem(Player, 36211,0)
+SummonItem(Player, 36211,0)
+SummonItem(Player, 36211,0)
+SummonItem(Player, 36211,0)
+SummonItem(Player, 36211,0)
+SummonItem(Player, 36211,0)
+SummonItem(Player, 36211,0)
+SummonItem(Player, 36211,0)
+SummonItem(Player, 36211,0)
+SummonItem(Player, 36211,0)
+SummonItem(Player, 36211,0)
+SummonItem(Player, 36211,0)
+SummonItem(Player, 36211,0)
+SummonItem(Player, 36211,0)
+SummonItem(Player, 36211,0)
+SummonItem(Player, 36211,0)
+SummonItem(Player, 36211,0)
+SummonItem(Player, 36211,0)
+SummonItem(Player, 36211,0)
+SendMessage(Player, "You found 20 flasks of water in the bag.")
+SendMessage(Player, "You found 20 rations in the bag.")
+--[[		alignment = GetDeity(Player)  --THESE ARE COMMEMORATIVE COINS.  THIS ITEM HAS BEEN GIVEN TO THE AMBASSADORS FOR PLAYERS SELECTING THEIR CITY.  THIS REDUCES THE CHANCE THE WRONG COIN IS GIVEN.
+		if alignment == 0 then
+			SummonItem(Player, 1413,1) -- evil rewards
+		else
+			SummonItem(Player, 1414,1) -- good rewards
+		end]]--
+end
 ```

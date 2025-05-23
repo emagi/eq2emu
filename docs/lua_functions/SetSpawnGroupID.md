@@ -1,17 +1,14 @@
-### Function: SetSpawnGroupID(param1, param2)
+### Function: SetSpawnGroupID(spawn, new_group_id)
 
 **Description:**
-Placeholder description.
+Set's the spawn's encounter new group id.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: int32 - Integer value.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
+- `new_group_id` (uint32) - Integer value `new_group_id`.
 
 **Returns:** None.
 
 **Example:**
 
-```lua
--- Example usage
-SetSpawnGroupID(..., ...)
-```
+Example Required

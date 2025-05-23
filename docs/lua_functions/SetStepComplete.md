@@ -1,22 +1,23 @@
-### Function: SetStepComplete(param1, param2, param3, param4, param5, param6, param7)
+### Function: SetStepComplete(player, quest_id, step)
 
 **Description:**
-Placeholder description.
+Set the Quest step as complete.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: unknown - Unknown type.
-- `param5`: unknown - Unknown type.
-- `param6`: int32 - Integer value.
-- `param7`: int32 - Integer value.
+- `player` (Spawn) - Spawn object representing `player`.
+- `quest_id` (uint32) - Integer value `quest_id`.
+- `step` (int32) - Integer value `step`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-SetStepComplete(..., ..., ..., ..., ..., ..., ...)
+-- From ItemScripts/abixieeye.lua
+function Step_Complete(Item, Player)
+if HasItem(Player,1219,1) then
+    SetStepComplete(Player, LoreAndLegendBixie, 4)
+    CloseItemConversation(Item, Player)
+    RemoveItem(Player, 1219)
+end
 ```

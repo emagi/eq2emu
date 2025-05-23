@@ -1,23 +1,25 @@
-### Function: SpellDamage(param1, param2, param3, param4, param5, param6, param7, param8)
+### Function: SpellDamage(target, type, min_damage, max_damage, crit_mod, no_calcs, class_id)
 
 **Description:**
-Placeholder description.
+Damage a Target inside of a Spell Script.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: int32 - Integer value.
-- `param5`: int32 - Integer value.
-- `param6`: int32 - Integer value.
-- `param7`: int32 - Integer value.
-- `param8`: int32 - Integer value.
+- `luaspell` (int32) - Integer value `luaspell`.
+- `type` (int32) - Integer value `type`.
+- `min_damage` (int32) - Integer value `min_damage`.
+- `max_damage` (int32) - Integer value `max_damage`.
+- `crit_mod` (int32) - Integer value `crit_mod`.
+- `no_calcs` (int32) - Integer value `no_calcs`.
+- `class_id` (uint32) - Integer value `class_id`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-SpellDamage(..., ..., ..., ..., ..., ..., ..., ...)
+-- From Spells/AA/AmbidexterousCasting.lua
+function cast(Caster, Target, DmgType, MinVal, MaxVal)
+    Interrupt(Caster, Target)
+SpellDamage(Target, DmgType, MinVal, MaxVal)
+end
 ```

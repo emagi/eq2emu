@@ -1,21 +1,17 @@
-### Function: SendHearCast(param1, param2, param3, param4, param5, param6)
+### Function: SendHearCast(spell, spell_visual_id, cast_time, caster, target)
 
 **Description:**
-Placeholder description.
+Sends a notice to the area that they see visually per Spell Visuals in https://wiki.eq2emu.com/ReferenceLists and receive a spell message in their chat window based on Caster and Target.
 
 **Parameters:**
-- `param1`: unknown - Unknown type.
-- `param2`: Spawn - The spawn or entity involved.
-- `param3`: int32 - Integer value.
-- `param4`: int16 - Short integer value.
-- `param5`: Spawn - The spawn or entity involved.
-- `param6`: Spawn - The spawn or entity involved.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
+- `spell_visual_id` (uint32) - Integer value `spell_visual_id`.
+- `cast_time` (int32) - Time value `cast_time` in seconds.
+- `caster` (Spawn) - Spawn object representing `caster`.
+- `target` (Spawn) - Spawn object representing `target`.
 
 **Returns:** None.
 
 **Example:**
 
-```lua
--- Example usage
-SendHearCast(..., ..., ..., ..., ..., ...)
-```
+Example Required

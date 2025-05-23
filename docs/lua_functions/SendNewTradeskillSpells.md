@@ -1,16 +1,13 @@
-### Function: SendNewTradeskillSpells(param1)
+### Function: SendNewTradeskillSpells(player)
 
 **Description:**
-Placeholder description.
+Sends tradeskill spells by their level.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
+- `player` (Spawn) - Spawn object representing `player`.
 
 **Returns:** None.
 
 **Example:**
 
-```lua
--- Example usage
-SendNewTradeskillSpells(...)
-```
+Example Required

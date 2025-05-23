@@ -1,18 +1,15 @@
-### Function: AddQuestStepProgressAction(param1, param2, param3)
+### Function: AddQuestStepProgressAction(quest, step, action)
 
 **Description:**
-Placeholder description.
+This can be used to call a LUA function when a quest step progresses successfully (such as a kill 1/10 or item 1/10).
 
 **Parameters:**
-- `param1`: unknown - Unknown type.
-- `param2`: int32 - Integer value.
-- `param3`: string - String value.
+- `quest` (Quest) - Quest object representing `quest`.
+- `step` (int32) - Integer value `step`.
+- `action` (int32) - Integer value `action`.
 
 **Returns:** None.
 
 **Example:**
 
-```lua
--- Example usage
-AddQuestStepProgressAction(..., ..., ...)
-```
+Example Required

@@ -1,17 +1,22 @@
-### Function: SetStaBase(param1, param2)
+### Function: SetStaBase(spawn, value)
 
 **Description:**
-Placeholder description.
+Set's the Spawn's base stamina to the value provided.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: int16 - Short integer value.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
+- `value` (int32) - Integer value `value`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-SetStaBase(..., ...)
+-- From SpawnScripts/Generic/CombatModule.lua
+function attributes(NPC, Spawn)
+    -- Calculate attributes
+    if  level <= 4 then
+        baseStat = 19 else
+            baseStat = level + 15
+    end
 ```

@@ -1,18 +1,14 @@
-### Function: SetInt(param1, param2, param3)
+### Function: SetInt(spawn, value)
 
 **Description:**
-Placeholder description.
+Sets the Spawn's intelligence to the specified value.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
+- `luaspell` (int32) - Integer value `luaspell`.
+- `value` (int32) - Integer value `value`.
 
 **Returns:** None.
 
 **Example:**
 
-```lua
--- Example usage
-SetInt(..., ..., ...)
-```
+Example Required

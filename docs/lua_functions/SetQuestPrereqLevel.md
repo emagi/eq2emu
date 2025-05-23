@@ -1,17 +1,14 @@
-### Function: SetQuestPrereqLevel(param1, param2)
+### Function: SetQuestPrereqLevel(quest, level)
 
 **Description:**
-Placeholder description.
+Set a pre requirement level to receive the quest.
 
 **Parameters:**
-- `param1`: unknown - Unknown type.
-- `param2`: int16 - Short integer value.
+- `quest` (Quest) - Quest object representing `quest`.
+- `level` (int32) - Integer value `level`.
 
 **Returns:** None.
 
 **Example:**
 
-```lua
--- Example usage
-SetQuestPrereqLevel(..., ...)
-```
+Example Required

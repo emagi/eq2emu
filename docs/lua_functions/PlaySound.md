@@ -1,21 +1,21 @@
-### Function: PlaySound(param1, param2, param3, param4, param5, param6)
+### Function: PlaySound(spawn, sound_string, x, y, z, player)
 
 **Description:**
-Placeholder description.
+Plays a sound using the sound_string to the area or specified player.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: string - String value.
-- `param3`: float - Floating point value.
-- `param4`: float - Floating point value.
-- `param5`: float - Floating point value.
-- `param6`: Spawn - The spawn or entity involved.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
+- `sound_string` (string) - String `sound_string`.
+- `x` (int32) - Integer value `x`.
+- `y` (int32) - Integer value `y`.
+- `z` (int32) - Integer value `z`.
+- `player` (Spawn) - Spawn object representing `player`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-PlaySound(..., ..., ..., ..., ..., ...)
+-- From ItemScripts/BardCertificationPapers.lua
+PlaySound(Player, "sounds/test/endquest.wav", GetX(Player), GetY(Player), GetZ(Player), Player)
 ```

@@ -1,17 +1,22 @@
-### Function: AddQuestPrereqQuest(param1, param2)
+### Function: AddQuestPrereqQuest(quest, quest_id)
 
 **Description:**
-Placeholder description.
+CanReceiveQuest checks if the Player has previously completed the quest_id defined.
 
 **Parameters:**
-- `param1`: unknown - Unknown type.
-- `param2`: int32 - Integer value.
+- `quest` (Quest) - Quest object representing `quest`.
+- `quest_id` (uint32) - Integer value `quest_id`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-AddQuestPrereqQuest(..., ...)
+-- From Quests/FrostfangSea/the_absent_effigy.lua
+function Init(Quest)
+	AddQuestRewardCoin(Quest, math.random(10,80), math.random(6,15), 0, 0)
+    AddQuestPrereqQuest(Quest, LostFroglok) -- change quest step to obtain item 'an Effigy of Mithaniel' drop from frigid whirlstorms/ The Deadly Icewind
+	AddQuestStepKill(Quest, 1, "I must kill frigid whirlstorms to find Splorpy's Effigy of Mithaniel.", 1, 75, "I should kill frigid whirlstorms around Gwenevyn's Cove to find Splorpy's Effigy of Mithaniel.", 1059, 4700054, 4700069)
+	AddQuestStepCompleteAction(Quest, 1, "GotEffigy")
+end
 ```

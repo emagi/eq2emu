@@ -1,20 +1,35 @@
-### Function: Say(param1, param2, param3, param4, param5)
+### Function: Say(spawn, message, player, dist, language)
 
 **Description:**
-Placeholder description.
+Sends a Say message from the Spawn to the general area based on distance, or otherwise to a specific Player if specified, otherwise optional/nil.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: string - String value.
-- `param3`: Spawn - The spawn or entity involved.
-- `param4`: float - Floating point value.
-- `param5`: int32 - Integer value.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
+- `message` (string) - String `message`.
+- `player` (Spawn) - Spawn object representing `player`.
+- `dist` (int32) - Integer value `dist`.
+- `language` (int32) - Integer value `language`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-Say(..., ..., ..., ..., ...)
+-- From ItemScripts/DrawingRay.lua
+function used(Item, Player)
+    quest = GetQuest(Player, CAVES_CONSUL_BREE_QUEST_3)
+    --Say(Player, "RAY HAS BEEN USED")
+	if HasQuest(Player, CAVES_CONSUL_BREE_QUEST_3) then
+		spawn = GetTarget(Player)
+	--	Say(Player, "PLAYER HAS QUEST")
+		if spawn ~= nil then
+		--Say(Player, "SPAWN IS NOT NIL")
+			-- river behemoth remains
+			if GetSpawnID(spawn) == RIVER_BEHEMOTH_REMAINS_ID then
+			    CastSpell(Player, 5104, 1)
+				GiveQuestItem(quest, Player, "", RIVER_STONE_ID)
+			--	Say(Player, "ITEM OBTAINED")
+			else
+				SendMessage(Player, "The Drawing Ray has no effect. Emma said it must be used on the remains of a river behemoth.")
+			end
 ```

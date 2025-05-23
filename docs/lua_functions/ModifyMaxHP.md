@@ -1,17 +1,16 @@
-### Function: ModifyMaxHP(param1, param2)
+### Function: ModifyMaxHP(spawn, value)
 
 **Description:**
-Placeholder description.
+Sets the Maximum HP of the Spawn to the value provided.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
+- `value` (sint32) - Integer value `value`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-ModifyMaxHP(..., ...)
+ModifyMaxHP(NPC, 10000)
 ```

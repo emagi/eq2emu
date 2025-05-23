@@ -1,17 +1,14 @@
-### Function: SetQuestCompleteAction(param1, param2)
+### Function: SetQuestCompleteAction(quest, action)
 
 **Description:**
-Placeholder description.
+Quest function to call when the quest being completed is triggered.
 
 **Parameters:**
-- `param1`: unknown - Unknown type.
-- `param2`: string - String value.
+- `quest` (Quest) - Quest object representing `quest`.
+- `action` (string) - String value `action`.
 
 **Returns:** None.
 
 **Example:**
 
-```lua
--- Example usage
-SetQuestCompleteAction(..., ...)
-```
+Example Required

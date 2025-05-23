@@ -1,19 +1,23 @@
-### Function: GetSpellRequiredLevel(param1, param2, param3, param4)
+### Function: GetSpellRequiredLevel(spell)
 
 **Description:**
-Placeholder description.
+Obtain the Required Level of the Spell, must be used inside a Spell Script.
 
 **Parameters:**
-- `param1`: unknown - Unknown type.
-- `param2`: Spawn - The spawn or entity involved.
-- `param3`: unknown - Unknown type.
-- `param4`: unknown - Unknown type.
+- None
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-GetSpellRequiredLevel(..., ..., ..., ...)
+-- From Spells/Dregs.lua
+function cast(Caster, Target, BonusAmt)
+    -- Allows target to breathe under water
+    BreatheUnderwater(Target, true)
+    
+    BonusAmt = CalculateRateValue(Caster, Target, GetSpellRequiredLevel(Caster), GetLevel(Caster), 1.0, BonusAmt)
+
+	AddSpellBonus(Target, 201, BonusAmt)
+end
 ```

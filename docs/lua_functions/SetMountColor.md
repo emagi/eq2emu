@@ -1,22 +1,28 @@
-### Function: SetMountColor(param1, param2, param3, param4, param5, param6, param7)
+### Function: SetMountColor(spawn, red, green, blue, red, green, blue)
 
 **Description:**
-Placeholder description.
+Sets the mount's colors for the Spawn specified.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: int8 - Small integer or boolean flag.
-- `param3`: int8 - Small integer or boolean flag.
-- `param4`: int8 - Small integer or boolean flag.
-- `param5`: int8 - Small integer or boolean flag.
-- `param6`: int8 - Small integer or boolean flag.
-- `param7`: int8 - Small integer or boolean flag.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
+- `red` (int32) - Integer value `red`.
+- `green` (int32) - Integer value `green`.
+- `blue` (int32) - Integer value `blue`.
+- `red` (int32) - Integer value `red`.
+- `green` (int32) - Integer value `green`.
+- `blue` (int32) - Integer value `blue`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-SetMountColor(..., ..., ..., ..., ..., ..., ...)
+-- From SpawnScripts/BeggarsCourt/AdjunctCaptainRommuls.lua
+function spawn(NPC)
+	SetMount(NPC, 6831)
+	SetMountColor(NPC, 1, 1, 1, 255, 1, 1)
+	
+	MoveToLocation(NPC, -8.13, 4.00, -42.68, 3, "", true)
+	MoveToLocation(NPC, -14.43, 3.57, -27.02, 3, "", false)
+end
 ```

@@ -1,17 +1,27 @@
-### Function: SetSpeed(param1, param2)
+### Function: SetSpeed(spawn, value)
 
 **Description:**
-Placeholder description.
+Set's the speed of the spawn.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: float - Floating point value.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
+- `value` (int32) - Integer value `value`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-SetSpeed(..., ...)
+-- From SpawnScripts/Darklight/awellspringcub.lua
+function casted_on(NPC, Caster, SpellName)
+    if SpellName == "Leash" then
+	    if GetQuestStep(Caster, DrawUponWellsprings) == 1 then
+			if GetTempVariable(Caster, "cub") == nil then
+				SetTempVariable(Caster, "cub", NPC)
+				SpawnSet(NPC, "attackable", "0")
+				SpawnSet(NPC, "show_level", "0")
+				SetFollowTarget(NPC, Caster)
+				SetSpeed(NPC, 9)
+				ToggleFollow(NPC)
+			end
 ```

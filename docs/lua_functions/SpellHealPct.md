@@ -1,24 +1,25 @@
-### Function: SpellHealPct(param1, param2, param3, param4, param5, param6, param7, param8, param9)
+### Function: SpellHealPct(heal_type, percentage, current_value, caster_value, target, crit_mod, no_calcs, custom_spell_name)
 
 **Description:**
-Placeholder description.
+Heal or Increase Power percentage of a Target inside of a spell script.  heal_type is "heal" or "power".
 
 **Parameters:**
-- `param1`: unknown - Unknown type.
-- `param2`: string - String value.
-- `param3`: float - Floating point value.
-- `param4`: bool - Boolean value (true/false).
-- `param5`: bool - Boolean value (true/false).
-- `param6`: Spawn - The spawn or entity involved.
-- `param7`: int32 - Integer value.
-- `param8`: int32 - Integer value.
-- `param9`: string - String value.
+- `heal_type` (string) - String value `heal_type`.
+- `percentage` (int32) - Integer value `percentage`.
+- `current_value` (int32) - Integer value `current_value`.
+- `caster_value` (int32) - Integer value `caster_value`.
+- `target` (Spawn) - Spawn object representing `target`.
+- `crit_mod` (int32) - Integer value `crit_mod`.
+- `no_calcs` (int32) - Integer value `no_calcs`.
+- `custom_spell_name` (string) - String `custom_spell_name`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-SpellHealPct(..., ..., ..., ..., ..., ..., ..., ..., ...)
+-- From Spells/Commoner/HateSpores.lua
+function cast(Caster, Target, Pwr)
+    SpellHealPct("Power", Pwr, false, true, Target)
+end
 ```

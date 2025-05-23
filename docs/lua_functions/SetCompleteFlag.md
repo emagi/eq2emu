@@ -1,17 +1,19 @@
-### Function: SetCompleteFlag(param1, param2)
+### Function: SetCompleteFlag(quest)
 
 **Description:**
-Placeholder description.
+Set the quest flag as completed.
 
 **Parameters:**
-- `param1`: unknown - Unknown type.
-- `param2`: unknown - Unknown type.
+- `quest` (Quest) - Quest object representing `quest`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-SetCompleteFlag(..., ...)
+-- From Quests/Darklight/ASolidifiedFront.lua
+function QuestComplete(Quest, QuestGiver, Player)
+	SetCompleteFlag(Quest)
+	GiveQuestReward(Quest, Player)
+end
 ```

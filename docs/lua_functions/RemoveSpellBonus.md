@@ -1,17 +1,18 @@
-### Function: RemoveSpellBonus(param1, param2)
+### Function: RemoveSpellBonus(spawn)
 
 **Description:**
-Placeholder description.
+Remove's any spell bonuses from AddSpellBonus.  If inside a spell Script RemoveSpellBonus() will remove all spell targets bonuses, RemoveSpellBonus(Target) removes only that Spawn's spell bonuses.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
+- `spawn` (Spawn) - Spawn object reference `spawn`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-RemoveSpellBonus(..., ...)
+-- From Spells/AA/AbilityAptitude.lua
+function remove(Caster, Target)
+    RemoveSpellBonus(Target)
+end
 ```

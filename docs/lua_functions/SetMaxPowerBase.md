@@ -1,17 +1,14 @@
-### Function: SetMaxPowerBase(param1, param2)
+### Function: SetMaxPowerBase(spawn, value)
 
 **Description:**
-Placeholder description.
+Set's the Total Base Power of the Spawn to the value provided.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
+- `value` (int32) - Integer value `value`.
 
 **Returns:** None.
 
 **Example:**
 
-```lua
--- Example usage
-SetMaxPowerBase(..., ...)
-```
+Example Required

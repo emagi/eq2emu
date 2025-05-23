@@ -1,20 +1,14 @@
-### Function: HasControlEffect(param1, param2, param3, param4, param5)
+### Function: HasControlEffect(spawn, type)
 
 **Description:**
-Placeholder description.
+Identifies if the Spawn has the control effect type defined.  The Control Effect Type list can be found at https://github.com/emagi/eq2emu/blob/main/docs/data_types/control_effect_types.md
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: unknown - Unknown type.
-- `param5`: int8 - Small integer or boolean flag.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
+- `type` (int32) - Integer value `type`.
 
-**Returns:** None.
+**Returns:** True if the Spawn has the control effect type specified, otherwise False.
 
 **Example:**
 
-```lua
--- Example usage
-HasControlEffect(..., ..., ..., ..., ...)
-```
+Example Required

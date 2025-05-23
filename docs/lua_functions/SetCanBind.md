@@ -1,18 +1,14 @@
-### Function: SetCanBind(param1, param2, param3)
+### Function: SetCanBind(spawn, canbind)
 
 **Description:**
-Placeholder description.
+Sets if the zone allows to bind.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: int32 - Integer value.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
+- `canbind` (int32) - Integer value `canbind`.
 
 **Returns:** None.
 
 **Example:**
 
-```lua
--- Example usage
-SetCanBind(..., ..., ...)
-```
+Example Required

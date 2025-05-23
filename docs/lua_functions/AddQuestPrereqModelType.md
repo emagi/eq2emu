@@ -1,17 +1,19 @@
-### Function: AddQuestPrereqModelType(param1, param2)
+### Function: AddQuestPrereqModelType(quest, model_type)
 
 **Description:**
-Placeholder description.
+CanReceiveQuest checks if the Player is the model_type defined.
 
 **Parameters:**
-- `param1`: unknown - Unknown type.
-- `param2`: int16 - Short integer value.
+- `quest` (Quest) - Quest object representing `quest`.
+- `model_type` (int32) - Integer value `model_type`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-AddQuestPrereqModelType(..., ...)
+-- Require the Player to have a model_type of 123 for the Quest
+function Init(Quest)
+    AddQuestPrereqModelType(Quest, 123)
+end
 ```

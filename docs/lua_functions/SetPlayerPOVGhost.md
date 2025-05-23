@@ -1,17 +1,14 @@
-### Function: SetPlayerPOVGhost(param1, param2)
+### Function: SetPlayerPOVGhost(player, spawn)
 
 **Description:**
-Placeholder description.
+Set's the Player's POV Ghost to another Spawn if needed, or nil to reset.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: Spawn - The spawn or entity involved.
+- `player` (Spawn) - Spawn object representing `player`.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
 
 **Returns:** None.
 
 **Example:**
 
-```lua
--- Example usage
-SetPlayerPOVGhost(..., ...)
-```
+Example Required

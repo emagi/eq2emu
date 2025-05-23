@@ -1,17 +1,27 @@
-### Function: SetAttackable(param1, param2)
+### Function: SetAttackable(spawn, attackable)
 
 **Description:**
-Placeholder description.
+Sets the Spawn attackable or not.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: int8 - Small integer or boolean flag.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
+- `attackable` (int32) - Integer value `attackable`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-SetAttackable(..., ...)
+-- From Quests/FarJourneyFreeport/TasksaboardtheFarJourney.lua
+function CurrentStep(Quest, QuestGiver, Player)
+	if GetQuestStepProgress(Player, 524,2) == 0 and GetQuestStep(Player, 524) == 2 then
+		i = 1
+		spawns = GetSpawnListBySpawnID(Player, 270010)
+		repeat
+			spawn = GetSpawnFromList(spawns, i-1)
+			if spawn then
+				ChangeHandIcon(spawn, 1)
+				AddPrimaryEntityCommand(nil, spawn)
+				SpawnSet(NPC, "targetable", 1, true, true)
+			end
 ```

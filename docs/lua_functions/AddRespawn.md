@@ -1,18 +1,15 @@
-### Function: AddRespawn(param1, param2, param3)
+### Function: AddRespawn(zone, location_id, respawn_time)
 
 **Description:**
-Placeholder description.
+Creates a new respawn using the location_id for the Zone and sets the respawn_time provided.
 
 **Parameters:**
-- `param1`: ZoneServer - The zone object.
-- `param2`: int32 - Integer value.
-- `param3`: int32 - Integer value.
+- `zone` (Zone) - Zone object representing `zone`.
+- `location_id` (uint32) - Integer value `location_id`.
+- `respawn_time` (int32) - Time value `respawn_time` in seconds.
 
 **Returns:** None.
 
 **Example:**
 
-```lua
--- Example usage
-AddRespawn(..., ..., ...)
-```
+Example Required

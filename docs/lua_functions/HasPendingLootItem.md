@@ -1,18 +1,15 @@
-### Function: HasPendingLootItem(param1, param2, param3)
+### Function: HasPendingLootItem(entity, player, item_id)
 
 **Description:**
-Placeholder description.
+Identifies if the Player has a specific pending loot of item_id with the targetted Entity (NPC).
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: Spawn - The spawn or entity involved.
-- `param3`: int32 - Integer value.
+- `entity` (int32) - Integer value `entity`.
+- `player` (Spawn) - Spawn object representing `player`.
+- `item_id` (uint32) - Integer value `item_id`.
 
 **Returns:** None.
 
 **Example:**
 
-```lua
--- Example usage
-HasPendingLootItem(..., ..., ...)
-```
+Example Required

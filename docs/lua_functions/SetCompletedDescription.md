@@ -1,17 +1,14 @@
-### Function: SetCompletedDescription(param1, param2)
+### Function: SetCompletedDescription(quest, description)
 
 **Description:**
-Placeholder description.
+Sets the quest description to display when completed.
 
 **Parameters:**
-- `param1`: unknown - Unknown type.
-- `param2`: string - String value.
+- `quest` (Quest) - Quest object representing `quest`.
+- `description` (int32) - Integer value `description`.
 
 **Returns:** None.
 
 **Example:**
 
-```lua
--- Example usage
-SetCompletedDescription(..., ...)
-```
+Example Required

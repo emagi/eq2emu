@@ -1,22 +1,30 @@
-### Function: SpawnSetByDistance(param1, param2, param3, param4, param5, param6, param7)
+### Function: SpawnSetByDistance(spawn, max_distance, variable, value)
 
 **Description:**
-Placeholder description.
+Set a spawn setting on one or more spawns in a radius of the source.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: Spawn - The spawn or entity involved.
-- `param3`: float - Floating point value.
-- `param4`: float - Floating point value.
-- `param5`: string - String value.
-- `param6`: int8 - Small integer or boolean flag.
-- `param7`: string - String value.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
+- `max_distance` (int32) - Distance `max_distance`.
+- `variable` (int32) - Integer value `variable`.
+- `value` (int32) - Integer value `value`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-SpawnSetByDistance(..., ..., ..., ..., ..., ..., ...)
+-- From SpawnScripts/OutpostOverlord/evilgoblintent1.lua
+function casted_on(NPC, Spawn, SpellName)
+    if SpellName == "burn tent" then
+        if CheckTent(Spawn, NPC) == true then
+            if GetQuestStep(Spawn, TheFinalAssault) == 2 then
+                SpawnSetByDistance(NPC, 15, "visual_state", 491)
+                KillSpawnByDistance(NPC, 15, 0, 1)
+                AddStepProgress(Spawn, TheFinalAssault, 2, 1)
+                    BurnTent(Spawn, NPC)
+            elseif GetQuestStep(Spawn, TheFinalAssault) == 3 then
+                SetStepComlete(Spawn, TheFinalAssault, 2)
+            else
+            end
 ```

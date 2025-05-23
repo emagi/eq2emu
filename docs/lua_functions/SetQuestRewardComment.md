@@ -1,17 +1,14 @@
-### Function: SetQuestRewardComment(param1, param2)
+### Function: SetQuestRewardComment(quest, comment)
 
 **Description:**
-Placeholder description.
+Set's a comment for the quest reward, older clients do not display much text.
 
 **Parameters:**
-- `param1`: unknown - Unknown type.
-- `param2`: string - String value.
+- `quest` (Quest) - Quest object representing `quest`.
+- `comment` (int32) - Integer value `comment`.
 
 **Returns:** None.
 
 **Example:**
 
-```lua
--- Example usage
-SetQuestRewardComment(..., ...)
-```
+Example Required

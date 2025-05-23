@@ -1,25 +1,29 @@
-### Function: StartConversation(param1, param2, param3, param4, param5, param6, param7, param8, param9, param10)
+### Function: StartConversation(conversation, source, player, text, mp3, key1, key2, language, can_close)
 
 **Description:**
-Placeholder description.
+Begin a conversation with the Player from the Source Spawn with the previously established conversation options.
 
 **Parameters:**
-- `param1`: ConversationOption[] - List of conversation options.
-- `param2`: unknown - Unknown type.
-- `param3`: Spawn - The spawn or entity involved.
-- `param4`: Spawn - The spawn or entity involved.
-- `param5`: string - String value.
-- `param6`: string - String value.
-- `param7`: int32 - Integer value.
-- `param8`: int32 - Integer value.
-- `param9`: int32 - Integer value.
-- `param10`: int32 - Integer value.
+- `conversation` (Conversation) - Conversation object representing `conversation`.
+- `source` (Spawn) - Spawn object representing `source`.
+- `player` (Spawn) - Spawn object representing `player`.
+- `text` (string) - String `text`.
+- `mp3` (int32) - Integer value `mp3`.
+- `key1` (int32) - Integer value `key1`.
+- `key2` (int32) - Integer value `key2`.
+- `language` (int32) - Integer value `language`.
+- `can_close` (bool) - Boolean flag `can_close`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-StartConversation(..., ..., ..., ..., ..., ..., ..., ..., ..., ...)
+-- From Quests/Antonica/attack_of_the_killer_bear.lua
+function Accepted(Quest, QuestGiver, Player)
+	FaceTarget(QuestGiver, Player)
+	local conversation = CreateConversation()
+	AddConversationOption(conversation, "I will be careful.")
+	StartConversation(conversation, QuestGiver, Player, "Be careful though! This one is big!")
+end
 ```

@@ -1,17 +1,13 @@
-### Function: SetQuestYellow(param1, param2)
+### Function: SetQuestYellow(quest)
 
 **Description:**
-Placeholder description.
+Set's the quest journal display status to yellow.
 
 **Parameters:**
-- `param1`: unknown - Unknown type.
-- `param2`: unknown - Unknown type.
+- `quest` (Quest) - Quest object representing `quest`.
 
 **Returns:** None.
 
 **Example:**
 
-```lua
--- Example usage
-SetQuestYellow(..., ...)
-```
+Example Required

@@ -1,15 +1,15 @@
-Function: IsEpic(Spawn)
+### Function: IsEpic(Spawn)
 
-Description: Checks if the given NPC is flagged as an “Epic” encounter.
+**Description:** Checks if the given NPC is flagged as an “Epic” encounter.
 
-Parameters:
+**Parameters:**
+- `Spawn`: Spawn – The NPC to check.
 
-    Spawn: Spawn – The NPC to check.
+**Returns:** Boolean – true if the spawn is an Epic tier NPC; false otherwise.
 
-Returns: Boolean – true if the spawn is an Epic tier NPC; false otherwise.
+**Example:**
 
-Example:
-
+```lua
 -- Example AtrebasEtherealBindings.lua (Spells Script)
 function precast(Caster, Target)
     -- Does not affect Epic targets
@@ -18,3 +18,4 @@ function precast(Caster, Target)
     end
     return true
 end
+```

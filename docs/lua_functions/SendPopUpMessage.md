@@ -1,22 +1,25 @@
-### Function: SendPopUpMessage(param1, param2, param3, param4, param5, param6, param7)
+### Function: SendPopUpMessage(spawn, message, red, green, blue)
 
 **Description:**
-Placeholder description.
+Sends a popup message to the Spawn(Player) with the message in the popup.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: string - String value.
-- `param5`: int8 - Small integer or boolean flag.
-- `param6`: int8 - Small integer or boolean flag.
-- `param7`: int8 - Small integer or boolean flag.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
+- `message` (string) - String `message`.
+- `red` (int32) - Integer value `red`.
+- `green` (int32) - Integer value `green`.
+- `blue` (int32) - Integer value `blue`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-SendPopUpMessage(..., ..., ..., ..., ..., ..., ...)
+-- From ItemScripts/BardCertificationPapers.lua
+function QuestStart(Item,Player)
+    OfferQuest(nil,Player,Quest)
+    conversation = CreateConversation()
+    AddConversationOption(conversation, "[Put the signed certificate away]","TaskDone")
+    StartDialogConversation(conversation, 2, Item, Player, "The Shady Swashbuckler might have some gear I can use...")    
+end
 ```

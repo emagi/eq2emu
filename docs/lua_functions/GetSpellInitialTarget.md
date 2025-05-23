@@ -1,20 +1,13 @@
-### Function: GetSpellInitialTarget(param1, param2, param3, param4, param5)
+### Function: GetSpellInitialTarget(spell)
 
 **Description:**
-Placeholder description.
+Obtain the Initial Target of the Spell.  The `spell` field is optional, it will otherwise be in a Spell Script which defaults to the current spell's initial target.
 
 **Parameters:**
-- `param1`: unknown - Unknown type.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: unknown - Unknown type.
-- `param5`: unknown - Unknown type.
+- `spell` (Spell) - Spell object representing `spell`.
 
 **Returns:** None.
 
 **Example:**
 
-```lua
--- Example usage
-GetSpellInitialTarget(..., ..., ..., ..., ...)
-```
+Example Required

@@ -1,23 +1,22 @@
-### Function: OfferQuest(param1, param2, param3, param4, param5, param6, param7, param8)
+### Function: OfferQuest(npc, player, quest_id, forced)
 
 **Description:**
-Placeholder description.
+NPC Offers the quest window or auto accept of the quest to the Player.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: unknown - Unknown type.
-- `param5`: unknown - Unknown type.
-- `param6`: Spawn - The spawn or entity involved.
-- `param7`: int32 - Integer value.
-- `param8`: bool - Boolean value (true/false).
+- `npc` (Spawn) - Spawn object representing `npc`.
+- `player` (Spawn) - Spawn object representing `player`.
+- `quest_id` (uint32) - Integer value `quest_id`.
+- `forced` (int32) - Integer value `forced`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-OfferQuest(..., ..., ..., ..., ..., ..., ..., ...)
+-- From ItemScripts/abadlypolishedsteelkey.lua
+function examined(Item, Player)
+if not HasQuest(Player, Polishedsteelkey) then
+OfferQuest(nil, Player, Polishedsteelkey)
+  end
 ```

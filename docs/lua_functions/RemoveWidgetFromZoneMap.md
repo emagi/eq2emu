@@ -1,17 +1,23 @@
-### Function: RemoveWidgetFromZoneMap(param1, param2)
+### Function: RemoveWidgetFromZoneMap(zone, widget_id)
 
 **Description:**
-Placeholder description.
+Removes the widget from the 3d world space in the client and server.  Must be used in preinit_zone_script
 
 **Parameters:**
-- `param1`: ZoneServer - The zone object.
-- `param2`: int32 - Integer value.
+- `zone` (Zone) - Zone object representing `zone`.
+- `widget_id` (uint32) - Integer value `widget_id`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-RemoveWidgetFromZoneMap(..., ...)
+-- From ZoneScripts/ThunderingSteppes.lua
+function preinit_zone_script(Zone)
+    RemoveWidgetFromZoneMap(Zone, 2909687498)
+    RemoveWidgetFromZoneMap(Zone, 506885674)
+    RemoveWidgetFromZoneMap(Zone, 800135876)
+    RemoveWidgetFromZoneMap(Zone, 2944954936)
+    
+end
 ```

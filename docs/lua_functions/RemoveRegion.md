@@ -1,19 +1,15 @@
-### Function: RemoveRegion(param1, param2, param3, param4)
+### Function: RemoveRegion(zone, version, region_name)
 
 **Description:**
-Placeholder description.
+Removes a region by name from the the 3d space tracking.
 
 **Parameters:**
-- `param1`: ZoneServer - The zone object.
-- `param2`: unknown - Unknown type.
-- `param3`: int32 - Integer value.
-- `param4`: string - String value.
+- `zone` (Zone) - Zone object representing `zone`.
+- `version` (int32) - Integer value `version`.
+- `region_name` (string) - String `region_name`.
 
 **Returns:** None.
 
 **Example:**
 
-```lua
--- Example usage
-RemoveRegion(..., ..., ..., ...)
-```
+Example Required

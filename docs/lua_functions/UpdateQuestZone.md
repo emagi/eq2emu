@@ -1,17 +1,23 @@
-### Function: UpdateQuestZone(param1, param2)
+### Function: UpdateQuestZone(quest, zone)
 
 **Description:**
-Placeholder description.
+Update the quest's zone setting.
 
 **Parameters:**
-- `param1`: unknown - Unknown type.
-- `param2`: string - String value.
+- `quest` (Quest) - Quest object representing `quest`.
+- `zone` (Zone) - Zone object representing `zone`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-UpdateQuestZone(..., ...)
+-- From Quests/Antonica/a_foul_wind.lua
+function Init(Quest)
+	SetQuestFeatherColor(Quest, 3)
+	SetQuestRepeatable(Quest)
+	UpdateQuestZone(Quest,"Firemyst Gully: A Foul Wind")
+	AddQuestStepZoneLoc(Quest, 1, "I need to seek out Firemyst Gully in the center of Antonica.", 10, "I need to seek out Lord Nalin at Firemyst Gully in eastern Antonica.", 2183, -1188.04, -13.62, 706.57,14)
+	AddQuestStepCompleteAction(Quest, 1, "QuestComplete")
+end
 ```

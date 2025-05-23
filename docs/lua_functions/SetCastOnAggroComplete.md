@@ -1,19 +1,14 @@
-### Function: SetCastOnAggroComplete(param1, param2, param3, param4)
+### Function: SetCastOnAggroComplete(spawn, value)
 
 **Description:**
-Placeholder description.
+Overrides the cast on aggro complete flag for an NPC.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: int8 - Small integer or boolean flag.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
+- `value` (Bool) - Bool `value`.
 
 **Returns:** None.
 
 **Example:**
 
-```lua
--- Example usage
-SetCastOnAggroComplete(..., ..., ..., ...)
-```
+Example Required

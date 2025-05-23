@@ -1,21 +1,20 @@
-### Function: RemoveControlEffect(param1, param2, param3, param4, param5, param6)
+### Function: RemoveControlEffect(spawn, type, only_remove_spawn)
 
 **Description:**
-Placeholder description.
+Removes a control effect from the Spawn or from the spell targets of a spell.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: unknown - Unknown type.
-- `param5`: int8 - Small integer or boolean flag.
-- `param6`: int8 - Small integer or boolean flag.
+- `Spawn` (Spawn) - Spawn object reference `spawn`.
+- `type` (int32) - Integer value `type`.
+- `only_remove_spawn` (int32) - Integer value `only_remove_spawn`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-RemoveControlEffect(..., ..., ..., ..., ..., ...)
+-- From Spells/AA/DazingBash.lua
+function remove(Caster, Target)
+	RemoveControlEffect(Target, 3)
+end
 ```

@@ -1,19 +1,14 @@
-### Function: ToggleCharacterFlag(param1, param2, param3, param4)
+### Function: ToggleCharacterFlag(player, flag_id)
 
 **Description:**
-Placeholder description.
+Toggles a character flag, auto consume, hide hood, helm, etc.  Refer to player.h #define CF_... flags.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: unknown - Unknown type.
+- `player` (Spawn) - Spawn object representing `player`.
+- `flag_id` (uint32) - Integer value `flag_id`.
 
 **Returns:** None.
 
 **Example:**
 
-```lua
--- Example usage
-ToggleCharacterFlag(..., ..., ..., ...)
-```
+Example Required

@@ -1,19 +1,23 @@
-### Function: UpdateQuestTaskGroupDescription(param1, param2, param3, param4)
+### Function: UpdateQuestTaskGroupDescription(quest, step, description)
 
 **Description:**
-Placeholder description.
+Update the task group description of the quest.
 
 **Parameters:**
-- `param1`: unknown - Unknown type.
-- `param2`: int32 - Integer value.
-- `param3`: string - String value.
-- `param4`: int8 - Small integer or boolean flag.
+- `quest` (Quest) - Quest object representing `quest`.
+- `step` (int32) - Integer value `step`.
+- `description` (int32) - Integer value `description`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-UpdateQuestTaskGroupDescription(..., ..., ..., ...)
+-- From Quests/AlphaTest/stowaway_antonica.lua
+function  QuestCheck1(Quest, QuestGiver, Player)
+    if QuestStepIsComplete(Player,5858,2) and QuestStepIsComplete(Player,5858,3)and QuestStepIsComplete(Player,5858,4)  then
+	UpdateQuestTaskGroupDescription(Quest, 1, "I have found all I need to Fast-Track to Qeynos.")
+	UpdateQuestDescription(Quest, "I have all the necessary parts for the Fast-Track passage to Qeynos. The ride was a bit cramped...")
+	GiveQuestReward(Quest, Player)
+end
 ```

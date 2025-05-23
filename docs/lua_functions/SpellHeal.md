@@ -1,23 +1,24 @@
-### Function: SpellHeal(param1, param2, param3, param4, param5, param6, param7, param8)
+### Function: SpellHeal(heal_type, min_heal, max_heal, target, crit_mod, no_calcs, custom_spell_name)
 
 **Description:**
-Placeholder description.
+Heal or Increase Power of a Target inside of a spell script.  heal_type is "heal" or "power".
 
 **Parameters:**
-- `param1`: unknown - Unknown type.
-- `param2`: string - String value.
-- `param3`: int32 - Integer value.
-- `param4`: int32 - Integer value.
-- `param5`: Spawn - The spawn or entity involved.
-- `param6`: int32 - Integer value.
-- `param7`: int32 - Integer value.
-- `param8`: string - String value.
+- `heal_type` (string) - String value `heal_type`.
+- `min_heal` (int32) - Integer value `min_heal`.
+- `max_heal` (int32) - Integer value `max_heal`.
+- `target` (Spawn) - Spawn object representing `target`.
+- `crit_mod` (int32) - Integer value `crit_mod`.
+- `no_calcs` (int32) - Integer value `no_calcs`.
+- `custom_spell_name` (string) - String `custom_spell_name`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-SpellHeal(..., ..., ..., ..., ..., ..., ..., ...)
+-- From Spells/AA/AncestralChanneling.lua
+function cast(Caster, Target, HealMin, HealMax, HoTMin, HoTMax)
+SpellHeal("Heal", HealMin, HealMax)
+end
 ```

@@ -1,16 +1,13 @@
-### Function: SendNewAdventureSpells(param1)
+### Function: SendNewAdventureSpells(player)
 
 **Description:**
-Placeholder description.
+Sends adventure spells by their level.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
+- `player` (Spawn) - Spawn object representing `player`.
 
 **Returns:** None.
 
 **Example:**
 
-```lua
--- Example usage
-SendNewAdventureSpells(...)
-```
+Example Required

@@ -1,18 +1,14 @@
-### Function: SetCanGate(param1, param2, param3)
+### Function: SetCanGate(spawn, cangate)
 
 **Description:**
-Placeholder description.
+Sets if the zone allows gate in the area.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: int32 - Integer value.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
+- `cangate` (int32) - Integer value `cangate`.
 
 **Returns:** None.
 
 **Example:**
 
-```lua
--- Example usage
-SetCanGate(..., ..., ...)
-```
+Example Required

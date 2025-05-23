@@ -1,19 +1,26 @@
-### Function: StopTimer(param1, param2, param3, param4)
+### Function: StopTimer(spawn, function)
 
 **Description:**
-Placeholder description.
+Stops an active timer that is to call the `function`.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: string - String value.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
+- `function` (int32) - Integer value `function`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-StopTimer(..., ..., ..., ...)
+-- From SpawnScripts/The Deserted Mine/ShyzintheCoercer.lua
+function spawnthirdwaveisalivefinal(NPC)
+    local zone = GetZone(NPC)
+	local firstwavegrp = GetGroup(GetSpawnGroupByID(zone, 4122))
+    if not firstwavegrp == nil then
+		SetTempVariable(NPC, "combat_notfinish", "0")
+        for k,v in ipairs(firstwavegrp) do
+			if IsAlive(GetSpawnByLocationID(zone, v)) then
+				SetTempVariable(NPC, "combat_notfinish", "1")
+				break
+			end
 ```

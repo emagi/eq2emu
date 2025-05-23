@@ -1,17 +1,14 @@
-### Function: RemoveWidgetFromSpawnMap(param1, param2)
+### Function: RemoveWidgetFromSpawnMap(spawn, widget_id)
 
 **Description:**
-Placeholder description.
+Removes the widget from the map (line of sight and heightmap checks). 
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: int32 - Integer value.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
+- `widget_id` (uint32) - Integer value `widget_id`.
 
 **Returns:** None.
 
 **Example:**
 
-```lua
--- Example usage
-RemoveWidgetFromSpawnMap(..., ...)
-```
+Example Required

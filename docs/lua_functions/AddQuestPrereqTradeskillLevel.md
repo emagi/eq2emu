@@ -1,18 +1,19 @@
-### Function: AddQuestPrereqTradeskillLevel(param1, param2, param3)
+### Function: AddQuestPrereqTradeskillLevel(quest, level)
 
 **Description:**
-Placeholder description.
+CanReceiveQuest requires the Player to be of the tradeskill level defined.
 
 **Parameters:**
-- `param1`: unknown - Unknown type.
-- `param2`: unknown - Unknown type.
-- `param3`: int8 - Small integer or boolean flag.
+- `quest` (Quest) - Quest object representing `quest`.
+- `level` (int32) - Integer value `level`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-AddQuestPrereqTradeskillLevel(..., ..., ...)
+-- Require the Player to have a tradeskill level of 25
+function Init(Quest)
+    AddQuestPrereqTradeskillLevel(Quest, 25)
+end
 ```

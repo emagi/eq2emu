@@ -1,16 +1,22 @@
-### Function: SetVisualFlag(param1)
+### Function: SetVisualFlag(spawn)
 
 **Description:**
-Placeholder description.
+Set the visual flag on the Spawn to initiate a update on the Spawns visual data.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-SetVisualFlag(...)
+-- From SpawnScripts/Antonica/HaddekVimki.lua
+function spawn(NPC)
+	ProvidesQuest(NPC, RunningOutOfBeer)   
+	ProvidesQuest(NPC, OuchMyHead)   
+	ProvidesQuest(NPC, RiseAndShineWine)   
+	ProvidesQuest(NPC, PracticalJokeOnBlarton)   
+     SetPlayerProximityFunction(NPC, 10, "InRange", Spawn) 
+end
 ```

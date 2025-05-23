@@ -1,16 +1,18 @@
-### Function: ToggleTracking(param1)
+### Function: ToggleTracking(spawn)
 
 **Description:**
-Placeholder description.
+Toggles the tracking on or off for the Caster.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-ToggleTracking(...)
+-- From Spells/Commoner/Tracking.lua
+function cast(Caster, Target)
+    ToggleTracking(Caster)
+end
 ```

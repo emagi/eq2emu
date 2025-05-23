@@ -1,18 +1,14 @@
-### Function: SetStr(param1, param2, param3)
+### Function: SetStr(spawn, value)
 
 **Description:**
-Placeholder description.
+Set's the Spawn's strength to the value provided.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: float - Floating point value.
+- `luaspell` (int32) - Integer value `luaspell`.
+- `value` (int32) - Integer value `value`.
 
 **Returns:** None.
 
 **Example:**
 
-```lua
--- Example usage
-SetStr(..., ..., ...)
-```
+Example Required

@@ -1,18 +1,14 @@
-### Function: SetAgi(param1, param2, param3)
+### Function: SetAgi(spawn, value)
 
 **Description:**
-Placeholder description.
+Set's the Spawn's agility to the value.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: float - Floating point value.
+- `luaspell` (int32) - Integer value `luaspell`.
+- `value` (int32) - Integer value `value`.
 
 **Returns:** None.
 
 **Example:**
 
-```lua
--- Example usage
-SetAgi(..., ..., ...)
-```
+Example Required

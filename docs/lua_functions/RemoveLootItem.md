@@ -1,17 +1,23 @@
-### Function: RemoveLootItem(param1, param2)
+### Function: RemoveLootItem(spawn, item_id)
 
 **Description:**
-Placeholder description.
+Removes a loot item from the Spawn(NPC).
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: int32 - Integer value.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
+- `item_id` (uint32) - Integer value `item_id`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-RemoveLootItem(..., ...)
+-- From SpawnScripts/Antonica/adankfurdockwarden.lua
+function death(NPC, Spawn)
+if GetQuestStep(Spawn, QUEST_3) == 2 then
+if not HasItem(Spawn, 7800) then
+ AddLootItem(Spawn, 7800)
+elseif HasItem(Spawn, 7800) then
+RemoveLootItem(Spawn, 7800)
+end
 ```

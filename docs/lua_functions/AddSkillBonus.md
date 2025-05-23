@@ -1,20 +1,24 @@
-### Function: AddSkillBonus(param1, param2, param3, param4, param5)
+### Function: AddSkillBonus(spawn, skill_id, value)
 
 **Description:**
 Placeholder description.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: int32 - Integer value.
-- `param5`: float - Floating point value.
+- `luaspell` (int32) - Integer value `luaspell`.
+- `skill_id` (uint32) - Integer value `skill_id`.
+- `value` (int32) - Integer value `value`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-AddSkillBonus(..., ..., ..., ..., ...)
+-- From Spells/AA/BattlemagesFervor.lua
+function cast(Caster, Target, SkillAmt)
+    AddSkillBonus(Target, GetSkillIDByName("Focus"), SkillAmt)
+    AddSkillBonus(Target, GetSkillIDByName("Disruption"), SkillAmt)
+    AddSkillBonus(Target, GetSkillIDByName("Subjugation"), SkillAmt)
+    AddSkillBonus(Target, GetSkillIDByName("Ordination"), SkillAmt)
+    Say(Caster, "need formula")
+end
 ```

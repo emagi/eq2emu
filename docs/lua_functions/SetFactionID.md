@@ -1,17 +1,14 @@
-### Function: SetFactionID(param1, param2)
+### Function: SetFactionID(spawn, value)
 
 **Description:**
-Placeholder description.
+Sets the faction of the Spawn(NPC).
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: int32 - Integer value.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
+- `value` (int32) - Integer value `value`.
 
 **Returns:** None.
 
 **Example:**
 
-```lua
--- Example usage
-SetFactionID(..., ...)
-```
+Example Required

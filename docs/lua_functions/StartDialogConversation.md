@@ -1,27 +1,33 @@
-### Function: StartDialogConversation(param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11, param12)
+### Function: StartDialogConversation(conversation, type, spawn, player, text, mp3, key1, key2, language, can_close)
 
 **Description:**
-Placeholder description.
+Begin a conversation with the Player from the Source Spawn with the previously established conversation options.
 
 **Parameters:**
-- `param1`: ConversationOption[] - List of conversation options.
-- `param2`: unknown - Unknown type.
-- `param3`: int8 - Small integer or boolean flag.
-- `param4`: Spawn - The spawn or entity involved.
-- `param5`: Item - An item reference.
-- `param6`: Spawn - The spawn or entity involved.
-- `param7`: string - String value.
-- `param8`: string - String value.
-- `param9`: int32 - Integer value.
-- `param10`: int32 - Integer value.
-- `param11`: int8 - Small integer or boolean flag.
-- `param12`: int32 - Integer value.
+- `conversation` (Conversation) - Conversation object representing `conversation`.
+- `type` (int32) - Integer value `type`.
+- `item` (Item) - Item object representing `item`.
+- `player` (Spawn) - Spawn object representing `player`.
+- `text` (string) - String `text`.
+- `mp3` (int32) - Integer value `mp3`.
+- `key1` (int32) - Integer value `key1`.
+- `key2` (int32) - Integer value `key2`.
+- `language` (int32) - Integer value `language`.
+- `can_close` (bool) - Boolean flag `can_close`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-StartDialogConversation(..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ...)
+-- From ItemScripts/abixieeye.lua
+function examined(Item, Player)
+    local LnLAccept = GetRuleFlagFloat("R_World", "LoreAndLegendAccept")
+if LnLAccept > 0 and not HasQuest(Player, LoreAndLegendBixie) and not HasCompletedQuest(Player, LoreAndLegendBixie) then
+    OfferQuest(nil, Player, LoreAndLegendBixie)
+else
+    conversation = CreateConversation()    
+if  HasQuest(Player, LoreAndLegendBixie) and  GetQuestStepProgress(Player, LoreAndLegendBixie, 4)==0 then
+    AddConversationOption(conversation, "Begin to study...", "Step_Complete")
+end
 ```

@@ -1,17 +1,14 @@
-### Function: SetLootTier(param1, param2)
+### Function: SetLootTier(spawn, loot_tier)
 
 **Description:**
-Placeholder description.
+When set to 0 (default) all loot for the Spawn's table applies.  If loot_tier is increased then it will restrict the items to tiers equal or below the loot_tier provided.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: int32 - Integer value.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
+- `loot_tier` (int32) - Integer value `loot_tier`.
 
 **Returns:** None.
 
 **Example:**
 
-```lua
--- Example usage
-SetLootTier(..., ...)
-```
+Example Required

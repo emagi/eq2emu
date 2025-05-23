@@ -1,22 +1,16 @@
-### Function: SpawnMove(param1, param2, param3, param4, param5, param6, param7)
+### Function: SpawnMove(spawn, player, max_distance, type)
 
 **Description:**
-Placeholder description.
+Allows a player to move a Spawn/Object, also restricting the max_distance of movement.  Type represents either "floor" (default), "wall" or "ceiling"
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: unknown - Unknown type.
-- `param5`: Spawn - The spawn or entity involved.
-- `param6`: float - Floating point value.
-- `param7`: string - String value.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
+- `player` (Spawn) - Spawn object representing `player`.
+- `max_distance` (int32) - Distance `max_distance`.
+- `type` (string) - String value `type`.
 
 **Returns:** None.
 
 **Example:**
 
-```lua
--- Example usage
-SpawnMove(..., ..., ..., ..., ..., ..., ...)
-```
+Example Required

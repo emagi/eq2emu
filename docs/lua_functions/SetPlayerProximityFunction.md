@@ -1,19 +1,21 @@
-### Function: SetPlayerProximityFunction(param1, param2, param3, param4)
+### Function: SetPlayerProximityFunction(spawn, distance, in_range_function, leaving_range_function)
 
 **Description:**
-Placeholder description.
+The Spawn (NPC) will be notified of a Player entering in range or leaving range.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: float - Floating point value.
-- `param3`: string - String value.
-- `param4`: string - String value.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
+- `distance` (int32) - Distance `distance`.
+- `in_range_function` (int32) - Distance `in_range_function`.
+- `leaving_range_function` (int32) - Distance `leaving_range_function`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-SetPlayerProximityFunction(..., ..., ..., ...)
+-- From SpawnScripts/Antonica/adistressedmerchant.lua
+function spawn(NPC)
+	SetPlayerProximityFunction(NPC, 15, "InRange")
+end
 ```

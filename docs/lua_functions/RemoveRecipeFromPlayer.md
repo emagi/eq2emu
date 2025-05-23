@@ -1,17 +1,14 @@
-### Function: RemoveRecipeFromPlayer(param1, param2)
+### Function: RemoveRecipeFromPlayer(player, recipe_id)
 
 **Description:**
-Placeholder description.
+Removes the recipe_id from the Player's recipe book.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: int32 - Integer value.
+- `player` (Spawn) - Spawn object representing `player`.
+- `recipe_id` (uint32) - Integer value `recipe_id`.
 
-**Returns:** None.
+**Returns:** True if successfully removed from recipe book, otherwise False if unable to remove from recipe book.
 
 **Example:**
 
-```lua
--- Example usage
-RemoveRecipeFromPlayer(..., ...)
-```
+Example Required

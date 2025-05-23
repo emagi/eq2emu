@@ -1,18 +1,14 @@
-### Function: SetSta(param1, param2, param3)
+### Function: SetSta(spawn, value)
 
 **Description:**
-Placeholder description.
+Set's the Spawn's stamina to the value provided.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: float - Floating point value.
+- `luaspell` (int32) - Integer value `luaspell`.
+- `value` (int32) - Integer value `value`.
 
 **Returns:** None.
 
 **Example:**
 
-```lua
--- Example usage
-SetSta(..., ..., ...)
-```
+Example Required

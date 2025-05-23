@@ -1,18 +1,19 @@
-### Function: SetMaxHP(param1, param2, param3)
+### Function: SetMaxHP(spawn, value)
 
 **Description:**
-Placeholder description.
+Set's the Max HP of the Spawn (As a Spell Bonus) to the new value.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
+- `spawn` (Spawn) - Spawn object reference `spawn`.
+- `value` (int32) - Integer value `value`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-SetMaxHP(..., ..., ...)
+-- From ItemScripts/devpotion.lua
+function examined(Item, Player)
+SetMaxHP(Player, GetMaxHP * 3)
+end
 ```

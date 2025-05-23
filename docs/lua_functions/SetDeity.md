@@ -1,17 +1,14 @@
-### Function: SetDeity(param1, param2)
+### Function: SetDeity(spawn, value)
 
 **Description:**
-Placeholder description.
+Set's the deity of the Spawn.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: int8 - Small integer or boolean flag.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
+- `value` (int32) - Integer value `value`.
 
 **Returns:** None.
 
 **Example:**
 
-```lua
--- Example usage
-SetDeity(..., ...)
-```
+Example Required

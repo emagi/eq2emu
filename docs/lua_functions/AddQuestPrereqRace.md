@@ -1,17 +1,19 @@
-### Function: AddQuestPrereqRace(param1, param2)
+### Function: AddQuestPrereqRace(quest, race)
 
 **Description:**
-Placeholder description.
+CanReceiveQuest requires the Player to be of a specific race ID.
 
 **Parameters:**
-- `param1`: unknown - Unknown type.
-- `param2`: int8 - Small integer or boolean flag.
+- `quest` (Quest) - Quest object representing `quest`.
+- `race` (int32) - Integer value `race`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-AddQuestPrereqRace(..., ...)
+-- Require the Player to have a race of 1 (Dark Elf) for the Quest
+function Init(Quest)
+    AddQuestPrereqRace(Quest, 1)
+end
 ```

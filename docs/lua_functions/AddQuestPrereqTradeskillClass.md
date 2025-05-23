@@ -1,18 +1,19 @@
-### Function: AddQuestPrereqTradeskillClass(param1, param2, param3)
+### Function: AddQuestPrereqTradeskillClass(quest, class_id)
 
 **Description:**
-Placeholder description.
+CanReceiveQuest requires the Player to be of the tradeskill class with class_id.
 
 **Parameters:**
-- `param1`: unknown - Unknown type.
-- `param2`: unknown - Unknown type.
-- `param3`: int8 - Small integer or boolean flag.
+- `quest` (Quest) - Quest object representing `quest`.
+- `class_id` (uint32) - Integer value `class_id`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-AddQuestPrereqTradeskillClass(..., ..., ...)
+-- Require the Player to have a tradeskill class of 46 (Craftsman)
+function Init(Quest)
+    AddQuestPrereqTradeskillClass(Quest, 46)
+end
 ```

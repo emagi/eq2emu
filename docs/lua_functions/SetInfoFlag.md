@@ -1,16 +1,22 @@
-### Function: SetInfoFlag(param1)
+### Function: SetInfoFlag(spawn)
 
 **Description:**
-Placeholder description.
+Enables the info flag to trigger a spawn update.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-SetInfoFlag(...)
+-- From SpawnScripts/Antonica/HaddekVimki.lua
+function spawn(NPC)
+	ProvidesQuest(NPC, RunningOutOfBeer)   
+	ProvidesQuest(NPC, OuchMyHead)   
+	ProvidesQuest(NPC, RiseAndShineWine)   
+	ProvidesQuest(NPC, PracticalJokeOnBlarton)   
+     SetPlayerProximityFunction(NPC, 10, "InRange", Spawn) 
+end
 ```

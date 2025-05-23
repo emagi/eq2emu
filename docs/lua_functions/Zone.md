@@ -1,22 +1,23 @@
-### Function: Zone(param1, param2, param3, param4, param5, param6, param7)
+### Function: Zone(zone, player, x, y, z, heading)
 
 **Description:**
-Placeholder description.
+Zone the player to the destination zone,x,y,z,heading.
 
 **Parameters:**
-- `param1`: ZoneServer - The zone object.
-- `param2`: unknown - Unknown type.
-- `param3`: Spawn - The spawn or entity involved.
-- `param4`: float - Floating point value.
-- `param5`: float - Floating point value.
-- `param6`: float - Floating point value.
-- `param7`: float - Floating point value.
+- `zone` (Zone) - Zone object representing `zone`.
+- `player` (Spawn) - Spawn object representing `player`.
+- `x` (int32) - Integer value `x`.
+- `y` (int32) - Integer value `y`.
+- `z` (int32) - Integer value `z`.
+- `heading` (int32) - Integer value `heading`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-Zone(..., ..., ..., ..., ..., ..., ...)
+-- From ItemScripts/BetaVoucher.lua
+function examined(Item, Spawn)
+    Zone(GetZone(1), Spawn, 48.28, -1.08, 44.05, 221.37)
+end
 ```

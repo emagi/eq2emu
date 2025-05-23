@@ -1,20 +1,22 @@
-### Function: SetAggroRadius(param1, param2, param3, param4, param5)
+### Function: SetAggroRadius(spawn, distance, override_)
 
 **Description:**
-Placeholder description.
+Sets the aggro radius of the Spawn(NPC).  The override_ flag will set the base aggro radius to the same value.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: float - Floating point value.
-- `param5`: bool - Boolean value (true/false).
+- `spawn` (Spawn) - Spawn object representing `spawn`.
+- `distance` (int32) - Distance `distance`.
+- `override_` (int32) - Integer value `override_`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-SetAggroRadius(..., ..., ..., ..., ...)
+-- From SpawnScripts/Commonlands/aMilitiaGuard.lua
+function spawn(NPC)
+    NPCModule(NPC, Spawn)  
+    SetAggroRadius(NPC, 20)
+    AddTimer(NPC, 180000, "despawn", 1)
+end
 ```

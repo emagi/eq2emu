@@ -1,17 +1,14 @@
-### Function: SetStatusTmpReward(param1, param2)
+### Function: SetStatusTmpReward(quest, status)
 
 **Description:**
-Placeholder description.
+Set the quest's temporary status reward.
 
 **Parameters:**
-- `param1`: unknown - Unknown type.
-- `param2`: int32 - Integer value.
+- `quest` (Quest) - Quest object representing `quest`.
+- `status` (int32) - Integer value `status`.
 
 **Returns:** None.
 
 **Example:**
 
-```lua
--- Example usage
-SetStatusTmpReward(..., ...)
-```
+Example Required

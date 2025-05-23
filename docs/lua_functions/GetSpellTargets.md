@@ -1,19 +1,21 @@
-### Function: GetSpellTargets(param1, param2, param3, param4)
+### Function: GetSpellTargets(spell)
 
 **Description:**
-Placeholder description.
+Obtain all the Spell Targets of the Spell.  The `spell` field is optional, it will otherwise be in a Spell Script which defaults to the current spell's initial target.
 
 **Parameters:**
-- `param1`: unknown - Unknown type.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: unknown - Unknown type.
+- `spell` (Spell) - Spell object representing `spell`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-GetSpellTargets(..., ..., ..., ...)
+-- From Spells/Commoner/UnholyFear.lua
+function cast(Caster, Target)
+    local targets = GetSpellTargets()
+	for k,v in ipairs(targets) do
+        if GetLevel(v) < GetLevel(Caster) then
+            PlayAnimationString(v, "cringe", nil, true)
+        end
 ```

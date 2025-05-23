@@ -1,17 +1,16 @@
-### Function: AddRecipeBookToPlayer(param1, param2)
+### Function: AddRecipeBookToPlayer(player, recipe_book_id)
 
 **Description:**
-Placeholder description.
+Adds a recipe book to the Player's.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: int32 - Integer value.
+- `player` (Spawn) - Spawn object representing `player`.
+- `recipe_book_id` (uint32) - Integer value `recipe_book_id`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-AddRecipeBookToPlayer(..., ...)
+AddRecipeBook(Player, 1)
 ```

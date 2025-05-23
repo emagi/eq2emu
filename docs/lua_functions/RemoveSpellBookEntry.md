@@ -1,17 +1,21 @@
-### Function: RemoveSpellBookEntry(param1, param2)
+### Function: RemoveSpellBookEntry(player, spellid)
 
 **Description:**
-Placeholder description.
+Removes the spellid from the Player's spell book.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: int32 - Integer value.
+- `player` (Spawn) - Spawn object representing `player`.
+- `spellid` (uint32) - Integer value `spellid`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-RemoveSpellBookEntry(..., ...)
+-- From ItemScripts/BrawlerCertificationPapers.lua
+function Class(Item, Player)
+    conversation = CreateConversation()
+    if CanReceiveQuest(Player,Quest) then
+    AddConversationOption(conversation, "[Turn in these papers for gear]","QuestStart")
+    end
 ```

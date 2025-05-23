@@ -1,17 +1,19 @@
-### Function: SetAdventureClass(param1, param2)
+### Function: SetAdventureClass(spawn, value)
 
 **Description:**
-Placeholder description.
+Changes the Spawn(Player) class to the new value.  Class list is available at https://wiki.eq2emu.com/ReferenceLists/ClassList
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: int8 - Small integer or boolean flag.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
+- `value` (int32) - Integer value `value`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-SetAdventureClass(..., ...)
+-- From ItemScripts/BardCertificationPapers.lua
+    StartDialogConversation(conversation, 2, Item, Player, "You are now known as \n\n"..GetName(Player).." the Bard.")
+ 	if GetClass(Player)== 1 or GetClass(Player)== 0 then
+    SetAdventureClass(Player,35)   
 ```

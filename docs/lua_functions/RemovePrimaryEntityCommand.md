@@ -1,16 +1,17 @@
-Function: RemovePrimaryEntityCommand(Spawn, CommandString)
+### Function: RemovePrimaryEntityCommand(Spawn, CommandString)
 
-Description: Removes a previously added primary entity command from the specified spawn entirely. Players will no longer see that option when interacting with the spawn.
+**Description:**
+Removes a previously added primary entity command from the specified spawn entirely. Players will no longer see that option when interacting with the spawn.
 
-Parameters:
+**Parameters:**
+- `Spawn`: Spawn – The entity from which to remove the command.
+- `CommandString`: String – The name of the command to remove.
 
-    Spawn: Spawn – The entity from which to remove the command.
+**Returns:** None.
 
-    CommandString: String – The name of the command to remove.
+**Example:**
 
-Returns: None.
-
-Example:
-
+```lua
 -- Example usage (Remove hail from command list)
 RemovePrimaryEntityCommand(QuestNPC, "hail")
+```

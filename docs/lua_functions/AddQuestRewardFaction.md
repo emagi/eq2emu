@@ -1,18 +1,15 @@
-### Function: AddQuestRewardFaction(param1, param2, param3)
+### Function: AddQuestRewardFaction(quest, faction_id, amount)
 
 **Description:**
-Placeholder description.
+CanReceiveQuest requires the minimum faction amount with the faction_id specified.
 
 **Parameters:**
-- `param1`: unknown - Unknown type.
-- `param2`: int32 - Integer value.
-- `param3`: unknown - Unknown type.
+- `quest` (Quest) - Quest object representing `quest`.
+- `faction_id` (uint32) - Integer value `faction_id`.
+- `amount` (int32) - Quantity `amount`.
 
 **Returns:** None.
 
 **Example:**
 
-```lua
--- Example usage
-AddQuestRewardFaction(..., ..., ...)
-```
+Example Required

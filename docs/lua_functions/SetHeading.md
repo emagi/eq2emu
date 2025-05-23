@@ -1,17 +1,19 @@
-### Function: SetHeading(param1, param2)
+### Function: SetHeading(spawn, value)
 
 **Description:**
-Placeholder description.
+Sets the heading of the Spawn.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: float - Floating point value.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
+- `value` (int32) - Integer value `value`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-SetHeading(..., ...)
+-- From SpawnScripts/Baubbleshire/DonnaFairbanks.lua
+function Heading(NPC)
+    SetHeading(NPC,"133")
+end
 ```

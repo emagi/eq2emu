@@ -1,22 +1,22 @@
-### Function: SetRequiredHistory(param1, param2, param3, param4, param5, param6, param7)
+### Function: SetRequiredHistory(spawn, event_id, value1, value2, flag_override)
 
 **Description:**
-Placeholder description.
+Set required history to interact with the Spawn.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: int32 - Integer value.
-- `param4`: int32 - Integer value.
-- `param5`: int32 - Integer value.
-- `param6`: int8 - Small integer or boolean flag.
-- `param7`: int16 - Short integer value.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
+- `event_id` (uint32) - Integer value `event_id`.
+- `value1` (int32) - Integer value `value1`.
+- `value2` (int32) - Integer value `value2`.
+- `flag_override` (int32) - Integer value `flag_override`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-SetRequiredHistory(..., ..., ..., ..., ..., ..., ...)
+-- From SpawnScripts/Nektropos1/BasementSecretDoor.lua
+function spawn(NPC)
+	SetRequiredHistory(NPC, HISTORY.NEK_CASTLE_BASEMENT_ACCESS, 1)
+end
 ```

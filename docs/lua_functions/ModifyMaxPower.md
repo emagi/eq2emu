@@ -1,17 +1,16 @@
-### Function: ModifyMaxPower(param1, param2)
+### Function: ModifyMaxPower(spawn, value)
 
 **Description:**
-Placeholder description.
+Sets the Maximum Power of the Spawn to the value provided.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
+- `value` (int32) - Integer value `value`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-ModifyMaxPower(..., ...)
+ModifyMaxPower(NPC, 10000)
 ```

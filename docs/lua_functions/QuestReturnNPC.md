@@ -1,17 +1,21 @@
-### Function: QuestReturnNPC(param1, param2)
+### Function: QuestReturnNPC(quest, spawn_id)
 
 **Description:**
-Placeholder description.
+Sets the return NPC point for a Quest when the quest has been completed.
 
 **Parameters:**
-- `param1`: unknown - Unknown type.
-- `param2`: int32 - Integer value.
+- `quest` (Quest) - Quest object representing `quest`.
+- `spawn_id` (uint32) - Integer value `spawn_id`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-QuestReturnNPC(..., ...)
+-- From Quests/Hallmark/archetype_selection.lua
+function Init(Quest)
+    AddQuestStepChat(Quest, 1, "I need to talk to Garven Tralk", 1, "I need to talk to Garven Tralk", 11, 3250020)
+	AddQuestStepCompleteAction(Quest, 1, "QuestComplete")
+    QuestReturnNPC(Quest, 3250020)
+end
 ```

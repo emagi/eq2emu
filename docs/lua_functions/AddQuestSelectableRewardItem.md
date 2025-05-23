@@ -1,18 +1,28 @@
-### Function: AddQuestSelectableRewardItem(param1, param2, param3)
+### Function: AddQuestSelectableRewardItem(quest, item_id, quantity)
 
 **Description:**
-Placeholder description.
+Adds a selectable reward item for completion of the current Quest.  Triggered by calling the LUA Function `GiveQuestReward` on completion of the Quest.
 
 **Parameters:**
-- `param1`: unknown - Unknown type.
-- `param2`: int32 - Integer value.
-- `param3`: int8 - Small integer or boolean flag.
+- `quest` (Quest) - Quest object representing `quest`.
+- `item_id` (uint32) - Integer value `item_id`.
+- `quantity` (int32) - Integer value `quantity`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-AddQuestSelectableRewardItem(..., ..., ...)
+-- Made up example
+
+local MARINER_STITCHED_BRACERS_ID = 164053
+local MARINER_STITCHED_SHAWL_ID = 164058
+local MARINER_STITCHED_SLIPPERS_ID = 164059
+
+function Init(Quest)
+	-- allows one item to be selected as an end reward of the quest
+	AddQuestSelectableRewardItem(Quest, MARINER_STITCHED_BRACERS_ID)
+	AddQuestSelectableRewardItem(Quest, MARINER_STITCHED_SHAWL_ID)
+	AddQuestSelectableRewardItem(Quest, MARINER_STITCHED_SLIPPERS_ID)
+end
 ```

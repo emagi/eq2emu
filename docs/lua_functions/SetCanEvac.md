@@ -1,18 +1,14 @@
-### Function: SetCanEvac(param1, param2, param3)
+### Function: SetCanEvac(spawn, canevac)
 
 **Description:**
-Placeholder description.
+Sets if the zone allows evac in the area.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: int32 - Integer value.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
+- `canevac` (int32) - Integer value `canevac`.
 
 **Returns:** None.
 
 **Example:**
 
-```lua
--- Example usage
-SetCanEvac(..., ..., ...)
-```
+Example Required

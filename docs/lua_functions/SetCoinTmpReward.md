@@ -1,17 +1,14 @@
-### Function: SetCoinTmpReward(param1, param2)
+### Function: SetCoinTmpReward(quest, coins)
 
 **Description:**
-Placeholder description.
+Set the temporary reward for the quest to the coins in copper.
 
 **Parameters:**
-- `param1`: unknown - Unknown type.
-- `param2`: unknown - Unknown type.
+- `quest` (Quest) - Quest object representing `quest`.
+- `coins` (int32) - Integer value `coins`.
 
 **Returns:** None.
 
 **Example:**
 
-```lua
--- Example usage
-SetCoinTmpReward(..., ...)
-```
+Example Required

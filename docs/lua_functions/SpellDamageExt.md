@@ -1,25 +1,34 @@
-### Function: SpellDamageExt(param1, param2, param3, param4, param5, param6, param7, param8, param9, param10)
+### Function: SpellDamageExt(target, type, min_damage, max_damage, crit_mod, no_calcs, override_packet_type, take_power, class_id)
 
 **Description:**
-Placeholder description.
+Damage a Target inside of a Spell Script, offers power 'damage' support.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: int32 - Integer value.
-- `param5`: int32 - Integer value.
-- `param6`: int32 - Integer value.
-- `param7`: int32 - Integer value.
-- `param8`: int32 - Integer value.
-- `param9`: int32 - Integer value.
-- `param10`: int32 - Integer value.
+- `luaspell` (int32) - Integer value `luaspell`.
+- `type` (int32) - Integer value `type`.
+- `min_damage` (int32) - Integer value `min_damage`.
+- `max_damage` (int32) - Integer value `max_damage`.
+- `crit_mod` (int32) - Integer value `crit_mod`.
+- `no_calcs` (int32) - Integer value `no_calcs`.
+- `override_packet_type` (int32) - Integer value `override_packet_type`.
+- `take_power` (int32) - Integer value `take_power`.
+- `class_id` (uint32) - Integer value `class_id`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-SpellDamageExt(..., ..., ..., ..., ..., ..., ..., ..., ..., ...)
+-- From Spells/Scout/Bard/WaltsSingingBlade.lua
+function damage(Caster, Target, DmgType, MinVal, MaxVal, MinPwr, MaxPwr)
+    Level = GetLevel(Caster)
+    SpellLevel = 15
+    Mastery = SpellLevel + 10
+    StrBonus = GetStr(Caster) / 10
+    IntBonus = GetInt(Caster) / 10 
+        
+    if Level < Mastery then
+        LvlBonus = Level - SpellLevel
+        else LvlBonus = Mastery - SpellLevel
+    end
 ```

@@ -1,17 +1,14 @@
-### Function: SetQuestRewardExp(param1, param2)
+### Function: SetQuestRewardExp(quest, exp)
 
 **Description:**
-Placeholder description.
+Set's the quest reward experience.
 
 **Parameters:**
-- `param1`: unknown - Unknown type.
-- `param2`: int32 - Integer value.
+- `quest` (Quest) - Quest object representing `quest`.
+- `exp` (int32) - Integer value `exp`.
 
 **Returns:** None.
 
 **Example:**
 
-```lua
--- Example usage
-SetQuestRewardExp(..., ...)
-```
+Example Required

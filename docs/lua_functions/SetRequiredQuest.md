@@ -1,22 +1,21 @@
-### Function: SetRequiredQuest(param1, param2, param3, param4, param5, param6, param7)
+### Function: SetRequiredQuest(spawn, quest_id, quest_step, flag_override)
 
 **Description:**
-Placeholder description.
+Set a required quest to access the Spawn.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: int32 - Integer value.
-- `param4`: int16 - Short integer value.
-- `param5`: int8 - Small integer or boolean flag.
-- `param6`: int8 - Small integer or boolean flag.
-- `param7`: int16 - Short integer value.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
+- `quest_id` (uint32) - Integer value `quest_id`.
+- `quest_step` (int32) - Integer value `quest_step`.
+- `flag_override` (int32) - Integer value `flag_override`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-SetRequiredQuest(..., ..., ..., ..., ..., ..., ...)
+-- From SpawnScripts/Antonica/furlinedglovesdownhay.lua
+function spawn(NPC)
+	SetRequiredQuest(NPC, 5815, 3)
+end
 ```

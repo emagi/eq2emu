@@ -1,20 +1,15 @@
-### Function: RemoveSpawnIDAccess(param1, param2, param3, param4, param5)
+### Function: RemoveSpawnIDAccess(spawn, id, zone)
 
 **Description:**
-Placeholder description.
+Removes the Spawn(Player) access to any of the `id` spawn ids inside the Zone specified.  If zone is not provided, Spawn's zone is used.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: int32 - Integer value.
-- `param5`: ZoneServer - The zone object.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
+- `id` (uint32) - Integer value `id`.
+- `zone` (Zone) - Zone object representing `zone`.
 
 **Returns:** None.
 
 **Example:**
 
-```lua
--- Example usage
-RemoveSpawnIDAccess(..., ..., ..., ..., ...)
-```
+Example Required
