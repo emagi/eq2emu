@@ -460,7 +460,7 @@ void WorldDatabase::LoadVisualStates()
 		if ((range = visual_states.FindEmoteRange(string(row2[0]))) == NULL)
 		{
 			range = new EmoteVersionRange(row2[0]);
-			visual_states.InsertEmoteRange(range);
+			visual_states.InsertEmoteRange(range, atoul(row2[1]));
 		}
 		
 		range->AddVersionRange(atoul(row2[4]),atoul(row2[5]), row2[0], atoul(row2[1]), row2[2], row2[3]);

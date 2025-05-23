@@ -221,10 +221,20 @@ void Spawn::InitializeHeaderPacketData(Player* player, PacketStruct* header, int
 	header->setDataByName("index", index);
 
 	if (GetSpawnAnim() > 0 && Timer::GetCurrentTime2() < (GetAddedToWorldTimestamp() + GetSpawnAnimLeeway())) {
+		int32 spawn_anim = GetSpawnAnim();
+		if (header->GetVersion() <= 561) { // spell's spell_visual field is based on newer clients, DoF has to convert
+			Emote* spellVisualEmote = visual_states.FindEmoteByID(spawn_anim, 60085);
+			if (spellVisualEmote != nullptr && spellVisualEmote->GetMessageString().size() > 0) {
+				spellVisualEmote = visual_states.FindEmote(spellVisualEmote->GetMessageString(), header->GetVersion());
+				if (spellVisualEmote) {
+					spawn_anim = (int32)spellVisualEmote->GetVisualState();
+				}
+			}
+		}
 		if (header->GetVersion() >= 57080)
-			header->setDataByName("spawn_anim", GetSpawnAnim());
+			header->setDataByName("spawn_anim", spawn_anim);
 		else
-			header->setDataByName("spawn_anim", (int16)GetSpawnAnim());
+			header->setDataByName("spawn_anim", (int16)spawn_anim);
 	}
 	else {
 		if (header->GetVersion() >= 57080)

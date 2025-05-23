@@ -172,6 +172,7 @@ public:
 		for(map_list = emoteMap.begin(); map_list != emoteMap.end(); map_list++ )
 			safe_delete(map_list->second);
 		emoteMap.clear();
+		emoteMapID.clear();
 	}
 
 	void ClearVisualStates(){
@@ -191,8 +192,9 @@ public:
 		return 0;
 	}
 
-	void InsertEmoteRange(EmoteVersionRange* emote) {
+	void InsertEmoteRange(EmoteVersionRange* emote, int32 animation_id) {
 		emoteMap[emote->GetName()] = emote;
+		emoteMapID[animation_id] = emote;
 	}
 
 	EmoteVersionRange* FindEmoteRange(string var) {
@@ -209,6 +211,28 @@ public:
 			map<VersionRange*,Emote*>::iterator itr = emoteMap[var]->FindEmoteVersion(version);
 
 			if (itr != emoteMap[var]->GetRangeEnd())
+			{
+				Emote* emote = itr->second;
+				return emote;
+			}
+		}
+		return 0;
+	}
+	
+	EmoteVersionRange* FindEmoteRangeByID(int32 id) {
+		if (emoteMapID.count(id) > 0)
+		{
+			return emoteMapID[id];
+		}
+		return 0;
+	}
+	
+	Emote* FindEmoteByID(int32 visual_id, int32 version){
+		if (emoteMapID.count(visual_id) > 0)
+		{
+			map<VersionRange*,Emote*>::iterator itr = emoteMapID[visual_id]->FindEmoteVersion(version);
+
+			if (itr != emoteMapID[visual_id]->GetRangeEnd())
 			{
 				Emote* emote = itr->second;
 				return emote;
@@ -276,6 +300,7 @@ public:
 private:
 	map<string,VisualState*> visualStateMap;
 	map<string,EmoteVersionRange*> emoteMap;
+	map<int32,EmoteVersionRange*> emoteMapID;
 	map<string,EmoteVersionRange*> spellMap;
 	map<int32,EmoteVersionRange*> spellMapID;
 };
