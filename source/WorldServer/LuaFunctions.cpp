@@ -3258,7 +3258,7 @@ int EQ2Emu_lua_GetCurrentHP(lua_State* state) {
 	Spawn* spawn = lua_interface->GetSpawn(state);
 	lua_interface->ResetFunctionStack(state);
 	if (spawn) {
-		lua_interface->SetInt32Value(state, spawn->GetHP());
+		lua_interface->SetSInt32Value(state, spawn->GetHP());
 		return 1;
 	}
 	return 0;
@@ -3269,7 +3269,7 @@ int EQ2Emu_lua_GetMaxHP(lua_State* state) {
 	Spawn* spawn = lua_interface->GetSpawn(state);
 	lua_interface->ResetFunctionStack(state);
 	if (spawn) {
-		lua_interface->SetInt32Value(state, spawn->GetTotalHP());
+		lua_interface->SetSInt32Value(state, spawn->GetTotalHP());
 		return 1;
 	}
 	return 0;
@@ -3280,7 +3280,7 @@ int EQ2Emu_lua_GetMaxHPBase(lua_State* state) {
 	Spawn* spawn = lua_interface->GetSpawn(state);
 	lua_interface->ResetFunctionStack(state);
 	if (spawn) {
-		lua_interface->SetInt32Value(state, spawn->GetTotalHPBase());
+		lua_interface->SetSInt32Value(state, spawn->GetTotalHPBase());
 		return 1;
 	}
 	return 0;
@@ -3323,7 +3323,7 @@ int EQ2Emu_lua_GetCurrentPower(lua_State* state) {
 	Spawn* spawn = lua_interface->GetSpawn(state);
 	lua_interface->ResetFunctionStack(state);
 	if (spawn) {
-		lua_interface->SetInt32Value(state, spawn->GetPower());
+		lua_interface->SetSInt32Value(state, spawn->GetPower());
 		return 1;
 	}
 	return 0;
@@ -3334,7 +3334,7 @@ int EQ2Emu_lua_GetMaxPower(lua_State* state) {
 	Spawn* spawn = lua_interface->GetSpawn(state);
 	lua_interface->ResetFunctionStack(state);
 	if (spawn) {
-		lua_interface->SetInt32Value(state, spawn->GetTotalPower());
+		lua_interface->SetSInt32Value(state, spawn->GetTotalPower());
 		return 1;
 	}
 	return 0;
@@ -3345,7 +3345,7 @@ int EQ2Emu_lua_GetMaxPowerBase(lua_State* state) {
 	Spawn* spawn = lua_interface->GetSpawn(state);
 	lua_interface->ResetFunctionStack(state);
 	if (spawn) {
-		lua_interface->SetInt32Value(state, spawn->GetTotalPowerBase());
+		lua_interface->SetSInt32Value(state, spawn->GetTotalPowerBase());
 		return 1;
 	}
 	return 0;
