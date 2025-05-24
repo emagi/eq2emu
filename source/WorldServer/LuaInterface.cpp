@@ -1026,12 +1026,14 @@ void LuaInterface::RegisterFunctions(lua_State* state) {
 	lua_register(state, "GetLevel", EQ2Emu_lua_GetLevel);
 	lua_register(state, "GetDifficulty", EQ2Emu_lua_GetDifficulty);
 	lua_register(state, "GetHP", EQ2Emu_lua_GetCurrentHP);
+	lua_register(state, "GetCurrentHP", EQ2Emu_lua_GetCurrentHP);
 	lua_register(state, "GetMaxHP", EQ2Emu_lua_GetMaxHP);
 	lua_register(state, "GetMaxHPBase", EQ2Emu_lua_GetMaxHPBase);
 	lua_register(state, "GetMaxPower", EQ2Emu_lua_GetMaxPower);
 	lua_register(state, "GetMaxPowerBase", EQ2Emu_lua_GetMaxPowerBase);
 	lua_register(state, "GetName", EQ2Emu_lua_GetName);
 	lua_register(state, "GetPower", EQ2Emu_lua_GetCurrentPower);
+	lua_register(state, "GetCurrentPower", EQ2Emu_lua_GetCurrentPower);
 	lua_register(state, "GetX", EQ2Emu_lua_GetX);
 	lua_register(state, "GetY", EQ2Emu_lua_GetY);
 	lua_register(state, "GetZ", EQ2Emu_lua_GetZ);
