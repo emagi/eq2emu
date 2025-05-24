@@ -1,17 +1,20 @@
-### Function: GetWardAmountLeft(param1, param2)
+### Function: GetWardAmountLeft(spell)
 
 **Description:**
-Placeholder description.
+Get the ward value amount left on the spell.
 
 **Parameters:**
-- `param1`: unknown - Unknown type.
-- `param2`: unknown - Unknown type.
+- `spell` (Spell) - Spell object representing `spell`.
 
-**Returns:** None.
+**Returns:** UInt32 amount left on the ward.
 
 **Example:**
 
 ```lua
--- Example usage
-GetWardAmountLeft(..., ...)
+-- From Spells/Priest/Shaman/EidolicWard.lua
+function remove(Caster, Target)
+    local heal = GetWardAmountLeft(Target)
+    SpellHeal("Heal", heal, heal)
+    RemoveWard(Caster)
+end
 ```

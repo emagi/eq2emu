@@ -1,30 +1,22 @@
-### Function: GetTempVariable(param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11, param12, param13, param14, param15)
+### Function: GetTempVariable(spawn, var)
 
 **Description:**
-Placeholder description.
+Get a temporary variable of the Spawn
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: unknown - Unknown type.
-- `param5`: unknown - Unknown type.
-- `param6`: unknown - Unknown type.
-- `param7`: unknown - Unknown type.
-- `param8`: unknown - Unknown type.
-- `param9`: unknown - Unknown type.
-- `param10`: unknown - Unknown type.
-- `param11`: unknown - Unknown type.
-- `param12`: string - String value.
-- `param13`: Spawn - The spawn or entity involved.
-- `param14`: string - String value.
-- `param15`: int32 - Integer value.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
+- `var` (string) - String `var`.
 
-**Returns:** None.
+**Returns:** Depending on the SetTempVariable type the return type will vary.
 
 **Example:**
 
 ```lua
--- Example usage
-GetTempVariable(..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ...)
+-- From ItemScripts/awellspringcubleash.lua
+function used(Item, Player)
+    target = GetTarget(Player)
+	if GetName(target) == 'a wellspring cub' and GetTempVariable(Player, "cub") == nil then
+		if not IsInCombat(target) then
+			CastEntityCommand(Player, target, 1278, "Leash")
+		end
 ```

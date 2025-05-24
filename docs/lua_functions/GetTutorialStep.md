@@ -1,16 +1,19 @@
-### Function: GetTutorialStep(param1)
+### Function: GetTutorialStep(player)
 
 **Description:**
-Placeholder description.
+Get the current tutorial step for the player.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
+- `player` (Spawn) - Spawn object representing `player`.
 
-**Returns:** None.
+**Returns:** UInt32 step of the tutorial progress.
 
 **Example:**
 
 ```lua
--- Example usage
-GetTutorialStep(...)
+-- From SpawnScripts/FarJourneyFreeport/Vim.lua
+function hailed(NPC, player)
+    if HasQuest(player,524) and GetQuestStep(player,524)==5 and HasItem(player,12565,1) then
+        SetStepComplete(player,524,5)
+    end
 ```

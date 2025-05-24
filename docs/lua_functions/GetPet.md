@@ -1,17 +1,23 @@
-Function: GetPet(Spawn)
+### Function: GetPet(Spawn)
 
-Description: Retrieves the pet entity of the given spawn, if one exists. For players, this returns their current summoned combat pet (summoner or necromancer pet, etc.), or for NPCs, a charmed pet or warder.
+**Description:**
+Retrieves the pet entity of the given spawn, if one exists. For players, this returns their current summoned combat pet (summoner or necromancer pet, etc.), or for NPCs, a charmed pet or warder.
 
-Parameters:
+**Parameters:**
+- `spawn` (Spawn) - Spawn object representing `spawn`.
 
-    Spawn: Spawn – The owner whose pet we want to get.
+**Return:** Spawn object of the pet that the owner spawn currently has.
 
-Returns: Spawn – The pet entity of the owner, or nil if no pet is present.
+**Example:**
 
-Example:
-
--- Example usage (command a player's pet to attack if it exists)
-local pet = GetPet(Player)
-if pet ~= nil then
-    Attack(pet, TargetNPC)
+```lua
+-- From Spells/CamtursEnergizingAura.lua
+function cast(Caster, Target)
+    level = GetLevel(Caster)
+    Pet = GetPet(Caster)
+    AddSpellBonus(Caster, 500, math.ceil(level * 2.75))
+    AddSpellBonus(Caster, 501, math.ceil(level * 2.75))
+    AddSpellBonus(Caster, 200, level * 5 + 99)
+    CastSpell(Pet, 2550518)
 end
+```

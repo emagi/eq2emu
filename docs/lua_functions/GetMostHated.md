@@ -1,17 +1,24 @@
-Function: GetMostHated(NPC)
+### Function: GetMostHated(NPC)
 
-Description: Retrieves the spawn that currently has the highest hate (aggro) on the specified NPC’s hate list. This is usually the NPC’s current primary target in combat.
+**Description:**
+Retrieves the spawn that currently has the highest hate (aggro) on the specified NPC’s hate list. This is usually the NPC’s current primary target in combat.
 
-Parameters:
+**Parameters:**
+- `spawn` (Spawn) - Spawn object representing `spawn`.
 
-    NPC: Spawn – The NPC whose hate list to examine.
+**Example:**
 
-Returns: Spawn – The entity with top hate on the NPC (often the tank or highest damage dealer), or nil if the NPC has no hate list.
-
-Example:
-
--- Example usage (make the boss shout at whoever has top aggro)
-local topAggro = GetMostHated(BossNPC)
-if topAggro ~= nil then
-    Say(BossNPC, "I will destroy you, " .. GetName(topAggro) .. "!")
+```lua
+-- From SpawnScripts/A Meeting of the Minds/Borxx.lua
+function borxxConvo5(NPC, Spawn)
+    local overlord = GetSpawn(NPC, 5560003)
+    local hated = GetMostHated(overlord)
+    local braxx = GetSpawn(NPC, 5560004)
+    local brixx = GetSpawn(NPC, 5560005)
+    FaceTarget(NPC, overlord)   
+    Say(NPC, "So be it.")
+    Attack(NPC, hated)
+    Attack(braxx, hated)
+    Attack(brixx, hated)
 end
+```

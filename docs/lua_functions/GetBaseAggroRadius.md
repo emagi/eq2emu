@@ -1,18 +1,13 @@
-### Function: GetBaseAggroRadius(param1, param2, param3)
+### Function: GetBaseAggroRadius(spawn)
 
 **Description:**
-Placeholder description.
+Return's the base aggro radius of the Spawn.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
 
-**Returns:** None.
+**Returns:** Base aggro radius of the spawn in float.
 
 **Example:**
 
-```lua
--- Example usage
-GetBaseAggroRadius(..., ..., ...)
-```
+Example Required

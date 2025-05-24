@@ -1,16 +1,20 @@
-### Function: GetMaxPower(param1)
+### Function: GetMaxPower(spawn)
 
 **Description:**
-Placeholder description.
+Gets the Spawn's maximum (total) power.
+
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
 
-**Returns:** None.
+**Returns:** SInt32 maximum (total) power of the spawn.
 
 **Example:**
 
 ```lua
--- Example usage
-GetMaxPower(...)
+-- From Spells/Centered.lua
+function cast(Caster, Target)
+    MaxPower = GetMaxPower(Caster)
+    AddSpellBonus(Caster, 501, math.floor(MaxPower * 0.025))
+end
 ```

@@ -1,17 +1,14 @@
-### Function: GetSpawnByRailID(param1, param2)
+### Function: GetSpawnByRailID(zone, rail_id)
 
 **Description:**
-Placeholder description.
+Gets a spawn in a zone by its rail_id.
 
 **Parameters:**
-- `param1`: ZoneServer - The zone object.
-- `param2`: sint64 - Large integer value.
+- `zone` (Zone) - Zone object representing `zone`.
+- `rail_id` (int64) - Integer value `rail_id`.
 
-**Returns:** None.
+**Returns:** Spawn object reference.
 
 **Example:**
 
-```lua
--- Example usage
-GetSpawnByRailID(..., ...)
-```
+Example Required

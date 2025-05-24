@@ -1,19 +1,15 @@
-### Function: GetChoiceSpawnID(param1, param2, param3, param4)
+### Function: GetChoiceSpawnID(spawn, commandMatch, declineValue)
 
 **Description:**
-Placeholder description.
+Spawn represents the Player with the choice window.  Return's the spawn_id if the choice was determined from a previously provided CreateChoiceWindow.  This remains until ClearChoice is called.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: string - String value.
-- `param4`: int8 - Small integer or boolean flag.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
+- `commandMatch` (string) - String `commandMatch`.
+- `declineValue` (uint8) - Integer value `declineValue`.
 
-**Returns:** None.
+**Returns:** UInt32 of the spawn_id the Player is using the choice dialog with.
 
 **Example:**
 
-```lua
--- Example usage
-GetChoiceSpawnID(..., ..., ..., ...)
-```
+Example Required

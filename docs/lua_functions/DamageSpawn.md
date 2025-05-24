@@ -1,31 +1,38 @@
-### Function: DamageSpawn(param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11, param12, param13, param14, param15, param16)
+### Function: DamageSpawn(attacker, victim, type, dmg_type, low_damage, high_damage, spell_name, crit_mod)
 
 **Description:**
-Placeholder description.
+Damages the victim by the attacker.  `type` represents damage packet types listed here https://github.com/emagi/eq2emu/blob/main/docs/data_types/damage_packet_types.md converted from hex to decimal.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: unknown - Unknown type.
-- `param5`: unknown - Unknown type.
-- `param6`: Spawn - The spawn or entity involved.
-- `param7`: int8 - Small integer or boolean flag.
-- `param8`: int8 - Small integer or boolean flag.
-- `param9`: int32 - Integer value.
-- `param10`: int32 - Integer value.
-- `param11`: string - String value.
-- `param12`: int8 - Small integer or boolean flag.
-- `param13`: int8 - Small integer or boolean flag.
-- `param14`: int8 - Small integer or boolean flag.
-- `param15`: int8 - Small integer or boolean flag.
-- `param16`: int8 - Small integer or boolean flag.
+- `attacker` (Spawn) - Spawn object representing `attacker`.
+- `victim` (Spawn) - Spawn object representing `victim`.
+- `type` (uint8) - Integer value `type`.
+- `dmg_type` (uint8) - Integer value `dmg_type`.
+- `low_damage` (uint32) - Integer value `low_damage`.
+- `high_damage` (uint32) - Integer value `high_damage`.
+- `spell_name` (string) - String `spell_name`.
+- `crit_mod` (uint8) - Integer value `crit_mod`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-DamageSpawn(..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ...)
+-- From RegionScripts/exp04_dun_droga_nurga/naj_lavaregion_damage.lua
+function TakeLavaDamage(Spawn)
+    local invul = IsInvulnerable(Spawn)
+    if invul == true then
+        return 0
+    end
+
+	local hp = GetHP(Spawn)
+    local level = GetLevel(Spawn)
+    local damageToTake = level * 25
+	-- if we don't have enough HP make them die to pain and suffering not self
+	if hp <= damageToTake then
+		KillSpawn(Spawn, null, 1)
+	else
+		DamageSpawn(Spawn, Spawn, 192, 3, damageToTake, damageToTake, "Lava Burn", 0, 0, 1, 1)
+	end
+end
 ```

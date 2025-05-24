@@ -1,18 +1,13 @@
-### Function: GetAggroRadius(param1, param2, param3)
+### Function: GetAggroRadius(spawn)
 
 **Description:**
-Placeholder description.
+Gets the aggro radius (float) of the Spawn.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
 
-**Returns:** None.
+**Returns:** Float of the Spawn/NPC if valid.
 
 **Example:**
 
-```lua
--- Example usage
-GetAggroRadius(..., ..., ...)
-```
+Example Required

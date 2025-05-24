@@ -1,18 +1,14 @@
-### Function: DamageEquippedItems(param1, param2, param3)
+### Function: DamageEquippedItems(spawn, damage_amount)
 
 **Description:**
-Placeholder description.
+Cause a percentage based amount of damage to equipped items.  damage_amount 5 = 5%
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: int32 - Integer value.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
+- `damage_amount` (uint32) - Quantity `damage_amount`.
 
 **Returns:** None.
 
 **Example:**
 
-```lua
--- Example usage
-DamageEquippedItems(..., ..., ...)
-```
+Example Required

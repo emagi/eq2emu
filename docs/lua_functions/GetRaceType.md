@@ -1,16 +1,21 @@
-Function: GetRaceType(Spawn)
+### Function: GetRaceType(Spawn)
 
-Description: Retrieves the race type category ID of the specified spawn. Instead of the specific race (human, elf, etc.), this returns a broader category (e.g., humanoid, animal, etc.).
+**Description:**
+Retrieves the race type category ID of the specified spawn. Instead of the specific race (human, elf, etc.), this returns a broader category (e.g., humanoid, animal, etc.).
 
-Parameters:
+**Parameters:**
+- `spawn` (Spawn) - Spawn object representing `spawn`.
 
-    Spawn: Spawn – The entity whose race type to get.
+**Example:**
 
-Returns: Int32 – The race type ID of the spawn (corresponding to categories in game data).
+```lua
+-- From Spells/Priest/Cleric/Templar/DivineStrike.lua
+function cast(Caster, Target, DmgType, MinDmg, MaxDmg)
+    SpellDamage(Target, DmgType, MinDmg, MaxDmg)
 
-Example:
-
--- Example usage (determine if NPC is animal-type for a charm spell)
-if GetRaceType(NPC) == RACE_TYPE_ANIMAL then
-    SendMessage(Player, "This creature can be charmed by your spell.", "white")
+    --[[ We don't have racetypes on npcs yet
+    if GetRaceType(Target) == "Undead" then
+        SpellDamage(Target, DmgType, MinDmg, MaxDmg)
+    end--]]
 end
+```

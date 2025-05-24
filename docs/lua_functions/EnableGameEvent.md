@@ -1,18 +1,17 @@
-### Function: EnableGameEvent(param1, param2, param3)
+### Function: EnableGameEvent(player, event_name, enabled)
 
 **Description:**
-Placeholder description.
+Triggers a game event on the Player's interface/UI, all behavior depends on the event_name.  The `event_name` options are defined in https://github.com/emagi/eq2emu/blob/main/docs/data_types/game_events.md
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: string - String value.
-- `param3`: int8 - Small integer or boolean flag.
+- `player` (Spawn) - Spawn object representing `player`.
+- `event_name` (string) - String `event_name`.
+- `enabled` (uint8) - Integer value `enabled`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-EnableGameEvent(..., ..., ...)
+EnableGameEvent(Player, "UI_SCREENSHOT", 1) -- client takes a screenshot
 ```

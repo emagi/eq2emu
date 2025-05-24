@@ -1,20 +1,27 @@
-Function: GetAlignment(Player)
+### Function: GetAlignment(Player)
 
-Description: Returns the alignment of the player character – typically Good, Neutral, or Evil in EQ2. Alignment often affects starting city and some quest options.
+**Description:**
+Returns the alignment of the player character – typically Good, Neutral, or Evil in EQ2. Alignment often affects starting city and some quest options.
 
-Parameters:
+**Parameters:**
+- `spawn` (Spawn) - Spawn object representing `spawn`.
 
-    Player: Spawn – The player to query.
+**Example:**
 
-Returns: Int32 – An alignment value (e.g., 0=Neutral, 1=Good, 2=Evil as commonly used).
-
-Example:
-
--- Example usage (greet players differently by alignment)
-if GetAlignment(Player) == 1 then
-    Say(NPC, "Well met, friend of Qeynos.")
-elseif GetAlignment(Player) == 0 then
-    Say(NPC, "I smell the stench of Freeport on you.")
-elseif GetAlignment(Player) == 2 then
-    Say(NPC, "Neutrality you say?")
+```lua
+-- From ItemScripts/ForgeryFreeportCitizenshipPapers.lua
+function Faction(Item,Player)
+    Freeport = GetFactionAmount(Player, 11)
+    Freeport_Add = (10000-Freeport)
+    Freeport = GetFactionAmount(Player, 12)
+    Freeport_Add = (-20000-Freeport)
+    Neriak = GetFactionAmount(Player, 13)
+    Kelethin = GetFactionAmount(Player, 14)
+    Halas = GetFactionAmount(Player, 16)
+    Gorowyn = GetFactionAmount(Player, 17)
+    alignment = GetAlignment(Player)
+ if Freeport <10000 and Freeport >=0 then ChangeFaction(Player, 11, Freeport_Add)
+    elseif Freeport <0 then ChangeFaction(Player, 11, (Freeport*-1))
+    Faction(Item,Player)    
 end
+```

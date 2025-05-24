@@ -1,16 +1,13 @@
-### Function: GetZonePlayerFirstLevel(param1)
+### Function: GetZonePlayerFirstLevel(zone)
 
 **Description:**
-Placeholder description.
+Gets the first players level entering an instance / raid zone.
 
 **Parameters:**
-- `param1`: ZoneServer - The zone object.
+- `zone` (Zone) - Zone object representing `zone`.
 
-**Returns:** None.
+**Returns:** UInt32 first level of player.
 
 **Example:**
 
-```lua
--- Example usage
-GetZonePlayerFirstLevel(...)
-```
+Example Required

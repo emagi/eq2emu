@@ -1,16 +1,22 @@
-### Function: GetID(param1)
+### Function: GetID(spawn)
 
 **Description:**
-Placeholder description.
+Gets the current ID of the Spawn for the Zone.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
 
-**Returns:** None.
+**Returns:** UInt32 ID of the Spawn for it's current instance in the zone.
 
 **Example:**
 
 ```lua
--- Example usage
-GetID(...)
+-- From Spells/Commoner/DetectGood.lua
+function cast(Caster, Target)
+    local targets = GetGroup(Caster)
+    if targets ~= nil then
+        for k,v in ipairs(targets) do
+            if GetAlignment(Target) == 1 and GetID(Target) == GetID(v) then
+                ApplySpellVisual(v,136)
+            end
 ```

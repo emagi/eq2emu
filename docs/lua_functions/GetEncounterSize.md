@@ -1,18 +1,12 @@
-### Function: GetEncounterSize(param1, param2, param3)
+### Function: GetEncounterSize(spawn)
 
 **Description:**
-Placeholder description.
+Gets the encounter list size of the Spawn(NPC).
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-
+- `spawn` (Spawn) - Spawn object representing `spawn`.
 **Returns:** None.
 
 **Example:**
 
-```lua
--- Example usage
-GetEncounterSize(..., ..., ...)
-```
+Example Required

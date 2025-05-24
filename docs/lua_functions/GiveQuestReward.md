@@ -1,7 +1,7 @@
 ### Function: GiveQuestReward(quest, spawn)
 
 **Description:**
-Provides the quest rewards previously specified with AddQuestRewardCoin, AddQuestRewardFaction, AddQuestRewardItem and AddQuestSelectableRewardItem or in the database.
+Provides the previously assigned rewards for a quest via AddQuestReward.. functions and other related functions.
 
 **Parameters:**
 - `quest` (Quest) - Quest object representing `quest`.
@@ -18,6 +18,5 @@ function  QuestCheck1(Quest, QuestGiver, Player)
 	UpdateQuestTaskGroupDescription(Quest, 1, "I have found all I need to Fast-Track to Qeynos.")
 	UpdateQuestDescription(Quest, "I have all the necessary parts for the Fast-Track passage to Qeynos. The ride was a bit cramped...")
 	GiveQuestReward(Quest, Player)
-end
 end
 ```

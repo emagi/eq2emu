@@ -1,16 +1,13 @@
-### Function: GetZonePlayerMinLevel(param1)
+### Function: GetZonePlayerMinLevel(zone)
 
 **Description:**
-Placeholder description.
+Gets the selected min players level in an instance / raid zone.
 
 **Parameters:**
-- `param1`: ZoneServer - The zone object.
+- `zone` (Zone) - Zone object representing `zone`.
 
-**Returns:** None.
+**Returns:** UInt32 min level of player in the group zoned in.
 
 **Example:**
 
-```lua
--- Example usage
-GetZonePlayerMinLevel(...)
-```
+Example Required

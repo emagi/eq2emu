@@ -1,16 +1,13 @@
-### Function: GetZonePlayerAvgLevel(param1)
+### Function: GetZonePlayerAvgLevel(zone)
 
 **Description:**
-Placeholder description.
+Gets the collected players average level for a instance / raid zone.
 
 **Parameters:**
-- `param1`: ZoneServer - The zone object.
+- `zone` (Zone) - Zone object representing `zone`.
 
-**Returns:** None.
+**Returns:** UInt32 averaged level.
 
 **Example:**
 
-```lua
--- Example usage
-GetZonePlayerAvgLevel(...)
-```
+Example Required

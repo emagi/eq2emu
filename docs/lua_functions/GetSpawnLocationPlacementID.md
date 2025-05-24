@@ -1,16 +1,13 @@
-### Function: GetSpawnLocationPlacementID(param1)
+### Function: GetSpawnLocationPlacementID(spawn)
 
 **Description:**
-Placeholder description.
+Gets the spawns location placement id.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
 
-**Returns:** None.
+**Returns:** UInt32 location placement id of the spawn.
 
 **Example:**
 
-```lua
--- Example usage
-GetSpawnLocationPlacementID(...)
-```
+Example Required

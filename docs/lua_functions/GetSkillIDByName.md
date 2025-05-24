@@ -1,17 +1,22 @@
-### Function: GetSkillIDByName(param1, param2)
+### Function: GetSkillIDByName(name)
 
 **Description:**
-Placeholder description.
+Get the skill id by its name.
 
 **Parameters:**
-- `param1`: string - String value.
-- `param2`: unknown - Unknown type.
+- `name` (string) - String `name`.
 
-**Returns:** None.
+**Returns:** UInt32 skill id of the skill name.
 
 **Example:**
 
 ```lua
--- Example usage
-GetSkillIDByName(..., ...)
+-- From Spells/AA/BattlemagesFervor.lua
+function cast(Caster, Target, SkillAmt)
+    AddSkillBonus(Target, GetSkillIDByName("Focus"), SkillAmt)
+    AddSkillBonus(Target, GetSkillIDByName("Disruption"), SkillAmt)
+    AddSkillBonus(Target, GetSkillIDByName("Subjugation"), SkillAmt)
+    AddSkillBonus(Target, GetSkillIDByName("Ordination"), SkillAmt)
+    Say(Caster, "need formula")
+end
 ```

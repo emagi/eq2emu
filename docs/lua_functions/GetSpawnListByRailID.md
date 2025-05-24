@@ -1,17 +1,14 @@
-### Function: GetSpawnListByRailID(param1, param2)
+### Function: GetSpawnListByRailID(spawn, rail_id)
 
 **Description:**
-Placeholder description.
+Gets the spawn list by the rail id.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: sint64 - Large integer value.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
+- `rail_id` (int64) - Integer value `rail_id`.
 
-**Returns:** None.
+**Returns:** Table - list of Spawn object references.
 
 **Example:**
 
-```lua
--- Example usage
-GetSpawnListByRailID(..., ...)
-```
+Example Required

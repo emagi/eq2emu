@@ -1,19 +1,22 @@
-### Function: GetSkill(param1, param2, param3, param4)
+### Function: GetSkill(spawn, name)
 
 **Description:**
-Placeholder description.
+Gets the skill object reference for a spawn by name.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: string - String value.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
+- `name` (string) - String `name`.
 
-**Returns:** None.
+**Returns:** Skill object reference.
 
 **Example:**
 
 ```lua
--- Example usage
-GetSkill(..., ..., ..., ...)
+-- From SpawnScripts/DarkBargainers/SasitSoroth.lua
+function MaxGathering(NPC, Spawn)
+	local skill = GetSkill(Spawn, "Gathering")
+    if skill ~= nil then
+        SetSkillMaxValue(skill, 300)
+        SetSkillValue(skill, 300)
+    end
 ```

@@ -1,16 +1,13 @@
-### Function: GetZoneName(param1)
+### Function: GetZoneName(zone)
 
 **Description:**
-Placeholder description.
+Gets the zone name of the zone object referenced.
 
 **Parameters:**
-- `param1`: ZoneServer - The zone object.
+- `zone` (Zone) - Zone object representing `zone`.
 
-**Returns:** None.
+**Returns:** String name of the zone.
 
 **Example:**
 
-```lua
--- Example usage
-GetZoneName(...)
-```
+Example Required

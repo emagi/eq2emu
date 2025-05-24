@@ -1,17 +1,23 @@
-### Function: GetTradeskillClass(param1, param2)
+### Function: GetTradeskillClass(spawn)
 
 **Description:**
-Placeholder description.
+Gets the tradeskill class id of the Spawn.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
 
-**Returns:** None.
+**Returns:** UInt32 tradeskill class id of the spawn.
 
 **Example:**
 
 ```lua
--- Example usage
-GetTradeskillClass(..., ...)
+-- From SpawnScripts/FarJourneyFreeport/CaptainVarlos.lua
+function ClassSet(NPC,player)
+	SetAdventureClass(player,0)
+	SendMessage(player, "You are now a Commoner.")
+    SendPopUpMessage(player, "You are now a Commoner.", 255, 255, 255)
+    SetPlayerLevel(player,1)
+if GetTradeskillClass(player)>0 then
+    SetTradeskillClass(player,0)
+end
 ```

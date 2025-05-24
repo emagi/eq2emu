@@ -1,16 +1,13 @@
-### Function: GetCurrentPower(param1)
+### Function: GetCurrentPower(spawn)
 
 **Description:**
-Placeholder description.
+Returns the current Power of the Spawn, this can be represented as GetPower(spawn) as well.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
 
-**Returns:** None.
+**Returns:** SInt32 current power value of the spawn.
 
 **Example:**
 
-```lua
--- Example usage
-GetCurrentPower(...)
-```
+Example Required

@@ -1,17 +1,25 @@
-### Function: GetCanBind(param1, param2)
+### Function: GetCanBind(spawn)
 
 **Description:**
-Placeholder description.
+Gets if the Spawn(Player) can bind in the current zone.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
 
-**Returns:** None.
+**Returns:** Returns UINT32 1 if you can bind, otherwise 0.
 
 **Example:**
 
 ```lua
--- Example usage
-GetCanBind(..., ...)
+-- From Spells/Commoner/SetRecallPoint.lua
+function cast(Caster, Target)
+
+	canbind = GetCanBind(Caster)
+	incombat = IsInCombat(Caster)
+	
+	if ( incombat == true)
+	then
+		SendMessage(Caster, "You cannot use Set Recall Point while in combat.", "red")
+	    goto exit;
+	end
 ```

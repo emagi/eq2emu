@@ -1,16 +1,13 @@
-### Function: GetTemporaryTransportID(param1)
+### Function: GetTemporaryTransportID(player)
 
 **Description:**
-Placeholder description.
+Get the Player's temporary transport.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
+- `player` (Spawn) - Spawn object representing `player`.
 
-**Returns:** None.
+**Returns:** Spawn object reference.
 
 **Example:**
 
-```lua
--- Example usage
-GetTemporaryTransportID(...)
-```
+Example Required

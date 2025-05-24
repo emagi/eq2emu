@@ -1,19 +1,14 @@
-### Function: GetCharacterFlag(param1, param2, param3, param4)
+### Function: GetCharacterFlag(player, flag_id)
 
 **Description:**
-Placeholder description.
+Gets the current character flag value for the flag_id specified.  Refer to the CF_.. flags in the Player.h
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: unknown - Unknown type.
+- `player` (Spawn) - Spawn object representing `player`.
+- `flag_id` (int32) - Integer value `flag_id`.
 
-**Returns:** None.
+**Returns:** Boolean return's true if the flag is enabled or false if disabled.
 
 **Example:**
 
-```lua
--- Example usage
-GetCharacterFlag(..., ..., ..., ...)
-```
+Example Required

@@ -1,15 +1,32 @@
-Function: GetShardCreatedTimestamp(ShardID)
+### Function: GetShardCreatedTimestamp(ShardID)
 
-Description: Returns the Unix timestamp (or similar) of when the spirit shard was created (i.e., the time of the player’s death that generated it).
+**Description:**
+Returns the Unix timestamp (or similar) of when the spirit shard was created (i.e., the time of the player’s death that generated it).
 
-Parameters:
+**Parameters:**
+- `npc` (Spawn) - Spawn object representing `npc`.
 
-    ShardID: Int32 – The spirit shard’s ID.
+**Returns:** UInt32 timestamp of the creation time of the shard.
 
-Returns: Int64 – The creation timestamp of the shard.
+**Example:**
 
-Example:
+```lua
+-- From SpawnScripts/Generic/SpiritShard.lua
+function CheckShardExpired(NPC)
+	local timestamp = GetShardCreatedTimestamp(NPC)
+	local dateTable = os.date("*t", timestamp)
 
--- Example usage (calculate how old a shard is for some mechanic)
-local shardTime = GetShardCreatedTimestamp(shardID)
-local ageSeconds = os.time() - shardTime
+	-- Generate time
+	local creationTime = os.time{year=dateTable.year, month=dateTable.month, day=dateTable.day, hour=dateTable.hour, min=dateTable.min, sec=dateTable.sec}
+
+	local currentUTCTime = os.time(os.date('!*t'))
+	
+	local resultDiff = currentUTCTime - creationTime;
+	local shardLifeTime = GetRuleFlagFloat("R_Combat", "ShardLifetime")
+	
+	if shardLifeTime > 0 and resultDiff > shardLifeTime then
+		local shardid = GetShardID(NPC)
+		DeleteDBShardID(shardid) -- you could alternatively choose to not delete from DB, but for now it only holds XP debt recovery not items
+		Despawn(NPC)
+	end
+```

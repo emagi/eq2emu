@@ -1,18 +1,22 @@
-### Function: GetRuleFlagBool(param1, param2, param3)
+### Function: GetRuleFlagBool(category, name)
 
 **Description:**
-Placeholder description.
+Gets the boolean rule flag from the world based on the category and name.
 
 **Parameters:**
-- `param1`: string - String value.
-- `param2`: unknown - Unknown type.
-- `param3`: string - String value.
+- `category` (string) - String `category`.
+- `name` (string) - String `name`.
 
-**Returns:** None.
+**Returns:** Boolean value true/false depending on the rule setting.
 
 **Example:**
 
 ```lua
--- Example usage
-GetRuleFlagBool(..., ..., ...)
+-- From SpawnScripts/Generic/SpiritShard.lua
+function spawn(NPC)
+	local DebtToRemovePct = GetRuleFlagFloat("R_Combat", "ShardDebtRecoveryPercent")
+		
+	if GetRuleFlagBool("R_Combat", "ShardRecoveryByRadius") == true then
+		SetPlayerProximityFunction(NPC, 10.0, "recovershard")
+	end
 ```

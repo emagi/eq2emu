@@ -1,12 +1,12 @@
 ### Function: GetSpellCaster(spell)
 
 **Description:**
-Obtain the Spawn 'Caster' of the Spell.  The `spell` field is optional, it will otherwise be in a Spell Script which defaults to getting the current spell caster.
+Gets the spell caster of the spell provided or the current spell if inside a Spell Script, `spell` parameter is optional.
 
 **Parameters:**
 - `spell` (Spell) - Spell object representing `spell`.
 
-**Returns:** None.
+**Returns:** Spawn object reference of the Spell's caster.
 
 **Example:**
 

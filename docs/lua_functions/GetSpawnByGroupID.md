@@ -1,17 +1,20 @@
-### Function: GetSpawnByGroupID(param1, param2)
+### Function: GetSpawnByGroupID(zone, group_id)
 
 **Description:**
-Placeholder description.
+Gets the first spawn by its group_id.
 
 **Parameters:**
-- `param1`: ZoneServer - The zone object.
-- `param2`: int32 - Integer value.
+- `zone` (Zone) - Zone object representing `zone`.
+- `group_id` (uint32) - Integer value `group_id`.
 
-**Returns:** None.
+**Returns:** Spawn object reference
 
 **Example:**
 
 ```lua
--- Example usage
-GetSpawnByGroupID(..., ...)
+-- From SpawnScripts/IsleRefuge1/GoblinSaboteurFirepit.lua
+function InRange(NPC,Spawn)
+    if GetQuestStep(Spawn,saboteur)==1 then
+        SetStepComplete(Spawn,saboteur,1)
+    end
 ```

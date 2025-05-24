@@ -1,22 +1,25 @@
-### Function: CureByControlEffect(param1, param2, param3, param4, param5, param6, param7)
+### Function: CureByControlEffect(cure_count, cure_type, cure_name, cure_level, target)
 
 **Description:**
-Placeholder description.
+Cures the control effects.  cure_count controls the amount of cures activated, cure_type will be the control effect type.  If in a spell script and no target it will apply to all spell targets.
 
 **Parameters:**
-- `param1`: unknown - Unknown type.
-- `param2`: int8 - Small integer or boolean flag.
-- `param3`: unknown - Unknown type.
-- `param4`: int8 - Small integer or boolean flag.
-- `param5`: string - String value.
-- `param6`: int8 - Small integer or boolean flag.
-- `param7`: Spawn - The spawn or entity involved.
+- `cure_count` (uint8) - Integer value `cure_count`.
+- `cure_type` (uint8) - Integer value `cure_type`.
+- `cure_name` (string) - String `cure_name`.
+- `cure_level` (uint8) - Integer value `cure_level`.
+- `target` (Spawn) - Spawn object representing `target`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-CureByControlEffect(..., ..., ..., ..., ..., ..., ...)
+-- From Spells/Priest/Cleric/Inquisitor/FerventFaith.lua
+function cast(Caster, Target, Levels)
+    CureByControlEffect(1, 1, "Cure", Levels)
+    CureByControlEffect(1, 2, "Cure", Levels)
+    CureByControlEffect(1, 3, "Cure", Levels)
+    CureByControlEffect(1, 4, "Cure", Levels)
+end
 ```

@@ -1,18 +1,14 @@
-### Function: GetItemSkillReq(param1, param2, param3)
+### Function: GetItemSkillReq(item, type)
 
 **Description:**
-Placeholder description.
+Get the skill id requirement for the item.  Type 1 is skill_req1, Type 2 is skill_req2.
 
 **Parameters:**
-- `param1`: Item - An item reference.
-- `param2`: unknown - Unknown type.
-- `param3`: int32 - Integer value.
+- `item` (Item) - Item object representing `item`.
+- `type` (uint32) - Integer value `type`.
 
-**Returns:** None.
+**Returns:** UInt32 Skill ID required to use the item.
 
 **Example:**
 
-```lua
--- Example usage
-GetItemSkillReq(..., ..., ...)
-```
+Example Required

@@ -1,16 +1,13 @@
-### Function: GetRaceName(param1)
+### Function: GetRaceName(spawn)
 
 **Description:**
-Placeholder description.
+Gets the string name of the Spawn's race.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
 
-**Returns:** None.
+**Returns:** String of the spawn's race.
 
 **Example:**
 
-```lua
--- Example usage
-GetRaceName(...)
-```
+Example Required

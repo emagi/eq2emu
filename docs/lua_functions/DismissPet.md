@@ -1,14 +1,21 @@
-Function: DismissPet(Spawn)
+### Function: DismissPet(Spawn)
 
-Description: Dismisses (despawns) the specified player’s active pet. This works for combat pets, cosmetic pets, deity pets, etc., causing them to vanish as if the player dismissed them manually.
+**Description:**
+Dismisses (despawns) the specified player’s active pet. This works for combat pets, cosmetic pets, deity pets, etc., causing them to vanish as if the player dismissed them manually.
 
-Parameters:
+**Parameters:**
+- `spawn` (Spawn) - Spawn object representing `spawn`.
 
-    Spawn: Spawn – The player whose pet should be dismissed.
+**Returns:** None.
 
-Returns: None.
+**Example:**
 
-Example:
-
--- Example usage (dismissing a pet at the end of an event)
-DismissPet(Player)
+```lua
+-- From Spells/AA/SummonAnimatedTome.lua
+function remove(Caster, Target)
+    RemoveSpellBonus(Target)
+    pet = GetCosmeticPet(Caster)
+    if pet ~= nil then
+        DismissPet(pet)
+    end
+```

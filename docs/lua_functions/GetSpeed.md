@@ -1,16 +1,23 @@
-### Function: GetSpeed(param1)
+### Function: GetSpeed(spawn)
 
 **Description:**
-Placeholder description.
+Gets the current speed of the Spawn.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
 
-**Returns:** None.
+**Returns:** Float value of the Spawn's speed.
 
 **Example:**
 
 ```lua
--- Example usage
-GetSpeed(...)
+-- From Spells/Mage/Summoner/Conjuror/Sleet.lua
+function cast(Caster, Target, DDType, MinDDVal, MaxDDVal, SnareAmount, DispelChance)
+
+	-- DD component
+	if MaxDDVal ~= nil and MinDDVal < MaxDDVal then
+		SpellDamage(Target, DDType, math.random(MinDDVal, MaxDDVal))
+	else
+		SpellDamage(Target, DDType, MinDDVal)
+	end
 ```

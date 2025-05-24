@@ -1,17 +1,19 @@
-### Function: GetItemCount(param1, param2)
+### Function: GetItemCount(item)
 
 **Description:**
-Placeholder description.
+Get's the item count of the specified Item object.
 
 **Parameters:**
-- `param1`: Item - An item reference.
-- `param2`: unknown - Unknown type.
+- `item` (Item) - Item object representing `item`.
 
-**Returns:** None.
+**Returns:** UInt32 value of the quantity/count available in the current item stack.
 
 **Example:**
 
 ```lua
--- Example usage
-GetItemCount(..., ...)
+-- From ItemScripts/anaxeedge.lua
+function obtained(Item, Player)
+if HasQuest(Player, Gnasher) or HasCompletedQuest(Player, Gnasher) or GetItemCount(3560) > 1 then
+RemoveItem(Player, 3560)
+end
 ```

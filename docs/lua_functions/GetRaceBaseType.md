@@ -1,16 +1,36 @@
-Function: GetRaceBaseType(Spawn)
+### Function: GetRaceBaseType(Spawn)
 
-Description: Returns the base race category of the spawn, which may be similar to GetRaceType but often refers to an even broader grouping (like “Player” vs “NPC” races or base model types).
+**Description:**
+Returns the base race category of the spawn, refer to the database race types tables.
 
-Parameters:
+**Parameters:**
+- `spawn` (Spawn) - Spawn object representing `spawn`.
 
-    Spawn: Spawn – The entity to check.
+**Example:**
 
-Returns: Int32 – An identifier for the base race category.
+```lua
+-- From Spells/Priest/Cleric/RadiantStrike.lua
+function cast(Caster, Target, DmgType, MinVal, MaxVal)
+    
+    Level = GetLevel(Caster)
+    SpellLevel = 11
+    Mastery = SpellLevel + 10
+    StatBonus = GetInt(Caster) / 10
+    
+    if Level < Mastery then
+        LvlBonus = Level - SpellLevel
+        else LvlBonus = Mastery - SpellLevel
+    end
 
-Example:
+    DmgBonus = LvlBonus + StatBonus
+    MaxDmg = math.floor(DmgBonus) * 2 + MaxVal
+    MinDmg = math.floor(DmgBonus) * 2 + MaxVal
+    
+    SpellDamage(Target, DmgType, MinDmg, MaxDmg)
+    
+    if GetRaceBaseType(Target) == 333 then
+        SpellDamage(Target, Dmgtype, MinDmg, MaxDmg)
+    end
 
--- Example usage (check if a target is a player character or an NPC by base type)
-if GetRaceBaseType(Target) == BASE_RACE_PLAYER then
-    Say(NPC, "Greetings, adventurer.")
 end
+```

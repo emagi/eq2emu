@@ -1,19 +1,14 @@
-### Function: GetWardValue(param1, param2, param3, param4)
+### Function: GetWardValue(spell, type)
 
 **Description:**
-Placeholder description.
+Gets a ward value type depending on the type string passed.  See the list of ward value types here: https://github.com/emagi/eq2emu/blob/main/docs/data_types/ward_value_types.md
 
 **Parameters:**
-- `param1`: unknown - Unknown type.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: string - String value.
+- `spell` (Spell) - Spell object representing `spell`.
+- `type` (string) - String `type`.
 
-**Returns:** None.
+**Returns:** See https://github.com/emagi/eq2emu/blob/main/docs/data_types/ward_value_types.md for return types by the input string type.
 
 **Example:**
 
-```lua
--- Example usage
-GetWardValue(..., ..., ..., ...)
-```
+Example Required

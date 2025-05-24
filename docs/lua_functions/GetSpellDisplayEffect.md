@@ -1,21 +1,15 @@
-### Function: GetSpellDisplayEffect(param1, param2, param3, param4, param5, param6)
+### Function: GetSpellDisplayEffect(spell, idx, field)
 
 **Description:**
-Placeholder description.
+Gets the spell display effect defined on the spell by its index.  Field can represent "description" (return string), "bullet" (return uint32) or "percentage" (return uint32).
 
 **Parameters:**
-- `param1`: unknown - Unknown type.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: unknown - Unknown type.
-- `param5`: int32 - Integer value.
-- `param6`: string - String value.
+- `spell` (Spell) - Spell object representing `spell`.
+- `idx` (uint32) - Integer value `idx`.
+- `field` (string) - String `field`.
 
 **Returns:** None.
 
 **Example:**
 
-```lua
--- Example usage
-GetSpellDisplayEffect(..., ..., ..., ..., ..., ...)
-```
+Example Required

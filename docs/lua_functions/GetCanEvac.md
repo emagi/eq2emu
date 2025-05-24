@@ -1,17 +1,23 @@
-### Function: GetCanEvac(param1, param2)
+### Function: GetCanEvac(spawn)
 
 **Description:**
-Placeholder description.
+Gets if the Spawn(Player) can evac in the current zone.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
 
-**Returns:** None.
+**Returns:** Returns UINT32 1 if you can evac, otherwise 0.
 
 **Example:**
 
 ```lua
--- Example usage
-GetCanEvac(..., ...)
+-- From Spells/Scout/Escape.lua
+function precast(Caster, Target)
+    if(GetCanEvac(Caster) == 1)
+    then
+        return true
+    else
+        SendMessage(Caster, "You cannot use evacuate spells in this zone.", "red")
+        return false
+    end
 ```

@@ -1,16 +1,20 @@
-### Function: GetTarget(param1)
+### Function: GetTarget(spawn)
 
 **Description:**
-Placeholder description.
+Gets the current target of the Spawn.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
 
-**Returns:** None.
+**Returns:** Spawn object reference.
 
 **Example:**
 
 ```lua
--- Example usage
-GetTarget(...)
+-- From ItemScripts/AutomaticBook.lua
+function obtained(Item, Spawn)    
+    target = GetTarget(Spawn)
+    if target ~= nil then
+--        CastEntityCommand(Spawn, target, 1, "Scribe")
+end
 ```

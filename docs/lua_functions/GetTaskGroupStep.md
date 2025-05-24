@@ -1,17 +1,14 @@
-### Function: GetTaskGroupStep(param1, param2)
+### Function: GetTaskGroupStep(player, quest_id)
 
 **Description:**
-Placeholder description.
+Ges the currebt task group step for the quest id.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: int32 - Integer value.
+- `player` (Spawn) - Spawn object representing `player`.
+- `quest_id` (uint32) - Integer value `quest_id`.
 
-**Returns:** None.
+**Returns:** UInt32 task group step value.
 
 **Example:**
 
-```lua
--- Example usage
-GetTaskGroupStep(..., ...)
-```
+Example Required

@@ -1,19 +1,14 @@
-### Function: GetSpellData(param1, param2, param3, param4)
+### Function: GetSpellData(spell, field)
 
 **Description:**
-Placeholder description.
+Returns spell data of the current spell object.
 
 **Parameters:**
-- `param1`: unknown - Unknown type.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: string - String value.
+- `spell` (Spell) - Spell object representing `spell`.
+- `field` (string) - String `field`.
 
-**Returns:** None.
+**Returns:** Various values depending on the WorldServer/Spells.cpp Spell::GetSpellData
 
 **Example:**
 
-```lua
--- Example usage
-GetSpellData(..., ..., ..., ...)
-```
+Example Required

@@ -1,19 +1,19 @@
-### Function: GetPCTOfPower(param1, param2, param3, param4)
+### Function: GetPCTOfPower(spawn, pct)
 
 **Description:**
-Placeholder description.
+Get the Spawn's amount of power in UInt32 value using a float percentage.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: float - Floating point value.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
+- `pct` (float) - float value `pct`.
 
-**Returns:** None.
+**Returns:** UInt32 representation of the power against the percentage provided for the Spawn.
 
 **Example:**
 
 ```lua
--- Example usage
-GetPCTOfPower(..., ..., ..., ...)
+-- From Spells/Commoner/BlessingofFaith.lua
+function cast(Caster, Target, pctHeal)
+SpellHeal("Power", GetPCTOfPower(Caster, pctHeal))
+end
 ```

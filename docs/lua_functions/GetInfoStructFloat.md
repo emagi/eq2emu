@@ -1,16 +1,30 @@
-Function: GetInfoStructFloat(Spawn, FieldName)
+### Function: GetInfoStructFloat(spawn, field)
 
-Description: Retrieves a floating-point field from a spawn’s info data. Could be used for precise position, speed multipliers, etc. if stored there.
+**Description:**
+Retrieves a floating-point field from a spawn’s info data. Could be used for precise position, speed multipliers, etc. if stored there.  See https://github.com/emagi/eq2emu/blob/main/docs/data_types/info_struct.md for a full list of options.
 
-Parameters:
+**Parameters:**
+- `spawn` (Spawn) - Spawn object representing `spawn`.
+- `field` (string) - String `field`.
 
-    Spawn: Spawn – The entity whose info to check.
+**Returns:** Float – The value of that field.
 
-    FieldName: String – The name of the float field.
+**Example:**
 
-Returns: Float – The value of the field.
-
-Example:
-
--- Example usage (get an entity's size scale factor)
-local scale = GetInfoStructFloat(NPC, "size")
+```lua
+-- From SpawnScripts/Generic/SpiritShard.lua
+function recovershard(NPC, Spawn)
+	local charid = GetShardCharID(NPC)
+	FindSpellVisualByID
+	if GetCharacterID(Spawn) == charid then
+		local DebtToRemovePct = GetRuleFlagFloat("R_Combat", "ShardDebtRecoveryPercent")
+		local DeathXPDebt = GetRuleFlagFloat("R_Combat", "DeathExperienceDebt")
+		
+		local debt = GetInfoStructFloat(Spawn, "xp_debt")
+		local DebtToRemove = (DebtToRemovePct/100.0)*(DeathXPDebt/100.0);
+		if debt > DebtToRemove then
+			SetInfoStructFloat(Spawn, "xp_debt", debt - DebtToRemove)
+		else
+			SetInfoStructFloat(Spawn, "xp_debt", 0.0)
+		end
+```

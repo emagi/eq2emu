@@ -1,16 +1,13 @@
-### Function: GetZonePlayerMaxLevel(param1)
+### Function: GetZonePlayerMaxLevel(zone)
 
 **Description:**
-Placeholder description.
+Gets the selected max players level in an instance / raid zone.
 
 **Parameters:**
-- `param1`: ZoneServer - The zone object.
+- `zone` (Zone) - Zone object representing `zone`.
 
-**Returns:** None.
+**Returns:** UInt32 max level of player in the group zoned in.
 
 **Example:**
 
-```lua
--- Example usage
-GetZonePlayerMaxLevel(...)
-```
+Example Required

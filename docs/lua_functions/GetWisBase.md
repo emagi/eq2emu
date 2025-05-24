@@ -1,16 +1,13 @@
-### Function: GetWisBase(param1)
+### Function: GetWisBase(spawn)
 
 **Description:**
-Placeholder description.
+Gets the base wisdom of the spawn.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
 
-**Returns:** None.
+**Returns:** UInt32 base wisdom value of the spawn.
 
 **Example:**
 
-```lua
--- Example usage
-GetWisBase(...)
-```
+Example Required

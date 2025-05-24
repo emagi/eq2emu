@@ -1,19 +1,26 @@
-### Function: Emote(param1, param2, param3, param4)
+### Function: Emote(spawn, message, spawn2, player)
 
 **Description:**
-Placeholder description.
+The spawn sends an emote to the general area, spawn2 is whom the emote is targetted at.  If player is defined then the emote will only be sent to that player.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: string - String value.
-- `param3`: Spawn - The spawn or entity involved.
-- `param4`: Spawn - The spawn or entity involved.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
+- `message` (string) - String `message`.
+- `spawn2` (Spawn) - Spawn object representing `spawn2`.
+- `player` (Spawn) - Spawn object representing `player`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-Emote(..., ..., ..., ...)
+-- From ItemScripts/guiderobes.lua
+function equipped(Item, Spawn)
+    while HasItem(Spawn, 157245)
+    do 
+	    PlayAnimation(Spawn, 16583)
+	end
+	Emote(Spawn, "feels empowered.")
+	ModifyHP(Spawn, 1000000000)
+end
 ```

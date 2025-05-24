@@ -1,16 +1,20 @@
-Function: GetPlayersInZone(Zone)
+### Function: GetPlayersInZone(Zone)
 
-Description: Retrieves a list of all player spawns currently present in the specified zone.
+**Description:** Retrieves a list of all player spawns currently present in the specified zone.
 
-Parameters:
+**Parameters:**
+- `zone` (Zone) - Zone object representing `zone`.
 
-    Zone: Zone – The zone object or context to search in.
+**Returns:** Table - Spawns array list of players in current zone.
 
-Returns: Table – A list (array) of player Spawn objects in that zone.
+**Example:**
 
-Example:
-
--- Example usage (announce a message to all players in the zone)
-for _, player in ipairs(GetPlayersInZone(GetZone(NPC))) do
-    SendMessage(player, "The dragon roars in the distance!", "red")
-end
+```lua
+-- From SpawnScripts/Classic_forest/TheBasaltWatcher.lua
+function wakeup(NPC)
+		local players = GetPlayersInZone(GetZone(NPC))              --zone callout and activation
+		for index, player in pairs(players) do
+		SendPopUpMessage(player, "Grinding stone can be heard as something ancient stirs in the ruins.", 255, 255, 0)
+		SendMessage(player, "Grinding stone can be heard as something ancient stirs in the ruins.","yellow")
+    end
+```

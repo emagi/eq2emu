@@ -1,19 +1,16 @@
-### Function: CreatePersistedRespawn(param1, param2, param3, param4)
+### Function: CreatePersistedRespawn(location_id, spawn_type, respawn_time, zone_id)
 
 **Description:**
-Placeholder description.
+Creates a persisted respawn time if the zone shuts down, the time will be persisted.
 
 **Parameters:**
-- `param1`: int32 - Integer value.
-- `param2`: int32 - Integer value.
-- `param3`: int32 - Integer value.
-- `param4`: int32 - Integer value.
+- `location_id` (uint32) - Integer value `location_id`.
+- `spawn_type` (uint32) - Integer value `spawn_type`.
+- `respawn_time` (uint32) - Time value `respawn_time` in seconds.
+- `zone_id` (uint32) - Integer value `zone_id`.
 
 **Returns:** None.
 
 **Example:**
 
-```lua
--- Example usage
-CreatePersistedRespawn(..., ..., ..., ...)
-```
+Example Required

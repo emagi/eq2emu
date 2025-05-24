@@ -1,18 +1,29 @@
-### Function: GetRunbackDistance(param1, param2, param3)
+### Function: GetRunbackDistance(spawn)
 
 **Description:**
-Placeholder description.
+Gets the distance from the runback point for the current Spawn.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
 
-**Returns:** None.
+**Returns:** Float distance from the runback point.
 
 **Example:**
 
 ```lua
--- Example usage
-GetRunbackDistance(..., ..., ...)
+-- From SpawnScripts/Generic/NPCModule.lua
+function IdleAggressive(NPC)
+    if not IsInCombat(NPC) and GetRunbackDistance(NPC)<2 then
+        local choice = MakeRandomInt(1,5)
+        if choice == 1 then
+            PlayFlavor(NPC,"","","scheme",0,0)
+        elseif choice == 2 then
+            PlayFlavor(NPC,"","","brandish",0,0)
+        elseif choice == 3 then
+            PlayFlavor(NPC,"","","tapfoot",0,0)
+        elseif choice == 4 then
+            PlayFlavor(NPC,"","","swear",0,0)
+        elseif choice == 5 then
+            PlayFlavor(NPC,"","","threaten",0,0)
+        end
 ```

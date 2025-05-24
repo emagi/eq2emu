@@ -1,16 +1,19 @@
-### Function: GetMount(param1)
+### Function: GetMount(spawn)
 
 **Description:**
-Placeholder description.
+Gets the spawn object that represents the mount for the Spawn provided.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
 
-**Returns:** None.
+**Returns:** Mount Spawn object of the Spawn specified.
 
 **Example:**
 
 ```lua
--- Example usage
-GetMount(...)
+-- From Spells/Commoner/AbyssalCarpet.lua
+function precast(Caster)
+ if GetMount(Caster) > 0 then
+        return false
+    end
 ```

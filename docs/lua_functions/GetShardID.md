@@ -1,16 +1,29 @@
-### Function: GetShardID(param1)
+### Function: GetShardID(npc)
 
 **Description:**
-Placeholder description.
+Gets the shard database id of the Spawn.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
+- `npc` (Spawn) - Spawn object representing `npc`.
 
-**Returns:** None.
+**Returns:** UInt32 shard database id of the Spawn.
 
 **Example:**
 
 ```lua
--- Example usage
-GetShardID(...)
+-- From SpawnScripts/Generic/SpiritShard.lua
+function recovershard(NPC, Spawn)
+	local charid = GetShardCharID(NPC)
+	
+	if GetCharacterID(Spawn) == charid then
+		local DebtToRemovePct = GetRuleFlagFloat("R_Combat", "ShardDebtRecoveryPercent")
+		local DeathXPDebt = GetRuleFlagFloat("R_Combat", "DeathExperienceDebt")
+		
+		local debt = GetInfoStructFloat(Spawn, "xp_debt")
+		local DebtToRemove = (DebtToRemovePct/100.0)*(DeathXPDebt/100.0);
+		if debt > DebtToRemove then
+			SetInfoStructFloat(Spawn, "xp_debt", debt - DebtToRemove)
+		else
+			SetInfoStructFloat(Spawn, "xp_debt", 0.0)
+		end
 ```

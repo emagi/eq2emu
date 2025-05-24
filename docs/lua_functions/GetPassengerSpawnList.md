@@ -1,16 +1,13 @@
-### Function: GetPassengerSpawnList(param1)
+### Function: GetPassengerSpawnList(spawn)
 
 **Description:**
-Placeholder description.
+Gets a list of passengers on a boat / widget / object.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
 
-**Returns:** None.
+**Returns:** Table of Spawn object references on the object.
 
 **Example:**
 
-```lua
--- Example usage
-GetPassengerSpawnList(...)
-```
+Example Required

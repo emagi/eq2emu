@@ -1,17 +1,17 @@
-### Function: GetCanGate(Spawn)
+### Function: GetCanGate(spawn)
 
 **Description:**
 Checks if the Spawn is allowed to use Gate spells in this zone or area.
 
 **Parameters:**
-- `Spawn`: Spawn - The spawn to check if Gate is allowed.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
 
-**Returns:** None.
+**Returns:** Returns UINT32 1 if you can gate, otherwise 0.
 
 **Example:**
 
 ```lua
--- Example usage Spells/Commoner/CalltoHome.lua (spell to send player to their Bind with Gate)
+-- From Spells/Commoner/CalltoHome.lua
 function precast(Caster, Target)
     if GetBoundZoneID(Caster) == 0 then
         return false
@@ -26,9 +26,5 @@ function precast(Caster, Target)
     end
 
  return true
-end
-
-function cast(Caster, Target)
-    Gate(Caster)    
 end
 ```

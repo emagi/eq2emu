@@ -1,17 +1,20 @@
-### Function: GetQuestStep(param1, param2)
+### Function: GetQuestStep(player, quest_id)
 
 **Description:**
-Placeholder description.
+Gets the current quest step of the quest based on the quest_id.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: int32 - Integer value.
+- `player` (Spawn) - Spawn object representing `player`.
+- `quest_id` (uint32) - Integer value `quest_id`.
 
-**Returns:** None.
+**Returns:** UInt32 current step the player is on with the quest.
 
 **Example:**
 
 ```lua
--- Example usage
-GetQuestStep(..., ...)
+-- From ItemScripts/ABloodsabermeddlernote.lua
+function decipher(Item, Player)
+if GetQuestStep(Player, AnIntriguingEye) == 2 then
+SetStepComplete(Player, AnIntriguingEye, 2)
+end
 ```

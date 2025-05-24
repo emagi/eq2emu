@@ -1,16 +1,20 @@
-### Function: GetZ(param1)
+### Function: GetZ(spawn)
 
 **Description:**
-Placeholder description.
+Current Z position of the spawn.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
 
-**Returns:** None.
+**Returns:** Float Z of the spawn.
 
 **Example:**
 
 ```lua
--- Example usage
-GetZ(...)
+-- From ItemScripts/BardCertificationPapers.lua
+function Class(Item, Player)
+    conversation = CreateConversation()
+    if CanReceiveQuest(Player,Quest) then
+    AddConversationOption(conversation, "[Turn in these papers for gear]","QuestStart")
+    end
 ```

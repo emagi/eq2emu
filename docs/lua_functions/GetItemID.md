@@ -1,17 +1,19 @@
-### Function: GetItemID(param1, param2)
+### Function: GetItemID(item)
 
 **Description:**
-Placeholder description.
+Get Item ID of the specified Item object.
 
 **Parameters:**
-- `param1`: Item - An item reference.
-- `param2`: unknown - Unknown type.
+- `item` (Item) - Item object representing `item`.
 
-**Returns:** None.
+**Returns:** UInt32 value of the item id.
 
 **Example:**
 
 ```lua
--- Example usage
-GetItemID(..., ...)
+-- From ItemScripts/Darkheart.lua
+function used(Item, Player)
+    local item_id = GetItemID(Item)
+    CastSpell(Player, SPELLID, SPELL_TIERS[item_id])
+end
 ```

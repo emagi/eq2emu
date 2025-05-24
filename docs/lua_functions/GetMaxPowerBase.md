@@ -1,16 +1,20 @@
-### Function: GetMaxPowerBase(param1)
+### Function: GetMaxPowerBase(spawn)
 
 **Description:**
-Placeholder description.
+Gets the Spawn's base power.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
 
-**Returns:** None.
+**Returns:** SInt32 base power of the spawn.
 
 **Example:**
 
 ```lua
--- Example usage
-GetMaxPowerBase(...)
+-- From Spells/Commoner/DualBreed.lua
+function cast(Caster, Target)
+    PowerBonus = math.ceil(GetMaxPowerBase(Caster) * 0.03)
+    AddSpellBonus(Caster, 1, 2)
+    AddSpellBonus(Caster, 501, PowerBonus)
+end
 ```

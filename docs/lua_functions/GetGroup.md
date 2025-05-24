@@ -1,19 +1,23 @@
-Function: GetGroup(Spawn)
+### Function: GetGroup(Spawn)
 
-Description: Returns the group object that the given spawn (player or NPC) belongs to. This can be used to iterate over group members or to perform group-wide actions.
+**Description:**
+Returns an array of Spawns that the given spawn (player or NPC) belongs to. This can be used to iterate over group members or to perform group-wide actions.
 
-Parameters:
+**Parameters:**
+- `spawn` (Spawn) - Spawn object representing `spawn`.
 
-    Spawn: Spawn – The entity whose group is requested (typically a Player).
+**Returns:** An array of Spawn objects that represents the spawn’s group. If the spawn is not in a group, this may return nil.
 
-Returns: Group – A group object or identifier that represents the spawn’s group. If the spawn is not in a group, this may return nil or an empty group reference.
+**Example:**
 
-Example:
-
--- Example usage (send a message to all members of a player's group)
-local group = GetGroup(Player)
-if group ~= nil then
-    for _, member in ipairs(GetGroupMembers(group)) do
-        SendMessage(member, "A teammate has activated the device!")
-    end
-end
+```lua
+-- From SpawnScripts/Generic/AlexaLockets.lua -- v is the Spawn object reference, k is the position in the array.
+function hailed(NPC, Spawn)
+	if GetTempVariable(NPC, "talking") ~= "true" then
+		StartDialogLoop(NPC, Spawn)
+		local player_group = GetGroup(Spawn)
+		if player_group ~= nil then
+			for k,v in ipairs(player_group) do
+				SetPlayerHistory(v, HISTORY.NEK_CASTLE_LIBRARY_ACCESS, 1)
+			end
+```

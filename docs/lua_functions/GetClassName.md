@@ -1,16 +1,13 @@
-### Function: GetClassName(param1)
+### Function: GetClassName(spawn)
 
 **Description:**
-Placeholder description.
+Gets the class name of the Spawn.  In the Class Constant format in the classes table https://github.com/emagi/eq2emu/blob/main/docs/data_types/classes.md 
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
 
-**Returns:** None.
+**Returns:** String of the class name for the Spawn, using the Class Constant format (all upper case) in https://github.com/emagi/eq2emu/blob/main/docs/data_types/classes.md
 
 **Example:**
 
-```lua
--- Example usage
-GetClassName(...)
-```
+Example Required

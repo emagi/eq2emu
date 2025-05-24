@@ -1,18 +1,19 @@
-### Function: GetBoundZoneID(param1, param2, param3)
+### Function: GetBoundZoneID(spawn)
 
 **Description:**
-Placeholder description.
+Gets the zone id the Spawn(Player) is bound in.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
 
-**Returns:** None.
+**Returns:** Returns UINT32 of the Zone ID.
 
 **Example:**
 
 ```lua
--- Example usage
-GetBoundZoneID(..., ..., ...)
+-- From Spells/Commoner/CalltoHome.lua
+function precast(Caster, Target)
+    if GetBoundZoneID(Caster) == 0 then
+        return false
+    end
 ```

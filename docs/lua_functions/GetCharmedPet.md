@@ -1,17 +1,19 @@
-Function: GetCharmedPet(Spawn)
+### Function: GetCharmedPet(Spawn)
 
-Description: Returns the NPC that the given player or NPC has charmed, if any. When a player charms an NPC (through a spell), that NPC becomes a pet under their control — this function retrieves it.
+**Description:**
+Returns the NPC that the given player or NPC has charmed, if any. When a player charms an NPC (through a spell), that NPC becomes a pet under their control — this function retrieves it.
 
-Parameters:
+**Parameters:**
+- `spawn` (Spawn) - Spawn object representing `spawn`.
 
-    Spawn: Spawn – The entity (usually a player) who may have a charmed pet.
+**Example:**
 
-Returns: Spawn – The charmed pet NPC if one exists, or nil if there is no active charmed pet.
-
-Example:
-
--- Example usage (checking if player currently has a charmed creature)
-local charmed = GetCharmedPet(Player)
-if charmed ~= nil then
-    Say(charmed, "I am under your control...") 
-end
+```lua
+-- From Spells/Mage/Enchanter/Charm.lua
+function remove(Caster, Target)
+    local pet = GetCharmedPet(Caster)
+    if pet ~= nil then
+        RemoveSpellBonus(pet)
+        DismissPet(pet)
+    end
+```

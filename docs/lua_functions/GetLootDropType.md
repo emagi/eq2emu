@@ -1,16 +1,13 @@
-### Function: GetLootDropType(param1)
+### Function: GetLootDropType(spawn)
 
 **Description:**
-Placeholder description.
+Get the loot drop type of the spawn.  Return is: 0 - default drop all chest type as a group, 1 -  this is a primary mob it drops its own loot
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
 
-**Returns:** None.
+**Returns:** UInt32 value of the loot drop type
 
 **Example:**
 
-```lua
--- Example usage
-GetLootDropType(...)
-```
+Example Required

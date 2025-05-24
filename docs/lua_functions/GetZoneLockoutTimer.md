@@ -1,19 +1,15 @@
-### Function: GetZoneLockoutTimer(param1, param2, param3, param4)
+### Function: GetZoneLockoutTimer(player, zoneID, displayClient)
 
 **Description:**
-Placeholder description.
+Gets the zone lockout timer
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: int32 - Integer value.
-- `param4`: int32 - Integer value.
+- `player` (Spawn) - Spawn object representing `player`.
+- `zoneID` (uint32) - Integer value `zoneID`.
+- `displayClient` (uint32) - Integer value `displayClient`.
 
-**Returns:** None.
+**Returns:** Provides a string representation of the lockout time remaining
 
 **Example:**
 
-```lua
--- Example usage
-GetZoneLockoutTimer(..., ..., ..., ...)
-```
+Example Required

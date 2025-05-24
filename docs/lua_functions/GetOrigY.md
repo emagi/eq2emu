@@ -1,14 +1,24 @@
-Function: GetOrigY(Spawn)
+### Function: GetOrigY(Spawn)
 
-Description: Returns the original Y coordinate (vertical position) of the spawn’s starting point in the zone.
+**Description:**
+Returns the original Y coordinate (vertical position) of the spawn’s starting point in the zone.
 
-Parameters:
+**Parameters:**
+- `spawn` (Spawn) - Spawn object representing `spawn`.
 
-    Spawn: Spawn – The entity in question.
+**Returns:** Float – The Y position of the spawn’s original location.
 
-Returns: Float – The Y coordinate of its original spawn location.
+**Example:**
 
-Example:
+```lua
+-- From SpawnScripts/OutpostOverlord/acliffdiverhawk.lua
+function ReturnHome(NPC)
 
--- Example usage (for debugging an NPC's elevation change)
-print("NPC original Y: " .. GetOrigY(NPC) .. ", current Y: " .. GetY(NPC))
+    local x = GetOrigX(NPC)
+    local y = GetORigY(NPC)
+    local z = GetOrigZ(NPC)
+
+    if IsInCombat(NPC) == false then
+        MoveToLocation(NPC, x, y, z, 5)
+    end
+```

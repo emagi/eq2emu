@@ -1,19 +1,27 @@
-### Function: GetSpell(param1, param2, param3, param4)
+### Function: GetSpell(spell_id, spell_tier, custom_lua_script)
 
 **Description:**
-Placeholder description.
+Gets a spell object reference by spell_id, spell_tier and can supply a custom lua script to run.
 
 **Parameters:**
-- `param1`: int32 - Integer value.
-- `param2`: unknown - Unknown type.
-- `param3`: int8 - Small integer or boolean flag.
-- `param4`: string - String value.
+- `spell_id` (uint32) - Integer value `spell_id`.
+- `spell_tier` (uint8) - Integer value `spell_tier`.
+- `custom_lua_script` (string) - String `custom_lua_script`.
 
-**Returns:** None.
+**Returns:** Spell object reference.
 
 **Example:**
 
 ```lua
--- Example usage
-GetSpell(..., ..., ..., ...)
+-- From ItemScripts/AbbatoirCoffee.lua
+function cast(Item, Player)
+	Spell = GetSpell(5463)
+	Regenz = 18.0
+	newDuration = 180000
+	SetSpellData(Spell, "duration1", newDuration)
+	SetSpellData(Spell, "duration2", newDuration)
+	SetSpellDataIndex(Spell, 0, Regenz)
+	SetSpellDisplayEffect(Spell, 0, "description", "Increases Out-of-Combat Power Regeneration of target by " .. Regenz)
+	CastCustomSpell(Spell, Player, Player)
+end
 ```

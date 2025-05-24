@@ -1,17 +1,13 @@
-### Function: GetSkillValue(param1, param2)
+### Function: GetSkillValue(skill)
 
 **Description:**
-Placeholder description.
+Gets the current value of the skill object.
 
 **Parameters:**
-- `param1`: unknown - Unknown type.
-- `param2`: unknown - Unknown type.
+- `skill` (int32) - Integer value `skill`.
 
-**Returns:** None.
+**Returns:** UInt32 current skill value of the object.
 
 **Example:**
 
-```lua
--- Example usage
-GetSkillValue(..., ...)
-```
+Example Required

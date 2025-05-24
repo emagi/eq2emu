@@ -1,16 +1,20 @@
-### Function: GetX(param1)
+### Function: GetX(spawn)
 
 **Description:**
-Placeholder description.
+Current X position of the spawn.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
 
-**Returns:** None.
+**Returns:** Float X of the spawn.
 
 **Example:**
 
 ```lua
--- Example usage
-GetX(...)
+-- From ItemScripts/BardCertificationPapers.lua
+function Class(Item, Player)
+    conversation = CreateConversation()
+    if CanReceiveQuest(Player,Quest) then
+    AddConversationOption(conversation, "[Turn in these papers for gear]","QuestStart")
+    end
 ```

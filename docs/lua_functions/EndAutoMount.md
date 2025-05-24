@@ -1,14 +1,19 @@
-Function: EndAutoMount(Spawn)
+### Function: EndAutoMount(Spawn)
 
-Description: Dismounts a player who was auto-mounted via StartAutoMount. Typically called at the end of an automated travel route or upon leaving the area where auto-mount is enforced.
+**Description:**
+Dismounts a player who was auto-mounted via StartAutoMount. Typically called at the end of an automated travel route or upon leaving the area where auto-mount is enforced.
 
-Parameters:
+**Parameters:**
+- `player` (Spawn) - Spawn object representing `player`.
 
-    Spawn: Spawn – The player to dismount.
+**Returns:** None.
 
-Returns: None.
+**Example:**
 
-Example:
-
--- Example usage (dismount the player after griffon flight ends)
-EndAutoMount(Player)
+```lua
+-- From ZoneScripts/Antonica.lua
+function GriffonTower(Zone, Spawn)
+	if IsPlayer(Spawn) and IsOnAutoMount(Spawn) then
+		EndAutoMount(Spawn)
+	end
+```

@@ -1,16 +1,24 @@
-### Function: HandInCollections(param1)
+### Function: HandInCollections(player)
 
 **Description:**
-Placeholder description.
+Player request to turn in collections.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
+- `player` (Spawn) - Spawn object representing `player`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-HandInCollections(...)
+-- From SpawnScripts/EastFreeport/RennyParvat.lua
+function Dialog1(NPC, Spawn)
+	FaceTarget(NPC, Spawn)
+	Dialog.New(NPC, Spawn)
+	Dialog.AddDialog("This is a decent find, I suppose. I can give you a small reward for it.")
+	Dialog.AddOption("Thanks a lot.")
+	Dialog.Start()
+    if HasCollectionsToHandIn(Spawn) then
+    HandInCollections(Spawn) 
+    end
 ```

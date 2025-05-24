@@ -1,18 +1,15 @@
-### Function: DespawnByLocationID(param1, param2, param3)
+### Function: DespawnByLocationID(zone, location_id, delay)
 
 **Description:**
-Placeholder description.
+Despawns a spawn by a zone and location_id.  If there is a delay specified then the despawn triggers after the delay.
 
 **Parameters:**
-- `param1`: ZoneServer - The zone object.
-- `param2`: int32 - Integer value.
-- `param3`: int32 - Integer value.
+- `zone` (Zone) - Zone object representing `zone`.
+- `location_id` (uint32) - Integer value `location_id`.
+- `delay` (uint32) - Integer value `delay`.
 
 **Returns:** None.
 
 **Example:**
 
-```lua
--- Example usage
-DespawnByLocationID(..., ..., ...)
-```
+Example Required

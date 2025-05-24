@@ -1,16 +1,15 @@
-### Function: GetLevel(param1)
+### Function: GetLevel(spawn)
 
 **Description:**
-Placeholder description.
+Gets the current level of the spawn (not effective level).
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
 
-**Returns:** None.
+**Returns:** UInt32 value of the Spawn's level.
 
 **Example:**
 
 ```lua
--- Example usage
-GetLevel(...)
+   local level = GetLevel(Player)
 ```

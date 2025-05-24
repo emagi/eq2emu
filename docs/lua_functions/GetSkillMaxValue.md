@@ -1,17 +1,13 @@
-### Function: GetSkillMaxValue(param1, param2)
+### Function: GetSkillMaxValue(skill)
 
 **Description:**
-Placeholder description.
+Gets the max value allowed of the skill object.
 
 **Parameters:**
-- `param1`: unknown - Unknown type.
-- `param2`: unknown - Unknown type.
+- `skill` (int32) - Integer value `skill`.
 
-**Returns:** None.
+**Returns:** UInt32 max skill allowed for the skill object.
 
 **Example:**
 
-```lua
--- Example usage
-GetSkillMaxValue(..., ...)
-```
+Example Required

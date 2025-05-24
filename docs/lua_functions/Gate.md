@@ -1,17 +1,18 @@
-### Function: Gate(param1, param2)
+### Function: Gate(spell)
 
 **Description:**
-Placeholder description.
+Gate's the current Spawn to their bind point.
 
-**Parameters:**
-- `param1`: unknown - Unknown type.
-- `param2`: Spawn - The spawn or entity involved.
+**Parameters:** None.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-Gate(..., ...)
+-- From SpawnScripts/CircleElders/GMHelper.lua
+function BindPointOption(NPC, Spawn)
+    Despawn(NPC)
+    Gate(Spawn)
+end
 ```

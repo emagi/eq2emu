@@ -1,18 +1,24 @@
-### Function: GetEncounter(param1, param2, param3)
+### Function: GetEncounter(spawn)
 
 **Description:**
-Placeholder description.
+Gets the encounter list of the Spawn(NPC).
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
 
-**Returns:** None.
+**Returns:** Table list of Spawn's in the encounter list
 
 **Example:**
 
 ```lua
--- Example usage
-GetEncounter(..., ..., ...)
+-- From ItemScripts/LaserGoggles.lua
+function used(Item, Player)
+    local target = GetTarget(Player)
+    if target ~= nil and IsEntity(target) then
+        local encounter = GetEncounter(target)
+        if encounter ~= nil then
+            doDamage(Player, target, damage)
+        else
+            doDamage(Player, target, damage)
+        end
 ```

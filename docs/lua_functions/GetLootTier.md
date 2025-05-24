@@ -1,16 +1,13 @@
-### Function: GetLootTier(param1)
+### Function: GetLootTier(spawn)
 
 **Description:**
-Placeholder description.
+Gets the loot tier of the spawn.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
 
-**Returns:** None.
+**Returns:** UInt32 value of the loot tier.
 
 **Example:**
 
-```lua
--- Example usage
-GetLootTier(...)
-```
+Example Required

@@ -1,16 +1,13 @@
-### Function: GetStrBase(param1)
+### Function: GetStrBase(spawn)
 
 **Description:**
-Placeholder description.
+Gets the spawn's base strength.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
 
-**Returns:** None.
+**Returns:** UInt32 base strength value of the Spawn.
 
 **Example:**
 
-```lua
--- Example usage
-GetStrBase(...)
-```
+Example Required

@@ -1,14 +1,24 @@
-Function: GetOrigZ(Spawn)
+### Function: GetOrigZ(Spawn)
 
-Description: Returns the original Z coordinate of where the spawn was initially placed.
+**Description:**
+Returns the original Z coordinate of where the spawn was initially placed.
 
-Parameters:
+**Parameters:**
+- `spawn` (Spawn) - Spawn object representing `spawn`.
 
-    Spawn: Spawn – The entity to check.
+**Returns:** Float – The Z position of the spawn’s original location.
 
-Returns: Float – The Z position of the spawn’s original location.
+**Example:**
 
-Example:
+```lua
+-- From SpawnScripts/OutpostOverlord/acliffdiverhawk.lua
+function ReturnHome(NPC)
 
--- Example usage (calculate how far NPC roamed from spawn point horizontally)
-local distanceFromSpawn = math.sqrt((GetX(NPC)-GetOrigX(NPC))^2 + (GetZ(NPC)-GetOrigZ(NPC))^2)
+    local x = GetOrigX(NPC)
+    local y = GetORigY(NPC)
+    local z = GetOrigZ(NPC)
+
+    if IsInCombat(NPC) == false then
+        MoveToLocation(NPC, x, y, z, 5)
+    end
+```

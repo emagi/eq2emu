@@ -1,17 +1,13 @@
-### Function: GetSkillName(param1, param2)
+### Function: GetSkillName(skill)
 
 **Description:**
-Placeholder description.
+Gets the name of the current skill object.
 
 **Parameters:**
-- `param1`: unknown - Unknown type.
-- `param2`: unknown - Unknown type.
+- `skill` (int32) - Integer value `skill`.
 
-**Returns:** None.
+**Returns:** String name of the skill.
 
 **Example:**
 
-```lua
--- Example usage
-GetSkillName(..., ...)
-```
+Example Required

@@ -1,21 +1,15 @@
-### Function: GetSpellDataIndex(param1, param2, param3, param4, param5, param6)
+### Function: GetSpellDataIndex(spell, idx, secondfield)
 
 **Description:**
-Placeholder description.
+Gets the spell data by its index.
 
 **Parameters:**
-- `param1`: unknown - Unknown type.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: unknown - Unknown type.
-- `param5`: int32 - Integer value.
-- `param6`: bool - Boolean value (true/false).
+- `spell` (Spell) - Spell object representing `spell`.
+- `idx` (uint32) - Integer value `idx`.
+- `secondfield` (bool) - Boolean flag `secondfield`.
 
-**Returns:** None.
+**Returns:** Return value varies on the data type in the database for the spell.
 
 **Example:**
 
-```lua
--- Example usage
-GetSpellDataIndex(..., ..., ..., ..., ..., ...)
-```
+Example Required

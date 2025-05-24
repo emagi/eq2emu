@@ -1,17 +1,21 @@
-### Function: GetSpawnByLocationID(param1, param2)
+### Function: GetSpawnByLocationID(zone, location_id)
 
 **Description:**
-Placeholder description.
+Gets a spawn by its location id.
 
 **Parameters:**
-- `param1`: ZoneServer - The zone object.
-- `param2`: int32 - Integer value.
+- `zone` (Zone) - Zone object representing `zone`.
+- `location_id` (uint32) - Integer value `location_id`.
 
-**Returns:** None.
+**Returns:** Spawn object reference.
 
 **Example:**
 
 ```lua
--- Example usage
-GetSpawnByLocationID(..., ...)
+-- From ItemScripts/Griz.lua
+function GrizChat2_1(Item, Spawn)
+	if GetQuestStep(Spawn, SometimesKnut) == 2 then
+		SetStepComplete(Spawn, SometimesKnut, 2)
+		AddSpawnAccess(GetSpawnByLocationID(Zone, 579551), Spawn)
+	end
 ```

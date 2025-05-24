@@ -1,16 +1,18 @@
-### Function: GetCurrentZoneSafeLocation(param1)
+### Function: GetCurrentZoneSafeLocation(spawn)
 
 **Description:**
-Placeholder description.
+Returns the X, Y, Z of the current zone safe location by using the supplied Spawn's zone.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
 
-**Returns:** None.
+**Returns:** x,y,z as returned array.
 
 **Example:**
 
 ```lua
--- Example usage
-GetCurrentZoneSafeLocation(...)
+function cast(Caster, Target)
+    x,y,z = GetCurrentZoneSafeLocation(Caster)
+    SetPosition(Caster, x, y, z)
+end
 ```

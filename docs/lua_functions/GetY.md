@@ -1,16 +1,20 @@
-### Function: GetY(param1)
+### Function: GetY(spawn)
 
 **Description:**
-Placeholder description.
+Current Y position of the spawn.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
 
-**Returns:** None.
+**Returns:** Float Y of the spawn.
 
 **Example:**
 
 ```lua
--- Example usage
-GetY(...)
+-- From ItemScripts/BardCertificationPapers.lua
+function Class(Item, Player)
+    conversation = CreateConversation()
+    if CanReceiveQuest(Player,Quest) then
+    AddConversationOption(conversation, "[Turn in these papers for gear]","QuestStart")
+    end
 ```

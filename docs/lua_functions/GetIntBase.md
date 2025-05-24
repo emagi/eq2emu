@@ -1,16 +1,13 @@
-### Function: GetIntBase(param1)
+### Function: GetIntBase(spawn)
 
 **Description:**
-Placeholder description.
+Gets the base intelligence of the current Spawn.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
 
-**Returns:** None.
+**Returns:** UInt32 of the Spawn's base intelligence.
 
 **Example:**
 
-```lua
--- Example usage
-GetIntBase(...)
-```
+Example Required

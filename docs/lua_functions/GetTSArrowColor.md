@@ -1,17 +1,14 @@
-### Function: GetTSArrowColor(param1, param2)
+### Function: GetTSArrowColor(player, level)
 
 **Description:**
-Placeholder description.
+Gets the arrow color depending on the player's tradeskill level against the target level.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: int8 - Small integer or boolean flag.
+- `player` (Spawn) - Spawn object reference `player`.
+- `level` (uint8) - Integer value `level`.
 
-**Returns:** None.
+**Returns:** Return is UINT32 represents the arrow colors GRAY 0, GREEN 1, BLUE 2, WHITE 3, YELLOW 4, ORANGE 5, RED 6.
 
 **Example:**
 
-```lua
--- Example usage
-GetTSArrowColor(..., ...)
-```
+Example Required

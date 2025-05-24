@@ -1,17 +1,23 @@
-### Function: GetSpellTier(param1, param2)
+### Function: GetSpellTier()
 
 **Description:**
-Placeholder description.
+Get the spell tier of the current spell, must be ran in a spell scfript.
 
-**Parameters:**
-- `param1`: unknown - Unknown type.
-- `param2`: unknown - Unknown type.
+**Parameters:** None.
 
-**Returns:** None.
+**Returns:** UInt32 tier of the spell.
 
 **Example:**
 
 ```lua
--- Example usage
-GetSpellTier(..., ...)
+-- From Spells/Fighter/Brawler/Bruiser/Haymaker.lua
+function cast(Caster, Target, DmgType, MinVal, MaxVal)
+    Level = GetLevel(Caster)
+    SpellLevel = 30
+    Mastery = SpellLevel + 10
+
+    if Level < Mastery then
+        LvlBonus = Level - SpellLevel
+        else LvlBonus = Mastery - SpellLevel
+    end
 ```

@@ -1,17 +1,23 @@
-### Function: GetTradeskillLevel(param1, param2)
+### Function: GetTradeskillLevel(spawn)
 
 **Description:**
-Placeholder description.
+Gets the tradeskill level of the spawn.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
 
-**Returns:** None.
+**Returns:** UInt32 tradeskill level of spawn.
 
 **Example:**
 
 ```lua
--- Example usage
-GetTradeskillLevel(..., ...)
+-- From Quests/Hallmark/cellar_cleanup.lua
+function Step8Complete(Quest, QuestGiver, Player)
+	UpdateQuestStepDescription(Quest, 8, "I spoke with Assistant Dreak.")
+	UpdateQuestTaskGroupDescription(Quest, 2, "I told Assistant Dreak that the cellar is clean.")
+    UpdateQuestZone(Quest,"Mizan's Cellar")
+    if not HasItem(Player,20708,1) and GetTradeskillLevel(Player) <2  then
+    SummonItem(Player,1030001,1)
+    GiveQuestItem(Quest, Player, "", 20708,1001034,1001034,1001034,7391,7391,7391)
+    end
 ```

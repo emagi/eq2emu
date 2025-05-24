@@ -1,16 +1,13 @@
-### Function: GetZoneHolidayFlag(param1)
+### Function: GetZoneHolidayFlag(zone)
 
 **Description:**
-Placeholder description.
+Gets the zone objects holiday flag value.
 
 **Parameters:**
-- `param1`: ZoneServer - The zone object.
+- `zone` (Zone) - Zone object representing `zone`.
 
-**Returns:** None.
+**Returns:** UInt32 holiday flag value for zone.
 
 **Example:**
 
-```lua
--- Example usage
-GetZoneHolidayFlag(...)
-```
+Example Required

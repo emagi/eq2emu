@@ -1,17 +1,14 @@
-### Function: GetArrowColor(param1, param2)
+### Function: GetArrowColor(player, level)
 
 **Description:**
-Placeholder description.
+Returns the arrow color based on the level against the Player's level.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: int8 - Small integer or boolean flag.
+- `player` (Spawn) - Spawn object representing `player`.
+- `level` (uint8) - Integer value `level`.
 
-**Returns:** None.
+**Returns:** Return is UINT32 represents the arrow colors GRAY 0, GREEN 1, BLUE 2, WHITE 3, YELLOW 4, ORANGE 5, RED 6.
 
 **Example:**
 
-```lua
--- Example usage
-GetArrowColor(..., ...)
-```
+Example Required

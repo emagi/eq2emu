@@ -1,17 +1,19 @@
-### Function: GetSpellID(param1, param2)
+### Function: GetSpellID()
 
 **Description:**
-Placeholder description.
+Gets the spell id of the current spell.
 
-**Parameters:**
-- `param1`: unknown - Unknown type.
-- `param2`: unknown - Unknown type.
+**Parameters:** None.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-GetSpellID(..., ...)
+-- From Spells/Mage/Sorcerer/Warlock/SkeletalGrasp.lua
+function proc(Caster, Target, Type, Chance)
+local Spell = GetSpellID()	
+if Type == 15 and HasSpellEffect(Target, Spell) then
+		RemoveControlEffect(Target, 5)
+			end
 ```

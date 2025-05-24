@@ -1,17 +1,21 @@
-### Function: GetItemType(param1, param2)
+### Function: GetItemType(item)
 
 **Description:**
-Placeholder description.
+Gets the defined type of the item described in the database.  See https://github.com/emagi/eq2emu/blob/main/docs/data_types/item_types.md for item types.
 
 **Parameters:**
-- `param1`: Item - An item reference.
-- `param2`: unknown - Unknown type.
+- `item` (Item) - Item object representing `item`.
 
-**Returns:** None.
+**Returns:** UInt32 value of the item type.
 
 **Example:**
 
 ```lua
--- Example usage
-GetItemType(..., ...)
+-- From Spells/Fighter/Crusader/UnyieldingAdvance.lua
+function precast(Caster, Target)
+    local item = GetEquippedItemBySlot(Caster, 1)
+    if not item or GetItemType(item) ~= 4 then
+        SendMessage(Caster, "Must have shield equipped", "yellow")
+        return false, 70
+    end
 ```

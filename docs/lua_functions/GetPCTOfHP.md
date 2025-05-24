@@ -1,19 +1,24 @@
-### Function: GetPCTOfHP(param1, param2, param3, param4)
+### Function: GetPCTOfHP(spawn, pct)
 
 **Description:**
-Placeholder description.
+Get the Spawn's amount of hp in UInt32 value using a float percentage.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: float - Floating point value.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
+- `pct` (float) - Floating point value `pct`.
 
-**Returns:** None.
+**Returns:** UInt32 representation of the hp against the percentage provided for the Spawn.
 
 **Example:**
 
 ```lua
--- Example usage
-GetPCTOfHP(..., ..., ..., ...)
+-- From Spells/Fighter/Brawler/Monk/Mendpct.lua
+function cast(Caster, Target, CureLvls, MinVal, MaxVal)
+-- Dispels 7 levels of noxious hostile effects on target
+CureByType(CureLvls, 3);  
+--Heals target for 8.1 - 9.9% of max health
+SpellHeal("Heal", GetPCTOfHP(Caster, MinVal), GetPCTOfHP(Caster, MaxVal),0 , 2, 1)
+
+ 
+end
 ```

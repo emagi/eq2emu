@@ -1,16 +1,21 @@
-Function: GiveExp(Spawn, Amount)
+### Function: GiveExp(player, amount)
 
-Description: Awards a certain amount of experience points to the specified player. This can be used to grant quest rewards or bonus experience outside the normal combat exp flow.
+**Description:**
+Awards a certain amount of experience points to the specified player. This can be used to grant quest rewards or bonus experience outside the normal combat exp flow.
 
-Parameters:
+**Parameters:**
+- `player` (Spawn) - Spawn object representing `player`.
+- `amount` (uint32) - Quantity `amount`.
 
-    Spawn: Spawn – The player to receive experience.
+**Returns:** None.
 
-    Amount: Int32 – The amount of experience points to award.
+**Example:**
 
-Returns: None.
-
-Example:
-
--- Example usage (give experience upon quest completion)
-GiveExp(Player, 10000)
+```lua
+-- From Quests/FarJourneyFreeport/TasksaboardtheFarJourney.lua
+function Step1Complete(Quest, QuestGiver, Player)
+	GiveExp(Player, 110)
+	Step2Init(Quest, QuestGiver, Player)
+	CurrentStep(Quest, QuestGiver, Player)
+end
+```

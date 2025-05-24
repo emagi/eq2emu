@@ -1,16 +1,13 @@
-### Function: GetMaxHPBase(param1)
+### Function: GetMaxHPBase(spawn)
 
 **Description:**
-Placeholder description.
+Gets the Spawn's base hp.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
 
-**Returns:** None.
+**Returns:** SInt32 base hp value.
 
 **Example:**
 
-```lua
--- Example usage
-GetMaxHPBase(...)
-```
+Example Required

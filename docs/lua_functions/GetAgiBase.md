@@ -1,16 +1,13 @@
-### Function: GetAgiBase(param1)
+### Function: GetAgiBase(spawn)
 
 **Description:**
-Placeholder description.
+Gets the base agility of the Spawn.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
 
-**Returns:** None.
+**Returns:** SInt32 value of the Spawn's base agility.
 
 **Example:**
 
-```lua
--- Example usage
-GetAgiBase(...)
-```
+Example Required

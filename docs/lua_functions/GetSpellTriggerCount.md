@@ -1,17 +1,13 @@
-### Function: GetSpellTriggerCount(param1, param2)
+### Function: GetSpellTriggerCount(spell)
 
 **Description:**
-Placeholder description.
+Returns number of times the spell has triggered (Set by SetSpellTriggerCount)
 
 **Parameters:**
-- `param1`: unknown - Unknown type.
-- `param2`: unknown - Unknown type.
+- `spell` (Spell) - Spell object representing `spell`.
 
-**Returns:** None.
+**Returns:** UInt32 count of times the spell triggered.
 
 **Example:**
 
-```lua
--- Example usage
-GetSpellTriggerCount(..., ...)
-```
+Example Required

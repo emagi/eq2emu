@@ -1,14 +1,24 @@
-Function: GetOrigX(Spawn)
+### Function: GetOrigX(Spawn)
 
-Description: Returns the original X coordinate of the specified spawn’s spawn point (where it was initially placed in the zone).
+**Description:**
+Returns the original X coordinate of the specified spawn’s spawn point (where it was initially placed in the zone).
 
-Parameters:
+**Parameters:**
+- `spawn` (Spawn) - Spawn object representing `spawn`.
 
-    Spawn: Spawn – The entity to query.
+**Returns:** Float – The X position of the spawn’s original location.
 
-Returns: Float – The X position of the spawn’s original location.
+**Example:**
 
-Example:
+```lua
+-- From SpawnScripts/OutpostOverlord/acliffdiverhawk.lua
+function ReturnHome(NPC)
 
--- Example usage (see how far an NPC has moved from its spawn point on X axis)
-local deltaX = math.abs(GetX(NPC) - GetOrigX(NPC))
+    local x = GetOrigX(NPC)
+    local y = GetORigY(NPC)
+    local z = GetOrigZ(NPC)
+
+    if IsInCombat(NPC) == false then
+        MoveToLocation(NPC, x, y, z, 5)
+    end
+```

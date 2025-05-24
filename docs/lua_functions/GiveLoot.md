@@ -1,13 +1,13 @@
 ### Function: GiveLoot(entity, player, coins, item_id)
 
 **Description:**
-Give the specified Player coin and item_id (multiple can be provided comma delimited) as pending loot for their inventory.
+Provides the player pending loot items from the entity(Spawn) with item_id that allows multiple comma delimited entries.  The coins will be added to the entities lootable coin.
 
 **Parameters:**
-- `entity` (int32) - Integer value `entity`.
+- `entity` (Spawn) - Spawn object representing `entity`.
 - `player` (Spawn) - Spawn object representing `player`.
-- `coins` (int32) - Integer value `coins`.
-- `item_id` (int32) - Integer value `item_id`.
+- `coins` (uint32) - Integer value `coins`.
+- `item_id` (uint32) - Integer value `item_id`.
 
 **Returns:** None.
 
@@ -15,15 +15,7 @@ Give the specified Player coin and item_id (multiple can be provided comma delim
 
 ```lua
 -- From Quests/FarJourneyFreeport/TasksaboardtheFarJourney.lua
-function CurrentStep(Quest, QuestGiver, Player)
-	if GetQuestStepProgress(Player, 524,2) == 0 and GetQuestStep(Player, 524) == 2 then
-		i = 1
-		spawns = GetSpawnListBySpawnID(Player, 270010)
-		repeat
-			spawn = GetSpawnFromList(spawns, i-1)
-			if spawn then
-				ChangeHandIcon(spawn, 1)
-				AddPrimaryEntityCommand(nil, spawn)
-				SpawnSet(NPC, "targetable", 1, true, true)
-			end
+		GiveLoot(chest, Player, 0, 185427)
+		GiveLoot(chest, Player, 0, 20902)
+		GiveLoot(chest, Player, 0, 15354)
 ```

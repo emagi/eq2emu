@@ -1,16 +1,13 @@
-### Function: GetZoneExpansionFlag(param1)
+### Function: GetZoneExpansionFlag(zone)
 
 **Description:**
-Placeholder description.
+Gets the zone objects expansion flag value.
 
 **Parameters:**
-- `param1`: ZoneServer - The zone object.
+- `zone` (Zone) - Zone object representing `zone`.
 
-**Returns:** None.
+**Returns:** UInt32 expansion flag value for zone.
 
 **Example:**
 
-```lua
--- Example usage
-GetZoneExpansionFlag(...)
-```
+Example Required

@@ -1,19 +1,22 @@
-### Function: DisplayText(param1, param2, param3, param4)
+### Function: DisplayText(player, type, text)
 
 **Description:**
-Placeholder description.
+Displays Channel Text on the Player's screen (without a Spawn attributed with a name, just a plain message).  The `type` are based on channel types in https://github.com/emagi/eq2emu/blob/main/docs/data_types/channel_types.md and support will vary on client version.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: int8 - Small integer or boolean flag.
-- `param4`: string - String value.
+- `player` (Spawn) - Spawn object representing `player`.
+- `type` (uint8) - Integer value `type`.
+- `text` (string) - String `text`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-DisplayText(..., ..., ..., ...)
+-- From Quests/Antonica/wanted_gnoll_bandit.lua
+function Accepted(Quest, QuestGiver, Player)
+if HasItem(Player,3213)then
+    DisplayText(Spawn, 34, "You roll up the wanted poster and stuff it in your quest satchle.")
+    RemoveItem(Player,3213,1)
+end
 ```

@@ -1,20 +1,23 @@
-Function: GetPlayerHistory(Player, HistoryID)
+### Function: GetPlayerHistory(Player, HistoryID)
 
-Description: Retrieves the value of a specific player history flag. This tells if a player has a certain historical event or choice recorded (and what value it is).
+**Description:**
+Retrieves the value of a specific player history flag. This tells if a player has a certain historical event or choice recorded (and what value it is).
 
-Parameters:
+**Parameters:**
+- `player` (Spawn) - Spawn object representing `player`.
+- `event_id` (uint32) - Integer value `event_id`.
 
-    Player: Spawn – The player to check.
+**Returns:** Value of the historical value of SetPlayerHistory.
 
-    HistoryID: Int32 – The history flag ID to retrieve.
+**Example:**
 
-Returns: Int32 – The value of that history entry for the player (commonly 0 or 1, but could be other integers if used as counters).
-
-Example:
-
--- Example usage (branch dialog if player has a specific history flag)
-if GetPlayerHistory(Player, ALLIED_WITH_GNOLLS_HISTORY_ID) == 1 then
-    Say(NPC, "Welcome, friend of the Gnolls!")
-else
-    Say(NPC, "Stranger, tread carefully...")
-end
+```lua
+-- From SpawnScripts/Antonica/CaptainBeltho.lua
+function hailed(NPC, Spawn)
+    SetPlayerHistory(Spawn, 8, 0)
+    if GetPlayerHistory(Spawn, 8) == nil then
+    Say(Spawn, "ur player history is nil")
+    elseif GetPlayerHistory(Spawn, 8) then
+    Say(Spawn, "ur player history is not nil")
+    end
+```

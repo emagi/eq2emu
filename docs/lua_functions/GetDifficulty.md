@@ -1,16 +1,23 @@
-### Function: GetDifficulty(param1)
+### Function: GetDifficulty(spawn)
 
 **Description:**
-Placeholder description.
+Gets the difficulty value of the current spawn.  10+ usually represents epics, 6+ heroic, so on.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
 
-**Returns:** None.
+**Returns:** UInt32 of the Spawn's difficulty setting.
 
 **Example:**
 
 ```lua
--- Example usage
-GetDifficulty(...)
+-- From SpawnScripts/Generic/CombatModule.lua
+function  combatModule(NPC, Spawn) 
+    level = GetLevel(NPC)           -- NPC Level
+    difficulty = GetDifficulty(NPC) -- NPC Difficulty || Function in testing phase, default to 6 if necessary.
+    levelSwitch(NPC)
+    regen(NPC)
+    attributes(NPC)
+    
+end
 ```

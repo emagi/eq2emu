@@ -1,17 +1,13 @@
-### Function: GetServerVariable(param1, param2)
+### Function: GetServerVariable(name)
 
 **Description:**
-Placeholder description.
+Gets a server variable string.
 
 **Parameters:**
-- `param1`: string - String value.
-- `param2`: unknown - Unknown type.
+- `name` (string) - String `name`.
 
-**Returns:** None.
+**Returns:** Returns string if matches a variable name, otherwise returns NULL.
 
 **Example:**
 
-```lua
--- Example usage
-GetServerVariable(..., ...)
-```
+Example Required

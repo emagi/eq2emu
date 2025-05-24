@@ -1,18 +1,31 @@
-### Function: GetRuleFlagInt32(param1, param2, param3)
+### Function: GetRuleFlagInt32(category, name)
 
 **Description:**
-Placeholder description.
+Gets the unsigned integer rule flag from the world based on the category and name.
 
 **Parameters:**
-- `param1`: string - String value.
-- `param2`: unknown - Unknown type.
-- `param3`: string - String value.
+- `category` (string) - String `category`.
+- `name` (string) - String `name`.
 
-**Returns:** None.
+**Returns:** UInt32 value of the rule category and name.
 
 **Example:**
 
 ```lua
--- Example usage
-GetRuleFlagInt32(..., ..., ...)
+-- From SpawnScripts/FarJourneyFreeport/CaptainVarlos.lua
+function zone_to_isle(NPC, player)
+	serverType = GetRuleFlagInt32("R_World", "StartingZoneRuleFlag")
+	-- if no server type is set (default of 0 wildcard) or odd number means bit 1 is set
+	if serverType == 0 or (serverType % 2) == 1 then
+		-- DoF alignment, 0 = evil (Outpost of Overlord), 1 = good (Queens Colony)
+		alignment = GetAlignment(player)
+		if GetClass(player) == 0 then -- isle of refuge (Commoners are sent here automatically)
+          ZoneRef = GetZone("IsleRefuge1")
+            Zone(ZoneRef,player)  
+		
+		elseif alignment == 0 then
+			Zone(GetZone(278), player) -- outpost of overlord
+		else
+			Zone(GetZone(253), player) -- queens colony
+		end
 ```
