@@ -124,8 +124,8 @@
 | Field             | Type   | Description                                           |
 | ----------------- | ------ | ----------------------------------------------------- |
 | flags / flags2    | uint32 | Bit fields for various account and character options. |
-| water\_type       | uint8  | 0 land, 1 swimming, 2 fully underwater.               |
-| flying\_type      | uint8  | 0 ground, 1 leaper, 2 glider, 3 flyer.                |
+| water\_type       | uint8  | 0 land, 1 water only                                  |
+| flying\_type      | uint8  | 0 ground, 1 flyer.                                    |
 | no\_interrupt     | uint8  | 1 prevents spell interruption.                        |
 | interaction\_flag | uint8  | Set when interacting with an object or NPC.           |
 | mood              | uint16 | Current /mood emote.                                  |
