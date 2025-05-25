@@ -17,8 +17,8 @@
 | class2    | uint8  | Class ID at level 10 (Warrior = 2).           |
 | class3    | uint8  | Final subclass ID (Guardian = 3).             |
 | race      | uint8  | Race ID (Human, Kerra, Ogre, etc.).           |
-| gender    | uint8  | 0 = male, 1 = female.                         |
-| alignment | int8   | -1 = evil, 0 = neutral, 1 = good.             |
+| gender    | uint8  | 1 = male, 0 = female.                         |
+| alignment | int8   | 0 = evil, 1 = good, 2 = neutral.              |
 | deity     | string | Chosen deity or "None".                       |
 | tag1      | uint8  | Generic bit field used for GM or event flags. |
 
