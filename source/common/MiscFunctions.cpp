@@ -960,7 +960,7 @@ std::tuple<int64, int64, int64, int64> convertTimestampDuration(int64 total_mill
     auto hours = std::chrono::duration_cast<std::chrono::hours>(duration);
     duration -= hours;
 
-    int64 days = static_cast<int64>(total_hours / 24);
+    auto days = hours / 24;
     hours -= days * 24;
 
     auto minutes = std::chrono::duration_cast<std::chrono::minutes>(duration);
