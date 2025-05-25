@@ -94,7 +94,7 @@ uint32 as_uint(const float x);
 float as_float(const uint32 x);
 
 int64 getCurrentTimestamp();
-std::tuple<int64_t, int64_t, int64_t, int64_t> convertTimestampDuration(int64 total_milliseconds);
+std::tuple<int64, int64, int64, int64> convertTimestampDuration(int64 total_milliseconds);
 
 bool INIReadBool(FILE *f, const char *section, const char *property, bool *out);
 bool INIReadInt(FILE *f, const char *section, const char *property, int *out);
