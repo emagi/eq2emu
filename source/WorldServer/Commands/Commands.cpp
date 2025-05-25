@@ -7155,6 +7155,8 @@ void Commands::Command_Inventory(Client* client, Seperator* sep, EQ2_RemoteComma
 				client->GetPlayer()->UpdateWeapons();
 				EQ2Packet* characterSheetPackets = client->GetPlayer()->GetPlayerInfo()->serialize(client->GetVersion());
 				client->QueuePacket(characterSheetPackets);
+				
+				client->GetPlayer()->CalculateBonuses();
 		}
 		else if (sep->arg[1][0] && strncasecmp("unpack", sep->arg[0], 6) == 0 && sep->IsNumber(1))
 		{
@@ -11757,6 +11759,8 @@ void Commands::Command_Attune_Inv(Client* client, Seperator* sep) {
 				if(outapp)
 					client->QueuePacket(outapp);
 			}
+			
+			client->GetPlayer()->CalculateBonuses();
 		}
 
 	}
