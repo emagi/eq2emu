@@ -51,6 +51,7 @@ void LWorldList::PopulateWorldList(http::response<http::string_body>& res) {
 			pt.put("id", world->GetID());
 			pt.put("world_name", world->GetName());
 			pt.put("status", (world->GetStatus() == 1) ? "online" : "offline");
+			pt.put("num_players", world->GetPlayerNum());
 			pt.put("ip_addr", inet_ntoa(in));
 			maintree.push_back(std::make_pair("", pt));
 		}
