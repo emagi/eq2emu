@@ -1,17 +1,14 @@
-### Function: SetZoneExpansionFlag(param1, param2)
+### Function: SetZoneExpansionFlag(zone, xpackFlag)
 
 **Description:**
-Placeholder description.
+Set's the current zone expansion flag.
 
 **Parameters:**
-- `param1`: ZoneServer - The zone object.
-- `param2`: int32 - Integer value.
+- `zone` (Zone) - Zone object representing `zone`.
+- `xpackFlag` (uint32) - Integer value `xpackFlag`.
 
 **Returns:** None.
 
 **Example:**
 
-```lua
--- Example usage
-SetZoneExpansionFlag(..., ...)
-```
+Example Required

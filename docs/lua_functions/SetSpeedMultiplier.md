@@ -1,18 +1,20 @@
-### Function: SetSpeedMultiplier(param1, param2, param3)
+### Function: SetSpeedMultiplier(spawn, val)
 
 **Description:**
-Placeholder description.
+Set's the speed multiplier of the spell.  Must be in a spell script.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: float - Floating point value.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
+- `val` (float) - Float value `val`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-SetSpeedMultiplier(..., ..., ...)
+-- From SpawnScripts/Nektropos1/ArchfiendIzzoroth.lua
+function spawn(NPC)
+	SetSpeedMultiplier(NPC, 0)
+	AddTimer(NPC, 6000, "MakeAttackable")
+end
 ```

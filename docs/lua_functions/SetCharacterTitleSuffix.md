@@ -1,20 +1,14 @@
-### Function: SetCharacterTitleSuffix(param1, param2, param3, param4, param5)
+### Function: SetCharacterTitleSuffix(spawn, titleName)
 
 **Description:**
-Placeholder description.
+Set's the character title suffix of the Spawn to the title name.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: unknown - Unknown type.
-- `param5`: string - String value.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
+- `titleName` (string) - String `titleName`.
 
 **Returns:** None.
 
 **Example:**
 
-```lua
--- Example usage
-SetCharacterTitleSuffix(..., ..., ..., ..., ...)
-```
+Example Required

@@ -1,18 +1,18 @@
-### Function: StartTransmute(param1, param2, param3)
+### Function: StartTransmute(spawn)
 
 **Description:**
-Placeholder description.
+Start a transmute process with the Spawn.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-StartTransmute(..., ..., ...)
+-- From Spells/Commoner/Transmute.lua
+function cast(Caster)
+    StartTransmute(Caster)
+end
 ```

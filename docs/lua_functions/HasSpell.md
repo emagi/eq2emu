@@ -1,18 +1,15 @@
-### Function: HasSpell(param1, param2, param3)
+### Function: HasSpell(player, spellid, tier)
 
 **Description:**
-Placeholder description.
+Return's true if the player has the spellid specified of the tier.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: int32 - Integer value.
-- `param3`: int16 - Short integer value.
+- `player` (Spawn) - Spawn object representing `player`.
+- `spellid` (uint32) - Integer value `spellid`.
+- `tier` (uint16) - Integer value `tier`.
 
-**Returns:** None.
+**Returns:** Return's true if the player has the spell id with the tier (or higher tier).  Otherwise false.
 
 **Example:**
 
-```lua
--- Example usage
-HasSpell(..., ..., ...)
-```
+Example Required

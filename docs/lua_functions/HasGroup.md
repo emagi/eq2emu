@@ -1,17 +1,13 @@
-### Function: HasGroup(param1, param2)
+### Function: HasGroup(spawn)
 
 **Description:**
-Placeholder description.
+Return's if the spawn is in a group.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
 
-**Returns:** None.
+**Returns:** True if the spawn is in a group, otherwise false.
 
 **Example:**
 
-```lua
--- Example usage
-HasGroup(..., ...)
-```
+Example Required

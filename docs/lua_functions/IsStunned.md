@@ -1,18 +1,13 @@
-### Function: IsStunned(param1, param2, param3)
+### Function: IsStunned(spawn)
 
 **Description:**
-Placeholder description.
+Return's true if spawn is stunned.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
 
-**Returns:** None.
+**Returns:** True if spawn is stunned, otherwise false.
 
 **Example:**
 
-```lua
--- Example usage
-IsStunned(..., ..., ...)
-```
+Example Required

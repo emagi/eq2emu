@@ -1,18 +1,27 @@
-### Function: SetQuestFlags(param1, param2, param3)
+### Function: SetQuestFlags(quest, flags)
 
 **Description:**
-Placeholder description.
+Sets the quest flags for the quest object.
 
 **Parameters:**
-- `param1`: unknown - Unknown type.
-- `param2`: unknown - Unknown type.
-- `param3`: int32 - Integer value.
+- `quest` (Quest) - Quest object representing `quest`.
+- `flags` (uint32) - Integer value `flags`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-SetQuestFlags(..., ..., ...)
+-- From Quests/EnchantedLands/HelpingSarmaSingebellows.lua
+function Accepted(Quest, QuestGiver, Player)
+	
+	if GetTempVariable(Player, "HelpingSarmaSingebellows") == "true" then
+		PlayFlavor(NPC, "voiceover/english/sarma_singebellows/enchanted/sarma_singebellows002.mp3", "", "", 2943069626, 2445316031, Spawn)
+		AddConversationOption(conversation, "I shall return when they are destroyed.")
+		StartConversation(conversation, NPC, Spawn, "Excellent!  You worked hard to kill all of those goblins, but we need to make sure they don't regain their foothold.")
+	else
+		PlayFlavor(NPC, "voiceover/english/sarma_singebellows/enchanted/sarma_singebellows002.mp3", "", "", 2943069626, 2445316031, Spawn)
+		AddConversationOption(conversation, "As you wish.")
+		StartConversation(conversation, NPC, Spawn, "Excellent! Goblins are tainting the water and withering the trees at a watermill by a nearby lake.  I want you to destroy as many of them as you can!")
+	end
 ```

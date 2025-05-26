@@ -1,19 +1,22 @@
-### Function: SetIllusion(param1, param2, param3, param4)
+### Function: SetIllusion(spawn, model)
 
 **Description:**
-Placeholder description.
+Sets the illusion of the Spawn to the model provided.  See model ids by version on https://wiki.eq2emu.com/ReferenceLists
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: int16 - Short integer value.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
+- `model` (uint16) - Integer value `model`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-SetIllusion(..., ..., ..., ...)
+-- From Spells/Commoner/GenericGenderDisguise.lua
+function cast(Caster, Target, Male, Female)
+	if GetGender(Spawn) == 1 then
+        SetIllusion(Target, Male)
+    else
+        SetIllusion(Target, Female)
+    end
 ```

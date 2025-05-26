@@ -1,16 +1,19 @@
-### Function: UseWidget(param1)
+### Function: UseWidget(widget)
 
 **Description:**
-Placeholder description.
+Use or Trigger a widget/object, such as in the context of opening or closing a door.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
+- `widget` (Spawn) - Spawn object representing `widget`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-UseWidget(...)
+-- From SpawnScripts/Baubbleshire/BinkOakshire.lua
+function Door1(NPC,Spawn)
+    local door = GetSpawn(NPC, 2380074)
+    UseWidget(door)
+end
 ```

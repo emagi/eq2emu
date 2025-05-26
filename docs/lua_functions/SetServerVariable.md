@@ -1,20 +1,15 @@
-### Function: SetServerVariable(param1, param2, param3, param4, param5)
+### Function: SetServerVariable(name, value, comment)
 
 **Description:**
-Placeholder description.
+Set's the server variable to the value provided.
 
 **Parameters:**
-- `param1`: string - String value.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: string - String value.
-- `param5`: string - String value.
+- `name` (string) - String `name`.
+- `value` (string) - String `value`.
+- `comment` (string) - String `comment`.
 
 **Returns:** None.
 
 **Example:**
 
-```lua
--- Example usage
-SetServerVariable(..., ..., ..., ..., ...)
-```
+Example Required

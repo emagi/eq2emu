@@ -1,19 +1,15 @@
-### Function: SendTransporters(param1, param2, param3, param4)
+### Function: SendTransporters(spawn, player, transport_id)
 
 **Description:**
-Placeholder description.
+Send the transporters list to the Player from the Spawn with the transport_id.
 
 **Parameters:**
-- `param1`: unknown - Unknown type.
-- `param2`: Spawn - The spawn or entity involved.
-- `param3`: Spawn - The spawn or entity involved.
-- `param4`: int32 - Integer value.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
+- `player` (Spawn) - Spawn object representing `player`.
+- `transport_id` (uint32) - Integer value `transport_id`.
 
 **Returns:** None.
 
 **Example:**
 
-```lua
--- Example usage
-SendTransporters(..., ..., ..., ...)
-```
+Example Required

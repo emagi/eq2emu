@@ -1,16 +1,13 @@
-### Function: HasFreeSlot(param1)
+### Function: HasFreeSlot(player)
 
 **Description:**
-Placeholder description.
+Return's true if there is a free slot in player's inventory, otherwise false.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
+- `player` (Spawn) - Spawn object representing `player`.
 
-**Returns:** None.
+**Returns:** True if there is an open inventory slot for the Player, otherwise false.
 
 **Example:**
 
-```lua
--- Example usage
-HasFreeSlot(...)
-```
+Example Required

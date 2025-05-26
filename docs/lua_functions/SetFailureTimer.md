@@ -1,20 +1,18 @@
-### Function: SetFailureTimer(param1, param2, param3, param4, param5)
+### Function: SetFailureTimer(spawn)
 
 **Description:**
-Placeholder description.
+Sets the failure timer on the Spawn for the current zone.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: unknown - Unknown type.
-- `param5`: unknown - Unknown type.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-SetFailureTimer(..., ..., ..., ..., ...)
+-- From ZoneScripts/BloodSkullValleyExcavationSite.lua
+function player_entry(zone, player)
+    SetFailureTimer(player)
+end
 ```

@@ -1,16 +1,13 @@
-### Function: StopMovement(param1)
+### Function: StopMovement(spawn)
 
 **Description:**
-Placeholder description.
+Stop the Spawn (usually NPC) from movement, interrupt its pathing.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
 
 **Returns:** None.
 
 **Example:**
 
-```lua
--- Example usage
-StopMovement(...)
-```
+Example Required

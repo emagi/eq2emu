@@ -1,21 +1,18 @@
-### Function: RemoveThreatTransfer(param1, param2, param3, param4, param5, param6)
+### Function: RemoveThreatTransfer(spawn)
 
 **Description:**
-Placeholder description.
+Remove a threat transfer currently assigned to the Spawn, only inside a Spell Script.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: unknown - Unknown type.
-- `param5`: unknown - Unknown type.
-- `param6`: unknown - Unknown type.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-RemoveThreatTransfer(..., ..., ..., ..., ..., ...)
+-- From Spells/Fighter/Crusader/Paladin/Amends.lua
+function remove(Caster, Target)
+    RemoveThreatTransfer(Caster)
+end
 ```

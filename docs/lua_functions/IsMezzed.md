@@ -1,18 +1,13 @@
-### Function: IsMezzed(param1, param2, param3)
+### Function: IsMezzed(spawn)
 
 **Description:**
-Placeholder description.
+Return's true if Spawn is mesmerized.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
 
-**Returns:** None.
+**Returns:** True if Spawn is mesmerized, otherwise false.
 
 **Example:**
 
-```lua
--- Example usage
-IsMezzed(..., ..., ...)
-```
+Example Required

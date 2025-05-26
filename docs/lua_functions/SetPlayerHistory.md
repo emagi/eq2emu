@@ -1,21 +1,21 @@
-### Function: SetPlayerHistory(param1, param2, param3, param4, param5, param6)
+### Function: SetPlayerHistory(player, event_id, value, value2)
 
 **Description:**
-Placeholder description.
+Set's the players history to the value provided.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: int32 - Integer value.
-- `param5`: int32 - Integer value.
-- `param6`: int32 - Integer value.
+- `player` (Spawn) - Spawn object representing `player`.
+- `event_id` (uint32) - Integer value `event_id`.
+- `value` (uint32) - Integer value `value`.
+- `value2` (uint32) - Integer value `value2`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-SetPlayerHistory(..., ..., ..., ..., ..., ...)
+-- From Quests/Antonica/hunters_manifest.lua
+function Accepted(Quest, QuestGiver, Player)
+SetPlayerHistory(Player, 8, 1)
+end 
 ```

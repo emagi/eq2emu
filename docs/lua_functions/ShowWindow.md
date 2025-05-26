@@ -1,18 +1,18 @@
-### Function: ShowWindow(param1, param2, param3)
+### Function: ShowWindow(player, window, show)
 
 **Description:**
-Placeholder description.
+Shows a UI window, window represents the ui/default directory eq2ui_x_y.xml, in other words eq2ui_inventory_inventory.xml will be Inventory.Inventory.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: string - String value.
-- `param3`: int8 - Small integer or boolean flag.
+- `player` (Spawn) - Spawn object representing `player`.
+- `window` (string) - String `window`.
+- `show` (uint8) - Integer value `show`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-ShowWindow(..., ..., ...)
+-- From Quests/FarJourneyFreeport/TasksaboardtheFarJourney.lua
+	ShowWindow(Player, "Inventory.Inventory", 0)
 ```

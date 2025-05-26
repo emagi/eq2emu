@@ -1,19 +1,22 @@
-### Function: SetInfoStructString(param1, param2, param3, param4)
+### Function: SetInfoStructString(spawn, field, value)
 
 **Description:**
-Placeholder description.
+Sets the string field to the value provided.  See https://github.com/emagi/eq2emu/blob/main/docs/data_types/info_struct.md for field types.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: string - String value.
-- `param4`: string - String value.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
+- `field` (string) - String `field`.
+- `value` (string) - String `value`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-SetInfoStructString(..., ..., ..., ...)
+-- From SpawnScripts/Antonica/anoverlandminer.lua
+function spawn(NPC, Spawn)
+    NPCModule(NPC, Spawn)
+    dwarf(NPC)
+    SetInfoStructString(NPC, "action_state", "mining_digging")
+end
 ```

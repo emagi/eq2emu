@@ -1,16 +1,13 @@
-### Function: IsZoneLoading(param1)
+### Function: IsZoneLoading(zone)
 
 **Description:**
-Placeholder description.
+Return's true if zone is currently loading.
 
 **Parameters:**
-- `param1`: ZoneServer - The zone object.
+- `zone` (Zone) - Zone object representing `zone`.
 
-**Returns:** None.
+**Returns:** True if zone is loading, otherwise false.
 
 **Example:**
 
-```lua
--- Example usage
-IsZoneLoading(...)
-```
+Example Required

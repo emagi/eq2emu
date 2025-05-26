@@ -1,19 +1,19 @@
-### Function: IsOnAutoMount(param1, param2, param3, param4)
+### Function: IsOnAutoMount(player)
 
 **Description:**
-Placeholder description.
+Return's true if Player is on a auto-mount (like griffon).
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: unknown - Unknown type.
+- `player` (Spawn) - Spawn object representing `player`.
 
-**Returns:** None.
+**Returns:** True if Player is on auto mount, otherwise false.
 
 **Example:**
 
 ```lua
--- Example usage
-IsOnAutoMount(..., ..., ..., ...)
+-- From ZoneScripts/Antonica.lua
+function GriffonTower(Zone, Spawn)
+	if IsPlayer(Spawn) and IsOnAutoMount(Spawn) then
+		EndAutoMount(Spawn)
+	end
 ```

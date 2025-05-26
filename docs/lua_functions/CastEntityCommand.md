@@ -1,24 +1,23 @@
-### Function: CastEntityCommand(param1, param2, param3, param4, param5, param6, param7, param8, param9)
+### Function: CastEntityCommand(caster, target, id, command)
 
 **Description:**
-Placeholder description.
+Calls an Entity Command through LUA versus the player triggering it themselves.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: unknown - Unknown type.
-- `param5`: unknown - Unknown type.
-- `param6`: unknown - Unknown type.
-- `param7`: Spawn - The spawn or entity involved.
-- `param8`: int32 - Integer value.
-- `param9`: string - String value.
+- `caster` (Spawn) - Spawn object representing `caster`.
+- `target` (Spawn) - Spawn object representing `target`.
+- `id` (uint32) - Integer value `id`.
+- `command` (string) - String `command`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-CastEntityCommand(..., ..., ..., ..., ..., ..., ..., ..., ...)
+-- From ItemScripts/AutomaticBook.lua
+function obtained(Item, Spawn)    
+    target = GetTarget(Spawn)
+    if target ~= nil then
+--        CastEntityCommand(Spawn, target, 1, "Scribe")
+end
 ```

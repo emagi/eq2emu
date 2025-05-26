@@ -1,22 +1,27 @@
-### Function: CastCustomSpell(param1, param2, param3, param4, param5, param6, param7)
+### Function: CastCustomSpell(spell, caster, target)
 
 **Description:**
-Placeholder description.
+Casts a custom spell that has been created through a Spell Script.
 
 **Parameters:**
-- `param1`: unknown - Unknown type.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: unknown - Unknown type.
-- `param5`: unknown - Unknown type.
-- `param6`: Spawn - The spawn or entity involved.
-- `param7`: Spawn - The spawn or entity involved.
+- `spell` (Spell) - Spell object representing `spell`.
+- `caster` (Spawn) - Spawn object representing `caster`.
+- `target` (Spawn) - Spawn object representing `target`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-CastCustomSpell(..., ..., ..., ..., ..., ..., ...)
+-- From ItemScripts/AbbatoirCoffee.lua
+function cast(Item, Player)
+	Spell = GetSpell(5463)
+	Regenz = 18.0
+	newDuration = 180000
+	SetSpellData(Spell, "duration1", newDuration)
+	SetSpellData(Spell, "duration2", newDuration)
+	SetSpellDataIndex(Spell, 0, Regenz)
+	SetSpellDisplayEffect(Spell, 0, "description", "Increases Out-of-Combat Power Regeneration of target by " .. Regenz)
+	CastCustomSpell(Spell, Player, Player)
+end
 ```

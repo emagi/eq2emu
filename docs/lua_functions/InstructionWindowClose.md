@@ -1,16 +1,16 @@
-### Function: InstructionWindowClose(param1)
+### Function: InstructionWindowClose(player)
 
 **Description:**
-Placeholder description.
+Disables / closes he instruction window previously provided.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
+- `player` (Spawn) - Spawn object representing `player`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-InstructionWindowClose(...)
+-- From Quests/FarJourneyFreeport/TasksaboardtheFarJourney.lua
+InstructionWindowClose(Player)
 ```

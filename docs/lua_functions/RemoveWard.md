@@ -1,25 +1,20 @@
-### Function: RemoveWard(param1, param2, param3, param4, param5, param6, param7, param8, param9, param10)
+### Function: RemoveWard()
 
 **Description:**
-Placeholder description.
+Remove Ward from spell targets, must be used in spell script.
 
-**Parameters:**
-- `param1`: unknown - Unknown type.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: Spawn - The spawn or entity involved.
-- `param5`: unknown - Unknown type.
-- `param6`: unknown - Unknown type.
-- `param7`: unknown - Unknown type.
-- `param8`: unknown - Unknown type.
-- `param9`: unknown - Unknown type.
-- `param10`: Spawn - The spawn or entity involved.
+**Parameters:** None.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-RemoveWard(..., ..., ..., ..., ..., ..., ..., ..., ..., ...)
+-- From Spells/Commoner/CarpetDjinnMaster.lua
+function remove(Caster, Target)
+    RemoveSpellBonus(Caster)
+RemoveWard()
+SetMount(Caster, 0)
+  RemoveControlEffect(Caster, 12)
+end
 ```

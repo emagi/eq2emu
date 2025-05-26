@@ -1,19 +1,20 @@
-### Function: SetInfoStructUInt(param1, param2, param3, param4)
+### Function: SetInfoStructUInt(spawn, field, value)
 
 **Description:**
-Placeholder description.
+Sets the unsigned integer field to the value provided.  See https://github.com/emagi/eq2emu/blob/main/docs/data_types/info_struct.md for field types.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: string - String value.
-- `param4`: unknown - Unknown type.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
+- `field` (string) - String `field`.
+- `value` (uint64) - Integer value `value`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-SetInfoStructUInt(..., ..., ..., ...)
+-- From ItemScripts/discordimbuedroughspunhexdoll.lua
+function examined(Item, Player)
+SetInfoStructUInt(Player, "status_points", 20000)
+end
 ```

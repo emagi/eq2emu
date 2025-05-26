@@ -1,16 +1,22 @@
-### Function: IsInvulnerable(param1)
+### Function: IsInvulnerable(spawn)
 
 **Description:**
-Placeholder description.
+Return's true if spawn is set to invulnerable.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
 
-**Returns:** None.
+**Returns:** True if Spawn invulnerable otherwise false.
 
 **Example:**
 
 ```lua
--- Example usage
-IsInvulnerable(...)
+-- From RegionScripts/exp04_dun_chardok/char_p10_crossbridge_pit01_region.lua
+function EnterRegion(Zone, Spawn, RegionType)
+    -- RegionType 2 is 'lava' or 'death' regions, RegionType 1 is water
+
+    local invul = IsInvulnerable(Spawn)
+    if invul == true then
+        return 0
+    end
 ```

@@ -1,18 +1,14 @@
-### Function: RemoveIconValue(param1, param2, param3)
+### Function: RemoveIconValue(spawn, value)
 
 **Description:**
-Placeholder description.
+Remove a visual icon value from the Spawn.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: int32 - Integer value.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
+- `value` (uint32) - Integer value `value`.
 
 **Returns:** None.
 
 **Example:**
 
-```lua
--- Example usage
-RemoveIconValue(..., ..., ...)
-```
+Example Required

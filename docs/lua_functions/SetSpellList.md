@@ -1,19 +1,30 @@
-### Function: SetSpellList(param1, param2, param3, param4)
+### Function: SetSpellList(spawn, primary_list, secondary_list)
 
 **Description:**
-Placeholder description.
+Set the spell list of the Spawn for primary and secondary list.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: int32 - Integer value.
-- `param4`: int32 - Integer value.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
+- `primary_list` (uint32) - Integer value `primary_list`.
+- `secondary_list` (uint32) - Integer value `secondary_list`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-SetSpellList(..., ..., ..., ...)
+-- From SpawnScripts/Antonica/abloodsaberseditionist.lua
+function ChooseClass(NPC)
+    SetClass = MakeRandomInt(1,2)
+    if SetClass == 1 then
+        SpawnSet(NPC,"class", 2)
+        SetSpellList(NPC, 451)
+        IdleAggressive(NPC)
+        DervishChain(NPC)
+    elseif SetClass == 2 then
+        SpawnSet(NPC, "class", 32)
+        SetSpellList(NPC, 469)
+        IdleAlert(NPC)
+        DervishLeather(NPC)
+    end
 ```

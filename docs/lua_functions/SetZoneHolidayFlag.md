@@ -1,17 +1,14 @@
-### Function: SetZoneHolidayFlag(param1, param2)
+### Function: SetZoneHolidayFlag(zone, holidayFlag)
 
 **Description:**
-Placeholder description.
+Set's the current zone's holiday flag.
 
 **Parameters:**
-- `param1`: ZoneServer - The zone object.
-- `param2`: int32 - Integer value.
+- `zone` (Zone) - Zone object representing `zone`.
+- `holidayFlag` (uint32) - Integer value `holidayFlag`.
 
 **Returns:** None.
 
 **Example:**
 
-```lua
--- Example usage
-SetZoneHolidayFlag(..., ...)
-```
+Example Required

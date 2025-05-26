@@ -1,24 +1,28 @@
-### Function: SetSpellDisplayEffect(param1, param2, param3, param4, param5, param6, param7, param8, param9)
+### Function: SetSpellDisplayEffect(spell, idx, field, percentage)
 
 **Description:**
-Placeholder description.
+Set's the spell display effect value.
 
 **Parameters:**
-- `param1`: unknown - Unknown type.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: unknown - Unknown type.
-- `param5`: int32 - Integer value.
-- `param6`: string - String value.
-- `param7`: string - String value.
-- `param8`: int8 - Small integer or boolean flag.
-- `param9`: int8 - Small integer or boolean flag.
+- `spell` (Spell) - Spell object representing `spell`.
+- `idx` (uint32) - Integer value `idx`.
+- `field` (string) - String `field`.
+- `percentage` (uint8) - Integer value `percentage`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-SetSpellDisplayEffect(..., ..., ..., ..., ..., ..., ..., ..., ...)
+-- From ItemScripts/AbbatoirCoffee.lua
+function cast(Item, Player)
+	Spell = GetSpell(5463)
+	Regenz = 18.0
+	newDuration = 180000
+	SetSpellData(Spell, "duration1", newDuration)
+	SetSpellData(Spell, "duration2", newDuration)
+	SetSpellDataIndex(Spell, 0, Regenz)
+	SetSpellDisplayEffect(Spell, 0, "description", "Increases Out-of-Combat Power Regeneration of target by " .. Regenz)
+	CastCustomSpell(Spell, Player, Player)
+end
 ```

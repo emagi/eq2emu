@@ -1,27 +1,27 @@
-### Function: Resurrect(param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11, param12)
+### Function: Resurrect(hp_perc, power_perc, send_window, target, heal_name, crit_mod, no_calcs, revive_spell_id, revive_spell_tier)
 
 **Description:**
-Placeholder description.
+Resurrect the spell targets.
 
 **Parameters:**
-- `param1`: float - Floating point value.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: unknown - Unknown type.
-- `param5`: float - Floating point value.
-- `param6`: int32 - Integer value.
-- `param7`: Spawn - The spawn or entity involved.
-- `param8`: string - String value.
-- `param9`: int32 - Integer value.
-- `param10`: int32 - Integer value.
-- `param11`: int32 - Integer value.
-- `param12`: int32 - Integer value.
+- `hp_perc` (float) - Float value `hp_perc`.
+- `power_perc` (float) - Float value `power_perc`.
+- `send_window` (uint32) - Integer value `send_window`.
+- `target` (Spawn) - Spawn object representing `target`.
+- `heal_name` (string) - String `heal_name`.
+- `crit_mod` (uint32) - Integer value `crit_mod`.
+- `no_calcs` (uint32) - Integer value `no_calcs`.
+- `revive_spell_id` (uint32) - Integer value `revive_spell_id`.
+- `revive_spell_tier` (uint32) - Integer value `revive_spell_tier`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-Resurrect(..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ...)
+-- From Spells/Commoner/FavorofthePhoenix.lua
+function cast(Caster, Target)
+Resurrect(15, 15, 1)
+    Say(Caster, "Summoning Sickness not implemented.")
+end
 ```

@@ -1,19 +1,25 @@
-### Function: SetInCombat(param1, param2, param3, param4)
+### Function: SetInCombat(spawn, val)
 
 **Description:**
-Placeholder description.
+Set's if the Spawn is in combat.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: bool - Boolean value (true/false).
+- `spawn` (Spawn) - Spawn object representing `spawn`.
+- `val` (bool) - Boolean flag `val`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-SetInCombat(..., ..., ..., ...)
+-- From SpawnScripts/BrawlersDojo/afirstcircleadept.lua
+function aggro(NPC,Spawn)
+    if GetTempVariable(NPC,"Reset")== nil then
+    else
+        ClearHate(NPC, Spawn)
+        SetInCombat(Spawn, false)
+        SetInCombat(NPC, false)
+        ClearEncounter(NPC)
+        SetTarget(Spawn,nil)
+    end
 ```

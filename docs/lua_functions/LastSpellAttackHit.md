@@ -1,17 +1,22 @@
-### Function: LastSpellAttackHit(param1, param2)
+### Function: LastSpellAttackHit()
 
 **Description:**
-Placeholder description.
+Return's true if the last spell attack was a successful hit.
 
-**Parameters:**
-- `param1`: unknown - Unknown type.
-- `param2`: unknown - Unknown type.
+**Parameters:** None.
 
-**Returns:** None.
+**Returns:** True if the last hit was successful  otherwise false.
 
 **Example:**
 
 ```lua
--- Example usage
-LastSpellAttackHit(..., ...)
+-- From Spells/AA/NullifyingStaff.lua
+function cast(Caster, Target, DmgType, MinVal, MaxVal, CombatMit, Arcane)
+	SpellDamage(Target, DmgType, MinVal, MaxVal)
+--if LastSpellAttackHit() then
+--AddSpellBonus(Target, 0, CombatMit)
+--end
+		if LastSpellAttackHit() then
+			AddSpellBonus(Target, 203, Arcane)
+				end
 ```

@@ -1,21 +1,21 @@
-### Function: HasSpellEffect(param1, param2, param3, param4, param5, param6)
+### Function: HasSpellEffect(spawn, spellID, tier)
 
 **Description:**
-Placeholder description.
+Return's true if the spawn has an active spell effect with the spellid and tier specified.  If tier is set to 0 all tiers apply.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: unknown - Unknown type.
-- `param5`: int32 - Integer value.
-- `param6`: int8 - Small integer or boolean flag.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
+- `spellID` (uint32) - Integer value `spellID`.
+- `tier` (uint8) - Integer value `tier`.
 
-**Returns:** None.
+**Returns:** True if spell effect is active on the spawn with spellid and tier (if tier is 0 then all tiers apply).  Otherwise false.
 
 **Example:**
 
 ```lua
--- Example usage
-HasSpellEffect(..., ..., ..., ..., ..., ...)
+-- From ItemScripts/aCourierCostume.lua
+function unequipped(Item, Player)
+  if HasSpellEffect(Player, 5459, 1) then
+    CastSpell(Player, 5459, 1)
+end
 ```

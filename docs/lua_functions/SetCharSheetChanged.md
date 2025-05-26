@@ -1,18 +1,17 @@
-### Function: SetCharSheetChanged(param1, param2, param3)
+### Function: SetCharSheetChanged(spawn, value)
 
 **Description:**
-Placeholder description.
+Set's that the character sheet was changed (usually set to true to update the client).
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: bool - Boolean value (true/false).
+- `spawn` (Spawn) - Spawn object representing `spawn`.
+- `value` (bool) - Boolean flag `value`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-SetCharSheetChanged(..., ..., ...)
+-- From SpawnScripts/Generic/SpiritShard.lua
+SetCharSheetChanged(Spawn, true)
 ```

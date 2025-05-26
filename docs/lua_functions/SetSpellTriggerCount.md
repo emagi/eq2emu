@@ -1,20 +1,24 @@
-### Function: SetSpellTriggerCount(param1, param2, param3, param4, param5)
+### Function: SetSpellTriggerCount(trigger_count, cancel_after_triggers)
 
 **Description:**
-Placeholder description.
+Set's the spell trigger count in a spell script, cancel_after_triggers set to 1 will remove spell after.
 
 **Parameters:**
-- `param1`: unknown - Unknown type.
-- `param2`: unknown - Unknown type.
-- `param3`: int16 - Short integer value.
-- `param4`: unknown - Unknown type.
-- `param5`: int8 - Small integer or boolean flag.
+- `trigger_count` (uint16) - uint16 value `trigger_count`.
+- `cancel_after_triggers` (uint8) - uint8 value `cancel_after_triggers`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-SetSpellTriggerCount(..., ..., ..., ..., ...)
+-- From Spells/Commoner/ArcaneEnlightenment.lua
+function cast(Caster, Target, Power, Triggers)
+    MaxPow = GetMaxPower(Caster)
+    PowHeal = math.floor(MaxPow * 0.2)
+    SpellHeal("Power", PowHeal, PowHeal, Caster)
+    
+    AddProc(Caster, 15, 50)
+    SetSpellTriggerCount(Triggers, 1)
+end
 ```

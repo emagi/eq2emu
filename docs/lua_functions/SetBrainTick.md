@@ -1,20 +1,24 @@
-### Function: SetBrainTick(param1, param2, param3, param4, param5)
+### Function: SetBrainTick(spawn, tick)
 
 **Description:**
-Placeholder description.
+Sets the Spawn's brain tick rate in milliseconds.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: unknown - Unknown type.
-- `param5`: int16 - Short integer value.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
+- `tick` (uint16) - Integer value `tick`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-SetBrainTick(..., ..., ..., ..., ...)
+-- From SpawnScripts/GMHall/TrainingDummy.lua
+function spawn(NPC)
+	-- set the calls to the ai to 10 mins as there is no ai
+	SetBrainTick(NPC, 600000)
+	SetLuaBrain(NPC)
+	
+	-- give the spawn a crap load of hp so we can't one hit kill
+	SetHP(NPC, 1000000)
+end
 ```

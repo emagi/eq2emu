@@ -1,20 +1,19 @@
-### Function: RemoveImmunitySpell(param1, param2, param3, param4, param5)
+### Function: RemoveImmunitySpell(type, spawn)
 
 **Description:**
-Placeholder description.
+Remove an immunity spell from the Spawn.  See immunity types https://github.com/emagi/eq2emu/blob/main/docs/data_types/immunity_types.md
 
 **Parameters:**
-- `param1`: unknown - Unknown type.
-- `param2`: int8 - Small integer or boolean flag.
-- `param3`: unknown - Unknown type.
-- `param4`: unknown - Unknown type.
-- `param5`: Spawn - The spawn or entity involved.
+- `type` (uint8) - UInt8 value `type`.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-RemoveImmunitySpell(..., ..., ..., ..., ...)
+-- From Spells/AA/AdvanceWarning.lua
+function remove(Caster, Target)
+    RemoveImmunitySpell(7, Target)
+end
 ```

@@ -1,19 +1,21 @@
-### Function: HasLanguage(param1, param2, param3, param4)
+### Function: HasLanguage(player, language_id)
 
 **Description:**
-Placeholder description.
+Return's true if the player has the language_id specified.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: int32 - Integer value.
+- `player` (Spawn) - Spawn object representing `player`.
+- `language_id` (uint32) - Integer value `language_id`.
 
-**Returns:** None.
+**Returns:** True if the language_id has been obtained by the player, otherwise false.
 
 **Example:**
 
 ```lua
--- Example usage
-HasLanguage(..., ..., ..., ...)
+-- From ItemScripts/acarvedorcaxe.lua
+function Dialog1(Item,Player)
+    conversation = CreateConversation()
+    if CanReceiveQuest(Player,AnAxesRevenge) then
+    AddConversationOption(conversation, "[Run your fingers over the markings]", "Dialog2")
+    end
 ```

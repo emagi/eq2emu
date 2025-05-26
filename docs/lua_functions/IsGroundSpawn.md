@@ -1,17 +1,19 @@
-### Function: IsGroundSpawn(param1, param2)
+### Function: IsGroundSpawn(spawn)
 
 **Description:**
-Placeholder description.
+Return's true if the spawn is a ground spawn.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
 
-**Returns:** None.
+**Returns:** True if the spawn is the Ground Spawn, otherwise False.
 
 **Example:**
 
 ```lua
--- Example usage
-IsGroundSpawn(..., ...)
+-- From Spells/Commoner/harvest.lua
+function precast(Caster, Target)
+    if IsGroundSpawn(Target) then
+      return CanHarvest(Caster, Target)
+    end
 ```

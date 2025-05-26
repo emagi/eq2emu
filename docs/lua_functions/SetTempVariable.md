@@ -1,22 +1,26 @@
-### Function: SetTempVariable(param1, param2, param3, param4, param5, param6, param7)
+### Function: SetTempVariable(spawn, var, val)
 
 **Description:**
-Placeholder description.
+Set's a temporary variable on the Spawn.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: unknown - Unknown type.
-- `param5`: unknown - Unknown type.
-- `param6`: string - String value.
-- `param7`: string - String value.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
+- `var` (string) - String `var`.
+- `val` (string) - String `val`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-SetTempVariable(..., ..., ..., ..., ..., ..., ...)
+-- From ItemScripts/BowlOfTerratrodderChuck.lua
+function used(Item, Player)
+	if HasQuest(Player, AMindOfMyOwn) then
+		if GetZoneID(GetZone(Player)) == 108 then
+
+		    RemoveItem(Player, TerratrodderChuck)
+			local bucket = SpawnMob(GetZone(Player), 1081002, 1, GetX(Player), GetY(Player), GetZ(Player), GetHeading(Player))
+			AddSpawnAccess(bucket, Player)
+			SetTempVariable(bucket, "PlayerPointer", Player)
+		end
 ```

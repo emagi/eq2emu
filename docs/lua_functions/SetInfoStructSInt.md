@@ -1,19 +1,30 @@
-### Function: SetInfoStructSInt(param1, param2, param3, param4)
+### Function: SetInfoStructSInt(spawn, field, value)
 
 **Description:**
-Placeholder description.
+Sets the signed integer field to the value provided.  See https://github.com/emagi/eq2emu/blob/main/docs/data_types/info_struct.md for field types.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: string - String value.
-- `param4`: sint64 - Large integer value.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
+- `field` (string) - String `field`.
+- `value` (int64) - Integer value `value`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-SetInfoStructSInt(..., ..., ..., ...)
+-- From SpawnScripts/Antonica/Anguis.lua
+function spawn(NPC)
+    dmgMod = math.floor(GetStr(NPC)/10)
+    HPRegenMod = math.floor(GetSta(NPC)/10)
+    PwRegenMod = math.floor(GetStr(NPC)/10)
+    SetInfoStructUInt(NPC, "override_primary_weapon", 1)        
+    SetInfoStructUInt(NPC, "primary_weapon_damage_low", math.floor(205 + dmgMod)) 
+    SetInfoStructUInt(NPC, "primary_weapon_damage_high", math.floor(355 + dmgMod))
+    SetInfoStructUInt(NPC, "hp_regen_override", 1)  
+    SetInfoStructSInt(NPC, "hp_regen", 125 + HPRegenMod)           
+    SetInfoStructUInt(NPC, "pw_regen_override", 1)  
+    SetInfoStructSInt(NPC, "pw_regen", 75 + PwRegenMod) 
+
+end
 ```

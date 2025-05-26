@@ -1,20 +1,21 @@
-### Function: IsBehind(param1, param2, param3, param4, param5)
+### Function: IsBehind(spawn, target)
 
 **Description:**
-Placeholder description.
+Return's true if Spawn is behind Target.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: unknown - Unknown type.
-- `param5`: Spawn - The spawn or entity involved.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
+- `target` (Spawn) - Spawn object representing `target`.
 
-**Returns:** None.
+**Returns:** True if Spawn is behind Target, otherwise False.
 
 **Example:**
 
 ```lua
--- Example usage
-IsBehind(..., ..., ..., ..., ...)
+-- From Spells/CaskinsRingingSwipe.lua
+function precast(Caster,Target)
+	if not IsFlanking(Caster, Target) and not IsBehind(Caster, Target) then
+        SendMessage(Caster, "Must be flanking or behind", "yellow")
+        return false
+	end
 ```

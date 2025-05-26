@@ -1,17 +1,21 @@
-### Function: IsFollowing(param1, param2)
+### Function: IsFollowing(spawn)
 
 **Description:**
-Placeholder description.
+Return's true if the spawn following is enabled.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
 
-**Returns:** None.
+**Returns:** True if the spawn following is enabled, otherwise false.
 
 **Example:**
 
 ```lua
--- Example usage
-IsFollowing(..., ...)
+-- From SpawnScripts/BeggarsCourt/Ro.lua
+function ResetFollow(NPC)    
+    if IsFollowing(NPC) then
+        SetTarget(NPC,nil)
+        ToggleFollow(NPC)
+        AttackTimer = false
+end
 ```

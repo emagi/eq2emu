@@ -1,18 +1,13 @@
-### Function: HasRecovered(param1, param2, param3)
+### Function: HasRecovered(spawn)
 
 **Description:**
-Placeholder description.
+If the NPC has recovered from spell casting.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
 
-**Returns:** None.
+**Returns:** True if casting again is possible, otherwise false if inbetween cast recovery.
 
 **Example:**
 
-```lua
--- Example usage
-HasRecovered(..., ..., ...)
-```
+Example Required

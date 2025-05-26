@@ -1,16 +1,13 @@
-### Function: IsRunning(param1)
+### Function: IsRunning(spawn)
 
 **Description:**
-Placeholder description.
+Return's true if spawn is currently running
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
 
-**Returns:** None.
+**Returns:** True if Spawn is running, otherwise false.
 
 **Example:**
 
-```lua
--- Example usage
-IsRunning(...)
-```
+Example Required

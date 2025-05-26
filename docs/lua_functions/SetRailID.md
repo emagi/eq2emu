@@ -1,19 +1,14 @@
-### Function: SetRailID(param1, param2, param3, param4)
+### Function: SetRailID(spawn, rail_id)
 
 **Description:**
-Placeholder description.
+Set's the rail id of the spawn.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: sint64 - Large integer value.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
+- `rail_id` (int64) - Integer value `rail_id`.
 
 **Returns:** None.
 
 **Example:**
 
-```lua
--- Example usage
-SetRailID(..., ..., ..., ...)
-```
+Example Required

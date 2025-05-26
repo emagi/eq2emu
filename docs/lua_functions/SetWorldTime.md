@@ -1,19 +1,16 @@
-### Function: SetWorldTime(param1, param2, param3, param4)
+### Function: SetWorldTime(newYear, newMonth, newHour, newMinute)
 
 **Description:**
-Placeholder description.
+Set's the world time on the world server.
 
 **Parameters:**
-- `param1`: int16 - Short integer value.
-- `param2`: int16 - Short integer value.
-- `param3`: int16 - Short integer value.
-- `param4`: int16 - Short integer value.
+- `newYear` (uint16) - Integer value `newYear`.
+- `newMonth` (uint16) - Integer value `newMonth`.
+- `newHour` (uint16) - Integer value `newHour`.
+- `newMinute` (uint16) - Integer value `newMinute`.
 
 **Returns:** None.
 
 **Example:**
 
-```lua
--- Example usage
-SetWorldTime(..., ..., ..., ...)
-```
+Example Required

@@ -1,20 +1,21 @@
-### Function: SetSpawnAnimation(param1, param2, param3, param4, param5)
+### Function: SetSpawnAnimation(spawn, anim_id, leeway)
 
 **Description:**
-Placeholder description.
+Set's the spawn animation of the spawn, leeway adds a delay in milliseconds.  See appearance id's at https://wiki.eq2emu.com/ReferenceLists for animation ids.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: int32 - Integer value.
-- `param5`: int16 - Short integer value.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
+- `anim_id` (uint32) - Integer value `anim_id`.
+- `leeway` (uint16) - Integer value `leeway`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-SetSpawnAnimation(..., ..., ..., ..., ...)
+-- From SpawnScripts/Antonica/anearthcrawler.lua
+function spawn(NPC, Spawn)
+    NPCModule(NPC, Spawn)
+    SetSpawnAnimation(NPC, 13016)
+end
 ```

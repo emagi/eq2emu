@@ -1,21 +1,14 @@
-### Function: SetQuestTimerComplete(param1, param2, param3, param4, param5, param6)
+### Function: SetQuestTimerComplete(quest, player)
 
 **Description:**
-Placeholder description.
+Set's the quest timer as complete for the player.
 
 **Parameters:**
-- `param1`: unknown - Unknown type.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: unknown - Unknown type.
-- `param5`: unknown - Unknown type.
-- `param6`: Spawn - The spawn or entity involved.
+- `quest` (Quest) - Quest object representing `quest`.
+- `player` (Spawn) - Spawn object representing `player`.
 
 **Returns:** None.
 
 **Example:**
 
-```lua
--- Example usage
-SetQuestTimerComplete(..., ..., ..., ..., ..., ...)
-```
+Example Required

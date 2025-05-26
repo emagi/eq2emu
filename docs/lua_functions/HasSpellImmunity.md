@@ -1,19 +1,14 @@
-### Function: HasSpellImmunity(param1, param2, param3, param4)
+### Function: HasSpellImmunity(spawn, type)
 
 **Description:**
-Placeholder description.
+Return's if the spawn has immunity to the spell type.  See available types in https://github.com/emagi/eq2emu/blob/main/docs/data_types/immunity_types.md
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: int8 - Small integer or boolean flag.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
+- `type` (uint8) - Integer value `type`.
 
-**Returns:** None.
+**Returns:** True if the spawn has immunity to spell type, otherwise false.
 
 **Example:**
 
-```lua
--- Example usage
-HasSpellImmunity(..., ..., ..., ...)
-```
+Example Required

@@ -1,18 +1,18 @@
-### Function: ResetIllusion(param1, param2, param3)
+### Function: ResetIllusion(spawn)
 
 **Description:**
-Placeholder description.
+Remove the current illusion from a spawn, the spawn parameter is optional, inside spell script resets all spell targets illusion.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-ResetIllusion(..., ..., ...)
+-- From Spells/Commoner/GenericGenderDisguise.lua
+function remove(Caster, Target)
+	ResetIllusion(Target)
+end
 ```

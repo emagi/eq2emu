@@ -1,21 +1,16 @@
-### Function: IncreaseSkillCapsByType(param1, param2, param3, param4, param5, param6)
+### Function: IncreaseSkillCapsByType(player_spawn, skill_type, amount, more_to_increase)
 
 **Description:**
-Placeholder description.
+Increases all skill maximums by the skill_type.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: int8 - Small integer or boolean flag.
-- `param5`: int8 - Small integer or boolean flag.
-- `param6`: bool - Boolean value (true/false).
+- `player_spawn` (Spawn) - Spawn object representing `player_spawn`.
+- `skill_type` (uint8) - Integer value `skill_type`.
+- `amount` (uint8) - Quantity `amount`.
+- `more_to_increase` (bool) - Boolean flag `more_to_increase`.
 
 **Returns:** None.
 
 **Example:**
 
-```lua
--- Example usage
-IncreaseSkillCapsByType(..., ..., ..., ..., ..., ...)
-```
+Example Required

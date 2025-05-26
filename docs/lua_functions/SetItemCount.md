@@ -1,23 +1,15 @@
-### Function: SetItemCount(param1, param2, param3, param4, param5, param6, param7, param8)
+### Function: SetItemCount(item, owner, new_count)
 
 **Description:**
-Placeholder description.
+Set's the item count of the Item object.  Only applicable to Player's.
 
 **Parameters:**
-- `param1`: Item - An item reference.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: unknown - Unknown type.
-- `param5`: unknown - Unknown type.
-- `param6`: unknown - Unknown type.
-- `param7`: Spawn - The spawn or entity involved.
-- `param8`: int32 - Integer value.
+- `item` (Item) - Item object representing `item`.
+- `owner` (Spawn) - Spawn object representing `owner`.
+- `new_count` (uint32) - Quantity `new_count`.
 
 **Returns:** None.
 
 **Example:**
 
-```lua
--- Example usage
-SetItemCount(..., ..., ..., ..., ..., ..., ..., ...)
-```
+Example Required

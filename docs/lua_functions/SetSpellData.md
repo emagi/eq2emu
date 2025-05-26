@@ -1,19 +1,27 @@
-### Function: SetSpellData(param1, param2, param3, param4)
+### Function: SetSpellData(spell, field, fieldvalue)
 
 **Description:**
-Placeholder description.
+Set's the spell data value
 
 **Parameters:**
-- `param1`: unknown - Unknown type.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: string - String value.
+- `spell` (Spell) - Spell object representing `spell`.
+- `field` (string) - String `field`.
+- `fieldvalue` (value) - `fieldvalue`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-SetSpellData(..., ..., ..., ...)
+-- From ItemScripts/AbbatoirCoffee.lua
+function cast(Item, Player)
+	Spell = GetSpell(5463)
+	Regenz = 18.0
+	newDuration = 180000
+	SetSpellData(Spell, "duration1", newDuration)
+	SetSpellData(Spell, "duration2", newDuration)
+	SetSpellDataIndex(Spell, 0, Regenz)
+	SetSpellDisplayEffect(Spell, 0, "description", "Increases Out-of-Combat Power Regeneration of target by " .. Regenz)
+	CastCustomSpell(Spell, Player, Player)
+end
 ```

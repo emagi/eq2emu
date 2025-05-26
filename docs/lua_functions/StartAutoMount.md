@@ -1,21 +1,20 @@
-### Function: StartAutoMount(param1, param2, param3, param4, param5, param6)
+### Function: StartAutoMount(player, path)
 
 **Description:**
-Placeholder description.
+Start the auto mount for the Player on a path id.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: unknown - Unknown type.
-- `param5`: unknown - Unknown type.
-- `param6`: int32 - Integer value.
+- `player` (Spawn) - Spawn object representing `player`.
+- `path` (uint32) - Integer value `path`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-StartAutoMount(..., ..., ..., ..., ..., ...)
+-- From SpawnScripts/Antonica/AGriffonTamer.lua
+function QeynosToSteppes(NPC, Spawn)
+	StartAutoMount(Spawn, 84)
+	SetMount(Spawn, 225)
+end
 ```

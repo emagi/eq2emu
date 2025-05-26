@@ -1,20 +1,20 @@
-### Function: RemoveSkill(param1, param2, param3, param4, param5)
+### Function: RemoveSkill(player_spawn, skill_id, more_to_remove)
 
 **Description:**
-Placeholder description.
+Remove's the skill from the player's skill list.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: int32 - Integer value.
-- `param5`: bool - Boolean value (true/false).
+- `player_spawn` (Spawn) - Spawn object representing `player_spawn`.
+- `skill_id` (uint32) - Integer value `skill_id`.
+- `more_to_remove` (bool) - Boolean flag `more_to_remove`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-RemoveSkill(..., ..., ..., ..., ...)
+-- From ItemScripts/BardCertificationPapers.lua
+if HasSkill(Player, 1408356869) then -- Martial/Fighter
+    RemoveSkill(Player, 1408356869)
+end
 ```

@@ -1,28 +1,26 @@
-### Function: ProcDamage(param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11, param12, param13)
+### Function: ProcDamage(caster, target, name, dmg_type, low_damage, high_damage, success_msg, effect_msg)
 
 **Description:**
-Placeholder description.
+Conduct proc damage against the target.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: unknown - Unknown type.
-- `param5`: unknown - Unknown type.
-- `param6`: unknown - Unknown type.
-- `param7`: Spawn - The spawn or entity involved.
-- `param8`: string - String value.
-- `param9`: int8 - Small integer or boolean flag.
-- `param10`: int32 - Integer value.
-- `param11`: int32 - Integer value.
-- `param12`: string - String value.
-- `param13`: string - String value.
+- `caster` (Spawn) - Spawn object representing `caster`.
+- `target` (Spawn) - Spawn object representing `target`.
+- `name` (string) - String `name`.
+- `dmg_type` (uint8) - Integer value `dmg_type`.
+- `low_damage` (uint32) - Integer value `low_damage`.
+- `high_damage` (uint32) - Integer value `high_damage`.
+- `success_msg` (string) - String `success_msg`.
+- `effect_msg` (string) - String `effect_msg`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-ProcDamage(..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ...)
+-- From ItemScripts/LaserGoggles.lua
+function doDamage(Player, Target, damage)
+    local damage = math.floor(((GetHP(Target) / 100) * 50) + GetHP(Target))
+    ProcDamage(Player, Target, " Dev AE Slay", 4, damage)
+end
 ```

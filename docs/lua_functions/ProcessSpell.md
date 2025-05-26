@@ -1,22 +1,15 @@
-### Function: ProcessSpell(param1, param2, param3, param4, param5, param6, param7)
+### Function: ProcessSpell(spawn, target, distance)
 
 **Description:**
-Placeholder description.
+Send a LUA Brain process spell call for the Spawn against the Target based on the distance provided.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: unknown - Unknown type.
-- `param5`: unknown - Unknown type.
-- `param6`: Spawn - The spawn or entity involved.
-- `param7`: float - Floating point value.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
+- `target` (Spawn) - Spawn object representing `target`.
+- `distance` (float) - Float value `distance`.
 
-**Returns:** None.
+**Returns:** True if successful, otherwise false.
 
 **Example:**
 
-```lua
--- Example usage
-ProcessSpell(..., ..., ..., ..., ..., ..., ...)
-```
+Example Required

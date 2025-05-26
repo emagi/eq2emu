@@ -1,18 +1,23 @@
-### Function: RemoveStealth(param1, param2, param3)
+### Function: RemoveStealth(spawn)
 
 **Description:**
-Placeholder description.
+Remove stealth from the spawn.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-RemoveStealth(..., ..., ...)
+-- From SpawnScripts/Caves/acuriousrock.lua
+function casted_on(NPC, Spawn, Message)
+    if Message == "smash" then
+    SetAccessToEntityCommand(Spawn,NPC,"smash", 0)
+    SpawnSet(NPC, "show_command_icon", 0)
+    SpawnSet(NPC, "display_hand_icon", 0)    
+    if IsStealthed(Spawn)  then
+--    RemoveStealth(NPC,Spawn)
+    end
 ```

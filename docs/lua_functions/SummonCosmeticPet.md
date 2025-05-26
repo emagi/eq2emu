@@ -1,25 +1,20 @@
-### Function: SummonCosmeticPet(param1, param2, param3, param4, param5, param6, param7, param8, param9, param10)
+### Function: SummonCosmeticPet(spawn, pet_id)
 
 **Description:**
-Placeholder description.
+Summon a cosmetic pet with the pet_id (spawn database id).
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: unknown - Unknown type.
-- `param5`: unknown - Unknown type.
-- `param6`: unknown - Unknown type.
-- `param7`: unknown - Unknown type.
-- `param8`: unknown - Unknown type.
-- `param9`: unknown - Unknown type.
-- `param10`: int32 - Integer value.
+- `spawn` (Spawn) - Spawn object reference `spawn`.
+- `pet_id` (uint32) - Integer value `pet_id`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-SummonCosmeticPet(..., ..., ..., ..., ..., ..., ..., ..., ..., ...)
+-- From Spells/AA/SummonAnimatedTome.lua
+function cast(Caster, Target, CritChance)
+    AddSpellBonus(Target, 656, CritChance)
+    SummonCosmeticPet(Caster, 150084)
+end
 ```

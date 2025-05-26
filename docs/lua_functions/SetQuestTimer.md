@@ -1,27 +1,17 @@
-### Function: SetQuestTimer(param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11, param12)
+### Function: SetQuestTimer(quest, player, step, duration, action)
 
 **Description:**
-Placeholder description.
+Set's the player's quest timer and result action function.
 
 **Parameters:**
-- `param1`: unknown - Unknown type.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: unknown - Unknown type.
-- `param5`: unknown - Unknown type.
-- `param6`: unknown - Unknown type.
-- `param7`: unknown - Unknown type.
-- `param8`: unknown - Unknown type.
-- `param9`: Spawn - The spawn or entity involved.
-- `param10`: int32 - Integer value.
-- `param11`: int32 - Integer value.
-- `param12`: string - String value.
+- `quest` (Quest) - Quest object representing `quest`.
+- `player` (Spawn) - Spawn object representing `player`.
+- `step` (uint32) - Integer value `step`.
+- `duration` (uint32) - Time value `duration` in seconds.
+- `action` (string) - String `action`.
 
 **Returns:** None.
 
 **Example:**
 
-```lua
--- Example usage
-SetQuestTimer(..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ...)
-```
+Example Required

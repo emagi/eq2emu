@@ -1,19 +1,20 @@
-### Function: SetGridID(param1, param2, param3, param4)
+### Function: SetGridID(spawn, grid)
 
 **Description:**
-Placeholder description.
+Set's the grid id of the spawn.  See /grid for more information on the grid id.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: int32 - Integer value.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
+- `grid` (uint32) - Integer value `grid`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-SetGridID(..., ..., ..., ...)
+-- From SpawnScripts/FallenGate/atormentedbattlemage_A.lua
+function Change_Grid_A(NPC)
+	 Say(NPC, "This is the Change_Grid_A function")
+	 SetGridID(NPC, 3104458931)
+end
 ```

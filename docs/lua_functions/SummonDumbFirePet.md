@@ -1,28 +1,31 @@
-### Function: SummonDumbFirePet(param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11, param12, param13)
+### Function: SummonDumbFirePet(spawn, target, pet_id, x, y, z)
 
 **Description:**
-Placeholder description.
+Summon a dumbfire pet with the pet_id (spawn database id).
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: unknown - Unknown type.
-- `param5`: unknown - Unknown type.
-- `param6`: unknown - Unknown type.
-- `param7`: unknown - Unknown type.
-- `param8`: unknown - Unknown type.
-- `param9`: Spawn - The spawn or entity involved.
-- `param10`: int32 - Integer value.
-- `param11`: float - Floating point value.
-- `param12`: float - Floating point value.
-- `param13`: float - Floating point value.
+- `spawn` (Spawn) - Spawn object reference `spawn`.
+- `target` (Spawn) - Spawn object representing `target`.
+- `pet_id` (uint32) - Integer value `pet_id`.
+- `x` (float) - Float value `x`.
+- `y` (float) - Float value `y`.
+- `z` (float) - Float value `z`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-SummonDumbFirePet(..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ...)
+-- From Spells/Mage/Enchanter/Coercer/Puppetmaster.lua
+function cast(Caster, Target, PetID)
+    local x = GetX(Caster)
+    local y = GetY(Caster)
+    local z = GetZ(Caster)
+local count = 0;
+while (count < 4) do
+    local pet = SummonDumbFirePet(Caster, Target, PetID, x, y, z)
+    if pet ~= nil then
+  CopySpawnAppearance(pet, Target)
+        SpawnSet(pet, "size", "6")
+    end
 ```

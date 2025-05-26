@@ -1,19 +1,23 @@
-### Function: SetInfoStructFloat(param1, param2, param3, param4)
+### Function: SetInfoStructFloat(spawn, field, value)
 
 **Description:**
-Placeholder description.
+Sets the float field to the value provided.  See https://github.com/emagi/eq2emu/blob/main/docs/data_types/info_struct.md for field types.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: string - String value.
-- `param4`: float - Floating point value.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
+- `field` (string) - String `field`.
+- `value` (float) - Float value `value`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-SetInfoStructFloat(..., ..., ..., ...)
+-- From SpawnScripts/Generic/CombatModule.lua
+function attributes(NPC, Spawn)
+    -- Calculate attributes
+    if  level <= 4 then
+        baseStat = 19 else
+            baseStat = level + 15
+    end
 ```

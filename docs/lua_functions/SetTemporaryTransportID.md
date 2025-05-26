@@ -1,17 +1,14 @@
-### Function: SetTemporaryTransportID(param1, param2)
+### Function: SetTemporaryTransportID(player, transport_id)
 
 **Description:**
-Placeholder description.
+Set's the Spawn (Player)'s temporary transport id.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: int32 - Integer value.
+- `player` (Spawn) - Spawn object representing `player`.
+- `transport_id` (uint32) - Integer value `transport_id`.
 
 **Returns:** None.
 
 **Example:**
 
-```lua
--- Example usage
-SetTemporaryTransportID(..., ...)
-```
+Example Required

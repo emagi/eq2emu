@@ -1,17 +1,20 @@
-### Function: MakeRandomFloat(param1, param2)
+### Function: MakeRandomFloat(min, max)
 
 **Description:**
-Placeholder description.
+Make a random float between min and max.
 
 **Parameters:**
-- `param1`: float - Floating point value.
-- `param2`: float - Floating point value.
+- `min` (float) - Float value `min`.
+- `max` (float) - Float value `max`.
 
-**Returns:** None.
+**Returns:** Float value between min and max.
 
 **Example:**
 
 ```lua
--- Example usage
-MakeRandomFloat(..., ...)
+-- From Spells/Commoner/VerdantTrinity.lua
+function cast(Caster, Target, Val1, Val2)
+	Percentage = MakeRandomFloat(Val1, Val2)
+	SpellHealPct("Heal", Percentage, false, false, Target, 2)
+end
 ```

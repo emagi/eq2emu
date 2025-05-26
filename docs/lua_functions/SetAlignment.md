@@ -1,21 +1,19 @@
-### Function: SetAlignment(param1, param2, param3, param4, param5, param6)
+### Function: SetAlignment(spawn, alignment)
 
 **Description:**
-Placeholder description.
+Sets the alignment of the Spawn to the value.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: unknown - Unknown type.
-- `param5`: unknown - Unknown type.
-- `param6`: unknown - Unknown type.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
+- `alignment` (int32) - Integer value `alignment`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-SetAlignment(..., ..., ..., ..., ..., ...)
+-- From ItemScripts/ForgeryFreeportCitizenshipPapers.lua
+if GetRace(Player) == 0 or GetRace(Player) == 3 or GetRace(Player) == 5 or GetRace(Player) == 6 or GetRace(Player) == 9 or GetRace(Player) == 11 or GetRace(Player) == 20 then
+SetAlignment(Player, 2)
+end   
 ```

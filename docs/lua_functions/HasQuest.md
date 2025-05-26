@@ -1,19 +1,20 @@
-### Function: HasQuest(param1, param2, param3, param4)
+### Function: HasQuest(player, quest_id)
 
 **Description:**
-Placeholder description.
+Return's true if the player has the quest_id active in their journal.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: int32 - Integer value.
+- `player` (Spawn) - Spawn object representing `player`.
+- `quest_id` (uint32) - Integer value `quest_id`.
 
-**Returns:** None.
+**Returns:** Return's true if the player has an active quest (not completed/pending).
 
 **Example:**
 
 ```lua
--- Example usage
-HasQuest(..., ..., ..., ...)
+-- From ItemScripts/abadlypolishedsteelkey.lua
+function examined(Item, Player)
+if not HasQuest(Player, Polishedsteelkey) then
+OfferQuest(nil, Player, Polishedsteelkey)
+  end
 ```

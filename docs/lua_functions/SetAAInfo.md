@@ -1,18 +1,15 @@
-### Function: SetAAInfo(param1, param2, param3)
+### Function: SetAAInfo(spawn, type, value)
 
 **Description:**
-Placeholder description.
+Set's the AA Info type to the value.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: string - String value.
-- `param3`: unknown - Unknown type.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
+- `type` (string) - String `type`.
+- `value` (int32) - Integer value `value`.
 
 **Returns:** None.
 
 **Example:**
 
-```lua
--- Example usage
-SetAAInfo(..., ..., ...)
-```
+Example Required

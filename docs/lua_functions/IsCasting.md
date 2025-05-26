@@ -1,18 +1,13 @@
-### Function: IsCasting(param1, param2, param3)
+### Function: IsCasting(spawn)
 
 **Description:**
-Placeholder description.
+Return's true if the Spawn is casting.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
 
-**Returns:** None.
+**Returns:** True if the Spawn is casting, otherwise false.
 
 **Example:**
 
-```lua
--- Example usage
-IsCasting(..., ..., ...)
-```
+Example Required

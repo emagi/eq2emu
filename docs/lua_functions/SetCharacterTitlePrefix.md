@@ -1,20 +1,23 @@
-### Function: SetCharacterTitlePrefix(param1, param2, param3, param4, param5)
+### Function: SetCharacterTitlePrefix(spawn, titleName)
 
 **Description:**
-Placeholder description.
+Set's the character title prefix of the Spawn to the title name.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: unknown - Unknown type.
-- `param5`: string - String value.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
+- `titleName` (string) - String `titleName`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-SetCharacterTitlePrefix(..., ..., ..., ..., ...)
+-- From SpawnScripts/IsleRefuge1/TitleBot.lua
+function hailed(NPC, Spawn)
+	FaceTarget(NPC, Spawn)
+	AddMasterTitle("Lord", 1) -- create new title for all players, is prefix
+	AddCharacterTitle(Spawn, "Lord") -- add title to the current player
+	SetCharacterTitlePrefix(Spawn, "Lord") -- set the characters current prefix to the newly created title
+	
+end
 ```

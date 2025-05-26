@@ -1,18 +1,22 @@
-### Function: SetSkillValue(param1, param2, param3)
+### Function: SetSkillValue(skill, value)
 
 **Description:**
-Placeholder description.
+Set's the current skill value for the skill object.
 
 **Parameters:**
-- `param1`: unknown - Unknown type.
-- `param2`: unknown - Unknown type.
-- `param3`: int16 - Short integer value.
+- `skill` (int32) - Integer value `skill`.
+- `value` (uint16) - Integer value `value`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-SetSkillValue(..., ..., ...)
+-- From SpawnScripts/DarkBargainers/SasitSoroth.lua
+function MaxGathering(NPC, Spawn)
+	local skill = GetSkill(Spawn, "Gathering")
+    if skill ~= nil then
+        SetSkillMaxValue(skill, 300)
+        SetSkillValue(skill, 300)
+    end
 ```

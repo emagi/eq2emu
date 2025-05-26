@@ -1,18 +1,13 @@
-### Function: IsMezzedOrStunned(param1, param2, param3)
+### Function: IsMezzedOrStunned(spawn)
 
 **Description:**
-Placeholder description.
+Return's true if Spawn is mesmerized or stunned.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
 
-**Returns:** None.
+**Returns:** True if Spawn is mesmerized or stunned, otherwise false.
 
 **Example:**
 
-```lua
--- Example usage
-IsMezzedOrStunned(..., ..., ...)
-```
+Example Required

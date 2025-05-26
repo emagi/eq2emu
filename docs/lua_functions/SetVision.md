@@ -1,20 +1,23 @@
-### Function: SetVision(param1, param2, param3, param4, param5)
+### Function: SetVision(spawn, vision)
 
 **Description:**
-Placeholder description.
+Set's the vision mode for the Player.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: unknown - Unknown type.
-- `param5`: int32 - Integer value.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
+- `vision` (uint32) - Integer value `vision`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-SetVision(..., ..., ..., ..., ...)
+-- From Spells/Commoner/TotenoftheEnduringSpirit.lua
+function cast(Caster, Target)
+	if (GetLevel(Caster) >= 80) 
+		then    
+	AddControlEffect(Caster, 7)
+	BreatheUnderwater(Caster, true)
+	SetVision(Caster, 4)
+	end
 ```

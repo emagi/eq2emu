@@ -1,26 +1,25 @@
-### Function: SummonPet(param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11)
+### Function: SummonPet(spawn, pet_id, max_level)
 
 **Description:**
-Placeholder description.
+Summon a pet with the pet_id (spawn database id).
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: unknown - Unknown type.
-- `param5`: unknown - Unknown type.
-- `param6`: unknown - Unknown type.
-- `param7`: unknown - Unknown type.
-- `param8`: unknown - Unknown type.
-- `param9`: unknown - Unknown type.
-- `param10`: int32 - Integer value.
-- `param11`: int8 - Small integer or boolean flag.
+- `spawn` (Spawn) - Spawn object reference `spawn`.
+- `pet_id` (uint32) - Integer value `pet_id`.
+- `max_level` (uint8) - Integer value `max_level`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-SummonPet(..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ...)
+-- From Spells/Commoner/MoleratTest.lua
+function cast(Caster, Target)
+	SummonPet(Caster, 2780089)
+CallCliffdiverHawk(NPC, Spawn)
+	local CliffdiverHawk = GetSpawn(NPC, 2780089)
+
+	if CliffdiverHawk ~= nil then
+		AddTimer(CliffdiverHawk, 5000, "FlyToMoleRat", 1, Spawn)
+	end
 ```

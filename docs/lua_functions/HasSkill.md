@@ -1,17 +1,21 @@
-### Function: HasSkill(param1, param2)
+### Function: HasSkill(player, skill_id)
 
 **Description:**
-Placeholder description.
+Return's true if the player has the skill_id specified
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: int32 - Integer value.
+- `player` (Spawn) - Spawn object representing `player`.
+- `skill_id` (uint32) - Integer value `skill_id`.
 
-**Returns:** None.
+**Returns:** True if the player has the skill_id, otherwise false.
 
 **Example:**
 
 ```lua
--- Example usage
-HasSkill(..., ...)
+-- From ItemScripts/BardCertificationPapers.lua
+function Class(Item, Player)
+    conversation = CreateConversation()
+    if CanReceiveQuest(Player,Quest) then
+    AddConversationOption(conversation, "[Turn in these papers for gear]","QuestStart")
+    end
 ```

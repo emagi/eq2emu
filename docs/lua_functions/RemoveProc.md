@@ -1,21 +1,20 @@
-### Function: RemoveProc(param1, param2, param3, param4, param5, param6)
+### Function: RemoveProc(spawn, item)
 
 **Description:**
-Placeholder description.
+Remove proc that was applied in a spell script or item script.  Will apply to spawn unless item is not specified, then all spell targets are applicable.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: unknown - Unknown type.
-- `param5`: unknown - Unknown type.
-- `param6`: Item - An item reference.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
+- `item` (Item) - Item object representing `item`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-RemoveProc(..., ..., ..., ..., ..., ...)
+-- From Spells/BastensRunesofSurety.lua
+function remove(Caster, Target)
+    RemoveSpellBonus()
+    RemoveProc()
+end
 ```

@@ -1,17 +1,24 @@
-### Function: IsEntity(param1, param2)
+### Function: IsEntity(spawn)
 
 **Description:**
-Placeholder description.
+Return's true if the Spawn is an entity (Player/NPC/Bot).
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
 
-**Returns:** None.
+**Returns:** True if the spawn is an entity, otherwise false.
 
 **Example:**
 
 ```lua
--- Example usage
-IsEntity(..., ...)
+-- From ItemScripts/LaserGoggles.lua
+function used(Item, Player)
+    local target = GetTarget(Player)
+    if target ~= nil and IsEntity(target) then
+        local encounter = GetEncounter(target)
+        if encounter ~= nil then
+            doDamage(Player, target, damage)
+        else
+            doDamage(Player, target, damage)
+        end
 ```

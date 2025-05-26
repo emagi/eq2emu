@@ -1,23 +1,23 @@
-### Function: Knockback(param1, param2, param3, param4, param5, param6, param7, param8)
+### Function: Knockback(target_spawn, spawn, duration, vertical, horizontal, use_heading)
 
 **Description:**
-Placeholder description.
+Triggers a knockback on the target_spawn with spawn being the originator.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: Spawn - The spawn or entity involved.
-- `param5`: int32 - Integer value.
-- `param6`: float - Floating point value.
-- `param7`: float - Floating point value.
-- `param8`: int8 - Small integer or boolean flag.
+- `target_spawn` (Spawn) - Spawn object representing `target_spawn`.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
+- `duration` (uint32) - Time value `duration` in seconds.
+- `vertical` (float) - Float value `vertical`.
+- `horizontal` (float) - Float value `horizontal`.
+- `use_heading` (uint8) - Integer value `use_heading`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-Knockback(..., ..., ..., ..., ..., ..., ..., ...)
+-- From SpawnScripts/houseofroachie/GnomishKnockbackDevice.lua
+function examined(NPC, Spawn)
+    Knockback(NPC, Spawn, 10)
+end
 ```

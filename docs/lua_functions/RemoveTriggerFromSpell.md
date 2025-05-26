@@ -1,19 +1,19 @@
-### Function: RemoveTriggerFromSpell(param1, param2, param3, param4)
+### Function: RemoveTriggerFromSpell(remove_count)
 
 **Description:**
-Placeholder description.
+Remove a spell trigger from the spell, must be ran inside Spell Script.
 
 **Parameters:**
-- `param1`: unknown - Unknown type.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: int16 - Short integer value.
+- `remove_count` (uint16) - Quantity `remove_count`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-RemoveTriggerFromSpell(..., ..., ..., ...)
+-- From Spells/Commoner/ArcaneEnlightenment.lua
+function proc(Caster, Target, Type, Power, Triggers)
+    CastSpell(Caster, 2550391, 1)
+    RemoveTriggerFromSpell()
+end 
 ```

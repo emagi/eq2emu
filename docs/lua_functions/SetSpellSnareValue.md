@@ -1,19 +1,24 @@
-### Function: SetSpellSnareValue(param1, param2, param3, param4)
+### Function: SetSpellSnareValue(snare, spawn)
 
 **Description:**
-Placeholder description.
+Set's the spell snare value of the current spell script.
 
 **Parameters:**
-- `param1`: unknown - Unknown type.
-- `param2`: float - Floating point value.
-- `param3`: unknown - Unknown type.
-- `param4`: Spawn - The spawn or entity involved.
+- `snare` (float) - Float value `snare`.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-SetSpellSnareValue(..., ..., ..., ...)
+-- From Spells/Commoner/Blind.lua
+function cast(Caster, Target, Snare)
+    if not IsEpic(Target) then
+        --Dazes the target
+        AddControlEffect(Target, 3)
+        BlurVision(Target, 1.0)
+        SetSpellSnareValue(Target, Snare) 
+        AddControlEffect(Target, 11)
+    end
 ```
