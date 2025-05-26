@@ -1,10 +1,10 @@
-### Function: AddConversationOption(param1, param2, param3)
+### Function: AddConversationOption(ConversationOption, Message, FunctionName)
 
 **Description:**
-Placeholder description.
+Builds a conversation option into an existing ConversationOption from CreateConversation.
 
 **Parameters:**
-- `param1`: ConversationOption - Conversation Option object to apply the new text and function call.
+- `ConversationOption`: ConversationOption - Conversation Option object to apply the new text and function call.
 - `Message`: string - String value option to display the player when StartConversation is called.
 - `FunctionName`: string - Function name that will be called if Player selects the option.
 

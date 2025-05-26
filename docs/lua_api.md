@@ -9,7 +9,7 @@ This document will detail all Lua scripting functions available within EQ2Emu.
 - [`AddCharacterTitle(Spawn, TitleName)`](./lua_functions/AddCharacterTitle.md)
 - [`AddCoin(Player, Amount)`](./lua_functions/AddCoin.md)
 - [`AddControlEffect(Spawn, Type, OnlyAddSpawn)`](./lua_functions/AddControlEffect.md)
-- [`AddConversationOption(param1, param2, param3)`](./lua_functions/AddConversationOption.md)
+- [`AddConversationOption(ConversationOption, Message, FunctionName)`](./lua_functions/AddConversationOption.md)
 - [`AddHate(Spawn, NPC, Amount, SendPacket)`](./lua_functions/AddHate.md)
 - [`AddImmunitySpell(ImmunityType, Spawn)`](./lua_functions/AddImmunitySpell.md)
 - [`AddItem(Spawn, ItemID, Quantity)`](./lua_functions/AddItem.md)
