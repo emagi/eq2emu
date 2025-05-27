@@ -1,11 +1,10 @@
-### Function: CreateConversation(conversation)
+### Function: CreateConversation()
 
 **Description:**
 
 Create a new conversation option for the Spawn to use in AddConversationOption.
 
-**Parameters:**
-- `conversation` (Conversation) - Conversation object representing `conversation`.
+**Parameters:** None.
 
 **Returns:** None.
 
