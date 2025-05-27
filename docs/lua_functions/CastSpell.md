@@ -1,24 +1,24 @@
-### Function: CastSpell(param1, param2, param3, param4, param5, param6, param7, param8, param9)
+### Function: CastSpell(target, spell_id, spell_tier, caster, custom_cast_time)
 
 **Description:**
-Placeholder description.
+
+Casts a spell on the specified target with the spell_id and spell_tier specified.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: unknown - Unknown type.
-- `param5`: unknown - Unknown type.
-- `param6`: int32 - Integer value.
-- `param7`: int8 - Small integer or boolean flag.
-- `param8`: Spawn - The spawn or entity involved.
-- `param9`: int16 - Short integer value.
+- `target` (Spawn) - Spawn object representing `target`.
+- `spell_id` (uint32) - Integer value `spell_id`.
+- `spell_tier` (uint8) - Integer value `spell_tier`.
+- `caster` (Spawn) - Spawn object representing `caster`.
+- `custom_cast_time` (uint16) - Integer value `custom_cast_time`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-CastSpell(..., ..., ..., ..., ..., ..., ..., ..., ...)
+-- From ItemScripts/abasicfirework.lua
+function used(Item, Player)
+CastSpell(Player, 5003, 1) 
+
+end
 ```

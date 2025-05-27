@@ -1,28 +1,30 @@
-### Function: CreateChoiceWindow(param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11, param12, param13)
+### Function: CreateChoiceWindow(npc, spawn, windowTextPrompt, acceptText, acceptCommand, declineText, declineCommand, time, textBox, textBoxRequired, maxLength)
 
 **Description:**
-Placeholder description.
+
+Create's a choice display window for the client to provide a accept/decline prompt window and input box support (for text field).
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: Spawn - The spawn or entity involved.
-- `param5`: string - String value.
-- `param6`: string - String value.
-- `param7`: string - String value.
-- `param8`: string - String value.
-- `param9`: string - String value.
-- `param10`: int32 - Integer value.
-- `param11`: int8 - Small integer or boolean flag.
-- `param12`: int8 - Small integer or boolean flag.
-- `param13`: int32 - Integer value.
+- `npc` (Spawn) - Spawn object representing `npc`.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
+- `windowTextPrompt` (string) - String `windowTextPrompt`.
+- `acceptText` (string) - String `acceptText`.
+- `acceptCommand` (string) - String `acceptCommand`.
+- `declineText` (string) - String `declineText`.
+- `declineCommand` (string) - String `declineCommand`.
+- `time` (uint32) - Integer value `time`.
+- `textBox` (uint8) - Integer value `textBox`.
+- `textBoxRequired` (uint8) - Integer value `textBoxRequired`.
+- `maxLength` (uint32) - Integer value `maxLength`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-CreateChoiceWindow(..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ...)
+-- From SpawnScripts/DoF_design_path_script/AnimationSpeedScroll.lua
+function DoSpellVisual(NPC,Spawn)
+	ClearChoice(Spawn, "select")
+	CreateChoiceWindow(NPC, Spawn, "Display Visual ID X, Visual ID Range X-Y, Visual ID String Wildcard, eg. heal", "OK", "select", "Cancel", "", 0, 1, 1, 14)
+end
 ```

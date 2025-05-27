@@ -1,17 +1,25 @@
-### Function: IsSpawnGroupAlive(param1, param2)
+### Function: IsSpawnGroupAlive(zone, group_id)
 
 **Description:**
-Placeholder description.
+
+Return's true if there is an alive spawn within the spawn group_id specified in the Zone.
 
 **Parameters:**
-- `param1`: ZoneServer - The zone object.
-- `param2`: int32 - Integer value.
+- `zone` (Zone) - Zone object representing `zone`.
+- `group_id` (uint32) - Integer value `group_id`.
 
-**Returns:** None.
+**Returns:** Return's true if there is an alive spawn within the spawn group_id specified in the Zone.  Otherwise false.
 
 **Example:**
 
 ```lua
--- Example usage
-IsSpawnGroupAlive(..., ...)
+-- From SpawnScripts/ThunderingSteppes/AntelopeHerd1.lua
+function SpawnCheck(NPC)
+    local zone = GetZone(NPC)
+    
+    if  IsSpawnGroupAlive(zone, GroupID) == true then
+        AddTimer(NPC, 6000, "SpawnCheck")
+    else
+        Despawn(GetSpawnByLocationID(zone, 133793500))
+    end
 ```

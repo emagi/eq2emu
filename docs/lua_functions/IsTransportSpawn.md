@@ -1,17 +1,14 @@
-### Function: IsTransportSpawn(param1, param2)
+### Function: IsTransportSpawn(spawn)
 
 **Description:**
-Placeholder description.
+
+Return's true if the Spawn is flagged as a transport spawn, otherwise false.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
 
-**Returns:** None.
+**Returns:** Return's true if the Spawn is flagged as a transport spawn, otherwise false.
 
 **Example:**
 
-```lua
--- Example usage
-IsTransportSpawn(..., ...)
-```
+Example Required

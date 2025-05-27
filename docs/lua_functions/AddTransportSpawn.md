@@ -1,17 +1,21 @@
-### Function: AddTransportSpawn(param1, param2)
+### Function: AddTransportSpawn(spawn)
 
 **Description:**
-Placeholder description.
+
+Add's the spawn as a transport spawn in the zone.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-AddTransportSpawn(..., ...)
+-- From SpawnScripts/ElddarGrove/TransportTreeLift.lua
+function spawn(NPC)
+--	AddTransportSpawn(NPC)
+--	AddTimer(NPC, 15, "UseLift")
+    AddMultiFloorLift(NPC)
+end
 ```

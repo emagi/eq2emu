@@ -1,19 +1,15 @@
-### Function: InFront(param1, param2, param3, param4)
+### Function: InFront(spawn, target)
 
 **Description:**
-Placeholder description.
+
+Return's true if Spawn is in front of target.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: Spawn - The spawn or entity involved.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
+- `target` (Spawn) - Spawn object representing `target`.
 
-**Returns:** None.
+**Returns:** Return's true if Spawn is in front of target.  Otherwise false.
 
 **Example:**
 
-```lua
--- Example usage
-InFront(..., ..., ..., ...)
-```
+Example Required

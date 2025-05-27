@@ -1,13 +1,14 @@
 ### Function: HasCompletedQuest(player, quest_id)
 
 **Description:**
-Return's true if the quest_id has been previously completed by the player.
+
+Return's true if the player has completed the quest with quest_id.
 
 **Parameters:**
 - `player` (Spawn) - Spawn object representing `player`.
 - `quest_id` (uint32) - Integer value `quest_id`.
 
-**Returns:** If player has completed quest_id then return's true, otherwise false.
+**Returns:** True if the quest_id matches a completed quest for the Player, otherwise false.
 
 **Example:**
 

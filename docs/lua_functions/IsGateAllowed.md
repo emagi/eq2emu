@@ -1,17 +1,14 @@
-### Function: IsGateAllowed(param1, param2)
+### Function: IsGateAllowed(spawn)
 
 **Description:**
-Placeholder description.
+
+Return's true if gate is allowed in the zone for the Spawn otherwise false.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: ZoneServer - The zone object.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
 
-**Returns:** None.
+**Returns:** Return's true if gate is allowed in the zone for the Spawn otherwise false.
 
 **Example:**
 
-```lua
--- Example usage
-IsGateAllowed(..., ...)
-```
+Example Required

@@ -1,16 +1,21 @@
-### Function: HasMoved(param1)
+### Function: HasMoved(spawn)
 
 **Description:**
-Placeholder description.
+
+Return's true if the position has moved (X/Y/Z) heading is not included since the last time HasMoved was called on the Spawn.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
 
-**Returns:** None.
+**Returns:** True if the HasMoved function was previously called on the Spawn and the x/y/z positions have changed since last being called. Otherwise false.
+
 
 **Example:**
 
 ```lua
--- Example usage
-HasMoved(...)
+-- From SpawnScripts/Cache/abanditcook.lua
+function Checking(NPC,Spawn)
+    if GetDistance(NPC,Spawn) <=8 and HasMoved(Spawn) then
+    Attack(NPC,Spawn)
+    end
 ```

@@ -1,17 +1,28 @@
-### Function: ChangeHandIcon(param1, param2)
+### Function: ChangeHandIcon(spawn, displayHandIcon)
 
 **Description:**
-Placeholder description.
+
+Changes the hand icon of the Spawn when Player's hover over the Spawn in 3d space.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: int8 - Small integer or boolean flag.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
+- `displayHandIcon` (uint8) - Integer value `displayHandIcon`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-ChangeHandIcon(..., ...)
+-- From Quests/FarJourneyFreeport/TasksaboardtheFarJourney.lua
+function CurrentStep(Quest, QuestGiver, Player)
+	if GetQuestStepProgress(Player, 524,2) == 0 and GetQuestStep(Player, 524) == 2 then
+		i = 1
+		spawns = GetSpawnListBySpawnID(Player, 270010)
+		repeat
+			spawn = GetSpawnFromList(spawns, i-1)
+			if spawn then
+				ChangeHandIcon(spawn, 1)
+				AddPrimaryEntityCommand(nil, spawn)
+				SpawnSet(NPC, "targetable", 1, true, true)
+			end
 ```

@@ -1,19 +1,24 @@
-### Function: HasRecipeBook(param1, param2, param3, param4)
+### Function: HasRecipeBook(player, recipe_id)
 
 **Description:**
-Placeholder description.
+
+Return's true if the player has a recipe book that matches the recipe_id.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: int32 - Integer value.
+- `player` (Spawn) - Spawn object representing `player`.
+- `recipe_id` (uint32) - Integer value `recipe_id`.
 
-**Returns:** None.
+**Returns:** True if the player has a recipe book with the recipe of recipe_id included.  Otherwise false.
 
 **Example:**
 
 ```lua
--- Example usage
-HasRecipeBook(..., ..., ..., ...)
+-- From SpawnScripts/Generic/GenericCraftingTrainer.lua
+function HasBooks(Spawn)
+	local has_books = true
+
+	--check if the player has certain recipe books
+	if not HasRecipeBook(Spawn, artisan_ess_1) and not HasItem(Spawn, artisan_ess_1, 1) then
+		has_books = false
+	end
 ```

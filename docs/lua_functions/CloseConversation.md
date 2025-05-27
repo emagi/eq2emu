@@ -1,17 +1,21 @@
-### Function: CloseConversation(param1, param2)
+### Function: CloseConversation(npc, player)
 
 **Description:**
-Placeholder description.
+
+Closes a Player's active conversation with the NPC.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: Spawn - The spawn or entity involved.
+- `npc` (Spawn) - Spawn object representing `npc`.
+- `player` (Spawn) - Spawn object representing `player`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-CloseConversation(..., ...)
+-- From Quests/CastleviewHamlet/the_lost_book_of_arbos.lua
+function Accepted(Quest, QuestGiver, Player)
+ 	PlayFlavor(QuestGiver, "", "", "thanks", 0,0 , Player)
+ 	CloseConversation(QuestGiver,Player)
+end
 ```

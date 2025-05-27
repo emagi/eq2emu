@@ -1,16 +1,22 @@
-### Function: IsInCombat(param1)
+### Function: IsInCombat(spawn)
 
 **Description:**
-Placeholder description.
+
+Return's true if the spawn is currently in combat.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
 
-**Returns:** None.
+**Returns:** Return's true if the spawn is currently in combat.
 
 **Example:**
 
 ```lua
--- Example usage
-IsInCombat(...)
+-- From ItemScripts/awellspringcubleash.lua
+function used(Item, Player)
+    target = GetTarget(Player)
+	if GetName(target) == 'a wellspring cub' and GetTempVariable(Player, "cub") == nil then
+		if not IsInCombat(target) then
+			CastEntityCommand(Player, target, 1278, "Leash")
+		end
 ```

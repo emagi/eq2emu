@@ -1,17 +1,15 @@
-### Function: SetCurrentPower(param1, param2)
+### Function: SetCurrentPower(spawn, value)
 
 **Description:**
-Placeholder description.
+
+Set's the current spawn power value if the power value + current power is less than total power.  Otherwise it will override the total power.  This function is an alias of SetPower(spawn, value)
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
+- `value` (int32) - Integer value `value`.
 
 **Returns:** None.
 
 **Example:**
 
-```lua
--- Example usage
-SetCurrentPower(..., ...)
-```
+Example Required

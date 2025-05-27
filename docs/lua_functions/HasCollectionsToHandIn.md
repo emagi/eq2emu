@@ -1,12 +1,13 @@
 ### Function: HasCollectionsToHandIn(player)
 
 **Description:**
+
 Return's if the player has collections to turn in.
 
 **Parameters:**
 - `player` (Spawn) - Spawn object representing `player`.
 
-**Returns:** Return's true if there is collections complete to turn in, otherwise false.
+**Returns:** True if the player has active collections to turn in.
 
 **Example:**
 

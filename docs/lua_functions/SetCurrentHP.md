@@ -1,17 +1,15 @@
-### Function: SetCurrentHP(param1, param2)
+### Function: SetCurrentHP(spawn, value)
 
 **Description:**
-Placeholder description.
+
+Set's the current spawn hp value if the hp value + current hp is less than total hp.  Otherwise it will override the total hp.  This function is an alias of SetHP(spawn, value)
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
+- `value` (int32) - Integer value `value`.
 
 **Returns:** None.
 
 **Example:**
 
-```lua
--- Example usage
-SetCurrentHP(..., ...)
-```
+Example Required

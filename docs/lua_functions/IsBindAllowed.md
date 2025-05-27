@@ -1,16 +1,14 @@
-### Function: IsBindAllowed(param1)
+### Function: IsBindAllowed(spawn)
 
 **Description:**
-Placeholder description.
+
+Return's true if bind is allowed in the zone for the spawn, otherwise false.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
 
-**Returns:** None.
+**Returns:** Return's true if bind is allowed in the zone for the spawn, otherwise false.
 
 **Example:**
 
-```lua
--- Example usage
-IsBindAllowed(...)
-```
+Example Required

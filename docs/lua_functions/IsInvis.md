@@ -1,18 +1,20 @@
-### Function: IsInvis(param1, param2, param3)
+### Function: IsInvis(spawn)
 
 **Description:**
-Placeholder description.
+
+Return's true if the spawn is invisible, otherwise false.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
 
-**Returns:** None.
+**Returns:** Return's true if the spawn is invisible, otherwise false.
 
 **Example:**
 
 ```lua
--- Example usage
-IsInvis(..., ..., ...)
+-- made up example
+function casted_on(NPC, Spawn, Message)
+    if  IsInvis(Spawn) then
+--    RemoveInvis(NPC,Spawn)
+end
 ```

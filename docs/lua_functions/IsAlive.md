@@ -1,16 +1,27 @@
-### Function: IsAlive(param1)
+### Function: IsAlive(spawn)
 
 **Description:**
-Placeholder description.
+
+Return's true if the Spawn is alive, otherwise false.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
 
-**Returns:** None.
+**Returns:** Return's true if the Spawn is alive, otherwise false.
 
 **Example:**
 
 ```lua
--- Example usage
-IsAlive(...)
+-- From Quests/FarJourneyFreeport/TasksaboardtheFarJourney.lua
+function CurrentStep(Quest, QuestGiver, Player)
+	if GetQuestStepProgress(Player, 524,2) == 0 and GetQuestStep(Player, 524) == 2 then
+		i = 1
+		spawns = GetSpawnListBySpawnID(Player, 270010)
+		repeat
+			spawn = GetSpawnFromList(spawns, i-1)
+			if spawn then
+				ChangeHandIcon(spawn, 1)
+				AddPrimaryEntityCommand(nil, spawn)
+				SpawnSet(NPC, "targetable", 1, true, true)
+			end
 ```

@@ -1,19 +1,26 @@
-### Function: CanReceiveQuest(param1, param2, param3, param4)
+### Function: CanReceiveQuest(spawn, quest_id)
 
 **Description:**
-Placeholder description.
+
+Return's true if the Spawn can receive the quest by quest_id.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: int32 - Integer value.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
+- `quest_id` (uint32) - Integer value `quest_id`.
 
-**Returns:** None.
+**Returns:** True if the quest_id can be accepted, otherwise false.
 
 **Example:**
 
 ```lua
--- Example usage
-CanReceiveQuest(..., ..., ..., ...)
+-- From ItemScripts/abrokenmusicbox.lua
+function examined(Item, Player)
+	if CanReceiveQuest(Player,RewardForAMissingMusicBox) then
+    Dialog1(Item,Player)
+    else
+    conversation = CreateConversation()
+    AddConversationOption(conversation, "[Keep the musicbox]")
+    AddConversationOption(conversation, "[Destroy the musicbox]", "QuestFinish")
+    StartDialogConversation(conversation, 2, Item, Player, "This floral designed music box is broken like one you found before. Perhaps it is the same one? Oh well.")
+	end
 ```

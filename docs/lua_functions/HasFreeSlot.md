@@ -1,12 +1,13 @@
 ### Function: HasFreeSlot(player)
 
 **Description:**
-Return's true if there is a free slot in player's inventory, otherwise false.
+
+Return's true if the player has a free slot in their inventory.
 
 **Parameters:**
 - `player` (Spawn) - Spawn object representing `player`.
 
-**Returns:** True if there is an open inventory slot for the Player, otherwise false.
+**Returns:** True if the player has an open inventory slot.
 
 **Example:**
 

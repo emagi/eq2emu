@@ -1,21 +1,26 @@
-### Function: AddSpellBookEntry(param1, param2, param3, param4, param5, param6)
+### Function: AddSpellBookEntry(player, spellid, tier, add_silently, add_to_hotbar)
 
 **Description:**
-Placeholder description.
+
+Adds a spell book entry for the Player with the spellid and tier provided.  The add_silently (false by default), add_to_hotbar (true by default)
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: int32 - Integer value.
-- `param4`: int16 - Short integer value.
-- `param5`: bool - Boolean value (true/false).
-- `param6`: bool - Boolean value (true/false).
+- `player` (Spawn) - Spawn object representing `player`.
+- `spellid` (uint32) - Integer value `spellid`.
+- `tier` (uint16) - Integer value `tier`.
+- `add_silently` (bool) - Boolean flag `add_silently`.
+- `add_to_hotbar` (bool) - Boolean flag `add_to_hotbar`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-AddSpellBookEntry(..., ..., ..., ..., ..., ...)
+-- From ItemScripts/ForgeryFreeportCitizenshipPapers.lua
+function Task3(Item,Player)
+local Race = GetRace(Player)
+    if Race == 11 then --Kerra
+    if HasQuest(Player,LA_F) then
+    SetStepComplete(Player,LA_F,14)
+    end
 ```

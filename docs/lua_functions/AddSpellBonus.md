@@ -1,22 +1,21 @@
-### Function: AddSpellBonus(param1, param2, param3, param4, param5, param6, param7)
+### Function: AddSpellBonus(Spawn, type, value)
 
 **Description:**
-Placeholder description.
+
+Adds a spell bonus of the type specified.  The types are defined on https://github.com/emagi/eq2emu/blob/main/docs/data_types/item_stat_types.md
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
-- `param4`: unknown - Unknown type.
-- `param5`: unknown - Unknown type.
-- `param6`: int16 - Short integer value.
-- `param7`: float - Floating point value.
+- `spawn` (Spawn) - Spawn object reference `spawn`.
+- `type` (uint16) - Integer value `type`.
+- `value` (float) - Float value `value`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-AddSpellBonus(..., ..., ..., ..., ..., ..., ...)
+-- From Spells/AA/AbilityAptitude.lua
+function cast(Caster, Target, BonusAmt)
+    AddSpellBonus(Target, 707, BonusAmt)
+end
 ```

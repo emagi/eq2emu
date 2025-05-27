@@ -1,16 +1,20 @@
-### Function: ClearRunningLocations(param1)
+### Function: ClearRunningLocations(spawn)
 
 **Description:**
-Placeholder description.
+
+Removes all the running locations on the Spawn.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-ClearRunningLocations(...)
+-- From SpawnScripts/FarJourneyFreeport/agoblin.lua
+function run_around_loop_init_pause(NPC)
+	ClearRunningLocations(NPC)
+	AddTimer(NPC, 700, "run_around_loop_init_continue")
+end
 ```

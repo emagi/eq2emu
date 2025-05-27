@@ -1,19 +1,22 @@
-### Function: KillSpawnByDistance(param1, param2, param3, param4)
+### Function: KillSpawnByDistance(spawn, max_distance, include_players, send_packet)
 
 **Description:**
-Placeholder description.
+
+Kill's spawns in the distance radius around the Spawn (Entity based, NPC, Player, Bot).  The include_players is false by default, as-is send_packet.
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: float - Floating point value.
-- `param3`: int8 - Small integer or boolean flag.
-- `param4`: int8 - Small integer or boolean flag.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
+- `max_distance` (float) - Float value `max_distance`.
+- `include_players` (uint8) - Integer value `include_players`.
+- `send_packet` (uint8) - Integer value `send_packet`.
 
 **Returns:** None.
 
 **Example:**
 
 ```lua
--- Example usage
-KillSpawnByDistance(..., ..., ..., ...)
+-- From SpawnScripts/FrostfangSea/qst_scourgeson_x2_rygorr_tent.lua
+function KillArea(NPC)
+	KillSpawnByDistance(NPC, 20, 0, 0)
+end
 ```

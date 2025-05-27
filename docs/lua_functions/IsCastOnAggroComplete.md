@@ -1,18 +1,15 @@
-### Function: IsCastOnAggroComplete(param1, param2, param3)
+### Function: IsCastOnAggroComplete(spawn)
 
 **Description:**
-Placeholder description.
+
+Return's true if the cast on aggro trigger has completed for the Spawn (NPC).
 
 **Parameters:**
-- `param1`: Spawn - The spawn or entity involved.
-- `param2`: unknown - Unknown type.
-- `param3`: unknown - Unknown type.
+- `spawn` (Spawn) - Spawn object representing `spawn`.
 
-**Returns:** None.
+
+**Returns:** Return's true if the cast on aggro trigger has completed for the Spawn (NPC).  Otherwise false.
 
 **Example:**
 
-```lua
--- Example usage
-IsCastOnAggroComplete(..., ..., ...)
-```
+Example Required
