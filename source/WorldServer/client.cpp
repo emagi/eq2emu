@@ -8066,7 +8066,6 @@ void Client::UnequipItem(int16 index, sint32 bag_id, int8 to_slot, int8 appearan
 	}
 
 	GetPlayer()->UpdateWeapons();
-	GetPlayer()->CalculateBonuses();
 	EQ2Packet* characterSheetPackets = GetPlayer()->GetPlayerInfo()->serialize(GetVersion());
 	QueuePacket(characterSheetPackets);
 }

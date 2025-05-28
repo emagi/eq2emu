@@ -7221,6 +7221,7 @@ void Commands::Command_Inventory(Client* client, Seperator* sep, EQ2_RemoteComma
 			}
 
 			client->UnequipItem(index, bag_id, to_slot, appearance_equip);
+			client->GetPlayer()->CalculateBonuses();
 		}
 		else if(sep->arg[2][0] && strncasecmp("swap_equip", sep->arg[0], 10) == 0 && sep->IsNumber(1) && sep->IsNumber(2))
 		{

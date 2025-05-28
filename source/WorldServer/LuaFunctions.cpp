@@ -7066,7 +7066,10 @@ int	EQ2Emu_lua_UnequipSlot(lua_State* state) {
 			}
 			else{
 				Client* client = ((Player*)spawn)->GetClient();
-				client->UnequipItem(item->details.index);
+				if(client) {
+					client->UnequipItem(item->details.index);
+					client->GetPlayer()->CalculateBonuses();
+				}
 			}
 		}
 	}
