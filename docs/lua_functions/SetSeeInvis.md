@@ -1,16 +1,17 @@
-Function: SetSeeInvis(Spawn, Enable)
+### Function: SetSeeInvis(Spawn, Enable)
 
-Description: Toggles an NPC’s ability to see invisible on or off.
+**Description:** Toggles an NPC’s ability to see invisible on or off.
 
-Parameters:
+**Parameters:**
 
-    Spawn: Spawn – The NPC whose invis detection to set.
+`Spawn`: Spawn – The NPC whose invis detection to set.
+`Enable`: Boolean – true to grant see-invis; false to revoke it.
 
-    Enable: Boolean – true to grant see-invis; false to revoke it.
+**Returns:** None.
 
-Returns: None.
+**Example:**
 
-Example:
-
+```lua
 -- Example usage (temporarily allow a boss to see invis during a phase)
 SetSeeInvis(BossNPC, true)
+```

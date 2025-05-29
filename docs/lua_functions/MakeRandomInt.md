@@ -1,17 +1,18 @@
-Function: MakeRandomInt(Min, Max)
+### Function: MakeRandomInt(Min, Max)
 
-Description: Generates a random integer between the specified minimum and maximum values (inclusive).
+**Description:** Generates a random integer between the specified minimum and maximum values (inclusive).
 
-Parameters:
+**Parameters:**
 
-    Min: Int32 – The minimum value.
+`Min`: Int32 – The minimum value.
+`Max`: Int32 – The maximum value.
 
-    Max: Int32 – The maximum value.
+**Returns:** Int32 – A random integer N where Min ≤ N ≤ Max.
 
-Returns: Int32 – A random integer N where Min ≤ N ≤ Max.
+**Example:**
 
-Example:
-
+```lua
 -- Example usage (roll a random amount of coin to reward)
 local reward = MakeRandomInt(100, 500)  -- between 100 and 500 copper
 AddCoin(Player, reward)
+```

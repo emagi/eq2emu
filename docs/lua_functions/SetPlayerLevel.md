@@ -1,16 +1,17 @@
-Function: SetPlayerLevel(Player, Level)
+### Function: SetPlayerLevel(Player, Level)
 
-Description: Sets the player’s adventure level to the specified value. This is an administrative function (normally level changes by experience gain), allowing GM or script to directly change level.
+*Description:** Sets the player’s adventure level to the specified value. This is an administrative function (normally level changes by experience gain), allowing GM or script to directly change level.
 
-Parameters:
+**Parameters:**
 
-    Player: Spawn – The player whose level to change.
+`Player`: Spawn – The player whose level to change.
+`Level`: Int32 – The new level to set.
 
-    Level: Int32 – The new level to set.
+**Returns:** None.
 
-Returns: None.
+**Example:**
 
-Example:
-
+```lua
 -- Example usage (GM tool leveling a player to 50)
 SetPlayerLevel(Player, 50)
+```

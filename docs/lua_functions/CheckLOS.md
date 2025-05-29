@@ -1,18 +1,19 @@
-Function: CheckLOS(Origin, Target)
+### Function: CheckLOS(Origin, Target)
 
-Description: Checks line-of-sight between two spawns. Returns true if Origin can “see” Target (no significant obstacles in between), false if line of sight is blocked.
+**Description:** Checks line-of-sight between two spawns. Returns true if Origin can “see” Target (no significant obstacles in between), false if line of sight is blocked.
 
-Parameters:
+**Parameters:**
 
-    Origin: Spawn – The entity from whose perspective to check line of sight.
+`Origin`: Spawn – The entity from whose perspective to check line of sight.
+`Target`: Spawn – The entity to check if visible.
 
-    Target: Spawn – The entity to check if visible.
+**Returns:** Boolean – true if there is line-of-sight; false if something blocks the view between origin and target.
 
-Returns: Boolean – true if there is line-of-sight; false if something blocks the view between origin and target.
+**Example:**
 
-Example:
-
+```lua
 -- Example usage (sniper NPC only shoots if it has line of sight to the player)
 if CheckLOS(SniperNPC, Player) then
     CastSpell(SniperNPC, SNIPER_SHOT_ID, 1, Player)
 end
+```

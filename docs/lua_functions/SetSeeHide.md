@@ -1,16 +1,17 @@
-Function: SetSeeHide(Spawn, Enable)
+### Function: SetSeeHide(Spawn, Enable)
 
-Description: Toggles an NPC’s ability to see hidden/stealthed entities on or off. “Hide” usually refers to stealth as opposed to magical invisibility.
+**Description:** Toggles an NPC’s ability to see hidden/stealthed entities on or off. “Hide” usually refers to stealth as opposed to magical invisibility.
 
-Parameters:
+**Parameters:**
 
-    Spawn: Spawn – The NPC in question.
+`Spawn`: Spawn – The NPC in question.
+`Enable`: Boolean – true to grant see-stealth; false to remove it.
 
-    Enable: Boolean – true to grant see-stealth; false to remove it.
+**Returns:** None.
 
-Returns: None.
+**Example:**
 
-Example:
-
+```lua
 -- Example usage (guards become alert and can see stealth during an alarm event)
 SetSeeHide(GuardNPC, true)
+```

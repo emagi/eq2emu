@@ -1,16 +1,18 @@
-Function: RemoveSpawnSpellBonus(Spawn)
+### Function: RemoveSpawnSpellBonus(Spawn)
 
-Description: Used in a Spell Script Only.  Removes a previously applied spell bonus from the spawn
+**Description:** Used in a Spell Script Only.  Removes a previously applied spell bonus from the spawn
 
-Parameters:
+**Parameters:**
 
-    Spawn: Spawn – The entity to remove the bonus from.
+`Spawn`: Spawn – The entity to remove the bonus from.
 
-Returns: None.
+**Returns:** None.
 
-Example:
+**Example:**
 
+```lua
 -- Example usage (remove the defense bonus when buff ends)
 function remove(Caster, Target)
 	RemoveSpawnSpellBonus(Spawn)
 end
+```

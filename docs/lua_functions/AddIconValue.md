@@ -1,14 +1,16 @@
-Function: AddIconValue(Spawn, Value)
+### Function: AddIconValue(Spawn, Value)
 
-Description: Add an icon value to the Spawn (this is not confirmed functional).
+**Description:** Add an icon value to the Spawn (this is not confirmed functional).
 
-Parameters:
-    Spawn: Spawn - The spawn or entity involved.
-    Value: UInt32 - icon value to be added.
+**Parameters:**
+`Spawn`: Spawn - The spawn or entity involved.
+ `Value`: UInt32 - icon value to be added.
 
-Returns: Boolean: True if successful, otherwise False..
+**Returns:** Boolean: True if successful, otherwise False..
 
-Example:
+**Example:**
 
+```lua
 -- Example usage
 AddIconValue(Spawn, Value)
+```

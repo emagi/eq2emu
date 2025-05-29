@@ -1,12 +1,14 @@
-Function: CancelSpell()
+### Function: CancelSpell()
 
-Description: Cancels the current spell in the script being ran.
+**Description:** Cancels the current spell in the script being ran.
 
-Parameters: None.
+**Parameters:** None.
 
-Returns: None.
+**Returns:** None.
 
-Example:
+**Example:**
 
+```lua
 -- Example usage (Inside a Spell Script)
 CancelSpell()
+```

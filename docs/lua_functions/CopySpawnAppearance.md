@@ -1,16 +1,17 @@
-Function: CopySpawnAppearance(SourceSpawn, TargetSpawn)
+### Function: CopySpawnAppearance(SourceSpawn, TargetSpawn)
 
-Description: Copies the appearance (race, gender, outfit, etc.) from one spawn to another. This effectively makes the target look identical to the source. Often used for illusion or clone effects.
+**Description:** Copies the appearance (race, gender, outfit, etc.) from one spawn to another. This effectively makes the target look identical to the source. Often used for illusion or clone effects.
 
-Parameters:
+**Parameters:**
 
-    SourceSpawn: Spawn – The entity whose appearance to copy.
+`SourceSpawn`: Spawn – The entity whose appearance to copy.
+`TargetSpawn`: Spawn – The entity that will receive the appearance.
 
-    TargetSpawn: Spawn – The entity that will receive the appearance.
+**Returns:** None.
 
-Returns: None.
+**Example:**
 
-Example:
-
+```lua
 -- Example usage (make a decoy NPC look like the player)
 CopySpawnAppearance(Player, DecoyNPC)
+```
