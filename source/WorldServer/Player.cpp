@@ -2738,7 +2738,7 @@ void Player::UnlockSpell(Spell* spell) {
 	MSpellsBook.writelock(__FUNCTION__, __LINE__);
 	for (itr = spells.begin(); itr != spells.end(); itr++) {
 		spell2 = *itr;
-		if (spell2->spell_id == spell->GetSpellID() || (spell->GetSpellData()->linked_timer > 0 && spell->GetSpellData()->linked_timer == spell2->timer))
+		if (spell2->spell_id == spell->GetSpellID() || (spell->GetSpellData() && spell->GetSpellData()->linked_timer > 0 && spell->GetSpellData()->linked_timer == spell2->timer))
 		{
 			spell2->in_use = false;
 			spell2->recast_available = 0;
