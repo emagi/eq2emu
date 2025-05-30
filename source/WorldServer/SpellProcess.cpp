@@ -242,8 +242,8 @@ void SpellProcess::Process(){
 			recast_timer = itr->value;
 			if(recast_timer->timer->Check(false)){
 				MaintainedEffects* effect = 0;
-				if(recast_timer->caster && (!(effect = recast_timer->caster->GetMaintainedSpell(recast_timer->spell_id)) || !effect->spell->spell->GetSpellData()->duration_until_cancel))
-					UnlockSpell(recast_timer->client, recast_timer->spell);
+				if(recast_timer->caster && !recast_timer->stay_locked && (!(effect = recast_timer->caster->GetMaintainedSpell(recast_timer->spell_id)) || !effect->spell->spell->GetSpellData()->duration_until_cancel))
+					UnlockSpell(recast_timer->client, recast_timer->spell_id, recast_timer->linked_timer);
 				safe_delete(recast_timer->timer);
 				recast_timers.Remove(recast_timer, true);
 			}
@@ -357,7 +357,7 @@ void SpellProcess::CheckRecast(Spell* spell, Entity* caster, float timer_overrid
 			timer->type_group_spell_id = spell->GetSpellData()->type_group_spell_id;
 			timer->linked_timer = spell->GetSpellData()->linked_timer;
 			timer->spell_id = spell->GetSpellID();
-
+			timer->stay_locked = spell->GetStayLocked();
 			recast_timers.Add(timer);
 		}
 		if(caster->IsPlayer()){
@@ -787,6 +787,13 @@ void SpellProcess::UnlockAllSpells(Client* client, Spell* exception){
 void SpellProcess::UnlockSpell(Client* client, Spell* spell){
 	if(client && client->GetPlayer() && spell) {
 		client->GetPlayer()->UnlockSpell(spell);
+		SendSpellBookUpdate(client);
+	}
+}
+
+void SpellProcess::UnlockSpell(Client* client, int32 spell_id, int32 link_timer_id){
+	if(client && client->GetPlayer() && spell_id) {
+		client->GetPlayer()->UnlockSpell(spell_id, link_timer_id);
 		SendSpellBookUpdate(client);
 	}
 }

@@ -967,6 +967,7 @@ public:
 
 	/// <summary>Unlocks the given spell as well as all spells with shared timers</summary>
 	void UnlockSpell(Spell* spell);
+	void UnlockSpell(int32 spell_id, int32 linked_timer_id);
 
 	/// <summary>Locks all ts spells and unlocks all normal spells</summary>
 	void LockTSSpells();

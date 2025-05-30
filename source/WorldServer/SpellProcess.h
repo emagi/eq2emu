@@ -149,6 +149,7 @@ struct RecastTimer{
 	int32			spell_id;
 	int32			linked_timer;
 	int32			type_group_spell_id;
+	bool			stay_locked;
 };
 
 /// <summary> Handles all spell casts for a zone, only 1 SpellProcess per zone </summary>
@@ -259,6 +260,7 @@ public:
 	/// <param name='client'>The client to unlock the spell for</param>
 	/// <param name='spell'>The spell to unlock</param>
 	void UnlockSpell(Client* client, Spell* spell);
+	void UnlockSpell(Client* client, int32 spell_id, int32 link_timer_id);
 
 	/// <summary>Remove the given spell for the given caster from the SpellProcess</summary>
 	/// <param name='caster'>The spawn to remove the spell for</param>

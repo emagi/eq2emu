@@ -2751,6 +2751,26 @@ void Player::UnlockSpell(Spell* spell) {
 	MSpellsBook.releasewritelock(__FUNCTION__, __LINE__);
 }
 
+
+void Player::UnlockSpell(int32 spell_id, int32 linked_timer_id) {
+	vector<SpellBookEntry*>::iterator itr;
+	SpellBookEntry* spell2;	
+	MSpellsBook.writelock(__FUNCTION__, __LINE__);
+	for (itr = spells.begin(); itr != spells.end(); itr++) {
+		spell2 = *itr;
+		if (spell2->spell_id == spell_id || (linked_timer_id > 0 && linked_timer_id == spell2->timer))
+		{
+			spell2->in_use = false;
+			spell2->recast_available = 0;
+			if(all_spells_locked)
+				spell2->in_remiss = true;
+			else
+				AddSpellStatus(spell2, SPELL_STATUS_LOCK, false);
+		}
+	}
+	MSpellsBook.releasewritelock(__FUNCTION__, __LINE__);
+}
+
 void Player::LockTSSpells() {
 	vector<SpellBookEntry*>::iterator itr;
 
