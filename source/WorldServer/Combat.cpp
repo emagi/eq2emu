@@ -1342,7 +1342,7 @@ void Entity::AddHate(Entity* attacker, sint32 hate) {
 		((NPC*)this)->Brain()->AddHate(attacker, hate);
 		int8 loot_state = ((NPC*)this)->GetLockedNoLoot();
 		// if encounter size is 0 then add the attacker to the encounter
-		if ((loot_state != ENCOUNTER_STATE_AVAILABLE && loot_state != ENCOUNTER_STATE_BROKEN && ((NPC*)this)->Brain()->GetEncounterSize() == 0)) {
+		if ((loot_state != ENCOUNTER_STATE_BROKEN && ((NPC*)this)->Brain()->GetEncounterSize() == 0)) {
 			((NPC*)this)->Brain()->AddToEncounter(attacker);
 			AddTargetToEncounter(attacker);
 		}
