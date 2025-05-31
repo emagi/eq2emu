@@ -187,7 +187,7 @@
 <Data ElementName="pos_pitch2" Type="sint16" Size="1" /> <!-- 0x48 -->
 <Data ElementName="pos_collision_radius" Type="sint16" Size="1" /> <!-- 0x4a -->
 <Data ElementName="pos_size" Type="sint16" Size="1" /> <!-- 0x4c -->
-<Data ElementName="pos_unknown3" Type="sint16" Size="1" /> <!-- 0x4e -->
+<Data ElementName="pos_size_multiplier" Type="sint16" Size="1" /> <!-- 0x4e -->
 <Data ElementName="face_actor_id" Type="int32" Size="1" /> <!-- 0x50 -->
 <Data ElementName="actor_stop_range" Type="sint16" Size="1" /> <!-- 0x54 -->
 <Data ElementName="pos_roll" Type="sint16" Size="1" /> <!-- 0x56 -->
@@ -220,7 +220,7 @@
 <Data ElementName="pos_pitch2" Type="sint16" Size="1" /> <!-- 0x48 -->
 <Data ElementName="pos_collision_radius" Type="sint16" Size="1" /> <!-- 0x4a -->
 <Data ElementName="pos_size" Type="sint16" Size="1" /> <!-- 0x4c -->
-<Data ElementName="pos_unknown3" Type="sint16" Size="1" /> <!-- 0x4e -->
+<Data ElementName="pos_size_multiplier" Type="sint16" Size="1" /> <!-- 0x4e -->
 <Data ElementName="face_actor_id" Type="int32" Size="1" /> <!-- 0x50 -->
 <Data ElementName="actor_stop_range" Type="sint16" Size="1" /> <!-- 0x54 -->
 <Data ElementName="pos_roll" Type="sint16" Size="1" /> <!-- 0x56 -->
