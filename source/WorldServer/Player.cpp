@@ -999,7 +999,7 @@ EQ2Packet* PlayerInfo::serialize(int16 version, int16 modifyPos, int32 modifyVal
 
 		if (version <= 561) {
 			packet->setDataByName("exp_yellow", info_struct->get_xp_yellow() / 10);
-			packet->setDataByName("exp_blue", info_struct->get_xp_blue()/10);
+			packet->setDataByName("exp_blue", info_struct->get_xp_blue()/100);
 		}
 		else {
 			packet->setDataByName("exp_yellow", info_struct->get_xp_yellow());
@@ -3577,9 +3577,9 @@ void Player::RemoveSpellEffect(LuaSpell* spell){
 	GetSpellEffectMutex()->releasewritelock(__FUNCTION__, __LINE__);
 }
 
-void Player::PrepareIncomingMovementPacket(int32 len, uchar* data, int16 version)
+void Player::PrepareIncomingMovementPacket(int32 len, uchar* data, int16 version, bool dead_window_sent)
 {
-	if(GetClient() && GetClient()->IsReloadingZone())
+	if((GetClient() && GetClient()->IsReloadingZone()) || dead_window_sent)
 		return;
 
 	LogWrite(PLAYER__DEBUG, 7, "Player", "Enter: %s", __FUNCTION__); // trace
@@ -4503,7 +4503,14 @@ bool Player::AddXP(int32 xp_amount){
 
 	int32 prev_level = GetLevel();
 	float current_xp_percent = ((float)GetXP()/(float)GetNeededXP())*100;
-	float miniding_min_percent = ((int)(current_xp_percent/10)+1)*10;
+	int32 mini_ding_pct = rule_manager.GetGlobalRule(R_Player, MiniDingPercentage)->GetInt32();
+	float miniding_min_percent = 0.0f;
+	if(mini_ding_pct < 10 || mini_ding_pct > 50) {
+		mini_ding_pct = 0;
+	}
+	else {
+		miniding_min_percent = ((int)(current_xp_percent/mini_ding_pct)+1)*mini_ding_pct;
+	}
 	while((xp_amount + GetXP()) >= GetNeededXP()){
 		if (!CheckLevelStatus(GetLevel() + 1)) {
 			if(GetClient()) {
@@ -4518,7 +4525,7 @@ bool Player::AddXP(int32 xp_amount){
 	SetXP(GetXP() + xp_amount);
 	GetPlayerInfo()->CalculateXPPercentages();
 	current_xp_percent = ((float)GetXP()/(float)GetNeededXP())*100;
-	if(current_xp_percent >= miniding_min_percent){
+	if(miniding_min_percent > 0.0f && current_xp_percent >= miniding_min_percent){
 		if(GetClient() && rule_manager.GetGlobalRule(R_Spells, UseClassicSpellLevel)->GetInt8())
 			GetClient()->SendNewAdventureSpells(); // mini ding involves checking spells again in classic level settings
 		SetHP(GetTotalHP());
@@ -4632,6 +4639,27 @@ bool Player::WasSpawnRemoved(Spawn* spawn){
 	return wasRemoved;
 }
 
+void Player::ResetSpawnPackets(int32 id) {
+	info_mutex.writelock(__FUNCTION__, __LINE__);
+	vis_mutex.writelock(__FUNCTION__, __LINE__);
+	pos_mutex.writelock(__FUNCTION__, __LINE__);
+	index_mutex.writelock(__FUNCTION__, __LINE__);
+
+	if (spawn_info_packet_list.count(id))
+		spawn_info_packet_list.erase(id);
+
+	if (spawn_pos_packet_list.count(id))
+		spawn_pos_packet_list.erase(id);
+
+	if (spawn_vis_packet_list.count(id))
+		spawn_vis_packet_list.erase(id);
+	
+	index_mutex.releasewritelock(__FUNCTION__, __LINE__);
+	vis_mutex.releasewritelock(__FUNCTION__, __LINE__);
+	pos_mutex.releasewritelock(__FUNCTION__, __LINE__);
+	info_mutex.releasewritelock(__FUNCTION__, __LINE__);
+}
+
 void Player::RemoveSpawn(Spawn* spawn, bool delete_spawn)
 {
 	LogWrite(PLAYER__DEBUG, 3, "Player", "Remove Spawn '%s' (%u)", spawn->GetName(), spawn->GetID());
@@ -4664,10 +4692,9 @@ void Player::RemoveSpawn(Spawn* spawn, bool delete_spawn)
 		spawn_vis_packet_list.erase(id);
 
 	index_mutex.releasewritelock(__FUNCTION__, __LINE__);
-
-	info_mutex.releasewritelock(__FUNCTION__, __LINE__);
 	pos_mutex.releasewritelock(__FUNCTION__, __LINE__);
 	vis_mutex.releasewritelock(__FUNCTION__, __LINE__);
+	info_mutex.releasewritelock(__FUNCTION__, __LINE__);
 }
 
 vector<int32> Player::GetQuestIDs(){

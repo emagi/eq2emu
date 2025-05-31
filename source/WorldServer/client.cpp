@@ -184,6 +184,11 @@ Client::Client(EQStream* ieqs) : underworld_cooldown_timer(5000), pos_update(125
 	lua_debug = false;
 	ready_for_spawns = false;
 	ready_for_updates = false;
+	dead_window_sent = false;
+	dead_x = 0.0f;
+	dead_y = 0.0f;
+	dead_z = 0.0f;
+	dead_h = 0.0f;
 	lua_debug_timer.Disable();
 	transport_spawn = 0;
 	MBuyBack.SetName("Client::MBuyBack");
@@ -478,7 +483,7 @@ void Client::SendPlayerDeathWindow()
 	vector<RevivePoint*>* results = GetCurrentZone()->GetRevivePoints(this);
 	vector<RevivePoint*>::iterator itr;
 
-	if (results && results->size() > 0)
+	if (results && results->size() > 0) // we always populate a safe point if there is no revive point
 	{
 		PacketStruct* packet = configReader.getStruct("WS_DeathWindow", GetVersion());
 		if (packet)
@@ -542,13 +547,19 @@ void Client::DisplayDeadWindow()
 		QueuePacket(packet->serialize());
 		safe_delete(packet);
 	}
-
+	
+	dead_x = player->GetX();
+	dead_y = player->GetY();
+	dead_z = player->GetZ();
+	
+	dead_window_sent = true;
+	
 	SendPlayerDeathWindow();
-
 }
 
 void Client::HandlePlayerRevive(int32 point_id)
 {
+	dead_window_sent = false;
 	if (GetVersion() <= 561) {
 		ClientPacketFunctions::SendServerControlFlagsClassic(this, 8, 0);
 		ClientPacketFunctions::SendServerControlFlagsClassic(this, 16, 0);
@@ -844,9 +855,6 @@ void Client::SendCharInfo() {
 		player->set_character_flag(CF_ENABLE_CHANGE_LASTNAME);
 
 	safe_delete(items);
-
-	if (!player->Alive())
-		DisplayDeadWindow();
 
 	ClientPacketFunctions::SendLocalizedTextMessage(this);
 
@@ -1934,6 +1942,9 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
 					if (zone_script && lua_interface) {
 						lua_interface->RunZoneScript(zone_script, "enter_location", GetPlayer()->GetZone(), GetPlayer(), GetPlayer()->GetLocation());
 					}
+									
+					if (!GetPlayer()->Alive())
+						DisplayDeadWindow();
 
 					if (GetPlayer()->GetHP() < GetPlayer()->GetTotalHP() || GetPlayer()->GetPower() < GetPlayer()->GetTotalPower())
 						GetCurrentZone()->AddDamagedSpawn(GetPlayer());
@@ -2089,13 +2100,13 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
 					float x = player->GetX();
 					float y = player->GetY();
 					float z = player->GetZ();
-					player->PrepareIncomingMovementPacket(app->size - offset, app->pBuffer + offset, version);
+					player->PrepareIncomingMovementPacket(app->size - offset, app->pBuffer + offset, version, dead_window_sent);
 					distance = player->GetDistance(x, y, z, false);
 					if (distance > .5)
 						current_zone->Interrupted(player, 0, SPELL_ERROR_INTERRUPTED, false, true);
 				}
 				else
-					player->PrepareIncomingMovementPacket(app->size - offset, app->pBuffer + offset, version);
+					player->PrepareIncomingMovementPacket(app->size - offset, app->pBuffer + offset, version, dead_window_sent);
 				player_pos_changed = true;
 
 				GetPlayer()->changed = true;
@@ -2144,13 +2155,13 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
 				float x = player->GetX();
 				float y = player->GetY();
 				float z = player->GetZ();
-				player->PrepareIncomingMovementPacket(app->size - offset, app->pBuffer + offset, version);
+				player->PrepareIncomingMovementPacket(app->size - offset, app->pBuffer + offset, version, dead_window_sent);
 				distance = player->GetDistance(x, y, z, false);
 				if (distance > .5)
 					current_zone->Interrupted(player, 0, SPELL_ERROR_INTERRUPTED, false, true);
 			}
 			else
-				player->PrepareIncomingMovementPacket(app->size - offset, app->pBuffer + offset, version);
+				player->PrepareIncomingMovementPacket(app->size - offset, app->pBuffer + offset, version, dead_window_sent);
 			player_pos_changed = true;
 
 			GetPlayer()->changed = true;

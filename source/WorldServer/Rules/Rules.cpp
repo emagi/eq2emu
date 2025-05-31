@@ -243,6 +243,10 @@ void RuleManager::Init()
 	RULE_INIT(R_Player, HarvestSkillUpMultiplier, "2.0"); /* multiplier for node to take the "min skill" max and use a multiplier to offset the max skill allowed to skill up on node.
 														  ** Eg. 50 min skill on node, 50*1.5=75, no one with higher than 75 skill gets a skill up
 														  */
+	RULE_INIT(R_Player, MiniDingPercentage, "10"); /* Mini ding percentage for EverQuest 2, eg. default is every 10% (triggers at 10%, 20%, 30%, 40%, 50%, .. so on).  setting 20% (triggers at 20%, 40%, 60%, 80%)
+												   ** Setting to less than 10 or greater than 50 will disable completely
+												   ** Range supported is 10 - 50%.
+												   **/
 	/* PVP */
 	RULE_INIT(R_PVP, AllowPVP, "0");
 	RULE_INIT(R_PVP, LevelRange, "4");

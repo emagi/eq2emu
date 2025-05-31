@@ -782,6 +782,11 @@ private:
 	bool	connected;
 	std::atomic<bool> ready_for_spawns;
 	std::atomic<bool> ready_for_updates;
+	std::atomic<bool> dead_window_sent;
+	float	dead_x;
+	float	dead_y;
+	float	dead_z;
+	float	dead_h;
 
 	bool	seencharsel;
 	bool	connected_to_zone;

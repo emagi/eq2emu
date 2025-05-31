@@ -624,7 +624,7 @@ public:
 	float	CalculateTSXP(int8 level);
 	void	CalculateOfflineDebtRecovery(int32 unix_timestamp);
 	void	InCombat(bool val, bool range = false);
-	void	PrepareIncomingMovementPacket(int32 len, uchar* data, int16 version);
+	void	PrepareIncomingMovementPacket(int32 len, uchar* data, int16 version, bool dead_window_sent = false);
 	uchar*	GetMovementPacketData(){
 		return movement_packet;
 	}
@@ -655,6 +655,7 @@ public:
 	Spawn*	GetSpawnByIndex(int16 index);
 	int16	GetIndexForSpawn(Spawn* spawn);
 	bool	WasSpawnRemoved(Spawn* spawn);
+	void	ResetSpawnPackets(int32 id);
 	void	RemoveSpawn(Spawn* spawn, bool delete_spawn = true);
 	bool	ShouldSendSpawn(Spawn* spawn);
 	Client* client = 0;

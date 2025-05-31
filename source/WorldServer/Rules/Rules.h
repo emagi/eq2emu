@@ -101,6 +101,7 @@ enum RuleType {
 	MaxTargetCommandDistance,
 	MinSkillMultiplierValue,
 	HarvestSkillUpMultiplier,
+	MiniDingPercentage,
 
 	/* PVP */
 	AllowPVP,
