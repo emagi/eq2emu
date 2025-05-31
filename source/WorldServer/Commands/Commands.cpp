@@ -8445,10 +8445,22 @@ void Commands::Command_Pet(Client* client, Seperator* sep)
 	}
 	else if (strcmp(sep->arg[0], "backoff") == 0) {
 		client->Message(CHANNEL_COLOR_YELLOW, "You command your pet to back down.");
-		if (client->GetPlayer()->GetPet())
+		if (client->GetPlayer()->GetPet()) {
 			((NPC*)client->GetPlayer()->GetPet())->Brain()->ClearHate();
-		if (client->GetPlayer()->GetCharmedPet())
+					
+			client->GetPlayer()->GetPet()->SetFollowTarget(nullptr);
+			client->GetPlayer()->GetZone()->movementMgr->StopNavigation(client->GetPlayer()->GetPet());
+			client->GetPlayer()->GetPet()->ClearRunningLocations();
+			client->GetPlayer()->GetPet()->StopMovement();
+		}
+		if (client->GetPlayer()->GetCharmedPet()) {
 			((NPC*)client->GetPlayer()->GetCharmedPet())->Brain()->ClearHate();
+					
+			client->GetPlayer()->GetCharmedPet()->SetFollowTarget(nullptr);
+			client->GetPlayer()->GetZone()->movementMgr->StopNavigation(client->GetPlayer()->GetCharmedPet());
+			client->GetPlayer()->GetCharmedPet()->ClearRunningLocations();
+			client->GetPlayer()->GetCharmedPet()->StopMovement();
+		}
 		client->GetPlayer()->GetInfoStruct()->set_pet_behavior(0);
 		client->GetPlayer()->SetCharSheetChanged(true);
 	}
@@ -8457,9 +8469,9 @@ void Commands::Command_Pet(Client* client, Seperator* sep)
 			if (client->GetPlayer()->AttackAllowed((Entity*)client->GetPlayer()->GetTarget())){
 				client->Message(CHANNEL_COLOR_YELLOW, "You command your pet to attack your target.");
 				if (client->GetPlayer()->GetPet())
-					client->GetPlayer()->GetPet()->AddHate((Entity*)client->GetPlayer()->GetTarget(), 1);
+					client->GetPlayer()->GetPet()->AddHate((Entity*)client->GetPlayer()->GetTarget(), 1, true);
 				if (client->GetPlayer()->GetCharmedPet())
-					client->GetPlayer()->GetCharmedPet()->AddHate((Entity*)client->GetPlayer()->GetTarget(), 1);
+					client->GetPlayer()->GetCharmedPet()->AddHate((Entity*)client->GetPlayer()->GetTarget(), 1, true);
 			}
 			else
 				client->Message(CHANNEL_COLOR_YELLOW, "You can not attack that.");
