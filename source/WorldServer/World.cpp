@@ -1,6 +1,6 @@
 /*  
     EQ2Emulator:  Everquest II Server Emulator
-    Copyright (C) 2007  EQ2EMulator Development Team (http://www.eq2emulator.net)
+    Copyright (C) 2005 - 2025  EQ2EMulator Development Team (http://www.eq2emu.com formerly http://www.eq2emulator.net)
 
     This file is part of EQ2Emulator.
 
@@ -2246,16 +2246,24 @@ bool World::RejoinGroup(Client* client, int32 group_id){
 }
 
 
-void World::AddBonuses(Item* item, ItemStatsValues* values, int16 type, sint32 value, Entity* entity){
+void World::AddBonuses(Item* item, ItemStatsValues* values, int16 type, float value, Entity* entity){
 	if(values){
 		if(item && entity && entity->IsPlayer())
 		{
-			int32 effective_level = entity->GetInfoStructUInt("effective_level");
-			if(effective_level && effective_level < entity->GetLevel() && item->details.recommended_level > effective_level)
-			{
-				int32 diff = item->details.recommended_level - effective_level;
-				float tmpValue = (float)value;
-				value = (sint32)(float)(tmpValue / (1.0f + ((float)diff * .05f)));
+			switch(type) {
+				case ITEM_STAT_SIZEMOD:
+				case ITEM_STAT_CONCENTRATION:
+					break;
+				default: {
+						int32 effective_level = entity->GetInfoStructUInt("effective_level");
+						if(effective_level && effective_level < entity->GetLevel() && item->details.recommended_level > effective_level)
+						{
+							int32 diff = item->details.recommended_level - effective_level;
+							float tmpValue = (float)value;
+							value = (sint32)(float)(tmpValue / (1.0f + ((float)diff * .05f)));
+						}
+						break;
+					}
 			}
 		}
 		switch(type){
@@ -2381,6 +2389,10 @@ void World::AddBonuses(Item* item, ItemStatsValues* values, int16 type, sint32 v
 			}
 			case ITEM_STAT_SPELLMULTIATTACKCHANCE:{
 				values->spellmultiattackchance += value;
+				break;
+			}
+			case ITEM_STAT_SIZEMOD:{
+				values->size_mod += value;
 				break;
 			}
 			case ITEM_STAT_DPS:{

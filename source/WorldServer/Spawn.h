@@ -1192,6 +1192,7 @@ public:
 	std::atomic<bool> 	info_changed;
 	std::atomic<bool>	vis_changed;
 	std::atomic<bool>	is_running;
+	std::atomic<bool>	size_changed;
 	int16				size;
 	int32				faction_id;
 	int8				oversized_packet; //0xff

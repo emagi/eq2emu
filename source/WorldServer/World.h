@@ -635,7 +635,7 @@ public:
 	bool RejoinGroup(Client* client, int32 group_id);
 	//bool MakeLeader(Client* leader, string new_leader);
 	
-	void AddBonuses(Item* item, ItemStatsValues* values, int16 type, sint32 value, Entity* entity);
+	void AddBonuses(Item* item, ItemStatsValues* values, int16 type, float value, Entity* entity);
 	int32 CreateGuild(const char* guild_name, Client* leader = 0, int32 group_id = 0);
 	void SaveGuilds();
 	void PickRandomLottoDigits(int32* digits);

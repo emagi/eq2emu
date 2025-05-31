@@ -1,6 +1,6 @@
 /*  
     EQ2Emulator:  Everquest II Server Emulator
-    Copyright (C) 2007  EQ2EMulator Development Team (http://www.eq2emulator.net)
+    Copyright (C) 2005 - 2025  EQ2EMulator Development Team (http://www.eq2emu.com formerly http://www.eq2emulator.net)
 
     This file is part of EQ2Emulator.
 
@@ -80,6 +80,7 @@ Spawn::Spawn(){
 	position_changed = false;
 	send_spawn_changes = true;
 	info_changed = false;
+	size_changed = false;
 	appearance.pos.Speed1 = 0;
 	last_attacker = 0;	
 	faction_id = 0;
@@ -2193,24 +2194,21 @@ void Spawn::InitializePosPacketData(Player* player, PacketStruct* packet, bool b
 		packet->setDataByName("pos_heading2", appearance.pos.Dir2);
 	}
 
+	if (size == 0)
+		size = 32;
+	
 	if (version <= 910) {
 		packet->setDataByName("pos_collision_radius", appearance.pos.collision_radius > 0 ? appearance.pos.collision_radius : 32);
 		packet->setDataByName("pos_size", size > 0 ? size : 32);
-		packet->setDataByName("pos_size_multiplier", 32); //32 is normal
 	}
 	else {
-		if (size == 0)
-			size = 32;
-
 		packet->setDataByName("pos_collision_radius", appearance.pos.collision_radius > 0 ? appearance.pos.collision_radius : 32);
 
-		packet->setDataByName("pos_size", 1.0f);
-
-		if (!IsPlayer())
+		if(!IsPlayer())
 			packet->setDataByName("pos_size", size > 0 ? (((float)size) / 32.0f) : 1.0f); // float not an integer
 		else
 			packet->setDataByName("pos_size", 1.0f);
-
+			
 		// please do not remove!  This makes it so NPCs for example do not resize large/small when you are in combat with them!
 		packet->setDataByName("pos_size_ratio", 1.0f);
 	}
@@ -2490,6 +2488,11 @@ void Spawn::InitializeInfoPacketData(Player* spawn, PacketStruct* packet) {
 	if (GetMerchantID() > 0)
 		packet->setDataByName("merchant", 1);
 	
+	if(IsEntity() && ((Entity*)this)->GetInfoStruct()->get_size_mod() != 0.0f) {
+		float mod = ((Entity*)this)->GetInfoStruct()->get_size_mod(); // e.g., -0.25 or +0.25
+		//packet->setDataByName("temporary_scale", mod); //TODO: Understand what these mod values should be, anything we send makes the client shrink to nothing
+	}
+
 	packet->setDataByName("effective_level", IsEntity() && ((Entity*)this)->GetInfoStruct()->get_effective_level() != 0 ? (int8)((Entity*)this)->GetInfoStruct()->get_effective_level() : (int8)GetLevel());
 	packet->setDataByName("level", (int8)GetLevel());
 	packet->setDataByName("unknown4", (int8)GetLevel());
@@ -3187,8 +3190,15 @@ void Spawn::ProcessMovement(bool isSpawnListLocked){
 				float distance = GetDistance(followTarget, loc->x, loc->y, loc->z);
 				if ( (!EngagedInCombat() && m_followDistance > 0 && distance > m_followDistance) ||
 					 ( EngagedInCombat() && distance > rule_manager.GetZoneRule(GetZoneID(), R_Combat, MaxCombatRange)->GetFloat())) {
-					MoveToLocation(followTarget, rule_manager.GetZoneRule(GetZoneID(), R_Combat, MaxCombatRange)->GetFloat(), true, loc->mapped);
-					CalculateRunningLocation();
+					float self_distance = GetDistance(this, loc->x, loc->y, loc->z);
+					if(dist < distance || dist < self_distance) {
+						ClearRunningLocations();
+						CalculateRunningLocation(true);
+					}
+					else {
+						MoveToLocation(followTarget, rule_manager.GetZoneRule(GetZoneID(), R_Combat, MaxCombatRange)->GetFloat(), true, loc->mapped);
+						CalculateRunningLocation();
+					}
 				}
 			}
 			else {

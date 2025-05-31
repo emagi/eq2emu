@@ -2317,6 +2317,7 @@ void ZoneServer::SendSpawnChanges(){
 		spawn->position_changed = false;
 		spawn->vis_changed = false;
 		spawn->info_changed = false;
+		spawn->size_changed = false;
 	}
 	MSpawnList.releasereadlock(__FUNCTION__, __LINE__);
 }

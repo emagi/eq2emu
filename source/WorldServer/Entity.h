@@ -1,6 +1,6 @@
 /*  
     EQ2Emulator:  Everquest II Server Emulator
-    Copyright (C) 2007  EQ2EMulator Development Team (http://www.eq2emulator.net)
+    Copyright (C) 2005 - 2025  EQ2EMulator Development Team (http://www.eq2emu.com formerly http://www.eq2emulator.net)
 
     This file is part of EQ2Emulator.
 
@@ -43,7 +43,7 @@ struct BonusValues{
 	int32	spell_id;
 	int8    tier;
 	int16	type;
-	sint32	value;
+	float	value;
 	int64	class_req;
 	vector<int16>	race_req;
 	vector<int16>	faction_req;
@@ -636,6 +636,7 @@ struct InfoStruct{
 	float	 get_recovery_speed() { std::lock_guard<std::mutex> lk(classMutex); return recovery_speed_; }
 	float	 get_spell_reuse_speed() { std::lock_guard<std::mutex> lk(classMutex); return spell_reuse_speed_; }
 	float	 get_spell_multi_attack() { std::lock_guard<std::mutex> lk(classMutex); return spell_multi_attack_; }
+	float	 get_size_mod() { std::lock_guard<std::mutex> lk(classMutex); return size_mod_; }
 	float	 get_dps() { std::lock_guard<std::mutex> lk(classMutex); return dps_; }
 	float	 get_dps_multiplier() { std::lock_guard<std::mutex> lk(classMutex); return dps_multiplier_; }
 	float	 get_attackspeed() { std::lock_guard<std::mutex> lk(classMutex); return attackspeed_; }
@@ -915,6 +916,7 @@ struct InfoStruct{
 	void	set_recovery_speed(float value) { std::lock_guard<std::mutex> lk(classMutex); recovery_speed_ = value; }
 	void	set_spell_reuse_speed(float value) { std::lock_guard<std::mutex> lk(classMutex); spell_reuse_speed_ = value; }
 	void	set_spell_multi_attack(float value) { std::lock_guard<std::mutex> lk(classMutex); spell_multi_attack_ = value; }
+	void	set_size_mod(float value) { std::lock_guard<std::mutex> lk(classMutex); size_mod_ = value; }
 	void	set_dps(float value) { std::lock_guard<std::mutex> lk(classMutex); dps_ = value; }
 	void	set_dps_multiplier(float value) { std::lock_guard<std::mutex> lk(classMutex); dps_multiplier_ = value; }
 	void	set_attackspeed(float value) { std::lock_guard<std::mutex> lk(classMutex); attackspeed_ = value; }
@@ -946,6 +948,7 @@ struct InfoStruct{
 	void	add_recovery_speed(float value) { std::lock_guard<std::mutex> lk(classMutex); recovery_speed_ += value; }
 	void	add_spell_reuse_speed(float value) { std::lock_guard<std::mutex> lk(classMutex); spell_reuse_speed_ += value; }
 	void	add_spell_multi_attack(float value) { std::lock_guard<std::mutex> lk(classMutex); spell_multi_attack_ += value; }
+	void	add_size_mod(float value) { std::lock_guard<std::mutex> lk(classMutex); size_mod_ += value; }
 	void	add_dps(float value) { std::lock_guard<std::mutex> lk(classMutex); if(dps_ + value < 0.0f) dps_ = 0.0f; else dps_ += value; }
 	void	add_dps_multiplier(float value) { std::lock_guard<std::mutex> lk(classMutex); if(dps_multiplier_ + value < 0.0f) dps_multiplier_ = 0.0f; else dps_multiplier_ += value; }
 	void	add_attackspeed(float value) { std::lock_guard<std::mutex> lk(classMutex); if(attackspeed_ + value < 0.0f) attackspeed_ = 0.0f; else attackspeed_ += value; }
@@ -1187,6 +1190,7 @@ private:
 	float			recovery_speed_;
 	float			spell_reuse_speed_;
 	float			spell_multi_attack_;
+	float			size_mod_;
 	float			dps_;
 	float           dps_multiplier_;
 	float			attackspeed_;
