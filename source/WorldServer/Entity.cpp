@@ -2221,7 +2221,13 @@ float Entity::CalculateDPSMultiplier(){
 }	
 
 void Entity::AddWard(int32 spellID, WardInfo* ward) {
-	if (m_wardList.count(spellID) == 0) {
+	if(MWardList.try_lock()) {
+		if (m_wardList.count(spellID) == 0) {
+			m_wardList[spellID] = ward;
+		}
+		MWardList.unlock();
+	}
+	else if (m_wardList.count(spellID) == 0) {
 		m_wardList[spellID] = ward;
 	}
 }
@@ -2229,22 +2235,32 @@ void Entity::AddWard(int32 spellID, WardInfo* ward) {
 WardInfo* Entity::GetWard(int32 spellID) {
 	WardInfo* ret = 0;
 
-	if (m_wardList.count(spellID) > 0)
+    if (MWardList.try_lock_shared()) {
+		if (m_wardList.count(spellID) > 0)
+			ret = m_wardList[spellID];
+		MWardList.unlock_shared();
+	}
+	else if (m_wardList.count(spellID) > 0)
 		ret = m_wardList[spellID];
-
+	
 	return ret;
 }
 
 void Entity::RemoveWard(int32 spellID) {
-	if (m_wardList.count(spellID) > 0) {
-		// Delete the ward info
-		safe_delete(m_wardList[spellID]);
-		// Remove from the ward list
-		m_wardList.erase(spellID);
+	if(MWardList.try_lock()) {
+		if (m_wardList.count(spellID) > 0) {
+			WardInfo* info = m_wardList[spellID];
+			info->DeleteWard = true;
+		}
+		MWardList.unlock();
+	}
+	else if (m_wardList.count(spellID) > 0) {
+		m_wardList[spellID]->DeleteWard = true;
 	}
 }
 
 int32 Entity::CheckWards(Entity* attacker, int32 damage, int8 damage_type) {
+	std::unique_lock lock(MWardList);
 	map<int32, WardInfo*>::iterator itr;
 	WardInfo* ward = 0;
 	LuaSpell* spell = 0;
@@ -2252,7 +2268,7 @@ int32 Entity::CheckWards(Entity* attacker, int32 damage, int8 damage_type) {
 	while (m_wardList.size() > 0 && damage > 0) {
 		// Get the ward with the lowest base damage
 		for (itr = m_wardList.begin(); itr != m_wardList.end(); itr++) {
-			if(itr->second->RoundTriggered)
+			if(itr->second->RoundTriggered || itr->second->DeleteWard)
 				continue;
 			
 			if (!ward || itr->second->BaseDamage < ward->BaseDamage) {
@@ -2319,9 +2335,8 @@ int32 Entity::CheckWards(Entity* attacker, int32 damage, int8 damage_type) {
 				GetZone()->SendHealPacket(spell->caster, this, HEAL_PACKET_TYPE_ABSORB, ward->DamageLeft, spell->spell->GetName());
 
 			if (!ward->keepWard) {
+				ward->DeleteWard = true;
 				hasSpellBeenRemoved = true;
-				RemoveWard(spell->spell->GetSpellID());
-				GetZone()->GetSpellProcess()->DeleteCasterSpell(spell, "purged");
 			}
 		}
 		else {
@@ -2379,16 +2394,24 @@ int32 Entity::CheckWards(Entity* attacker, int32 damage, int8 damage_type) {
 
 		if (shouldRemoveSpell && !hasSpellBeenRemoved)
 		{
-			RemoveWard(spell->spell->GetSpellID());
-			GetZone()->GetSpellProcess()->DeleteCasterSpell(spell, "purged");
+			ward->DeleteWard = true;
 		}
 
 		// Reset ward pointer
 		ward = 0;
 	}
 	
-	for (itr = m_wardList.begin(); itr != m_wardList.end(); itr++) {
-		itr->second->RoundTriggered = false;
+	for (itr = m_wardList.begin(); itr != m_wardList.end();) {
+		if(itr->second->DeleteWard) {
+			WardInfo* info = itr->second;
+			itr = m_wardList.erase(itr);
+			GetZone()->GetSpellProcess()->DeleteCasterSpell(info->Spell, "purged");
+			safe_delete(info);
+		}
+		else {
+			itr->second->RoundTriggered = false;
+			itr++;
+		}
 	}
 
 	return damage;

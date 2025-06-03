@@ -1308,6 +1308,8 @@ struct WardInfo {
 	bool		AbsorbAllDamage; // damage is always absorbed, usually spells based on hits, when we pass damage in AddWard as 0 this will be set to true
 	
 	bool		RoundTriggered;
+	
+	bool		DeleteWard; // removal after process CheckWard while loop
 };
 
 #define WARD_TYPE_ALL 0
@@ -2111,6 +2113,7 @@ private:
 
 	// int32 = spell id, WardInfo* = pointer to ward info
 	map<int32, WardInfo*> m_wardList;
+	mutable std::shared_mutex MWardList;
 
 	// int8 = type, vector<Proc*> = list of pointers to proc info
 	map <int8, vector<Proc*> > m_procList;

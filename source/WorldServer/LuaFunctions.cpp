@@ -6577,7 +6577,8 @@ int EQ2Emu_lua_AddWard(lua_State* state) {
 
 			if (wardType == WARD_TYPE_MAGICAL)
 				ward->DamageType = damageTypes;
-
+			
+			ward->DeleteWard = false;
 			// Add the ward to the entity
 			((Entity*)target)->AddWard(spell->spell->GetSpellID(), ward);
 			ward_was_added = true;
