@@ -339,6 +339,9 @@ int main(int argc, char** argv) {
 	LogWrite(LUA__INFO, 0, "LUA", "Loading Zone Scripts...");
 	database.LoadZoneScriptData();
 
+	LogWrite(LUA__INFO, 0, "LUA", "Loading Player Scripts...");
+	world.LoadPlayerScripts();
+	
 	LogWrite(WORLD__INFO, 0, "World", "Loading House Zone Data...");
 	database.LoadHouseZones();
 	database.LoadPlayerHouses();
@@ -642,7 +645,7 @@ ThreadReturnType StartPeerPoll (void* tmp)
 		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 		if(check_zone > 60) {
 			check_zone = 0;
-			database.LoadSpecialZones();
+			database.LoadSpecialZones(true);
 		}
 		check_zone++;
 	}

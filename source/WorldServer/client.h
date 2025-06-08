@@ -285,8 +285,8 @@ public:
 	void	HandleQuickbarUpdateRequest(EQApplicationPacket* app);
 	void	SendPopupMessage(int8 unknown, const char* text, const char* type, float size, int8 red, int8 green, int8 blue);
 	void	PopulateSkillMap();
-	void	ChangeLevel(int16 old_level, int16 new_level);
-	void	ChangeTSLevel(int16 old_level, int16 new_level);
+	bool	ChangeLevel(int16 old_level, int16 new_level, int32 xp_earned = 0);
+	bool	ChangeTSLevel(int16 old_level, int16 new_level, int32 xp_earned = 0);
 	bool	Summon(const char* search_name);
 	std::string	IdentifyInstanceLockout(int32 zoneID, bool displayClient = true);
 	bool	IdentifyInstance(ZoneChangeDetails* zone_details, int32 zoneID);
@@ -299,8 +299,8 @@ public:
 	bool    BankWithdrawalNoBanker(int64 amount);
 	bool    BankHasCoin(int64 amount);
 	void	BankDeposit(int64 amount);
-	Spawn* GetBanker();
-	void	SetBanker(Spawn* in_banker);
+	int32	GetBanker();
+	void	SetBanker(int32 in_banker);
 	bool	AddItem(int32 item_id, int16 quantity = 0, AddItemType type = AddItemType::NOT_SET);
 	bool	AddItem(Item* item, bool* item_deleted = 0, AddItemType type = AddItemType::NOT_SET);
 	bool	AddItemToBank(int32 item_id, int16 quantity = 0);
@@ -401,13 +401,14 @@ public:
 	void	RemoveCombineSpawn(Spawn* spawn);
 	void	SaveCombineSpawns(const char* name = 0);
 	Spawn* GetCombineSpawn();
+	void	SetCombineSpawn(Spawn* spawn) { combine_spawn = spawn; }
 	bool	ShouldTarget();
 	void	TargetSpawn(Spawn* spawn);
 	void	ReloadQuests();
 	int32	GetCurrentQuestID() { return current_quest_id; }
 	void	SetLuaDebugClient(bool val);
 	void	SetMerchantTransaction(Spawn* spawn);
-	Spawn* GetMerchantTransaction();
+	int32 GetMerchantTransactionID();
 	void	SetMailTransaction(Spawn* spawn);
 	Spawn* GetMailTransaction();
 	void	PlaySound(const char* name);
@@ -715,6 +716,12 @@ public:
 	void	SendReceiveOffer(Client* client_target, int8 type, std::string name, int8 unknown2);
 
 	bool	SendDialogChoice(int32 spawnID, const std::string& windowTextPrompt, const std::string& acceptText, const std::string& acceptCommand, const std::string& declineText, const std::string& declineCommand, int32 time, int8 textBox, int8 textBoxRequired, int32 maxLength);
+	
+	void	SetTransportSpawnID(int32 id) { transport_spawn_id = id; }
+	int32	GetTransportSpawnID() { return transport_spawn_id; }
+	
+	void	SetLastTellName(std::string tellName) { last_tell_name = tellName; }
+	std::string GetLastTellName() { return last_tell_name; }
 	DialogManager dialog_manager;
 private:
 	void	AddRecipeToPlayerPack(Recipe* recipe, PacketStruct* packet, int16* i);
@@ -737,10 +744,10 @@ private:
 	vector<Item*>* search_items;
 	int32 waypoint_id = 0;
 	map<string, WaypointInfo> waypoints;
-	Spawn* transport_spawn;
+	int32	transport_spawn_id;
 	Mutex	MBuyBack;
 	deque<BuyBackItem*> buy_back_items;
-	Spawn* merchant_transaction;
+	int32 merchant_transaction_id;
 	Spawn* mail_transaction;
 	mutable std::shared_mutex MPendingQuestAccept;
 	vector<int32> pending_quest_accept;
@@ -754,7 +761,7 @@ private:
 	mutable std::shared_mutex MConversation;
 	map<int32, map<int8, string> > conversation_map;
 	int32	current_quest_id;
-	Spawn* banker;
+	int32 banker_id;
 	map<int32, int32> sent_spell_details;
 	map<int32, bool> sent_item_details;
 	Player* player;
@@ -879,6 +886,8 @@ private:
 	uchar* recipe_xor_packet;
 	int	recipe_packet_count;
 	int recipe_orig_packet_size;
+	
+	std::string last_tell_name;
 };
 
 class ClientList {

@@ -178,8 +178,8 @@ public:
 		int16 minLevel, int16 maxLevel, int16 minVersion, int32 defaultLockoutTime, int32 defaultReenterTime, int8 instanceType, int32 numPlayers, bool isCityZone, void* zonePtr = nullptr);
 	bool IsClientConnectedPeer(int32 account_id);
 	std::string GetCharacterPeerId(std::string charName);
-	void SendPeersChannelMessage(int32 group_id, std::string fromName, std::string message, int16 channel, int32 language_id = 0);
-	void SendPeersGuildChannelMessage(int32 guild_id, std::string fromName, std::string message, int16 channel, int32 language_id = 0);
+	void SendPeersChannelMessage(int32 group_id, std::string fromName, std::string message, int16 channel, int32 language_id = 0, int8 custom_type = 0);
+	void SendPeersGuildChannelMessage(int32 guild_id, std::string fromName, std::string message, int16 channel, int32 language_id = 0, int8 custom_type = 0);
 	void sendZonePeerList(Client* client);
 	std::string getZonePeerId(const std::string& inc_zone_name, int32 inc_zone_id, int32 inc_instance_id, ZoneChangeDetails* opt_details = nullptr, bool only_always_loaded = false, int32 matchDuplicatedId = 0);
 	int32 getZoneHighestDuplicateId(const std::string& inc_zone_name, int32 inc_zone_id, bool increment_new_value = true);

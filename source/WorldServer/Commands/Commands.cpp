@@ -1,22 +1,23 @@
 /*  
-EQ2Emulator:  Everquest II Server Emulator
-Copyright (C) 2007  EQ2EMulator Development Team (http://www.eq2emulator.net)
+    EQ2Emulator:  Everquest II Server Emulator
+    Copyright (C) 2005 - 2025  EQ2EMulator Development Team (http://www.eq2emu.com formerly http://www.eq2emulator.net)
 
-This file is part of EQ2Emulator.
+    This file is part of EQ2Emulator.
 
-EQ2Emulator is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+    EQ2Emulator is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-EQ2Emulator is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+    EQ2Emulator is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License
-along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
+    You should have received a copy of the GNU General Public License
+    along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 */
+
 #include <sys/types.h>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string.hpp>
@@ -1987,6 +1988,18 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 		client->SimpleMessage(CHANNEL_COLOR_YELLOW, "Done!");
 		break;
 	}
+	case COMMAND_RELOAD_PLAYERSCRIPTS: {
+		client->SimpleMessage(CHANNEL_COLOR_YELLOW, "Reloading Player Scripts...");
+		world.SetReloadingSubsystem("PlayerScripts");
+		world.ResetPlayerScripts();
+		world.LoadPlayerScripts();
+		if (lua_interface)
+			lua_interface->DestroyPlayerScripts();
+		world.RemoveReloadingSubSystem("PlayerScripts");
+		peer_manager.sendPeersMessage("/reloadcommand", command->handler);
+		client->SimpleMessage(CHANNEL_COLOR_YELLOW, "Done!");
+		break;
+	}
 	case COMMAND_RELOAD_ENTITYCOMMANDS: {
 		client->SimpleMessage(CHANNEL_COLOR_YELLOW, "Reloading Entity Commands...");
 		world.SetReloadingSubsystem("EntityCommands");
@@ -2679,7 +2692,8 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 			break;
 						  }
 		case COMMAND_BANK_DEPOSIT:{
-			if(client->GetBanker() && sep && sep->arg[0]){
+			Spawn* banker = client->GetCurrentZone()->GetSpawnByID(client->GetBanker());
+			if(banker && sep && sep->arg[0]){
 				int64 amount = 0;
 				string deposit = string(sep->arg[0]);
 				amount = atoi64(deposit.c_str());
@@ -2688,7 +2702,8 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 			break;
 								  }
 		case COMMAND_BANK_WITHDRAWAL:{
-			if(client->GetBanker() && sep && sep->arg[0] && sep->IsNumber(0)){
+			Spawn* banker = client->GetCurrentZone()->GetSpawnByID(client->GetBanker());
+			if(banker && sep && sep->arg[0] && sep->IsNumber(0)){
 				int64 amount = 0;
 				string deposit = string(sep->arg[0]);
 				amount = atoi64(deposit.c_str());
@@ -2891,7 +2906,7 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 							}
 		case COMMAND_CLASS:{
 			if(sep && sep->arg[ndx][0]){
-				client->GetPlayer()->SetPlayerAdventureClass(atoi(sep->arg[ndx]));
+				client->GetPlayer()->SetPlayerAdventureClass(atoi(sep->arg[ndx]), true);
 			}else
 				client->SimpleMessage(CHANNEL_COLOR_YELLOW,"Usage:  /class {class_id}");
 			break;
@@ -3137,6 +3152,9 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 
 			world.ResetZoneScripts();
 			database.LoadZoneScriptData();
+			
+			world.ResetPlayerScripts();
+			world.LoadPlayerScripts();
 
 			if(lua_interface) {
 				lua_interface->DestroySpawnScripts();
@@ -3144,6 +3162,7 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 				lua_interface->DestroyQuests();
 				lua_interface->DestroyItemScripts();
 				lua_interface->DestroyZoneScripts();
+				lua_interface->DestroyPlayerScripts();
 			}
 
 			int32 quest_count = database.LoadQuests();
@@ -5372,14 +5391,14 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 		}
 		case COMMAND_BROADCAST: {
 			if (sep && sep->arg[0])
-				zone_list.HandleGlobalBroadcast(sep->argplus[0]);
+				zone_list.TransmitBroadcast(sep->argplus[0]);
 			else
 				client->SimpleMessage(CHANNEL_COLOR_YELLOW, "Usage: /broadcast {message}");
 			break;
 								}
 		case COMMAND_ANNOUNCE: {
 			if (sep && sep->arg[0])
-				zone_list.HandleGlobalAnnouncement(sep->argplus[0]);
+				zone_list.TransmitGlobalAnnouncement(sep->argplus[0]);
 			else
 				client->SimpleMessage(CHANNEL_COLOR_YELLOW, "Usage: /announce {message}");
 			break;
@@ -5400,6 +5419,8 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 			if(!item_id) {
 				database.LoadMerchantInformation(); // we skip if there is only a reload of single item not all items
 			}
+			
+			peer_manager.sendPeersMessage("/reloadcommand", command->handler, item_id);
 			
 			if(item_id > 0) {
 				client->Message(CHANNEL_COLOR_YELLOW, "Reloaded item %u.", item_id);
@@ -6184,11 +6205,6 @@ void Commands::Command_DuelSurrender(Client* client, Seperator* sep)
 	PrintSep(sep, "COMMAND_DUEL_SURRENDER");
 	LogWrite(MISC__TODO, 1, "Command", "TODO-Command: Surrender Duel Command");
 	client->Message(CHANNEL_COLOR_YELLOW, "You cannot duel other players (Not Implemented)");
-
-	// JA, just messin around ;)
-	char surrender[64];
-	sprintf(surrender, "%s surrendered like a cowardly dog!", client->GetPlayer()->GetName());
-	zone_list.HandleGlobalAnnouncement(surrender);
 }
 
 /* 

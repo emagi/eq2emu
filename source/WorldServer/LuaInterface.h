@@ -108,6 +108,45 @@ struct LuaSpell{
 	int16			initial_caster_level;
 };
 
+enum class LuaArgType { SINT64, INT64, SINT, INT, FLOAT, STRING, BOOL, SPAWN, ZONE, SKILL, ITEM, QUEST, SPELL /* etc */ };
+
+struct LuaArg {
+	LuaArgType type;
+	union {
+		sint64 si;
+		sint64 i;
+		int32 low_i;
+		sint32 low_si;
+		float f;
+		bool b;
+	};
+	std::string s;
+	Spawn* spawn = nullptr;
+	ZoneServer* zone = nullptr;
+	Skill* skill = nullptr;
+	Item* item = nullptr;
+	Quest* quest = nullptr;
+	LuaSpell* spell = nullptr;
+
+	LuaArg(sint64 val) : type(LuaArgType::SINT64), si(val) {}
+	LuaArg(sint32 val) : type(LuaArgType::SINT), low_si(val) {}
+	LuaArg(sint16 val) : type(LuaArgType::SINT), low_si(val) {}
+	LuaArg(sint8 val) : type(LuaArgType::SINT), low_si(val) {}
+	LuaArg(int64 val) : type(LuaArgType::INT64), i(val) {}
+	LuaArg(int32 val) : type(LuaArgType::INT), low_i(val) {}
+	LuaArg(int16 val) : type(LuaArgType::INT), low_i(val) {}
+	LuaArg(int8 val) : type(LuaArgType::INT), low_i(val) {}
+	LuaArg(float val) : type(LuaArgType::FLOAT), f(val) {}
+	LuaArg(bool val) : type(LuaArgType::BOOL), b(val) {}
+	LuaArg(const std::string& val) : type(LuaArgType::STRING), s(val) {}
+	LuaArg(Spawn* val) : type(LuaArgType::SPAWN), spawn(val) {}
+	LuaArg(ZoneServer* val) : type(LuaArgType::ZONE), zone(val) {}
+	LuaArg(Skill* val) : type(LuaArgType::SKILL), skill(val) {}
+	LuaArg(Item* val) : type(LuaArgType::ITEM), item(val) {}
+	LuaArg(Quest* val) : type(LuaArgType::QUEST), quest(val) {}
+	LuaArg(LuaSpell* val) : type(LuaArgType::SPELL), spell(val) {}
+};
+
 class LUAUserData{
 public:
 	LUAUserData();
@@ -192,6 +231,8 @@ public:
 	bool			LoadSpawnScript(const char* name);
 	bool			LoadZoneScript(string name);
 	bool			LoadZoneScript(const char* name);
+	bool			LoadPlayerScript(string name);
+	bool			LoadPlayerScript(const char* name);
 	bool			LoadRegionScript(string name);
 	bool			LoadRegionScript(const char* name);
 	LuaSpell*		LoadSpellScript(string name);
@@ -242,10 +283,12 @@ public:
 	void			UseItemScript(const char* name, lua_State* state, bool val);
 	void			UseSpawnScript(const char* name, lua_State* state, bool val);
 	void			UseZoneScript(const char* name, lua_State* state, bool val);
+	void			UsePlayerScript(const char* name, lua_State* state, bool val);
 	void			UseRegionScript(const char* name, lua_State* state, bool val);
 	lua_State*		GetItemScript(const char* name, bool create_new = true, bool use = false);
 	lua_State*		GetSpawnScript(const char* name, bool create_new = true, bool use = false);
 	lua_State*		GetZoneScript(const char* name, bool create_new = true, bool use = false);
+	lua_State*		GetPlayerScript(const char* name, bool create_new = true, bool use = false);
 	lua_State*		GetRegionScript(const char* name, bool create_new = true, bool use = false);
 	LuaSpell*		GetSpellScript(const char* name, bool create_new = true, bool use = true);
 	LuaSpell*		CreateSpellScript(const char* name, lua_State* existState);
@@ -263,6 +306,7 @@ public:
 	bool			CallSpawnScript(lua_State* state, int8 num_parameters);
 	bool			RunZoneScript(string script_name, const char* function_name, ZoneServer* zone, Spawn* spawn = 0, int32 int32_arg1 = 0, const char* str_arg1 = 0, Spawn* spawn_arg1 = 0, int32 int32_arg2 = 0, const char* str_arg2 = 0, Spawn* spawn_arg2 = 0);
 	bool			RunZoneScriptWithReturn(string script_name, const char* function_name, ZoneServer* zone, Spawn* spawn, int32 int32_arg1, int32 int32_arg2, int32 int32_arg3, int32* returnValue = 0);
+	bool			RunPlayerScriptWithReturn(const string script_name, const char* function_name, const std::vector<LuaArg>& args, sint32* returnValue = 0);
 	bool			CallScriptInt32(lua_State* state, int8 num_parameters, int32* returnValue = 0);
 	bool			CallScriptSInt32(lua_State* state, int8 num_parameters, sint32* returnValue = 0);
 	bool			RunRegionScript(string script_name, const char* function_name, ZoneServer* zone, Spawn* spawn = 0, sint32 int32_arg1 = 0, int32* returnValue = 0);
@@ -273,6 +317,7 @@ public:
 	void			DestroyItemScripts();
 	void			DestroyQuests(bool reload = false);
 	void			DestroyZoneScripts();
+	void			DestroyPlayerScripts();
 	void			DestroyRegionScripts();
 	void			SimpleLogError(const char* error);
 	void			LogError(const char* error, ...);
@@ -290,6 +335,7 @@ public:
 	Mutex*			GetSpawnScriptMutex(const char* name);
 	Mutex*			GetItemScriptMutex(const char* name);
 	Mutex*			GetZoneScriptMutex(const char* name);
+	Mutex*			GetPlayerScriptMutex(const char* name);
 	Mutex*			GetRegionScriptMutex(const char* name);
 	Mutex*			GetSpellScriptMutex(const char* name);
 	Mutex*			GetQuestMutex(Quest* quest);
@@ -330,6 +376,7 @@ private:
 	map<string, map<lua_State*, bool> > item_scripts;
 	map<string, map<lua_State*, bool> > spawn_scripts;
 	map<string, map<lua_State*, bool> > zone_scripts;
+	map<string, map<lua_State*, bool> > player_scripts;
 	map<string, map<lua_State*, bool> > region_scripts;
 	map<string, map<lua_State*, LuaSpell*> > spell_scripts;
 
@@ -339,11 +386,13 @@ private:
 	map<lua_State*, string> item_inverse_scripts;
 	map<lua_State*, string> spawn_inverse_scripts;
 	map<lua_State*, string> zone_inverse_scripts;
+	map<lua_State*, string> player_inverse_scripts;
 	map<lua_State*, string> region_inverse_scripts;
 
 	map<string, Mutex*> item_scripts_mutex;
 	map<string, Mutex*> spawn_scripts_mutex;
 	map<string, Mutex*> zone_scripts_mutex;
+	map<string, Mutex*> player_scripts_mutex;
 	map<int32, Mutex*> quests_mutex;
 	map<string, Mutex*> region_scripts_mutex;
 	map<string, Mutex*> spell_scripts_mutex;
@@ -353,6 +402,7 @@ private:
 	Mutex			MSpawnScripts;
 	Mutex			MItemScripts;
 	Mutex			MZoneScripts;
+	Mutex			MPlayerScripts;
 	Mutex			MQuests;
 	Mutex			MLUAMain;
 	Mutex			MSpellDelete;

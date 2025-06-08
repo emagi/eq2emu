@@ -1,6 +1,6 @@
 /*  
     EQ2Emulator:  Everquest II Server Emulator
-    Copyright (C) 2007  EQ2EMulator Development Team (http://www.eq2emulator.net)
+    Copyright (C) 2005 - 2025  EQ2EMulator Development Team (http://www.eq2emu.com formerly http://www.eq2emulator.net)
 
     This file is part of EQ2Emulator.
 
@@ -17,6 +17,7 @@
     You should have received a copy of the GNU General Public License
     along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 */
+
 #ifndef __EQ2_COMMANDS__
 #define __EQ2_COMMANDS__
 #include "../../common/DataBuffer.h"
@@ -981,8 +982,8 @@ private:
 #define CANCEL_AA_PROFILE				757
 #define SAVE_AA_PROFILE					758
 
-#define COMMAND_MOOD				800
-
+#define COMMAND_MOOD					800
+#define COMMAND_RELOAD_PLAYERSCRIPTS	801
 
 #define COMMAND_MODIFY				1000 // INSERT INTO `commands`(`id`,`type`,`command`,`subcommand`,`handler`,`required_status`) VALUES ( NULL,'1','modify','','1000','200'); 
 #define COMMAND_MODIFY_CHARACTER	1001

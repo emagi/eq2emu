@@ -210,6 +210,8 @@ struct InfoStruct{
 		recovery_speed_ = 0;
 		spell_reuse_speed_ = 0;
 		spell_multi_attack_ = 0;
+		size_mod_ = 0.0f;
+		ignore_size_mod_calc_ = 0;
 		dps_ = 0;
 		dps_multiplier_ = 0;
 		attackspeed_ = 0;
@@ -420,6 +422,10 @@ struct InfoStruct{
 		spell_reuse_speed_ = oldStruct->get_spell_reuse_speed();
 		spell_multi_attack_ = oldStruct->get_spell_multi_attack();
 		dps_ = oldStruct->get_dps();
+		
+		size_mod_ = oldStruct->get_size_mod();
+		ignore_size_mod_calc_ = oldStruct->get_ignore_size_mod_calc();
+		
 		dps_multiplier_ = oldStruct->get_dps_multiplier();
 		attackspeed_ = oldStruct->get_attackspeed();
 		haste_ = oldStruct->get_haste();
@@ -637,6 +643,7 @@ struct InfoStruct{
 	float	 get_spell_reuse_speed() { std::lock_guard<std::mutex> lk(classMutex); return spell_reuse_speed_; }
 	float	 get_spell_multi_attack() { std::lock_guard<std::mutex> lk(classMutex); return spell_multi_attack_; }
 	float	 get_size_mod() { std::lock_guard<std::mutex> lk(classMutex); return size_mod_; }
+	int8	 get_ignore_size_mod_calc() { std::lock_guard<std::mutex> lk(classMutex); return ignore_size_mod_calc_; }
 	float	 get_dps() { std::lock_guard<std::mutex> lk(classMutex); return dps_; }
 	float	 get_dps_multiplier() { std::lock_guard<std::mutex> lk(classMutex); return dps_multiplier_; }
 	float	 get_attackspeed() { std::lock_guard<std::mutex> lk(classMutex); return attackspeed_; }
@@ -917,6 +924,7 @@ struct InfoStruct{
 	void	set_spell_reuse_speed(float value) { std::lock_guard<std::mutex> lk(classMutex); spell_reuse_speed_ = value; }
 	void	set_spell_multi_attack(float value) { std::lock_guard<std::mutex> lk(classMutex); spell_multi_attack_ = value; }
 	void	set_size_mod(float value) { std::lock_guard<std::mutex> lk(classMutex); size_mod_ = value; }
+	void	set_ignore_size_mod_calc(int8 value) { std::lock_guard<std::mutex> lk(classMutex); ignore_size_mod_calc_ = value; }
 	void	set_dps(float value) { std::lock_guard<std::mutex> lk(classMutex); dps_ = value; }
 	void	set_dps_multiplier(float value) { std::lock_guard<std::mutex> lk(classMutex); dps_multiplier_ = value; }
 	void	set_attackspeed(float value) { std::lock_guard<std::mutex> lk(classMutex); attackspeed_ = value; }
@@ -1191,6 +1199,7 @@ private:
 	float			spell_reuse_speed_;
 	float			spell_multi_attack_;
 	float			size_mod_;
+	int8			ignore_size_mod_calc_;
 	float			dps_;
 	float           dps_multiplier_;
 	float			attackspeed_;

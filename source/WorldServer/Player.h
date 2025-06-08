@@ -1,6 +1,6 @@
 /*  
     EQ2Emulator:  Everquest II Server Emulator
-    Copyright (C) 2007  EQ2EMulator Development Team (http://www.eq2emulator.net)
+    Copyright (C) 2005 - 2025  EQ2EMulator Development Team (http://www.eq2emu.com formerly http://www.eq2emulator.net)
 
     This file is part of EQ2Emulator.
 
@@ -17,6 +17,7 @@
     You should have received a copy of the GNU General Public License
     along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 */
+
 #ifndef __EQ2_PLAYER__
 #define __EQ2_PLAYER__
 
@@ -608,6 +609,7 @@ public:
 	bool	TradeskillXPEnabled();
 	void	SetNeededXP(int32 val);
 	void	SetNeededXP();
+	static int32 GetNeededXPByLevel(int8 level);
 	void	SetXP(int32 val);
 	void	SetNeededTSXP(int32 val);
 	void	SetNeededTSXP();
@@ -789,7 +791,7 @@ public:
 	bool				GetIsTracking() const { return is_tracking; }
 	void				SetBiography(string new_biography) { biography = new_biography; }
 	string				GetBiography() const { return biography; }
-	void				SetPlayerAdventureClass(int8 new_class);
+	void				SetPlayerAdventureClass(int8 new_class, bool set_by_gm_command = false);
 	void				SetGuild(Guild* new_guild) { guild = new_guild; }
 	Guild*				GetGuild() { return guild; }
 	void				AddSkillBonus(int32 spell_id, int32 skill_id, float value);
@@ -1112,8 +1114,8 @@ public:
 	mutable std::shared_mutex trait_mutex;
 	std::atomic<bool> need_trait_update;
 
-	void InitXPTable();
-	map<int8, int32> m_levelXPReq;
+	static void InitXPTable();
+	static map<int8, int32> m_levelXPReq;
 
 	mutable std::shared_mutex spell_packet_update_mutex;
 	mutable std::shared_mutex raid_update_mutex;
@@ -1214,8 +1216,6 @@ private:
 	void AddSpellStatus(SpellBookEntry* spell, sint16 value, bool modify_recast = true, int16 recast = 0);
 	void RemoveSpellStatus(SpellBookEntry* spell, sint16 value, bool modify_recast = true, int16 recast = 0);
 	void SetSpellEntryRecast(SpellBookEntry* spell, bool modify_recast, int16 recast);
-//	void InitXPTable();
-//	map<int8, int32> m_levelXPReq;
 
 	//The following variables are for serializing spawn packets
 	PacketStruct* spawn_pos_struct;

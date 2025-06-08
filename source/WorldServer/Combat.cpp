@@ -140,6 +140,10 @@ bool Entity::AttackAllowed(Entity* target, float distance, bool range_attack) {
 			return false;
 		}
 	}
+	
+	if(attacker->IsNPC() && target->IsNPC() && attacker->GetFactionID() > 10 && attacker->GetFactionID() == target->GetFactionID()) {
+		return false;
+	}
 
 	if (attacker->IsPlayer() && target->IsPlayer())
 	{
@@ -495,26 +499,6 @@ bool Entity::SpellAttack(Spawn* victim, float distance, LuaSpell* luaspell, int8
 		
 		CheckProcs(PROC_TYPE_OFFENSIVE, victim);
 		CheckProcs(PROC_TYPE_MAGICAL_OFFENSIVE, victim);
-
-		if(spell->GetSpellData()->success_message.length() > 0){
-			Client* client = nullptr;
-			if(IsPlayer())
-				client = ((Player*)this)->GetClient();
-			if(client){
-				string success_message = spell->GetSpellData()->success_message;
-				if(success_message.find("%t") < 0xFFFFFFFF)
-					success_message.replace(success_message.find("%t"), 2, victim->GetName());
-				client->Message(CHANNEL_YOU_CAST, success_message.c_str());
-				//commented out the following line as it was causing a duplicate message EmemJR 5/4/2019
-				//GetZone()->SendDamagePacket(this, victim, DAMAGE_PACKET_TYPE_SPELL_DAMAGE, hit_result, damage_type, 0, spell->GetName()); 
-			}
-		}
-		if(spell->GetSpellData()->effect_message.length() > 0){
-			string effect_message = spell->GetSpellData()->effect_message;
-			if(effect_message.find("%t") < 0xFFFFFFFF)
-				effect_message.replace(effect_message.find("%t"), 2, victim->GetName());
-			GetZone()->SimpleMessage(CHANNEL_SPELLS, effect_message.c_str(), victim, 50);
-		}
 	}
 	else {
 		successful_hit = false;
@@ -603,15 +587,15 @@ bool Entity::ProcAttack(Spawn* victim, int8 damage_type, int32 low_damage, int32
 			if(IsPlayer())
 				client = ((Player*)this)->GetClient();
 			if(client) {
-				if(success_msg.find("%t") < 0xFFFFFFFF)
-					success_msg.replace(success_msg.find("%t"), 2, victim->GetName());
-				client->Message(CHANNEL_YOU_CAST, success_msg.c_str());
+				std::string castMsg = std::string(success_msg);
+				SpellProcess::ReplaceEffectTokens(castMsg, (Spawn*)this, victim);
+				client->Message(CHANNEL_YOU_CAST, castMsg.c_str());
 			}
 		}
 		if (effect_msg.length() > 0) {
-			if(effect_msg.find("%t") < 0xFFFFFFFF)
-				effect_msg.replace(effect_msg.find("%t"), 2, victim->GetName());
-			GetZone()->SimpleMessage(CHANNEL_SPELLS, effect_msg.c_str(), victim, 50);
+			std::string effectMsg = std::string(effect_msg);
+			SpellProcess::ReplaceEffectTokens(effectMsg, (Spawn*)this, victim);
+			GetZone()->SimpleMessage(CHANNEL_SPELLS, effectMsg.c_str(), victim, 50);
 		}
 	}
 	else {

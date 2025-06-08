@@ -2197,18 +2197,25 @@ void Spawn::InitializePosPacketData(Player* player, PacketStruct* packet, bool b
 	if (size == 0)
 		size = 32;
 	
+	float scaled = 0.0f;
+	
+	sint16 new_size = size;
+	if(IsEntity() && !IsPlayer()) { // doesn't work correctly for Player, only non-Player (NPC/Object/etc)
+		scaled = static_cast<float>(size) + (((Entity*)this)->GetInfoStruct()->get_size_mod() * size);
+		// Round and cast to sint16
+		new_size = static_cast<sint16>(std::round(scaled));
+		// Enforce minimum size of 1
+		new_size = std::max<sint16>(new_size, 1);
+	}
+		
 	if (version <= 910) {
 		packet->setDataByName("pos_collision_radius", appearance.pos.collision_radius > 0 ? appearance.pos.collision_radius : 32);
-		packet->setDataByName("pos_size", size > 0 ? size : 32);
+		packet->setDataByName("pos_size", new_size > 0 ? new_size : 32);
 	}
 	else {
 		packet->setDataByName("pos_collision_radius", appearance.pos.collision_radius > 0 ? appearance.pos.collision_radius : 32);
+		packet->setDataByName("pos_size", new_size > 0 ? (((float)new_size) / 32.0f) : 1.0f); // float not an integer
 
-		if(!IsPlayer())
-			packet->setDataByName("pos_size", size > 0 ? (((float)size) / 32.0f) : 1.0f); // float not an integer
-		else
-			packet->setDataByName("pos_size", 1.0f);
-			
 		// please do not remove!  This makes it so NPCs for example do not resize large/small when you are in combat with them!
 		packet->setDataByName("pos_size_ratio", 1.0f);
 	}
@@ -2487,11 +2494,6 @@ void Spawn::InitializeInfoPacketData(Player* spawn, PacketStruct* packet) {
 		packet->setDataByName("npc", 1);
 	if (GetMerchantID() > 0)
 		packet->setDataByName("merchant", 1);
-	
-	if(IsEntity() && ((Entity*)this)->GetInfoStruct()->get_size_mod() != 0.0f) {
-		float mod = ((Entity*)this)->GetInfoStruct()->get_size_mod(); // e.g., -0.25 or +0.25
-		//packet->setDataByName("temporary_scale", mod); //TODO: Understand what these mod values should be, anything we send makes the client shrink to nothing
-	}
 
 	packet->setDataByName("effective_level", IsEntity() && ((Entity*)this)->GetInfoStruct()->get_effective_level() != 0 ? (int8)((Entity*)this)->GetInfoStruct()->get_effective_level() : (int8)GetLevel());
 	packet->setDataByName("level", (int8)GetLevel());
@@ -3360,8 +3362,9 @@ void Spawn::ProcessMovement(bool isSpawnListLocked){
 	}
 	
 	if (!movementCase && IsRunning() && !IsPauseMovementTimerActive()) {
-		CalculateRunningLocation();
-		//last_movement_update = Timer::GetCurrentTime2();
+		// 6/7/2025: Fixes glitchy movement when spawns are close together and keep warping forward and back to the original position
+		CalculateRunningLocation(true);
+		last_movement_update = Timer::GetCurrentTime2();
 	}
 	else if(movementCase)
 	{

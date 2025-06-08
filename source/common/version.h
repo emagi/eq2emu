@@ -38,11 +38,11 @@
 #endif
 
 #if defined(LOGIN)
-#define CURRENT_VERSION	"0.9.8-thetascorpii-DR1"
+#define CURRENT_VERSION	"0.9.9-Nebula"
 #elif defined(WORLD)
-#define CURRENT_VERSION	"0.9.8-thetascorpii-DR1"
+#define CURRENT_VERSION	"0.9.9-Nebula"
 #else
-#define CURRENT_VERSION	"0.9.8-thetascorpii-DR1"
+#define CURRENT_VERSION	"0.9.9-Nebula"
 #endif
 
 #define COMPILE_DATE	__DATE__

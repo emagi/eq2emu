@@ -22,6 +22,7 @@
 #include "Tradeskills/Tradeskills.h"
 #include "ClientPacketFunctions.h"
 #include "Rules/Rules.h"
+#include "races.h"
 
 extern MasterSpellList master_spell_list;
 extern MasterSkillList master_skill_list;
@@ -30,6 +31,7 @@ extern LuaInterface* lua_interface;
 extern Commands commands;
 extern World world;
 extern RuleManager rule_manager;
+extern Races races;
 
 SpellProcess::SpellProcess(){
 	last_checked_time = 0;
@@ -510,32 +512,18 @@ bool SpellProcess::DeleteCasterSpell(LuaSpell* spell, string reason, bool removi
 					if(target && target->IsPlayer() && spell->spell->GetSpellData()->fade_message.length() > 0){
 						Client* client = ((Player*)target)->GetClient();
 						if(client){
-							bool send_to_sender = true;
 							string fade_message = spell->spell->GetSpellData()->fade_message;
-							if(fade_message.find("%t") != string::npos)
-								fade_message.replace(fade_message.find("%t"), 2, target->GetName());						
+							ReplaceEffectTokens(fade_message, spell->caster, target);					
 							client->Message(CHANNEL_SPELLS_OTHER, fade_message.c_str());
 						}
 					}
-					if (target && target->IsPlayer() && spell->spell->GetSpellData()->fade_message.length() > 0) {
+					if (target && target->IsPlayer() && spell->spell->GetSpellData()->fade_message_others.length() > 0) {
 						Client* client = ((Player*)target)->GetClient();
 						if (client) {
-							bool send_to_sender = true;
 							string fade_message_others = spell->spell->GetSpellData()->fade_message_others;
-							if (fade_message_others.find("%t") != string::npos)
-								fade_message_others.replace(fade_message_others.find("%t"), 2, target->GetName());
-							if (fade_message_others.find("%c") != string::npos)
-								fade_message_others.replace(fade_message_others.find("%c"), 2, spell->caster->GetName());
-							if (fade_message_others.find("%T") != string::npos) {
-								fade_message_others.replace(fade_message_others.find("%T"), 2, target->GetName());
-								send_to_sender = false;
-							}
-							if (fade_message_others.find("%C") != string::npos) {
-								fade_message_others.replace(fade_message_others.find("%C"), 2, spell->caster->GetName());
-								send_to_sender = false;
-							}
+							ReplaceEffectTokens(fade_message_others, spell->caster, target);
 							if(spell->caster->GetZone()) {
-								spell->caster->GetZone()->SimpleMessage(CHANNEL_SPELLS_OTHER, fade_message_others.c_str(), target, 50, send_to_sender);
+								spell->caster->GetZone()->SimpleMessage(CHANNEL_SPELLS_OTHER, fade_message_others.c_str(), target, 50);
 							}
 						}
 					}
@@ -1803,29 +1791,16 @@ bool SpellProcess::CastProcessedSpell(LuaSpell* spell, bool passive, bool in_her
 			if(spell->spell->GetSpellData()->success_message.length() > 0){
 				if(client){
 					string success_message = spell->spell->GetSpellData()->success_message;
-					if(success_message.find("%t") != string::npos)
-						success_message.replace(success_message.find("%t"), 2, spell->caster->GetName());
+					ReplaceEffectTokens(success_message, spell->caster, target);
 					client->Message(CHANNEL_SPELLS, success_message.c_str());
 				}
 			}
 			if(spell->spell->GetSpellData()->effect_message.length() > 0){
 				string effect_message = spell->spell->GetSpellData()->effect_message;
-				bool send_to_sender = true;
-				if(effect_message.find("%t") != string::npos)
-					effect_message.replace(effect_message.find("%t"), 2, target->GetName());
-				if (effect_message.find("%c") != string::npos)
-					effect_message.replace(effect_message.find("%c"), 2, spell->caster->GetName());
-				if (effect_message.find("%T") != string::npos) {
-					effect_message.replace(effect_message.find("%T"), 2, target->GetName());
-					send_to_sender = false;
-				}
-				if (effect_message.find("%C") != string::npos) {
-					effect_message.replace(effect_message.find("%C"), 2, spell->caster->GetName());
-					send_to_sender = false;
-				}
+				ReplaceEffectTokens(effect_message, spell->caster, target);
 				
 				if(spell->caster && spell->caster->GetZone()) {
-					spell->caster->GetZone()->SimpleMessage(CHANNEL_SPELLS_OTHER, effect_message.c_str(), target, 50, send_to_sender);
+					spell->caster->GetZone()->SimpleMessage(CHANNEL_SPELLS_OTHER, effect_message.c_str(), target, 50);
 				}
 			}
 			if(target->GetZone()) {
@@ -3099,4 +3074,193 @@ bool SpellProcess::AddLuaSpellTarget(LuaSpell* lua_spell, int32 id, bool lock_sp
 		lua_spell->MSpellTargets.releasewritelock(__FUNCTION__, __LINE__);
 	
 	return ret;
+}
+
+void SpellProcess::ReplaceEffectTokens(std::string& message, Spawn* in_caster, Spawn* in_target) {
+	std::string caster = in_caster ? std::string(in_caster->GetName()) : "Unknown";
+	std::string target = in_target ? std::string(in_target->GetName()) : "Unknown";
+	size_t pos;
+	
+	if(message.find("%", 0) == std::string::npos)
+		return;
+	
+	// Replace all %C and suppress send
+	pos = 0;
+	while ((pos = message.find("%C", pos)) != std::string::npos) {
+		message.replace(pos, 2, caster);
+		pos += caster.length();
+	}
+
+	// Replace all %c (no suppression)
+	pos = 0;
+	while ((pos = message.find("%c", pos)) != std::string::npos) {
+		message.replace(pos, 2, caster);
+		pos += caster.length();
+	}
+
+	// Replace all %T and suppress send
+	pos = 0;
+	while ((pos = message.find("%T", pos)) != std::string::npos) {
+		message.replace(pos, 2, target);
+		pos += target.length();
+	}
+
+	// Replace all %t (no suppression)
+	pos = 0;
+	while ((pos = message.find("%t", pos)) != std::string::npos) {
+		message.replace(pos, 2, target);
+		pos += target.length();
+	}
+	
+	std::string target_assist = in_target && in_target->GetTarget() ? std::string(in_target->GetTarget()->GetName()) : "Unknown";
+
+	if(target_assist == "Unknown" && target != "Unknown")
+		target_assist = target;
+	// Replace all %T and suppress send
+	pos = 0;
+	while ((pos = message.find("%A", pos)) != std::string::npos) {
+		message.replace(pos, 2, target_assist);
+		pos += target_assist.length();
+	}
+
+	// Replace all %t (no suppression)
+	pos = 0;
+	while ((pos = message.find("%a", pos)) != std::string::npos) {
+		message.replace(pos, 2, target_assist);
+		pos += target_assist.length();
+	}
+	
+	std::string gender_name = "Unknown";
+	std::string gender_oname = "It";
+	std::string gender_sname = "It";
+	std::string gender_pname = "Its";
+	
+	if(in_target) {
+		if(in_target->GetGender() == 1) {
+			gender_name = "Male";
+			gender_oname = "Him";
+			gender_sname = "He";
+			gender_pname = "His";
+		}
+		else if(in_target->GetGender() == 0) {
+			gender_name = "Female";
+			gender_oname = "Her";
+			gender_sname = "She";
+			gender_pname = "Her";
+		}
+	}
+	
+	// Replace all %T and suppress send
+	pos = 0;
+	while ((pos = message.find("%G", pos)) != std::string::npos) {
+		message.replace(pos, 2, gender_name);
+		pos += gender_name.length();
+	}
+
+	// Replace all %t (no suppression)
+	pos = 0;
+	while ((pos = message.find("%g", pos)) != std::string::npos) {
+		message.replace(pos, 2, gender_name);
+		pos += gender_name.length();
+	}
+	
+	pos = 0;
+	while ((pos = message.find("%O", pos)) != std::string::npos) {
+		message.replace(pos, 2, gender_oname);
+		pos += gender_oname.length();
+	}
+
+	// Replace all %t (no suppression)
+	pos = 0;
+	while ((pos = message.find("%o", pos)) != std::string::npos) {
+		message.replace(pos, 2, gender_oname);
+		pos += gender_oname.length();
+	}
+	
+	
+	pos = 0;
+	while ((pos = message.find("%S", pos)) != std::string::npos) {
+		message.replace(pos, 2, gender_sname);
+		pos += gender_sname.length();
+	}
+
+	// Replace all %t (no suppression)
+	pos = 0;
+	while ((pos = message.find("%s", pos)) != std::string::npos) {
+		message.replace(pos, 2, gender_sname);
+		pos += gender_sname.length();
+	}
+	
+	
+	pos = 0;
+	while ((pos = message.find("%P", pos)) != std::string::npos) {
+		message.replace(pos, 2, gender_pname);
+		pos += gender_pname.length();
+	}
+
+	// Replace all %t (no suppression)
+	pos = 0;
+	while ((pos = message.find("%p", pos)) != std::string::npos) {
+		message.replace(pos, 2, gender_pname);
+		pos += gender_pname.length();
+	}
+	
+	std::string raceName = "Unknown";
+	if(in_target) {
+		const char* raceCaseName = races.GetRaceNameCase(in_target->GetRace());
+		if(raceCaseName)
+			raceName = std::string(raceCaseName);
+	}
+	
+	
+	std::string tell_name = "Unknown";
+	if(in_caster && in_caster->IsPlayer()) {
+		if(((Player*)in_caster)->GetClient() && ((Player*)in_caster)->GetClient()->GetLastTellName().size() > 0)
+			tell_name = ((Player*)in_caster)->GetClient()->GetLastTellName();
+	}
+	pos = 0;
+	while ((pos = message.find("%RT", pos)) != std::string::npos) {
+		message.replace(pos, 3, tell_name);
+		pos += tell_name.length();
+	}
+	// Replace all %t (no suppression)
+	pos = 0;
+	while ((pos = message.find("%rt", pos)) != std::string::npos) {
+		message.replace(pos, 3, tell_name);
+		pos += tell_name.length();
+	}
+	
+	pos = 0;
+	while ((pos = message.find("%R", pos)) != std::string::npos) {
+		message.replace(pos, 2, raceName);
+		pos += raceName.length();
+	}
+
+	// Replace all %t (no suppression)
+	pos = 0;
+	while ((pos = message.find("%r", pos)) != std::string::npos) {
+		message.replace(pos, 2, raceName);
+		pos += raceName.length();
+	}
+	
+	
+	
+	std::string petName = "Unknown";
+	if(in_caster && in_caster->IsEntity() && ((Entity*)in_caster)->GetPet()) {
+		petName = std::string(((Entity*)in_caster)->GetPet()->GetName());
+	}
+	
+	
+	pos = 0;
+	while ((pos = message.find("%M", pos)) != std::string::npos) {
+		message.replace(pos, 2, petName);
+		pos += petName.length();
+	}
+
+	// Replace all %t (no suppression)
+	pos = 0;
+	while ((pos = message.find("%m", pos)) != std::string::npos) {
+		message.replace(pos, 2, petName);
+		pos += petName.length();
+	}
 }

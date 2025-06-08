@@ -1,6 +1,6 @@
 /*  
     EQ2Emulator:  Everquest II Server Emulator
-    Copyright (C) 2007  EQ2EMulator Development Team (http://www.eq2emulator.net)
+    Copyright (C) 2005 - 2025  EQ2EMulator Development Team (http://www.eq2emu.com formerly http://www.eq2emulator.net)
 
     This file is part of EQ2Emulator.
 
@@ -17,6 +17,7 @@
     You should have received a copy of the GNU General Public License
     along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 */
+
 #include "Player.h"
 #include "../common/MiscFunctions.h"
 #include "World.h"
@@ -46,6 +47,7 @@ extern MasterItemList master_item_list;
 extern RuleManager rule_manager;
 extern MasterTitlesList master_titles_list;
 extern MasterLanguagesList master_languages_list;
+std::map<int8, int32> Player::m_levelXPReq;
 
 Player::Player(){
 	tutorial_step = 0;
@@ -998,8 +1000,8 @@ EQ2Packet* PlayerInfo::serialize(int16 version, int16 modifyPos, int32 modifyVal
 		packet->setDataByName("decrease_falling_dmg", 169);
 
 		if (version <= 561) {
-			packet->setDataByName("exp_yellow", info_struct->get_xp_yellow() / 10);
-			packet->setDataByName("exp_blue", info_struct->get_xp_blue()/100);
+			packet->setDataByName("exp_yellow", info_struct->get_xp_yellow() / 10);			
+			packet->setDataByName("exp_blue", ((int16)info_struct->get_xp_yellow() % 100) + (info_struct->get_xp_blue() / 100));
 		}
 		else {
 			packet->setDataByName("exp_yellow", info_struct->get_xp_yellow());
@@ -2136,7 +2138,7 @@ bool Player::AddItemToBank(Item* item) {
 }
 EQ2Packet* Player::SendInventoryUpdate(int16 version) {
 	// assure any inventory updates are reflected in sell window
-	if(GetClient() && GetClient()->GetMerchantTransaction())
+	if(GetClient() && GetClient()->GetMerchantTransactionID())
 		GetClient()->SendSellMerchantList();
 	
 	return item_list.serialize(this, version);
@@ -4419,11 +4421,20 @@ void Player::SetNeededXP(){
 	//GetInfoStruct()->xp_needed = GetLevel() * 100;
 	// Get xp needed to get to the next level
 	int16 level = GetLevel() + 1;
-	// If next level is beyond what we have in the map multiply the last value we have by how many levels we are over plus one
-	if (level > 95)
-		SetNeededXP(database.GetMysqlExpCurve(95)* ((level - 95) + 1));
+	SetNeededXP(GetNeededXPByLevel(level));
+}
+
+int32 Player::GetNeededXPByLevel(int8 level) {
+	int32 exp_required = 0;
+	if (!Player::m_levelXPReq.count(level) && level > 95 && Player::m_levelXPReq.count(95)) {
+		exp_required = (Player::m_levelXPReq[95] * ((level - 95) + 1));
+	}
+	else if(Player::m_levelXPReq.count(level))
+		exp_required = Player::m_levelXPReq[level];
 	else
-		SetNeededXP(database.GetMysqlExpCurve(level));
+		exp_required = 0;
+	
+	return exp_required;
 }
 
 void Player::SetXP(int32 val){
@@ -4519,10 +4530,24 @@ bool Player::AddXP(int32 xp_amount){
 			SetCharSheetChanged(true);	
 			return false;
 		}
+		int32 prev_xp_amount = xp_amount;
 		xp_amount -= GetNeededXP() - GetXP();
-		SetLevel(GetLevel() + 1);		
+		if(GetClient()->ChangeLevel(GetLevel(), GetLevel()+1, prev_xp_amount))
+			SetLevel(GetLevel() + 1);
+		else {
+			SetXP(GetXP() + prev_xp_amount);
+			SetCharSheetChanged(true);	
+			return false;
+		}
 	}
+	
+	// set the actual end xp_amount result
 	SetXP(GetXP() + xp_amount);
+	
+	if(GetClient()) {
+		GetClient()->Message(CHANNEL_REWARD, "You gain %u experience!", (int32)xp_amount);
+	}
+	
 	GetPlayerInfo()->CalculateXPPercentages();
 	current_xp_percent = ((float)GetXP()/(float)GetNeededXP())*100;
 	if(miniding_min_percent > 0.0f && current_xp_percent >= miniding_min_percent){
@@ -4532,15 +4557,8 @@ bool Player::AddXP(int32 xp_amount){
 		SetPower(GetTotalPower());
 		GetZone()->SendCastSpellPacket(332, this, this); //send mini level up spell effect
 	}
-	
-	if(GetClient()) {
-		GetClient()->Message(CHANNEL_REWARD, "You gain %u experience!", (int32)xp_amount);
-			
-		if (prev_level != GetLevel())
-			GetClient()->ChangeLevel(prev_level, GetLevel());
-	}
 		
-	SetCharSheetChanged(true);			
+	SetCharSheetChanged(true);
 	return true;
 }
 
@@ -4550,7 +4568,16 @@ bool Player::AddTSXP(int32 xp_amount){
 	MStats.unlock();
 
 	float current_xp_percent = ((float)GetTSXP()/(float)GetNeededTSXP())*100;
-	float miniding_min_percent = ((int)(current_xp_percent/10)+1)*10;
+	
+	int32 mini_ding_pct = rule_manager.GetGlobalRule(R_Player, MiniDingPercentage)->GetInt32();
+	float miniding_min_percent = 0.0f;
+	if(mini_ding_pct < 10 || mini_ding_pct > 50) {
+		mini_ding_pct = 0;
+	}
+	else {
+		miniding_min_percent = ((int)(current_xp_percent/mini_ding_pct)+1)*mini_ding_pct;
+	}
+	
 	while((xp_amount + GetTSXP()) >= GetNeededTSXP()){
 		if (!CheckLevelStatus(GetTSLevel() + 1)) {
 			if(GetClient()) {
@@ -4558,10 +4585,18 @@ bool Player::AddTSXP(int32 xp_amount){
 			}
 			return false;
 		}
+		int32 prev_xp_amount = xp_amount;
 		xp_amount -= GetNeededTSXP() - GetTSXP();
-		SetTSLevel(GetTSLevel() + 1);
-		SetTSXP(0);
-		SetNeededTSXP();
+		if(GetClient()->ChangeTSLevel(GetLevel(), GetLevel()+1, prev_xp_amount)) {
+			SetTSLevel(GetTSLevel() + 1);
+			SetTSXP(0);
+			SetNeededTSXP();
+		}
+		else {
+			SetTSXP(GetTSXP() + prev_xp_amount);
+			SetCharSheetChanged(true);	
+			return false;
+		}
 	}
 	SetTSXP(GetTSXP() + xp_amount);
 	GetPlayerInfo()->CalculateXPPercentages();
@@ -4577,6 +4612,8 @@ bool Player::AddTSXP(int32 xp_amount){
 		GetInfoStruct()->set_tradeskill_class2(1);
 		GetInfoStruct()->set_tradeskill_class3(1);
 	}
+	
+	SetCharSheetChanged(true);
 	return true;
 }
 
@@ -6423,7 +6460,8 @@ int32 CharacterInstances::GetInstanceCount() {
 	return instanceList.size();
 }
 
-void Player::SetPlayerAdventureClass(int8 new_class){
+void Player::SetPlayerAdventureClass(int8 new_class, bool set_by_gm_command ){
+	int8 old_class = GetAdventureClass();
 	SetAdventureClass(new_class);
 	GetInfoStruct()->set_class1(classes.GetBaseClass(new_class));
 	GetInfoStruct()->set_class2(classes.GetSecondaryBaseClass(new_class));
@@ -6433,6 +6471,23 @@ void Player::SetPlayerAdventureClass(int8 new_class){
 		GetZone()->TriggerCharSheetTimer();
 	if(GetClient())
 		GetClient()->UpdateTimeStampFlag ( CLASS_UPDATE_FLAG );
+	
+	const char* playerScript = world.GetPlayerScript(0); // 0 = global script
+	const char* playerZoneScript = world.GetPlayerScript(GetZoneID()); // zone script
+	if(playerScript || playerZoneScript) {
+		std::vector<LuaArg> args = {
+			LuaArg(GetZone()), 
+			LuaArg(this), 
+			LuaArg(old_class), 
+			LuaArg(new_class)
+		};
+		if(playerScript) {
+			lua_interface->RunPlayerScriptWithReturn(playerScript, "on_class_change", args);
+		}
+		if(playerZoneScript) {
+			lua_interface->RunPlayerScriptWithReturn(playerZoneScript, "on_class_change", args);
+		}
+	}
 }
 
 void Player::AddSkillBonus(int32 spell_id, int32 skill_id, float value) {

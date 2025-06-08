@@ -291,6 +291,7 @@ void Entity::MapInfoStruct()
 	get_float_funcs["spell_reuse_speed"] = l::bind(&InfoStruct::get_spell_reuse_speed, &info_struct);
 	get_float_funcs["spell_multi_attack"] = l::bind(&InfoStruct::get_spell_multi_attack, &info_struct);
 	get_float_funcs["size_mod"] = l::bind(&InfoStruct::get_size_mod, &info_struct);
+	get_int8_funcs["ignore_size_mod_calc"] = l::bind(&InfoStruct::get_ignore_size_mod_calc, &info_struct);
 	get_float_funcs["dps"] = l::bind(&InfoStruct::get_dps, &info_struct);
 	get_float_funcs["dps_multiplier"] = l::bind(&InfoStruct::get_dps_multiplier, &info_struct);
 	get_float_funcs["attackspeed"] = l::bind(&InfoStruct::get_attackspeed, &info_struct);
@@ -500,6 +501,7 @@ void Entity::MapInfoStruct()
 	set_float_funcs["spell_reuse_speed"] = l::bind(&InfoStruct::set_spell_reuse_speed, &info_struct, l::_1);
 	set_float_funcs["spell_multi_attack"] = l::bind(&InfoStruct::set_spell_multi_attack, &info_struct, l::_1);
 	set_float_funcs["size_mod"] = l::bind(&InfoStruct::set_size_mod, &info_struct, l::_1);
+	set_int8_funcs["ignore_size_mod_calc"] = l::bind(&InfoStruct::set_ignore_size_mod_calc, &info_struct, l::_1);
 	set_float_funcs["dps"] = l::bind(&InfoStruct::set_dps, &info_struct, l::_1);
 	set_float_funcs["dps_multiplier"] = l::bind(&InfoStruct::set_dps_multiplier, &info_struct, l::_1);
 	set_float_funcs["attackspeed"] = l::bind(&InfoStruct::set_attackspeed, &info_struct, l::_1);
@@ -1462,7 +1464,9 @@ void Entity::CalculateBonuses(){
 	info->set_spell_multi_attack(0);
 	
 	float previous_size_mod = info->get_size_mod();
-	info->set_size_mod(0.0f);
+	
+	if(!info->get_ignore_size_mod_calc())
+		info->set_size_mod(0.0f);
 	info->set_dps(0);
 	info->set_dps_multiplier(0);
 	info->set_haste(0);
@@ -1548,7 +1552,8 @@ void Entity::CalculateBonuses(){
 	info->add_recovery_speed(values->abilityrecoveryspeed);
 	info->add_spell_reuse_speed(values->spellreusespeed);
 	info->add_spell_multi_attack(values->spellmultiattackchance);
-	info->add_size_mod(values->size_mod);
+	if(!info->get_ignore_size_mod_calc())
+		info->add_size_mod(values->size_mod);
 	info->add_dps(values->dps);
 	info->add_dps_multiplier(CalculateDPSMultiplier());
 	info->add_haste(values->attackspeed);

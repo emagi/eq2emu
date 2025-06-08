@@ -273,6 +273,15 @@ void World::Web_worldhandle_reloadcommand(const http::request<http::string_body>
 		world.RemoveReloadingSubSystem("ZoneScripts");
 		break;
 	}
+	case COMMAND_RELOAD_PLAYERSCRIPTS: {
+		world.SetReloadingSubsystem("PlayerScripts");
+		world.ResetPlayerScripts();
+		world.LoadPlayerScripts();
+		if (lua_interface)
+			lua_interface->DestroyPlayerScripts();
+		world.RemoveReloadingSubSystem("PlayerScripts");
+		break;
+	}
 	case COMMAND_RELOAD_FACTIONS: {
 		world.SetReloadingSubsystem("Factions");
 		master_faction_list.Clear();
@@ -366,6 +375,16 @@ void World::Web_worldhandle_reloadcommand(const http::request<http::string_body>
 
 		world.RemoveReloadingSubSystem("LuaSystem");
 
+		break;
+	}
+	case COMMAND_RELOAD_ITEMS: {
+		LogWrite(COMMAND__INFO, 0, "Command", "Reloading items..");
+		
+		database.ReloadItemList(sub_command);
+			
+		if(!item_id) {
+			database.LoadMerchantInformation(); // we skip if there is only a reload of single item not all items
+		}
 		break;
 	}
 	default: {
@@ -723,6 +742,7 @@ void World::Web_worldhandle_sendglobalmessage(const http::request<http::string_b
 	std::string toName(""), fromName(""), msg("");
 	int32 group_id = 0;
 	int32 guild_id = 0;
+	int8 custom_type = 0;
 	if (auto name = json_tree.get_optional<std::string>("to_name")) {
 		toName = name.get();
 	}
@@ -744,6 +764,9 @@ void World::Web_worldhandle_sendglobalmessage(const http::request<http::string_b
 	if (auto guildID = json_tree.get_optional<int32>("guild_id")) {
 		guild_id = guildID.get();
 	}
+	if (auto customType = json_tree.get_optional<int8>("custom_type")) {
+		custom_type = customType.get();
+	}
 
 	Client* find_client = zone_list.GetClientByCharName(toName.c_str());
 	if (find_client && find_client->GetPlayer()->IsIgnored(fromName.c_str()))
@@ -754,6 +777,7 @@ void World::Web_worldhandle_sendglobalmessage(const http::request<http::string_b
 			if (find_client && find_client->GetPlayer()) {
 				success = 1;
 				toName = std::string(find_client->GetPlayer()->GetName());
+				find_client->SetLastTellName(fromName);
 				find_client->HandleTellMessage(fromName.c_str(), msg.c_str(), toName.c_str(), language);
 				if (find_client->GetPlayer()->get_character_flag(CF_AFK)) {
 					find_client->HandleTellMessage(toName.c_str(), find_client->GetPlayer()->GetAwayMessage().c_str(), fromName.c_str(), find_client->GetPlayer()->GetCurrentLanguage());
@@ -819,6 +843,17 @@ void World::Web_worldhandle_sendglobalmessage(const http::request<http::string_b
 			}
 			break;
 		}
+		case CHANNEL_BROADCAST: {
+			switch(custom_type) {
+				case 0:
+					zone_list.HandleGlobalBroadcast(msg.c_str());
+					break;
+				case 1:
+					zone_list.HandleGlobalAnnouncement(msg.c_str());
+					break;
+			}
+			break;
+		}
 		}
 	}
 
@@ -827,6 +862,7 @@ void World::Web_worldhandle_sendglobalmessage(const http::request<http::string_b
 	pt.put("to_name", toName);
 	pt.put("message", msg);
 	pt.put("from_language", language);
+	pt.put("custom_type", custom_type);
 	pt.put("channel", in_channel);
 	std::ostringstream oss;
 	boost::property_tree::write_json(oss, pt);

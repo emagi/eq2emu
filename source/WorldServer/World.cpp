@@ -17,6 +17,12 @@
     You should have received a copy of the GNU General Public License
     along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 */
+
+#include <boost/algorithm/string.hpp>
+#include <string>
+#include <iostream>
+#include <filesystem>
+#include <vector>
 #include <assert.h>
 #include "World.h"
 #include "Items/Items.h"
@@ -44,20 +50,16 @@
 #include "Chat/Chat.h"
 #include "Tradeskills/Tradeskills.h"
 #include "AltAdvancement/AltAdvancement.h"
-#include "LuaInterface.h"
 #include "HeroicOp/HeroicOp.h"
 #include "RaceTypes/RaceTypes.h"
 #include "LuaInterface.h"
+#include "SpellProcess.h"
 #include "../common/version.h"
 
 #include "Player.h"
 
 #include "Web/PeerManager.h"
 #include "Web/HTTPSClientPool.h"
-
-#include <boost/algorithm/string.hpp>
-#include <string>
-#include <iostream>
 
 MasterQuestList master_quest_list;
 MasterItemList master_item_list;
@@ -90,7 +92,6 @@ map<int16, int16> EQOpcodeVersions;
 WorldDatabase database;
 GuildList guild_list;
 Chat chat;
-Player player;
 	
 extern ConfigReader configReader;
 extern LoginServer loginserver;
@@ -102,6 +103,8 @@ extern PeerManager peer_manager;
 extern sint32 numclients;
 extern PeerManager peer_manager;
 extern HTTPSClientPool peer_https_pool;
+
+namespace fs = std::filesystem;
 
 World::World() : save_time_timer(300000), time_tick_timer(3000), vitality_timer(3600000), player_stats_timer(60000), server_stats_timer(60000), /*remove_grouped_player(30000),*/ guilds_timer(60000), lotto_players_timer(500), watchdog_timer(10000) {
 	save_time_timer.Start();
@@ -195,7 +198,7 @@ void World::init(std::string web_ipaddr, int16 web_port, std::string cert_file, 
 	LoadVoiceOvers();
 	
 	LogWrite(WORLD__DEBUG, 1, "World", "-Loading EXP Curve From DB...");
-	player.InitXPTable();
+	Player::InitXPTable();
 	LogWrite(WORLD__DEBUG, 1, "World", "-Loading EXP Curve From DB Complete!");
 
 	LogWrite(WORLD__DEBUG, 1, "World", "-Setting system parameters...");
@@ -537,6 +540,9 @@ bool ZoneList::HandleGlobalChatMessage(Client* from, char* to, int16 channel, co
 		LogWrite(WORLD__ERROR, 0, "World", "HandleGlobalChatMessage() called with an invalid client");
 		return false;
 	}
+	
+	std::string tokenedMsg = std::string(message);
+	SpellProcess::ReplaceEffectTokens(tokenedMsg, from->GetPlayer(), from->GetPlayer()->GetTarget());
 	if(channel == CHANNEL_PRIVATE_TELL){
 		Client* find_client = zone_list.GetClientByCharName(to);
 		if(find_client && find_client->GetPlayer()->IsIgnored(from->GetPlayer()->GetName()))
@@ -549,7 +555,7 @@ bool ZoneList::HandleGlobalChatMessage(Client* from, char* to, int16 channel, co
 				boost::property_tree::ptree root;
 				root.put("from_name", from->GetPlayer()->GetName());
 				root.put("to_name", to);
-				root.put("message", message);
+				root.put("message", tokenedMsg.c_str());
 				root.put("from_language", current_language_id);
 				root.put("channel", channel);
 				std::ostringstream jsonStream;
@@ -572,8 +578,9 @@ bool ZoneList::HandleGlobalChatMessage(Client* from, char* to, int16 channel, co
 		else
 		{
 			const char* whoto = find_client->GetPlayer()->GetName();
-			find_client->HandleTellMessage(from->GetPlayer()->GetName(), message, whoto, from->GetPlayer()->GetCurrentLanguage());
-			from->HandleTellMessage(from->GetPlayer()->GetName(), message, whoto, from->GetPlayer()->GetCurrentLanguage());
+			find_client->SetLastTellName(std::string(from->GetPlayer()->GetName()));
+			find_client->HandleTellMessage(from->GetPlayer()->GetName(), tokenedMsg.c_str(), whoto, from->GetPlayer()->GetCurrentLanguage());
+			from->HandleTellMessage(from->GetPlayer()->GetName(), tokenedMsg.c_str(), whoto, from->GetPlayer()->GetCurrentLanguage());
 			if (find_client->GetPlayer()->get_character_flag(CF_AFK)) {
 				find_client->HandleTellMessage(find_client->GetPlayer()->GetName(), find_client->GetPlayer()->GetAwayMessage().c_str(),whoto, from->GetPlayer()->GetCurrentLanguage());
 				from->HandleTellMessage(find_client->GetPlayer()->GetName(), find_client->GetPlayer()->GetAwayMessage().c_str(),whoto, from->GetPlayer()->GetCurrentLanguage());
@@ -641,6 +648,11 @@ void ZoneList::DeleteSpellProcess(){
 	MZoneList.releasereadlock(__FUNCTION__, __LINE__);
 }
 
+void ZoneList::TransmitBroadcast(const char* message) {
+	HandleGlobalBroadcast(message);
+	peer_manager.SendPeersChannelMessage(0, "", std::string(message), CHANNEL_BROADCAST, 0);
+}
+
 void ZoneList::HandleGlobalBroadcast(const char* message) {
 	list<ZoneServer*>::iterator zone_iter;
 	ZoneServer* zone = 0;
@@ -651,6 +663,11 @@ void ZoneList::HandleGlobalBroadcast(const char* message) {
 			zone->HandleBroadcast(message);
 	}
 	MZoneList.releasereadlock(__FUNCTION__, __LINE__);
+}
+
+void ZoneList::TransmitGlobalAnnouncement(const char* message) {
+	HandleGlobalAnnouncement(message);
+	peer_manager.SendPeersChannelMessage(0, "", std::string(message), CHANNEL_BROADCAST, 1);
 }
 
 void ZoneList::HandleGlobalAnnouncement(const char* message) {
@@ -945,12 +962,13 @@ std::string PeerManager::GetCharacterPeerId(std::string charName) {
 	return "";
 }
 
-void PeerManager::SendPeersChannelMessage(int32 group_id, std::string fromName, std::string message, int16 channel, int32 language_id) {
+void PeerManager::SendPeersChannelMessage(int32 group_id, std::string fromName, std::string message, int16 channel, int32 language_id, int8 custom_type) {
 	boost::property_tree::ptree root;
 	root.put("message", message);
 	root.put("channel", channel);
 	root.put("group_id", group_id);
 	root.put("from_language", language_id);
+	root.put("custom_type", custom_type);
 	root.put("from_name", fromName);
 	std::ostringstream jsonStream;
 	boost::property_tree::write_json(jsonStream, root);
@@ -979,13 +997,14 @@ void PeerManager::SendPeersChannelMessage(int32 group_id, std::string fromName, 
     }
 }
 
-void PeerManager::SendPeersGuildChannelMessage(int32 guild_id, std::string fromName, std::string message, int16 channel, int32 language_id) {
+void PeerManager::SendPeersGuildChannelMessage(int32 guild_id, std::string fromName, std::string message, int16 channel, int32 language_id, int8 custom_type) {
 	boost::property_tree::ptree root;
 	root.put("message", message);
 	root.put("channel", channel);
 	root.put("guild_id", guild_id);
 	root.put("from_language", language_id);
 	root.put("from_name", fromName);
+	root.put("custom_type", custom_type);
 	std::ostringstream jsonStream;
 	boost::property_tree::write_json(jsonStream, root);
 	std::string jsonPayload = jsonStream.str();
@@ -1794,6 +1813,39 @@ void World::AddZoneScript(int32 id, const char* name) {
 	MZoneScripts.unlock();
 }
 
+void World::LoadPlayerScripts() {
+	const fs::path scriptDir = "PlayerScripts";
+	bool hasGlobalLua = false;
+
+	if (!fs::exists(scriptDir) || !fs::is_directory(scriptDir)) {
+		std::cerr << "Directory does not exist: " << scriptDir << std::endl;
+		return;
+	}
+
+	for (const auto& entry : fs::directory_iterator(scriptDir)) {
+		if (entry.is_regular_file() && entry.path().extension() == ".lua") {
+			std::string baseName = entry.path().stem().string();  // Strips extension
+			const std::string filename = entry.path().string();
+			int32 zoneID = database.GetZoneID(filename.c_str());
+			std::cout << "  - Load File " << filename << " with base name: " << baseName << "\n";
+			if(zoneID) {
+				AddPlayerScript(zoneID, filename.c_str());
+			}
+			else if (baseName == "global") {
+				AddPlayerScript(0, filename.c_str());
+				hasGlobalLua = true;
+			}
+		}
+	}
+}
+
+void World::AddPlayerScript(int32 zone_id, const char* zone_name) {
+	MPlayerScripts.lock();
+	if (zone_name)
+		player_scripts[zone_id] = string(zone_name);
+	MPlayerScripts.unlock();
+}
+
 const char* World::GetSpawnScript(int32 id){
 	LogWrite(SPAWN__TRACE, 1, "Spawn", "Enter %s", __FUNCTION__);
 	const char* ret = 0;
@@ -1836,6 +1888,15 @@ const char* World::GetZoneScript(int32 id) {
 	return ret;
 }
 
+const char* World::GetPlayerScript(int32 zone_id) {
+	const char* ret = 0;
+	MPlayerScripts.lock();
+	if (player_scripts.count(zone_id) > 0)
+		ret = player_scripts[zone_id].c_str();
+	MPlayerScripts.unlock();
+	return ret;
+}
+
 void World::ResetSpawnScripts(){
 	MSpawnScripts.lock();
 	spawn_scripts.clear();
@@ -1850,7 +1911,11 @@ void World::ResetZoneScripts() {
 	MZoneScripts.unlock();
 }
 
-
+void World::ResetPlayerScripts() {
+	MPlayerScripts.lock();
+	player_scripts.clear();
+	MPlayerScripts.unlock();
+}
 
 vector<MerchantItemInfo>* World::GetMerchantItemList(int32 merchant_id, int8 merchant_type, Player* player)
 {
@@ -2595,10 +2660,10 @@ void World::CheckLottoPlayers() {
 						memset(announcement, 0, sizeof(announcement));
 						sprintf(coin_message, "%s", client->GetCoinMessage(jackpot).c_str());
 						sprintf(message, "Congratulations! You have won %s!", coin_message);
-						sprintf(announcement, "%s as won the jackpot containing a total of %s!", client->GetPlayer()->GetName(), coin_message);
+						sprintf(announcement, "%s has won the jackpot containing a total of %s!", client->GetPlayer()->GetName(), coin_message);
 						client->Message(CHANNEL_COLOR_YELLOW, "You receive %s.", coin_message);
 						client->SendPopupMessage(0, message, "", 2, 0xFF, 0xFF, 0x99);
-						zone_list.HandleGlobalAnnouncement(announcement);
+						zone_list.TransmitGlobalAnnouncement(announcement);
 						client->GetPlayer()->AddCoins(jackpot);
 						client->GetPlayer()->GetZone()->SendCastSpellPacket(843, client->GetPlayer());
 						client->GetPlayer()->GetZone()->SendCastSpellPacket(1413, client->GetPlayer());

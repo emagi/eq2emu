@@ -3712,6 +3712,12 @@ to zero and treated like placeholders." />
 <Data ElementName="damage" Type="int16" />
 <Data ElementName="spell_name" Type="EQ2_8Bit_String" Size="1" />
 </Struct>
+<Struct Name="WS_SetSocialMsg" ClientVersion="1" OpcodeName="OP_SetSocialMsg">
+<Data ElementName="num_socials" Type="int8" />
+<Data ElementName="social_array" Type="Array" ArraySizeVariable="num_socials">
+	<Data ElementName="social_name" Type="EQ2_8Bit_String" Size="1" />
+</Data>
+</Struct>
 <Struct Name="WS_HearMultipleDamage" ClientVersion="1" OpcodeName="OP_ClientCmdMsg" OpcodeType="OP_EqHearCombatCmd">
 <Data ElementName="header" Substruct="WS_HearDamage_Header" Size="1" />
 <Data ElementName="num_dmg" Type="int8" />
@@ -7642,6 +7648,7 @@ to zero and treated like placeholders." />
 <Data ElementName="spell_visual" Type="int16" />
 <Data ElementName="cast_time" Type="float" />
 <Data ElementName="spell_level" Type="int8" />
+<Data ElementName="spell_crit" Type="int8" />
 </Struct>
 <Struct Name="WS_HearCastSpell" ClientVersion="562" OpcodeName="OP_ClientCmdMsg" OpcodeType="OP_EqHearSpellCastCmd">
 <Data ElementName="spawn_id" Type="int32" />
@@ -21033,5 +21040,12 @@ to zero and treated like placeholders." />
 </Struct>
 <Struct Name="WS_CreateBoatTransportMsg" ClientVersion="1" OpcodeName="OP_CreateBoatTransportsMsg">
    <Data ElementName="path_id" Type="int8" />
+</Struct>
+<Struct Name="WS_SetSocialMsg" ClientVersion="1" OpcodeName="OP_SetSocialMsg">
+  <Data ElementName="num_socials" Type="int8" />
+  <Data ElementName="social_array" Type="Array" ArraySizeVariable="num_socials">
+	<Data ElementName="social_name" Type="EQ2_8Bit_String" Size="1" />
+	<Data ElementName="social_message" Type="EQ2_8Bit_String" Size="1" />
+  </Data>
 </Struct>
 </EQ2Emulator>

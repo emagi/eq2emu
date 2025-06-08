@@ -1,6 +1,6 @@
 /*  
     EQ2Emulator:  Everquest II Server Emulator
-    Copyright (C) 2007  EQ2EMulator Development Team (http://www.eq2emulator.net)
+    Copyright (C) 2005 - 2025  EQ2EMulator Development Team (http://www.eq2emu.com formerly http://www.eq2emulator.net)
 
     This file is part of EQ2Emulator.
 
@@ -17,6 +17,7 @@
     You should have received a copy of the GNU General Public License
     along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 */
+
 #ifndef EQ2_WORLD_H
 #define EQ2_WORLD_H
 
@@ -476,6 +477,10 @@ class ZoneList {
 	void CheckFriendZoned(Client* client);
 
 	// move to Chat/Chat.h?
+	void TransmitBroadcast(const char* message);
+	void TransmitGlobalAnnouncement(const char* message);
+	
+	// these are handled internally by the transmit and peering
 	bool HandleGlobalChatMessage(Client* from, char* to, int16 channel, const char* message, const char* channel_name = 0, int32 current_language_id = 0);
 	void HandleGlobalBroadcast(const char* message);
 	void HandleGlobalAnnouncement(const char* message);
@@ -589,12 +594,16 @@ public:
 	void AddSpawnEntryScript(int32 id, const char* name);
 	void AddSpawnLocationScript(int32 id, const char* name);
 	void AddZoneScript(int32 id, const char* name);
+	void LoadPlayerScripts();
+	void AddPlayerScript(int32 zone_id, const char* zone_name);
 	const char* GetSpawnScript(int32 id);
 	const char* GetSpawnEntryScript(int32 id);
 	const char* GetSpawnLocationScript(int32 id);
 	const char* GetZoneScript(int32 id);
+	const char* GetPlayerScript(int32 zone_id);
 	void ResetSpawnScripts();
 	void ResetZoneScripts();
+	void ResetPlayerScripts();
 	int16 GetMerchantItemQuantity(int32 merchant_id, int32 item_id);
 	void DecreaseMerchantQuantity(int32 merchant_id, int32 item_id, int16 amount);
 	int32 GetInventoryID(int32 merchant_id, int32 item_id);
@@ -765,6 +774,7 @@ private:
 	Mutex MMerchantList;
 	Mutex MSpawnScripts;
 	Mutex MZoneScripts;
+	Mutex MPlayerScripts;
 	//Mutex MGroups;
 	
 	mutable std::shared_mutex MNPCSpells;
@@ -783,6 +793,7 @@ private:
 	map<int32, string> spawnentry_scripts;
 	map<int32, string> spawnlocation_scripts;
 	map<int32, string> zone_scripts;
+	map<int32, string> player_scripts;
 	//vector<PlayerGroup*> player_groups;
 	//map<GroupMemberInfo*, int32> group_removal_pending;
 	//map<string, string> pending_groups;

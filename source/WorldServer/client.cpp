@@ -1,22 +1,23 @@
-/*
-EQ2Emulator:  Everquest II Server Emulator
-Copyright (C) 2007  EQ2EMulator Development Team (http://www.eq2emulator.net)
+/*  
+    EQ2Emulator:  Everquest II Server Emulator
+    Copyright (C) 2005 - 2025  EQ2EMulator Development Team (http://www.eq2emu.com formerly http://www.eq2emulator.net)
 
-This file is part of EQ2Emulator.
+    This file is part of EQ2Emulator.
 
-EQ2Emulator is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+    EQ2Emulator is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-EQ2Emulator is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+    EQ2Emulator is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License
-along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
+    You should have received a copy of the GNU General Public License
+    along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 */
+
 #include "../common/debug.h"
 #include "../common/Log.h"
 #include <iostream>
@@ -136,7 +137,7 @@ Client::Client(EQStream* ieqs) : underworld_cooldown_timer(5000), pos_update(125
 	eqs = ieqs;
 	ip = eqs->GetrIP();
 	port = ntohs(eqs->GetrPort());
-	merchant_transaction = nullptr;
+	merchant_transaction_id = 0;
 	mail_window.item = nullptr; // don't want this to be set(loose ptr) when using ResetSendMail to provide rest of the defaults
 	ResetSendMail(false);
 	timestamp_flag = 0;
@@ -190,7 +191,7 @@ Client::Client(EQStream* ieqs) : underworld_cooldown_timer(5000), pos_update(125
 	dead_z = 0.0f;
 	dead_h = 0.0f;
 	lua_debug_timer.Disable();
-	transport_spawn = 0;
+	transport_spawn_id = 0;
 	MBuyBack.SetName("Client::MBuyBack");
 	MDeletePlayer.SetName("Client::MDeletePlayer");
 	MQuestPendingUpdates.SetName("Client::MQuestPendingUpdates");
@@ -5428,12 +5429,29 @@ void Client::SendPopupMessage(int8 unknown, const char* text, const char* type, 
 
 }
 
-void Client::ChangeLevel(int16 old_level, int16 new_level) {
+bool Client::ChangeLevel(int16 old_level, int16 new_level, int32 xp_earned) {
 	if (new_level < 1) {
 		SimpleMessage(CHANNEL_COLOR_RED, "You cannot be lower than level 1!");
-		return;
+		return false;
 	}
-
+	const char* playerScript = world.GetPlayerScript(0); // 0 = global script
+	const char* playerZoneScript = world.GetPlayerScript(GetCurrentZoneID()); // zone script
+	sint32 returnValue = 0;
+	if(playerScript || playerZoneScript) {
+		std::vector<LuaArg> args = {
+			LuaArg(GetPlayer()->GetZone()), 
+			LuaArg(GetPlayer()), 
+			LuaArg(old_level), 
+			LuaArg(new_level), 
+			LuaArg(xp_earned)
+		};
+		if(playerScript && lua_interface->RunPlayerScriptWithReturn(playerScript, "on_level_up", args, &returnValue) && returnValue == -1) {
+			return false;
+		}
+		if(playerZoneScript && lua_interface->RunPlayerScriptWithReturn(playerZoneScript, "on_level_up", args, &returnValue) && returnValue == -1) {
+			return false;
+		}
+	}
 	if (player->GetLevel() != new_level) {
 		player->SetLevel(new_level);
 		if (player->GetGroupMemberInfo()) {
@@ -5625,17 +5643,38 @@ void Client::ChangeLevel(int16 old_level, int16 new_level) {
 
 	if (GetPlayer()->GetHP() < GetPlayer()->GetTotalHP() || GetPlayer()->GetPower() < GetPlayer()->GetTotalPower())
 		GetPlayer()->GetZone()->AddDamagedSpawn(GetPlayer());
+	
+	return true;
 }
 
-void Client::ChangeTSLevel(int16 old_level, int16 new_level) {
+bool Client::ChangeTSLevel(int16 old_level, int16 new_level, int32 xp_earned) {
 	if (new_level < 1) {
 		SimpleMessage(CHANNEL_COLOR_RED, "You cannot be lower than level 1!");
-		return;
+		return false;
 	}
 	if ((player->GetTSLevel() >= 9 && player->GetTradeskillClass() == 1) || (player->GetTSLevel() >= 19 && (player->GetTradeskillClass() == 1 || player->GetTradeskillClass() == 2 || player->GetTradeskillClass() == 6 || player->GetTradeskillClass() == 10))) {
 		SimpleMessage(CHANNEL_COLOR_YELLOW, "You can not gain levels until you select your next class!");
-		return;
+		return false;
 	}
+	const char* playerScript = world.GetPlayerScript(0); // 0 = global script
+	const char* playerZoneScript = world.GetPlayerScript(GetCurrentZoneID()); // zone script
+	sint32 returnValue = 0;
+	if(playerScript || playerZoneScript) {
+		std::vector<LuaArg> args = {
+			LuaArg(GetPlayer()->GetZone()), 
+			LuaArg(GetPlayer()), 
+			LuaArg(old_level), 
+			LuaArg(new_level), 
+			LuaArg(xp_earned)
+		};
+		if(playerScript && lua_interface->RunPlayerScriptWithReturn(playerScript, "on_tradeskill_level_up", args, &returnValue) && returnValue == -1) {
+			return false;
+		}
+		if(playerZoneScript && lua_interface->RunPlayerScriptWithReturn(playerZoneScript, "on_tradeskill_level_up", args, &returnValue) && returnValue == -1) {
+			return false;
+		}
+	}
+
 
 	if (new_level > old_level)
 		player->UpdatePlayerHistory(HISTORY_TYPE_XP, HISTORY_SUBTYPE_TRADESKILL, new_level, player->GetTradeskillClass());
@@ -5820,6 +5859,7 @@ void Client::ChangeTSLevel(int16 old_level, int16 new_level) {
 	// to when you are actually able to select traits.
 	QueuePacket(GetPlayer()->GetPlayerInfo()->serialize(GetVersion()));
 	QueuePacket(master_trait_list.GetTraitListPacket(this));
+	return true;
 }
 
 void Client::CloseLoot(int32 spawn_id) {
@@ -6381,19 +6421,18 @@ void Client::CastGroupOrSelf(Entity* source, uint32 spellID, uint32 spellTier, f
 	}
 }
 
-Spawn* Client::GetBanker() {
-	return banker;
+int32 Client::GetBanker() {
+	return banker_id;
 }
 
-void Client::SetBanker(Spawn* in_banker) {
-	banker = in_banker;
-
+void Client::SetBanker(int32 in_banker) {
+	banker_id = in_banker;
 }
 
 void Client::Bank(Spawn* banker, bool cancel) {
 	if (banker && banker->primary_command_list.size() > 0 && banker->primary_command_list[0]->command == "bank") {
 		if (!cancel)
-			SetBanker(banker);
+			SetBanker(banker->GetID());
 		else
 			SetBanker(0);
 		PacketStruct* packet = configReader.getStruct("WS_UpdateBank", GetVersion());
@@ -6550,7 +6589,8 @@ bool Client::BankWithdrawalNoBanker(int64 amount) {
 
 void Client::BankWithdrawal(int64 amount) {
 	bool cheater = false;
-	if (GetBanker() && amount > 0) {
+	Spawn* banker = GetCurrentZone()->GetSpawnByID(GetBanker());
+	if (banker && amount > 0) {
 		string withdrawal = "";
 		char withdrawal_data[512] = { 0 };
 		int32 tmp = 0;
@@ -6638,7 +6678,8 @@ void Client::BankWithdrawal(int64 amount) {
 
 void Client::BankDeposit(int64 amount) {
 	bool cheater = false;
-	if (GetBanker() && amount > 0) {
+	Spawn* banker = GetCurrentZone()->GetSpawnByID(GetBanker());
+	if (banker && amount > 0) {
 		int32 tmp = 0;
 		char deposit_data[512] = { 0 };
 		string deposit = "";
@@ -8129,12 +8170,17 @@ void Client::SetLuaDebugClient(bool val) {
 }
 
 void Client::SetMerchantTransaction(Spawn* spawn) {
-	merchant_transaction = spawn;
+	if(spawn) {
+		merchant_transaction_id = spawn->GetID();
+	}
+	else {
+		merchant_transaction_id = 0;
+	}
 
 }
 
-Spawn* Client::GetMerchantTransaction() {
-	return merchant_transaction;
+int32 Client::GetMerchantTransactionID() {
+	return merchant_transaction_id;
 }
 
 void Client::SetMailTransaction(Spawn* spawn) {
@@ -8199,7 +8245,7 @@ float Client::CalculateSellMultiplier(int32 merchant_id) {
 }
 
 void Client::SellItem(int32 item_id, int16 quantity, int32 unique_id) {
-	Spawn* spawn = GetMerchantTransaction();
+	Spawn* spawn = GetCurrentZone()->GetSpawnByID(GetMerchantTransactionID());
 	Guild* guild = GetPlayer()->GetGuild();
 	if (spawn && spawn->GetMerchantID() > 0 && (!(spawn->GetMerchantType() & MERCHANT_TYPE_NO_BUY)) &&
 		spawn->IsClientInMerchantLevelRange(this)) {
@@ -8317,7 +8363,7 @@ void Client::SellItem(int32 item_id, int16 quantity, int32 unique_id) {
 }
 
 void Client::BuyBack(int32 item_id, int16 quantity) {
-	Spawn* spawn = GetMerchantTransaction();
+	Spawn* spawn = GetCurrentZone()->GetSpawnByID(GetMerchantTransactionID());
 	if (spawn && spawn->GetMerchantID() > 0 && (!(spawn->GetMerchantType() & MERCHANT_TYPE_NO_BUY_BACK)) &&
 		spawn->IsClientInMerchantLevelRange(this)) {
 		deque<BuyBackItem*>::iterator itr;
@@ -8391,7 +8437,7 @@ void Client::BuyBack(int32 item_id, int16 quantity) {
 
 void Client::BuyItem(int32 item_id, int16 quantity) {
 	// Get the merchant we are buying from
-	Spawn* spawn = GetMerchantTransaction();
+	Spawn* spawn = GetCurrentZone()->GetSpawnByID(GetMerchantTransactionID());
 	// Make sure the spawn has a merchant list
 	if (spawn && spawn->GetMerchantID() > 0 && spawn->IsClientInMerchantLevelRange(this)) {
 		int32 total_buy_price = 0;
@@ -8585,7 +8631,7 @@ void Client::BuyItem(int32 item_id, int16 quantity) {
 }
 
 void Client::RepairItem(int32 item_id) {
-	Spawn* spawn = GetMerchantTransaction();
+	Spawn* spawn = GetCurrentZone()->GetSpawnByID(GetMerchantTransactionID());
 	if (spawn && (spawn->GetMerchantType() & MERCHANT_TYPE_REPAIR)) {
 		Item* item = player->item_list.GetItemFromID(item_id);
 		if (!item)
@@ -8623,7 +8669,7 @@ void Client::RepairItem(int32 item_id) {
 }
 
 void Client::RepairAllItems() {
-	Spawn* spawn = GetMerchantTransaction();
+	Spawn* spawn = GetCurrentZone()->GetSpawnByID(GetMerchantTransactionID());
 	if (spawn && (spawn->GetMerchantType() & MERCHANT_TYPE_REPAIR)) {
 		vector<Item*>* repairable_items = GetRepairableItems();
 		if (repairable_items && repairable_items->size() > 0) {
@@ -8771,7 +8817,7 @@ void Client::SendAchievementUpdate(bool first_login) {
 }
 
 void Client::SendBuyMerchantList(bool sell) {
-	Spawn* spawn = GetMerchantTransaction();
+	Spawn* spawn = GetCurrentZone()->GetSpawnByID(GetMerchantTransactionID());
 	if (spawn && spawn->GetMerchantID() > 0 && spawn->IsClientInMerchantLevelRange(this)) {
 		vector<MerchantItemInfo>* items = world.GetMerchantItemList(spawn->GetMerchantID(), spawn->GetMerchantType(), player);
 		if (items) {
@@ -8918,7 +8964,7 @@ void Client::SendBuyMerchantList(bool sell) {
 }
 
 void Client::SendSellMerchantList(bool sell) {
-	Spawn* spawn = GetMerchantTransaction();
+	Spawn* spawn = GetCurrentZone()->GetSpawnByID(GetMerchantTransactionID());
 	if (!spawn || (spawn->GetMerchantType() & MERCHANT_TYPE_NO_BUY) || (spawn->GetMerchantType() & MERCHANT_TYPE_LOTTO))
 		return;
 
@@ -9054,7 +9100,7 @@ void Client::SendSellMerchantList(bool sell) {
 void Client::SendBuyBackList(bool sell) {
 	if (GetVersion() <= 561) //this wasn't added until LU37 on July 31st 2007, well after the DoF client
 		return;
-	Spawn* spawn = GetMerchantTransaction();
+	Spawn* spawn = GetCurrentZone()->GetSpawnByID(GetMerchantTransactionID());
 	if (spawn && spawn->GetMerchantID() > 0 && spawn->IsClientInMerchantLevelRange(this)) {
 		deque<BuyBackItem*>::iterator itr;
 		int i = 0;
@@ -9127,7 +9173,7 @@ void Client::SendBuyBackList(bool sell) {
 }
 
 void Client::SendRepairList() {
-	Spawn* spawn = GetMerchantTransaction();
+	Spawn* spawn = GetCurrentZone()->GetSpawnByID(GetMerchantTransactionID());
 	if (spawn) {
 		vector<Item*>* repairable_items = GetRepairableItems();
 		PacketStruct* packet = configReader.getStruct("WS_UpdateMerchant", GetVersion());
@@ -9202,7 +9248,7 @@ void Client::ShowLottoWindow() {
 		SimpleMessage(CHANNEL_COLOR_RED, "This client does not support the gambler UI, only Desert of Flames or later client.");
 		return;
 	}
-	Spawn* spawn = GetMerchantTransaction();
+	Spawn* spawn = GetCurrentZone()->GetSpawnByID(GetMerchantTransactionID());
 	if (spawn) {
 
 		int32 item_id = rule_manager.GetZoneRule(GetCurrentZoneID(), R_World, GamblingTokenItemID)->GetInt32();
@@ -9554,6 +9600,25 @@ void Client::DisplayMailMessage(int32 mail_id) {
 				safe_delete(update);
 			}
 			if (!mail->already_read) {
+				const char* playerScript = world.GetPlayerScript(0); // 0 = global script
+				const char* playerZoneScript = world.GetPlayerScript(GetCurrentZoneID()); // zone script
+				if(playerScript || playerZoneScript) {
+					std::vector<LuaArg> args = {
+						LuaArg(GetCurrentZone()), 
+						LuaArg(GetPlayer()), 
+						LuaArg(GetMailTransaction()),
+						LuaArg(mail->player_from), 
+						LuaArg(mail->subject), 
+						LuaArg(mail->mail_body),
+						LuaArg(mail->char_item_id)
+					};
+					if(playerScript) {
+						lua_interface->RunPlayerScriptWithReturn(playerScript, "on_mail_first_read", args);
+					}
+					if(playerZoneScript) {
+						lua_interface->RunPlayerScriptWithReturn(playerZoneScript, "on_mail_first_read", args);
+					}
+				}
 				mail->already_read = true;
 				SendMailList();
 			}
@@ -9577,13 +9642,15 @@ void Client::DisplayMailMessage(int32 mail_id) {
 				if (mail->stack || mail->char_item_id)
 				{
 					Item* item = master_item_list.GetItem(mail->char_item_id);
-					item->stack_count = mail->stack > 1 ? mail->stack : 0;
-					if (version < 860)
-						packet->setItemByName("item", item, player, 0, version <= 373 ? -2 : -1);
-					else if (version < 1193)
-						packet->setItemByName("item", item, player, 0, 0);
-					else
-						packet->setItemByName("item", item, player, 0, 2);
+					if(item) {
+						item->stack_count = mail->stack > 1 ? mail->stack : 0;
+						if (version < 860)
+							packet->setItemByName("item", item, player, 0, version <= 373 ? -2 : -1);
+						else if (version < 1193)
+							packet->setItemByName("item", item, player, 0, 0);
+						else
+							packet->setItemByName("item", item, player, 0, 2);
+					}
 				}
 				else
 				{
@@ -10033,7 +10100,7 @@ void Client::ProcessTeleport(Spawn* spawn, vector<TransportDestination*>* destin
 	if (transport_id > 0)
 		has_map = GetCurrentZone()->TransportHasMap(transport_id);
 
-	transport_spawn = spawn;
+	transport_spawn_id = spawn->GetID();
 	vector<TransportDestination*> transport_list;
 	vector<TransportDestination*>::iterator itr;
 	TransportDestination* destination = 0;
@@ -10190,7 +10257,7 @@ void Client::ProcessTeleportLocation(EQApplicationPacket* app) {
 					zone_name = zone_name.substr(0, lastSpacePos);
 				}
 			}
-			if (this->GetTemporaryTransportID() || (spawn && spawn == transport_spawn && spawn->GetTransporterID()))
+			if (this->GetTemporaryTransportID() || (spawn && spawn->GetID() == transport_spawn_id && spawn->GetTransporterID()))
 				GetCurrentZone()->GetTransporters(&destinations, this, this->GetTemporaryTransportID() ? this->GetTemporaryTransportID() : spawn->GetTransporterID());
 			vector<TransportDestination*>::iterator itr;
 			for (itr = destinations.begin(); itr != destinations.end(); itr++) {

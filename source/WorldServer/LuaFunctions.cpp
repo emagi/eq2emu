@@ -14653,3 +14653,13 @@ int EQ2Emu_lua_GetSpellRequiredLevel(lua_State* state) {
 	
 	return 1;
 }
+
+int EQ2Emu_lua_GetExpRequiredByLevel(lua_State* state) {
+	int8 level = lua_interface->GetInt16Value(state);
+	lua_interface->ResetFunctionStack(state);
+	
+	int32 exp_required = Player::GetNeededXPByLevel(level);
+	
+	lua_interface->SetInt32Value(state, exp_required);
+	return 1;
+}

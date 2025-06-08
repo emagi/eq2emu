@@ -401,6 +401,8 @@ public:
 	void DeleteActiveSpell(LuaSpell* spell, bool skipRemoveCurrent = false);
 	static bool AddLuaSpellTarget(LuaSpell* lua_spell, int32 id, bool lock_spell_targets = true);
 	mutable std::shared_mutex MSpellProcess;
+	
+	static void ReplaceEffectTokens(std::string& message, Spawn* in_caster, Spawn* in_target);
 private:
 	MutexMap<Entity*,Spell*> spell_que;
 	MutexList<LuaSpell*> active_spells;

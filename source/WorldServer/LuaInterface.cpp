@@ -1,6 +1,6 @@
 /*  
     EQ2Emulator:  Everquest II Server Emulator
-    Copyright (C) 2007  EQ2EMulator Development Team (http://www.eq2emulator.net)
+    Copyright (C) 2005 - 2025  EQ2EMulator Development Team (http://www.eq2emu.com formerly http://www.eq2emulator.net)
 
     This file is part of EQ2Emulator.
 
@@ -17,6 +17,7 @@
     You should have received a copy of the GNU General Public License
     along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 */
+
 #include "LuaInterface.h"
 #include "LuaFunctions.h"
 #include "WorldDatabase.h"
@@ -45,6 +46,7 @@ LuaInterface::LuaInterface() {
 	MSpells.SetName("LuaInterface::MSpells");
 	MSpawnScripts.SetName("LuaInterface::MSpawnScripts");
 	MZoneScripts.SetName("LuaInterface::MZoneScripts");
+	MPlayerScripts.SetName("LuaInterface::MPlayerScripts");
 	MQuests.SetName("LuaInterface::MQuests");
 	MLUAMain.SetName("LuaInterface::MLUAMain");
 	MItemScripts.SetName("LuaInterface::MItemScripts");
@@ -119,6 +121,7 @@ LuaInterface::~LuaInterface() {
 	DestroyQuests();
 	DestroyItemScripts();
 	DestroyZoneScripts();
+	DestroyPlayerScripts();
 	DestroyRegionScripts();
 	DeleteUserDataPtrs(true);
 	DeletePendingSpells(true);
@@ -241,6 +244,25 @@ void LuaInterface::DestroyZoneScripts()  {
 	MZoneScripts.releasewritelock(__FUNCTION__, __LINE__);
 }
 
+void LuaInterface::DestroyPlayerScripts()  {
+	map<string, map<lua_State*, bool> >::iterator itr;
+	map<lua_State*, bool>::iterator state_itr;
+	Mutex* mutex = 0;
+	MPlayerScripts.writelock(__FUNCTION__, __LINE__);
+	for (itr = player_scripts.begin(); itr != player_scripts.end(); itr++){
+		mutex = GetPlayerScriptMutex(itr->first.c_str());
+		mutex->writelock(__FUNCTION__, __LINE__);
+		for(state_itr = itr->second.begin(); state_itr != itr->second.end(); state_itr++)
+			lua_close(state_itr->first);
+		mutex->releasewritelock(__FUNCTION__, __LINE__);
+		safe_delete(mutex);
+	}
+	player_scripts.clear();
+	player_inverse_scripts.clear();
+	player_scripts_mutex.clear();
+	MPlayerScripts.releasewritelock(__FUNCTION__, __LINE__);
+}
+
 void LuaInterface::DestroyRegionScripts()  {
 	map<string, map<lua_State*, bool> >::iterator itr;
 	map<lua_State*, bool>::iterator state_itr;
@@ -300,6 +322,20 @@ bool LuaInterface::LoadZoneScript(const char* name)  {
 			MZoneScripts.writelock(__FUNCTION__, __LINE__);
 			zone_scripts[name][state] = false;
 			MZoneScripts.releasewritelock(__FUNCTION__, __LINE__);
+			ret = true;
+		}
+	}
+	return ret;
+}
+
+bool LuaInterface::LoadPlayerScript(const char* name)  {
+	bool ret = false;
+	if (name) {
+		lua_State* state = LoadLuaFile(name);
+		if (state) {
+			MPlayerScripts.writelock(__FUNCTION__, __LINE__);
+			player_scripts[name][state] = false;
+			MPlayerScripts.releasewritelock(__FUNCTION__, __LINE__);
 			ret = true;
 		}
 	}
@@ -469,6 +505,16 @@ const char* LuaInterface::GetScriptName(lua_State* state)
 	}
 	MZoneScripts.releasewritelock(__FUNCTION__, __LINE__);
 	
+	MPlayerScripts.writelock(__FUNCTION__, __LINE__);
+	itr = player_inverse_scripts.find(state);
+	if (itr != player_inverse_scripts.end())
+	{
+		const char* scriptName = itr->second.c_str();
+		MPlayerScripts.releasewritelock(__FUNCTION__, __LINE__);
+		return scriptName;
+	}
+	MPlayerScripts.releasewritelock(__FUNCTION__, __LINE__);
+	
 	MRegionScripts.writelock(__FUNCTION__, __LINE__);
 	itr = region_inverse_scripts.find(state);
 	if (itr != region_inverse_scripts.end())
@@ -498,6 +544,10 @@ bool LuaInterface::LoadSpawnScript(string name) {
 
 bool LuaInterface::LoadZoneScript(string name) {
 	return LoadZoneScript(name.c_str());
+}
+
+bool LuaInterface::LoadPlayerScript(string name) {
+	return LoadPlayerScript(name.c_str());
 }
 
 bool LuaInterface::LoadRegionScript(string name) {
@@ -1632,6 +1682,7 @@ void LuaInterface::RegisterFunctions(lua_State* state) {
 	lua_register(state,"GetZonePlayerFirstLevel", EQ2Emu_lua_GetZonePlayerFirstLevel);
 	
 	lua_register(state,"GetSpellRequiredLevel", EQ2Emu_lua_GetSpellRequiredLevel);
+	lua_register(state,"GetExpRequiredByLevel", EQ2Emu_lua_GetExpRequiredByLevel);
 }
 
 void LuaInterface::LogError(const char* error, ...)  {
@@ -2172,6 +2223,17 @@ Mutex* LuaInterface::GetZoneScriptMutex(const char* name) {
 	return mutex;
 }
 
+Mutex* LuaInterface::GetPlayerScriptMutex(const char* name) {
+	Mutex* mutex = 0;
+	if(player_scripts_mutex.count(name) > 0)
+		mutex = player_scripts_mutex[name];
+	if(!mutex){
+		mutex = new Mutex();
+		player_scripts_mutex[name] = mutex;
+	}
+	return mutex;
+}
+
 Mutex* LuaInterface::GetRegionScriptMutex(const char* name) {
 	Mutex* mutex = 0;
 	if(region_scripts_mutex.count(name) > 0)
@@ -2214,6 +2276,14 @@ void LuaInterface::UseZoneScript(const char* name, lua_State* state, bool val) {
 	zone_scripts[name][state] = val;
 	zone_inverse_scripts[state] = name;
 	MZoneScripts.releasewritelock(__FUNCTION__, __LINE__);
+}
+
+void LuaInterface::UsePlayerScript(const char* name, lua_State* state, bool val) {
+
+	MPlayerScripts.writelock(__FUNCTION__, __LINE__);
+	player_scripts[name][state] = val;
+	player_inverse_scripts[state] = name;
+	MPlayerScripts.releasewritelock(__FUNCTION__, __LINE__);
 }
 
 void LuaInterface::UseRegionScript(const char* name, lua_State* state, bool val) {
@@ -2320,6 +2390,40 @@ lua_State* LuaInterface::GetZoneScript(const char* name, bool create_new, bool u
 	if(!ret && create_new){
 		if(name && LoadZoneScript(name))
 			ret = GetZoneScript(name, create_new, use);
+		else{
+			LogError("Error LUA Zone Script '%s'", name);
+			return 0;
+		}
+	}
+	return ret;
+}
+
+lua_State* LuaInterface::GetPlayerScript(const char* name, bool create_new, bool use)  {
+	map<string, map<lua_State*, bool> >::iterator itr;
+	map<lua_State*, bool>::iterator zone_script_itr;
+	lua_State* ret = 0;
+	Mutex* mutex = 0;
+
+	itr = player_scripts.find(name);
+	if(itr != player_scripts.end()) {
+		mutex = GetPlayerScriptMutex(name);
+		mutex->readlock(__FUNCTION__, __LINE__);
+		for(zone_script_itr = itr->second.begin(); zone_script_itr != itr->second.end(); zone_script_itr++){
+			if(!zone_script_itr->second){ //not in use
+				ret = zone_script_itr->first;
+
+				if (use)
+				{
+					zone_script_itr->second = true;
+					break; // don't keep iterating, we already have our result
+				}
+			}
+		}
+		mutex->releasereadlock(__FUNCTION__, __LINE__);
+	}
+	if(!ret && create_new){
+		if(name && LoadPlayerScript(name))
+			ret = GetPlayerScript(name, create_new, use);
 		else{
 			LogError("Error LUA Zone Script '%s'", name);
 			return 0;
@@ -2693,6 +2797,57 @@ bool LuaInterface::RunZoneScriptWithReturn(string script_name, const char* funct
 		if (mutex)
 			mutex->releasereadlock(__FUNCTION__, __LINE__);
 		UseZoneScript(script_name.c_str(), state, false);
+		return true;
+	}
+	else
+		return false;
+}
+
+bool LuaInterface::RunPlayerScriptWithReturn(const string script_name, const char* function_name, const std::vector<LuaArg>& args, sint32* returnValue) {
+	lua_State* state = GetPlayerScript(script_name.c_str(), true, true);
+	if (state) {
+		Mutex* mutex = GetPlayerScriptMutex(script_name.c_str());
+		if (mutex)
+			mutex->readlock(__FUNCTION__, __LINE__);
+		else {
+			LogError("Error getting lock for '%s'", script_name.c_str());
+			UsePlayerScript(script_name.c_str(), state, false);
+			return false;
+		}
+		lua_getglobal(state, function_name);
+		if (!lua_isfunction(state, lua_gettop(state))) {
+			lua_pop(state, 1);
+			mutex->releasereadlock(__FUNCTION__);
+			UsePlayerScript(script_name.c_str(), state, false);
+			return false;
+		}
+		int8 num_params = 0;
+		for (const LuaArg& arg : args) {
+			switch (arg.type) {
+				case LuaArgType::SINT64: SetSInt64Value(state, arg.si); num_params++; break;
+				case LuaArgType::SINT: SetSInt32Value(state,  arg.low_si); num_params++; break;
+				case LuaArgType::INT64: SetInt64Value(state, arg.i); num_params++; break;
+				case LuaArgType::INT: SetInt32Value(state, arg.low_i); num_params++; break;
+				case LuaArgType::FLOAT: SetFloatValue(state, arg.f); num_params++; break;
+				case LuaArgType::STRING: SetStringValue(state, arg.s.c_str()); num_params++; break;
+				case LuaArgType::BOOL: SetBooleanValue(state, arg.b); num_params++; break;
+				case LuaArgType::SPAWN: SetSpawnValue(state, arg.spawn); num_params++; break;
+				case LuaArgType::ZONE: SetZoneValue(state, arg.zone); num_params++; break;
+				case LuaArgType::SKILL: SetSkillValue(state, arg.skill); num_params++; break;
+				case LuaArgType::ITEM: SetItemValue(state, arg.item); num_params++; break;
+				case LuaArgType::QUEST: SetQuestValue(state, arg.quest); num_params++; break;
+				case LuaArgType::SPELL: SetSpellValue(state, arg.spell); num_params++; break;
+			}
+		}
+		if (!CallScriptSInt32(state, num_params, returnValue)) {
+			if (mutex)
+				mutex->releasereadlock(__FUNCTION__, __LINE__);
+			UsePlayerScript(script_name.c_str(), state, false);
+			return false;
+		}
+		if (mutex)
+			mutex->releasereadlock(__FUNCTION__, __LINE__);
+		UsePlayerScript(script_name.c_str(), state, false);
 		return true;
 	}
 	else

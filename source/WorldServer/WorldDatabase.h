@@ -208,7 +208,7 @@ public:
 	int32	SaveCharacter(PacketStruct* create, int32 loginID);
 	int32	LoadNPCAppearanceEquipmentData(ZoneServer* zone);
 	void	SaveNPCAppearanceEquipment(int32 spawn_id, int8 slot_id, int16 type, int8 red=0, int8 green=0, int8 blue=0, int8 hred=0, int8 hgreen=0, int8 hblue=0);
-	void	LoadSpecialZones();
+	void	LoadSpecialZones(bool silent=false);
 	void	SaveCharacterSkills(Client* client);
 	void	SaveCharacterQuests(Client* client);
 	void	SaveCharacterQuestProgress(Client* client, Quest* quest);

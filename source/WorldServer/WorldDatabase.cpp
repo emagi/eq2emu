@@ -3251,8 +3251,9 @@ string WorldDatabase::GetExpansionIDByVersion(int16 version)
 }
 
 
-void WorldDatabase::LoadSpecialZones(){
-	LogWrite(ZONE__INFO, 0, "Zone", "Starting static zones...");
+void WorldDatabase::LoadSpecialZones(bool silent){
+	if(!silent)
+		LogWrite(ZONE__INFO, 0, "Zone", "Starting static zones...");
 	Query query;
 	ZoneServer* zone = 0;
 	MYSQL_RES* result = query.RunQuery2(Q_SELECT, "SELECT id, name, always_loaded, peer_priority FROM zones where always_loaded = 1");
@@ -5589,6 +5590,7 @@ string WorldDatabase::GetMerchantDescription(int32 merchant_id) {
 
 void WorldDatabase::LoadTransporters(ZoneServer* zone){
 	int32 total = 0;
+	zone->DeleteTransporters();
 	zone->DeleteGlobalTransporters();
 	Query query;
 	MYSQL_ROW row;

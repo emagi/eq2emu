@@ -187,7 +187,7 @@ void Guild::AddEXPCurrent(sint64 exp, bool send_packet) {
 				else
 					strncpy(adjective, "too uber for cheerios", sizeof(adjective) - 1);
 				sprintf(message, "The %s guild <%s> has attained level %u", adjective, name, level);
-				zone_list.HandleGlobalAnnouncement(message);
+				zone_list.TransmitGlobalAnnouncement(message);
 			}
 		}
 		save_needed = true;

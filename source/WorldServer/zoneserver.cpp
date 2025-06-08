@@ -1,20 +1,21 @@
 /*  
-EQ2Emulator:  Everquest II Server Emulator
-Copyright (C) 2007  EQ2EMulator Development Team (http://www.eq2emulator.net)
+    EQ2Emulator:  Everquest II Server Emulator
+    Copyright (C) 2005 - 2025  EQ2EMulator Development Team (http://www.eq2emu.com formerly http://www.eq2emulator.net)
 
-This file is part of EQ2Emulator.
-EQ2Emulator is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+    This file is part of EQ2Emulator.
 
-EQ2Emulator is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+    EQ2Emulator is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-You should have received a copy of the GNU General Public License
-along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
+    EQ2Emulator is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "../common/debug.h"
@@ -810,6 +811,7 @@ void ZoneServer::ProcessDepop(bool respawns_allowed, bool repop) {
 		if(!client)
 			continue;
 		client->GetPlayer()->SetTarget(0);
+		client->SetMailTransaction(0);
 		if(repop)
 			client->SimpleMessage(CHANNEL_COLOR_YELLOW, "Zone Repop in progress...");
 		else{
@@ -3910,12 +3912,14 @@ void ZoneServer::HandleChatMessage(Client* client, std::string fromName, const c
 void ZoneServer::HandleChatMessage(Spawn* from, const char* to, int16 channel, const char* message, float distance, const char* channel_name, bool show_bubble, int32 language){
 	vector<Client*>::iterator client_itr;
 	Client* client = 0;
+	std::string tokenedMsg = std::string(message);
+	SpellProcess::ReplaceEffectTokens(tokenedMsg, from, from->GetTarget());
 
 	MClientList.readlock(__FUNCTION__, __LINE__);
 	for (client_itr = clients.begin(); client_itr != clients.end(); client_itr++) {
 		client = *client_itr;
 		if(client && client->IsConnected())
-			HandleChatMessage(client, from, to, channel, message, distance, channel_name, show_bubble, language);
+			HandleChatMessage(client, from, to, channel, tokenedMsg.c_str(), distance, channel_name, show_bubble, language);
 	}
 	MClientList.releasereadlock(__FUNCTION__, __LINE__);
 }
@@ -4607,7 +4611,33 @@ void ZoneServer::CheckSpawnScriptTimers(){
 		vector<SpawnScriptTimer>::iterator itr;
 		for(itr = call_timers.begin(); itr != call_timers.end(); itr++){
 			SpawnScriptTimer tmpTimer = (SpawnScriptTimer)*itr;
-			CallSpawnScript(GetSpawnByID(tmpTimer.spawn), SPAWN_SCRIPT_TIMER, tmpTimer.player > 0 ? GetSpawnByID(tmpTimer.player) : 0, tmpTimer.function.c_str());
+			Spawn* callSpawn = GetSpawnByID(tmpTimer.spawn);
+			Spawn* target = nullptr;
+			if(tmpTimer.player) {
+				target = GetSpawnByID(tmpTimer.player);
+			}
+			if(callSpawn) {
+				if(!callSpawn->IsPlayer()) {
+					CallSpawnScript(GetSpawnByID(tmpTimer.spawn), SPAWN_SCRIPT_TIMER, target, tmpTimer.function.c_str());
+				}
+				else {
+					const char* playerScript = world.GetPlayerScript(0); // 0 = global script
+					const char* playerZoneScript = world.GetPlayerScript(GetZoneID()); // zone script
+					if(playerScript || playerZoneScript) {
+						std::vector<LuaArg> args = {
+							LuaArg(this), 
+							LuaArg(callSpawn),
+							LuaArg(target)
+						};
+						if(playerScript) {
+							lua_interface->RunPlayerScriptWithReturn(playerScript, tmpTimer.function.c_str(), args);
+						}
+						if(playerZoneScript) {
+							lua_interface->RunPlayerScriptWithReturn(playerZoneScript, tmpTimer.function.c_str(), args);
+						}
+					}
+				}
+			}
 		}
 	}
 }
@@ -4714,11 +4744,24 @@ void ZoneServer::RemoveSpawn(Spawn* spawn, bool delete_spawn, bool respawn, bool
 	for (client_itr = clients.begin(); client_itr != clients.end(); client_itr++) {
 		client = *client_itr;
 
-		if (client && (client->GetVersion() > 373 || !client->IsZoning() || client->GetPlayer() != spawn)) { //don't send destroy ghost of 283 client when zoning
+		if (client && (!client->IsZoning() || client->GetPlayer() != spawn)) {
 			if (client->GetPlayer()->HasTarget() && client->GetPlayer()->GetTarget() == spawn)
 				client->GetPlayer()->SetTarget(0);
-			if(client->GetPlayer()->WasSentSpawn(spawn->GetID()) || client->GetPlayer()->IsSendingSpawn(spawn->GetID()))
+			if(client->GetMailTransaction() == spawn)
+				client->SetMailTransaction(0);
+			if(client->GetBanker() == spawn->GetID())
+				client->SetBanker(0);
+			if(client->GetTransportSpawnID() == spawn->GetID())
+				client->SetTransportSpawnID(0);
+			if(client->GetTempPlacementSpawn() == spawn)
+				client->SetTempPlacementSpawn(nullptr);
+			if(client->GetCombineSpawn() == spawn)
+				client->SetCombineSpawn(nullptr);
+
+			//don't send destroy ghost of 283 client when zoning
+			if((client->GetVersion() > 373 || !client->IsZoning()) && (client->GetPlayer()->WasSentSpawn(spawn->GetID()) || client->GetPlayer()->IsSendingSpawn(spawn->GetID())))
 				SendRemoveSpawn(client, spawn, packet, delete_spawn);
+			
 			if (spawn_range_map.count(client) > 0)
 				spawn_range_map.Get(client)->erase(spawn->GetID());
 		}
@@ -5375,6 +5418,29 @@ void ZoneServer::KillSpawn(bool spawnListLocked, Spawn* dead, Spawn* killer, boo
 		((NPC*)dead)->Brain()->ClearHate();
 
 	safe_delete(encounter);
+	
+	const char* functionToCall = "on_player_death";
+	bool isPlayerDead = true;
+	if(dead->IsPlayer() || (killer && killer->IsPlayer() && (isPlayerDead = false))) {
+		if(!isPlayerDead) {
+			functionToCall = "on_player_kill";
+		}
+		const char* playerScript = world.GetPlayerScript(0); // 0 = global script
+		const char* playerZoneScript = world.GetPlayerScript(GetZoneID()); // zone script
+		if(playerScript || playerZoneScript) {
+			std::vector<LuaArg> args = {
+				LuaArg(this),
+				LuaArg(dead), 
+				LuaArg(killer)
+			};
+			if(playerScript) {
+				lua_interface->RunPlayerScriptWithReturn(playerScript, functionToCall, args);
+			}
+			if(playerZoneScript) {
+				lua_interface->RunPlayerScriptWithReturn(playerZoneScript, functionToCall, args);
+			}
+		}
+	}
 }
 
 void ZoneServer::SendDamagePacket(Spawn* attacker, Spawn* victim, int8 type1, int8 type2, int8 damage_type, int16 damage, const char* spell_name) {
@@ -8658,6 +8724,7 @@ void ZoneServer::DeleteGlobalSpawns() {
 	ClearEntityCommands();
 
 	DeleteGroundSpawnItems();
+	DeleteTransporters();
 	DeleteGlobalTransporters();
 	DeleteTransporterMaps();
 }
