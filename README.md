@@ -1,4 +1,6 @@
-# EQ2EMu Project - **ALPHA BUILD**
+# EQ2EMu Project
+
+## This is a work in progress for the beta release of the EQ2EMu Project.
 
 Visit https://www.eq2emu.com for more project details, wiki and server installation instructions.
 
