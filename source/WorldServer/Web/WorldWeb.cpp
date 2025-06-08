@@ -378,8 +378,6 @@ void World::Web_worldhandle_reloadcommand(const http::request<http::string_body>
 		break;
 	}
 	case COMMAND_RELOAD_ITEMS: {
-		LogWrite(COMMAND__INFO, 0, "Command", "Reloading items..");
-		
 		database.ReloadItemList(sub_command);
 			
 		if(!sub_command) {
