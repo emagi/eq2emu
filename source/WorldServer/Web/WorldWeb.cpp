@@ -382,7 +382,7 @@ void World::Web_worldhandle_reloadcommand(const http::request<http::string_body>
 		
 		database.ReloadItemList(sub_command);
 			
-		if(!item_id) {
+		if(!sub_command) {
 			database.LoadMerchantInformation(); // we skip if there is only a reload of single item not all items
 		}
 		break;
