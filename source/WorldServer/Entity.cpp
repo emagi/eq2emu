@@ -139,6 +139,11 @@ void Entity::DeleteSpellEffects(bool removeClient)
 				}
 			}
 			GetInfoStruct()->spell_effects[i].spell_id = 0xFFFFFFFF;
+			GetInfoStruct()->spell_effects[i].icon = 0;	
+			GetInfoStruct()->spell_effects[i].icon_backdrop = 0;
+			GetInfoStruct()->spell_effects[i].tier = 0;
+			GetInfoStruct()->spell_effects[i].total_time = 0.0f;
+			GetInfoStruct()->spell_effects[i].expire_timestamp = 0;
 			GetInfoStruct()->spell_effects[i].spell = nullptr;
 		}
 	}

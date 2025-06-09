@@ -1072,7 +1072,12 @@ struct InfoStruct{
 
 				maintained_effects[i].spell = nullptr;
 			}
+			spell_effects[i].icon = 0;	
 			spell_effects[i].spell_id = 0xFFFFFFFF;	
+			spell_effects[i].icon_backdrop = 0;
+			spell_effects[i].tier = 0;
+			spell_effects[i].total_time = 0.0f;
+			spell_effects[i].expire_timestamp = 0;
 			spell_effects[i].spell = nullptr;
 		}
 	}

@@ -3286,6 +3286,11 @@ PlayerInfo::PlayerInfo(Player* in_player){
 			info_struct->maintained_effects[i].spell = nullptr;
 		}
 		info_struct->spell_effects[i].spell_id = 0xFFFFFFFF;	
+		info_struct->spell_effects[i].icon = 0;		
+		info_struct->spell_effects[i].icon_backdrop = 0;
+		info_struct->spell_effects[i].tier = 0;
+		info_struct->spell_effects[i].total_time = 0.0f;
+		info_struct->spell_effects[i].expire_timestamp = 0;
 		info_struct->spell_effects[i].spell = nullptr;	
 	}
 	
