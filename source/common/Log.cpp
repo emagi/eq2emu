@@ -257,11 +257,11 @@ static void WriteQueuedLogs(int count) {
 		tmp = logq;
 		logq = logq->next;
 
-		mlogqs.releasewritelock();
-
 		free(tmp->text);
 		free(tmp);
 	}
+
+	mlogqs.releasewritelock();
 }
 
 ThreadReturnType LogLoop(void *args) {
