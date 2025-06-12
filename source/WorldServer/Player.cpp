@@ -599,6 +599,7 @@ PacketStruct* PlayerInfo::serialize2(int16 version){
 		packet->setDataByName("unknown20", 50, 75);
 		*/
 		//packet->setDataByName("rain2", -102.24);
+		player->GetSpellEffectMutex()->readlock(__FUNCTION__, __LINE__);
 		for(int i=0;i<45;i++){
 			if(i < 30){
 				packet->setSubstructDataByName("maintained_effects", "name", info_struct->maintained_effects[i].name, i, 0);
@@ -622,6 +623,7 @@ PacketStruct* PlayerInfo::serialize2(int16 version){
 			packet->setSubstructDataByName("spell_effects", "icon", info_struct->spell_effects[i].icon, i, 0);
 			packet->setSubstructDataByName("spell_effects", "icon_type", info_struct->spell_effects[i].icon_backdrop, i, 0);
 		}
+		player->GetSpellEffectMutex()->releasereadlock(__FUNCTION__, __LINE__);
 		return packet;	
 	}
 	return 0;
