@@ -1558,7 +1558,7 @@ public:
 	int8			DetermineHit(Spawn* victim, int8 type, int8 damage_type, float ToHitBonus, bool is_caster_spell, LuaSpell* lua_spell = nullptr);
 	float			GetDamageTypeResistPercentage(int8 damage_type);
 	Skill*			GetSkillByWeaponType(int8 type, int8 damage_type, bool update);
-	bool			DamageSpawn(Entity* victim, int8 type, int8 damage_type, int32 low_damage, int32 high_damage, const char* spell_name, int8 crit_mod = 0, bool is_tick = false, bool no_damage_calcs = false, bool ignore_attacker = false, bool take_power = false, LuaSpell* spell = 0);
+	bool			DamageSpawn(Entity* victim, int8 type, int8 damage_type, int32 low_damage, int32 high_damage, const char* spell_name, int8 crit_mod = 0, bool is_tick = false, bool no_damage_calcs = false, bool ignore_attacker = false, bool take_power = false, LuaSpell* spell = 0, bool skip_check_wards = false);
 	float			CalculateMitigation(int8 type = DAMAGE_PACKET_TYPE_SIMPLE_DAMAGE, int8 damage_type = 0, int16 attacker_level = 0, bool for_pvp = false);
 	void			AddHate(Entity* attacker, sint32 hate, bool ignore_pet_behavior = false);
 	bool			CheckInterruptSpell(Entity* attacker);

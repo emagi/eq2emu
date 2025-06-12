@@ -1047,7 +1047,7 @@ Skill* Entity::GetSkillByWeaponType(int8 type, int8 damage_type, bool update) {
 	return 0;
 }
 
-bool Entity::DamageSpawn(Entity* victim, int8 type, int8 damage_type, int32 low_damage, int32 high_damage, const char* spell_name, int8 crit_mod, bool is_tick, bool no_calcs, bool ignore_attacker, bool take_power, LuaSpell* spell) {
+bool Entity::DamageSpawn(Entity* victim, int8 type, int8 damage_type, int32 low_damage, int32 high_damage, const char* spell_name, int8 crit_mod, bool is_tick, bool no_calcs, bool ignore_attacker, bool take_power, LuaSpell* spell, bool skip_check_wards) {
 	if(spell) {
 		spell->is_damage_spell = true;
 	}
@@ -1162,7 +1162,8 @@ bool Entity::DamageSpawn(Entity* victim, int8 type, int8 damage_type, int32 low_
 		
 		if(damage) {
 			int32 prevDmg = damage;
-			damage = victim->CheckWards(this, damage, damage_type);
+			if(!skip_check_wards)
+				damage = victim->CheckWards(this, damage, damage_type);
 
 			if (damage < (sint64)prevDmg)
 				useWards = true;

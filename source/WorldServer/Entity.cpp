@@ -2387,7 +2387,7 @@ int32 Entity::CheckWards(Entity* attacker, int32 damage, int8 damage_type) {
 			}
 
 			if (attacker && spell->caster)
-				attacker->DamageSpawn(spell->caster, DAMAGE_PACKET_TYPE_SPELL_DAMAGE, damage_type, redirectDamage, redirectDamage, 0, 0, false, false, false, false, spell);
+				attacker->DamageSpawn(spell->caster, DAMAGE_PACKET_TYPE_SPELL_DAMAGE, damage_type, redirectDamage, redirectDamage, 0, 0, false, false, false, false, spell, true);
 		}
 
 		bool shouldRemoveSpell = false;
