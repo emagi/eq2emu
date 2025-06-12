@@ -2056,14 +2056,17 @@ void SpellProcess::RemoveSpellTimersFromSpawn(Spawn* spawn, bool remove_all, boo
 		MutexList<LuaSpell*>::iterator itr = active_spells.begin();
 		while(itr.Next()){
 			spell = itr->value;
-			if (!spell)
+			
+			if (!spell || !spell->spell || !spell->spell->GetSpellData())
 				continue;
+			
+			if (spell->spell->GetSpellData()->persist_through_death)
+				continue;
+			
 			if(spell->caster == spawn && call_expire_function){
 				DeleteCasterSpell(spell, "expired", remove_all, nullptr, false, lock_spell_process);
 				continue;
 			}
-			if (spell->spell->GetSpellData()->persist_through_death)
-				continue;
 
 			bool foundMatch = false;
 			
