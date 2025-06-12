@@ -2983,8 +2983,9 @@ void Spawn::InitializeInfoPacketData(Player* spawn, PacketStruct* packet) {
 			spell_id = info->spell_effects[i].spell_id;
 			if(spell_id > 0)
 				spell_id = 0xFFFFFFFF - spell_id;
-			else
+			else {
 				spell_id = 0;
+			}
 			packet->setSubstructDataByName("spell_effects", "spell_id", spell_id, i);
 
 			//Change value of spell icon for this packet if spell exists
@@ -3027,7 +3028,7 @@ void Spawn::InitializeInfoPacketData(Player* spawn, PacketStruct* packet) {
 
 			packet->setSubstructDataByName("spell_effects", "spell_icon_backdrop", backdrop, i);
 			spell = info->spell_effects[i].spell;
-			if (spell)
+			if (spell_id && spell_id != 0xFFFFFFFF && spell)
 				packet->setSubstructDataByName("spell_effects", "spell_triggercount", spell->num_triggers, i);
 			i++;
 		}
