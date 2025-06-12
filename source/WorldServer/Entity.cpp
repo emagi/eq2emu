@@ -1817,15 +1817,15 @@ EquipmentItemList* Entity::GetAppearanceEquipmentList(){
 }
 
 void Entity::SetEquipment(Item* item, int8 slot){
-	std::lock_guard<std::mutex> lk(MEquipment);
+	MEquipment.lock();
 	if(!item && slot < NUM_SLOTS){
-		SetInfo(&equipment.equip_id[slot], 0);
-		SetInfo(&equipment.color[slot].red, 0);
-		SetInfo(&equipment.color[slot].green, 0);
-		SetInfo(&equipment.color[slot].blue, 0);
-		SetInfo(&equipment.highlight[slot].red, 0);
-		SetInfo(&equipment.highlight[slot].green, 0);
-		SetInfo(&equipment.highlight[slot].blue, 0);
+		SetInfo(&equipment.equip_id[slot], 0, false);
+		SetInfo(&equipment.color[slot].red, 0, false);
+		SetInfo(&equipment.color[slot].green, 0, false);
+		SetInfo(&equipment.color[slot].blue, 0, false);
+		SetInfo(&equipment.highlight[slot].red, 0, false);
+		SetInfo(&equipment.highlight[slot].green, 0, false);
+		SetInfo(&equipment.highlight[slot].blue, 0, false);
 	}
 	else{
 		if ( slot >= NUM_SLOTS ) 
@@ -1834,14 +1834,17 @@ void Entity::SetEquipment(Item* item, int8 slot){
 		if( slot >= NUM_SLOTS )
 			return;
 		
-		SetInfo(&equipment.equip_id[slot], item->generic_info.appearance_id);
-		SetInfo(&equipment.color[slot].red, item->generic_info.appearance_red);
-		SetInfo(&equipment.color[slot].green, item->generic_info.appearance_green);
-		SetInfo(&equipment.color[slot].blue, item->generic_info.appearance_blue);
-		SetInfo(&equipment.highlight[slot].red, item->generic_info.appearance_highlight_red);
-		SetInfo(&equipment.highlight[slot].green, item->generic_info.appearance_highlight_green);
-		SetInfo(&equipment.highlight[slot].blue, item->generic_info.appearance_highlight_blue);
+		SetInfo(&equipment.equip_id[slot], item->generic_info.appearance_id, false);
+		SetInfo(&equipment.color[slot].red, item->generic_info.appearance_red, false);
+		SetInfo(&equipment.color[slot].green, item->generic_info.appearance_green, false);
+		SetInfo(&equipment.color[slot].blue, item->generic_info.appearance_blue, false);
+		SetInfo(&equipment.highlight[slot].red, item->generic_info.appearance_highlight_red, false);
+		SetInfo(&equipment.highlight[slot].green, item->generic_info.appearance_highlight_green, false);
+		SetInfo(&equipment.highlight[slot].blue, item->generic_info.appearance_highlight_blue, false);
 	}
+	MEquipment.unlock();
+	info_changed = true;
+	AddChangedZoneSpawn();
 }
 
 bool Entity::CheckSpellBonusRemoval(LuaSpell* spell, int16 type){
