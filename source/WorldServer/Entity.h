@@ -1850,6 +1850,7 @@ public:
 	/// <summary>Removes the ward with the given spell id</summary>
 	/// <param name='spellID'>The spell id of the ward to remove</param>
 	void RemoveWard(int32 spellID);
+	void RemoveWard(LuaSpell* spell);
 
 	/// <summary>Subtracts the given damage from the wards</summary>
 	/// <param name='damage'>The damage to subtract from the wards</param>

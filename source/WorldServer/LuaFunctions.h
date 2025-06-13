@@ -260,6 +260,8 @@ int EQ2Emu_lua_QuestStepIsComplete(lua_State* state);
 int EQ2Emu_lua_GetQuestStep(lua_State* state);
 int EQ2Emu_lua_RegisterQuest(lua_State* state);
 int EQ2Emu_lua_OfferQuest(lua_State* state);
+int EQ2Emu_lua_DeleteQuest(lua_State* state);
+int EQ2Emu_lua_DeleteAllQuests(lua_State* state);
 int EQ2Emu_lua_SetQuestPrereqLevel(lua_State* state);
 int EQ2Emu_lua_AddQuestPrereqQuest(lua_State* state);
 int EQ2Emu_lua_AddQuestPrereqItem(lua_State* state);

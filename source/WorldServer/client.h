@@ -377,6 +377,8 @@ public:
 	void	AcceptQuest(int32 quest_id);
 	bool	HasPendingQuest(int32 quest_id);
 	void	RemovePendingQuest(int32 quest_id);
+	void	DeleteQuest(int32 quest_id, bool override_deny_delete = false);
+	void	DeleteAllQuests(bool override_deny_delete = false);
 	void	SetPlayerQuest(Quest* quest, map<int32, int32>* progress);
 	void	AddPlayerQuest(Quest* quest, bool call_accepted = true, bool send_packets = true);
 	void	RemovePlayerQuest(int32 id, bool send_update = true, bool delete_quest = true);

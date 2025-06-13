@@ -3931,6 +3931,53 @@ int EQ2Emu_lua_OfferQuest(lua_State* state) {
 	return 0;
 }
 
+int EQ2Emu_lua_DeleteQuest(lua_State* state) {
+	if (!lua_interface)
+		return 0;
+	Spawn* player = lua_interface->GetSpawn(state);
+	int32 quest_id = lua_interface->GetInt32Value(state, 2);
+	bool override_deny_delete = lua_interface->GetBooleanValue(state, 3);
+	lua_interface->ResetFunctionStack(state);
+
+	/* NPC is allowed to be null */
+	if (player && player->IsPlayer() && quest_id > 0) {
+		Client* client = ((Player*)player)->GetClient();
+		if (!client) {
+			lua_interface->LogError("%s: LUA DeleteQuest command error: client is not set", lua_interface->GetScriptName(state));
+		}
+		else {
+			client->DeleteQuest(quest_id, override_deny_delete);
+		}
+	}
+	else {
+		lua_interface->LogError("%s: LUA DeleteQuest command error: player is not set or bad quest id %d", lua_interface->GetScriptName(state), quest_id);
+	}
+	return 0;
+}
+
+int EQ2Emu_lua_DeleteAllQuests(lua_State* state) {
+	if (!lua_interface)
+		return 0;
+	Spawn* player = lua_interface->GetSpawn(state);
+	bool override_deny_delete = lua_interface->GetBooleanValue(state, 2);
+	lua_interface->ResetFunctionStack(state);
+
+	/* NPC is allowed to be null */
+	if (player && player->IsPlayer()) {
+		Client* client = ((Player*)player)->GetClient();
+		if (!client) {
+			lua_interface->LogError("%s: LUA DeleteAllQuests command error: client is not set", lua_interface->GetScriptName(state));
+		}
+		else {
+			client->DeleteAllQuests(override_deny_delete);
+		}
+	}
+	else {
+		lua_interface->LogError("%s: LUA DeleteAllQuests command error: player is not set", lua_interface->GetScriptName(state));
+	}
+	return 0;
+}
+
 int EQ2Emu_lua_AddQuestPrereqClass(lua_State* state) {
 	if (!lua_interface)
 		return 0;

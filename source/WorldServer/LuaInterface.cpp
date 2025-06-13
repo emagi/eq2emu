@@ -1312,6 +1312,8 @@ void LuaInterface::RegisterFunctions(lua_State* state) {
 	lua_register(state, "UpdateQuestZone", EQ2Emu_lua_UpdateQuestZone);
 	lua_register(state, "SetCompletedDescription", EQ2Emu_lua_SetCompletedDescription);
 	lua_register(state, "OfferQuest", EQ2Emu_lua_OfferQuest);
+	lua_register(state, "DeleteQuest", EQ2Emu_lua_DeleteQuest);
+	lua_register(state, "DeleteAllQuests", EQ2Emu_lua_DeleteAllQuests);
 	lua_register(state, "ProvidesQuest", EQ2Emu_lua_ProvidesQuest);	
 	lua_register(state, "HasQuest", EQ2Emu_lua_HasQuest);	
 	lua_register(state, "HasPendingQuest", EQ2Emu_lua_HasPendingQuest);	
@@ -1742,10 +1744,14 @@ void LuaInterface::DeletePendingSpells(bool all) {
 						Spawn* target = spell->zone->GetSpawnByID(spell->targets.at(i));
 						if (!target || !target->IsEntity())
 							continue;
+
+						if(target->IsEntity()) {
+							((Entity*)target)->RemoveWard(spell);
+						}
 						
 						if(!spellDeleted && spell->zone && spell->zone->GetSpellProcess())
 							spell->zone->GetSpellProcess()->DeleteActiveSpell(spell, true);
-						
+
 						spellDeleted = true;
 					}
 					spell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);

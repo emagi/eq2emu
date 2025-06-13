@@ -3005,6 +3005,19 @@ void SpellProcess::DeleteSpell(LuaSpell* spell)
 		lua_interface->RemoveCustomSpell(spell->spell->GetSpellID());
 		safe_delete(spell->spell);
 	}
+	if(spell->targets.size() > 0) {
+		spell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
+		for (int8 i = 0; i < spell->targets.size(); i++) {
+			Spawn* target = spell->zone->GetSpawnByID(spell->targets.at(i));
+			if (!target || !target->IsEntity())
+				continue;
+
+			if(target->IsEntity()) {
+				((Entity*)target)->RemoveWard(spell);
+			}
+		}
+		spell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
+	}
 	
 	lua_interface->SetLuaUserDataStale(spell);
 	

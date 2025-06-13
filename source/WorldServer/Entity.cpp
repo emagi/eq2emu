@@ -2272,6 +2272,30 @@ void Entity::RemoveWard(int32 spellID) {
 	}
 }
 
+void Entity::RemoveWard(LuaSpell* spell) {
+	std::unique_lock lock(MWardList);
+	map<int32, WardInfo*>::iterator itr;
+	for (itr = m_wardList.begin(); itr != m_wardList.end(); itr++) {
+		if(itr->second->DeleteWard)
+			continue;
+		
+		if(itr->second->Spell == spell) {
+			itr->second->DeleteWard = true;
+		}
+	}
+		
+	for (itr = m_wardList.begin(); itr != m_wardList.end();) {
+		if(itr->second->DeleteWard) {
+			WardInfo* info = itr->second;
+			itr = m_wardList.erase(itr);
+			safe_delete(info);
+		}
+		else {
+			itr++;
+		}
+	}
+}
+
 int32 Entity::CheckWards(Entity* attacker, int32 damage, int8 damage_type) {
 	std::unique_lock lock(MWardList);
 	map<int32, WardInfo*>::iterator itr;

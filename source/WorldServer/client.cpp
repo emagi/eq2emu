@@ -4098,6 +4098,8 @@ void ClientList::Process() {
 			struct in_addr  in;
 			in.s_addr = client->GetIP();
 			LogWrite(WORLD__INFO, 0, "World", "Removing client from ip: %s port: %i", inet_ntoa(in), client->GetPort());
+			if(client->GetPlayer()->GetClient() == client)
+				client->GetPlayer()->SetClient(nullptr);
 			safe_delete(client);
 		}
 	}
@@ -7121,6 +7123,38 @@ void Client::RemovePendingQuest(int32 quest_id) {
 
 	if (send_updates) {
 		GetCurrentZone()->SendQuestUpdates(this);
+	}
+}
+
+void Client::DeleteQuest(int32 quest_id, bool override_deny_delete) {
+	if(quest_id > 0) {
+		GetPlayer()->MPlayerQuests.readlock(__FUNCTION__, __LINE__);
+		if(lua_interface && GetPlayer()->player_quests.count(quest_id) > 0) {
+			Quest* quest = GetPlayer()->player_quests[quest_id];
+			GetPlayer()->MPlayerQuests.releasereadlock(__FUNCTION__, __LINE__);
+			if (quest && (override_deny_delete || quest->CanDeleteQuest())) {
+				lua_interface->CallQuestFunction(quest, "Deleted", GetPlayer());
+				RemovePlayerQuest(quest_id);
+				GetCurrentZone()->SendQuestUpdates(this);
+			}
+		}
+		else {
+			GetPlayer()->MPlayerQuests.releasereadlock(__FUNCTION__, __LINE__);
+		}
+	}
+}
+
+void Client::DeleteAllQuests(bool override_deny_delete) {
+	std::vector<int32> quest_ids;
+	map<int32, Quest*>::iterator itr;
+	GetPlayer()->MPlayerQuests.readlock(__FUNCTION__, __LINE__);
+	for (std::map<int32, Quest*>::iterator itr = player->player_quests.begin(); itr != player->player_quests.end(); ++itr) {
+		quest_ids.push_back(itr->first);
+	}
+	GetPlayer()->MPlayerQuests.releasereadlock(__FUNCTION__, __LINE__);
+	
+	for (int32 id : quest_ids) {
+		DeleteQuest(id, override_deny_delete);
 	}
 }
 
@@ -12783,6 +12817,11 @@ void Client::ConsumeFoodDrink(Item* item, int32 slot)
 			}
 		}
 		else {
+			
+			char msg[512];
+			snprintf(msg, 512, "ConsumeFoodDrink missing proper item script set %s ID %i", item->name.c_str(), item->details.item_id);
+			if (!world.CheckTempBugCRC(msg))
+				commands.Command_ReportBug(this, new Seperator(msg));
 			Message(CHANNEL_NARRATIVE, "SERVER BUG! Item Script not assigned for consuming '%s'.", item->name.c_str());
 			return;
 		}
