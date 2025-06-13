@@ -3690,6 +3690,10 @@ void ZoneServer::RemoveClient(Client* client)
 		RemoveSpawn(client->GetPlayer(), false, true, true, true, true);
 		
 		int32 DisconnectClientTimer = rule_manager.GetGlobalRule(R_World, RemoveDisconnectedClientsTimer)->GetInt32();
+		
+		if(client->GetPlayer()->GetClient() == client)
+			client->GetPlayer()->SetClient(nullptr);
+			
 		connected_clients.Remove(client, true, DisconnectClientTimer); // changed from a hardcoded 30000 (30 sec) to the DisconnectClientTimer rule
 	}
 }
