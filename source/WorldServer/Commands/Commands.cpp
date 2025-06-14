@@ -3192,20 +3192,7 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 			int32 quest_id = 0;
 			if(sep && sep->arg[0] && sep->IsNumber(0))
 				quest_id = atoul(sep->arg[0]);
-			if(quest_id > 0){
-				client->GetPlayer()->MPlayerQuests.readlock(__FUNCTION__, __LINE__);
-				if(lua_interface && client->GetPlayer()->player_quests.count(quest_id) > 0) {
-					Quest* quest = client->GetPlayer()->player_quests[quest_id];
-					client->GetPlayer()->MPlayerQuests.releasereadlock(__FUNCTION__, __LINE__);
-					if (quest && quest->CanDeleteQuest()) {
-						lua_interface->CallQuestFunction(quest, "Deleted", client->GetPlayer());
-						client->RemovePlayerQuest(quest_id);
-						client->GetCurrentZone()->SendQuestUpdates(client);
-					}
-				}
-				else {
-					client->GetPlayer()->MPlayerQuests.releasereadlock(__FUNCTION__, __LINE__);
-				}
+				client->DeleteQuest(quest_id);
 			}
 			break;
 								  }

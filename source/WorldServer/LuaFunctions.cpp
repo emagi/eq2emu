@@ -3901,7 +3901,6 @@ int EQ2Emu_lua_OfferQuest(lua_State* state) {
 	bool forced = lua_interface->GetBooleanValue(state, 4);
 	lua_interface->ResetFunctionStack(state);
 
-	/* NPC is allowed to be null */
 	if (player && player->IsPlayer() && quest_id > 0) {
 		Quest* master_quest = master_quest_list.GetQuest(quest_id, false);
 		if (master_quest) {
@@ -3939,7 +3938,6 @@ int EQ2Emu_lua_DeleteQuest(lua_State* state) {
 	bool override_deny_delete = lua_interface->GetBooleanValue(state, 3);
 	lua_interface->ResetFunctionStack(state);
 
-	/* NPC is allowed to be null */
 	if (player && player->IsPlayer() && quest_id > 0) {
 		Client* client = ((Player*)player)->GetClient();
 		if (!client) {
