@@ -1551,7 +1551,7 @@ public:
 	bool			SecondaryWeaponReady();
 	bool			RangeWeaponReady();
 	void			MeleeAttack(Spawn* victim, float distance, bool primary, bool multi_attack = false);
-	void			RangeAttack(Spawn* victim, float distance, Item* weapon, Item* ammo, bool multi_attack = false);
+	bool			RangeAttack(Spawn* victim, float distance, Item* weapon, Item* ammo, bool multi_attack = false);
 	bool			SpellAttack(Spawn* victim, float distance, LuaSpell* luaspell, int8 damage_type, int32 low_damage, int32 high_damage, int8 crit_mod = 0, bool no_calcs = false, int8 override_packet_type = 0, bool take_power = false);
 	bool			ProcAttack(Spawn* victim, int8 damage_type, int32 low_damage, int32 high_damage, string name, string success_msg, string effect_msg);
 	bool            SpellHeal(Spawn* target, float distance, LuaSpell* luaspell, string heal_type, int32 low_heal, int32 high_heal, int8 crit_mod = 0, bool no_calcs = false, string custom_spell_name="");

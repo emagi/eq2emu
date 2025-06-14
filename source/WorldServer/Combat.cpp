@@ -355,10 +355,11 @@ void Entity::MeleeAttack(Spawn* victim, float distance, bool primary, bool multi
 	}
 }
 
-void Entity::RangeAttack(Spawn* victim, float distance, Item* weapon, Item* ammo, bool multi_attack) {
+bool Entity::RangeAttack(Spawn* victim, float distance, Item* weapon, Item* ammo, bool multi_attack) {
 	if(!victim)
-		return;
+		return false;
 
+	bool item_deleted = false;
 	if(weapon && weapon->IsRanged() && ammo && ammo->IsAmmo() && ammo->IsThrown()) {
 		if(weapon->ranged_info->range_low <= distance && (weapon->ranged_info->range_high + ammo->thrown_info->range) >= distance) {
 			int8 hit_result = DetermineHit(victim, DAMAGE_PACKET_TYPE_RANGE_DAMAGE, ammo->thrown_info->damage_type, ammo->thrown_info->hit_bonus, false);
@@ -371,7 +372,10 @@ void Entity::RangeAttack(Spawn* victim, float distance, Item* weapon, Item* ammo
 			}
 			else
 				GetZone()->SendDamagePacket(this, victim, DAMAGE_PACKET_TYPE_RANGE_DAMAGE, hit_result, ammo->thrown_info->damage_type, 0, 0);
-
+			
+			bool inv_slot_incl = false;
+			if(ammo->details.inv_slot_id >= 6)
+				inv_slot_incl = true;
 			// If is a player subtract ammo
 			if (IsPlayer()) {
 				if (ammo->details.count > 1) {
@@ -381,10 +385,13 @@ void Entity::RangeAttack(Spawn* victim, float distance, Item* weapon, Item* ammo
 				else {
 					if(ammo->details.inv_slot_id >= 6) {
 						((Player*)this)->equipment_list.RemoveItem(ammo->details.slot_id, false);
-						((Player*)this)->item_list.DestroyItem(ammo->details.index);	
+						((Player*)this)->item_list.DestroyItem(ammo->details.index);
+						ammo = nullptr; // item is gone
+						item_deleted = true;
 					}
 					else {
 						((Player*)this)->equipment_list.RemoveItem(ammo->details.slot_id, true);
+						item_deleted = true;
 					}
 				}
 				
@@ -394,7 +401,7 @@ void Entity::RangeAttack(Spawn* victim, float distance, Item* weapon, Item* ammo
 					if(outapp)
 						client->QueuePacket(outapp);
 					
-					if(ammo->details.inv_slot_id > 6) {
+					if(inv_slot_incl) {
 						EQ2Packet* outapp = client->GetPlayer()->SendInventoryUpdate(client->GetVersion());
 						if (outapp)
 							client->QueuePacket(outapp);
@@ -437,26 +444,28 @@ void Entity::RangeAttack(Spawn* victim, float distance, Item* weapon, Item* ammo
 		}
 	}
 	//Multi Attack roll
-	if(!multi_attack){
+	if(!multi_attack && !item_deleted){
 		float multi_attack = info_struct.get_multi_attack();
 		if(multi_attack > 0){
 			float chance = multi_attack;
 			if (multi_attack > 100){
 				int8 automatic_multi = (int8)floor((float)(multi_attack / 100));
 				chance = (multi_attack - (floor((float)(multi_attack / 100) * 100)));
-				while(automatic_multi > 0){
-					RangeAttack(victim, 100, weapon, ammo, true);
+				while(!item_deleted && automatic_multi > 0){
+					item_deleted = RangeAttack(victim, 100, weapon, ammo, true);
 					automatic_multi--;
 				}
 			}
-			if (MakeRandomFloat(0, 100) <= chance)
-				RangeAttack(victim, 100, weapon, ammo, true);
+			if (!item_deleted && MakeRandomFloat(0, 100) <= chance)
+				item_deleted = RangeAttack(victim, 100, weapon, ammo, true);
 		}
 	}
 
 	//Apply attack speed mods
 	if(!multi_attack)
 		SetAttackDelay(false, true);
+	
+	return item_deleted;
 }
 
 bool Entity::SpellAttack(Spawn* victim, float distance, LuaSpell* luaspell, int8 damage_type, int32 low_damage, int32 high_damage, int8 crit_mod, bool no_calcs, int8 override_packet_type, bool take_power){
