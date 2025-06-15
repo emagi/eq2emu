@@ -384,13 +384,14 @@ bool Entity::RangeAttack(Spawn* victim, float distance, Item* weapon, Item* ammo
 				}
 				else {
 					if(ammo->details.inv_slot_id >= 6) {
-						((Player*)this)->equipment_list.RemoveItem(ammo->details.slot_id, false);
+						((Player*)this)->equipment_list.RemoveItem(ammo->details.slot_id);
 						((Player*)this)->item_list.DestroyItem(ammo->details.index);
 						ammo = nullptr; // item is gone
 						item_deleted = true;
 					}
 					else {
 						((Player*)this)->equipment_list.RemoveItem(ammo->details.slot_id, true);
+						ammo = nullptr;
 						item_deleted = true;
 					}
 				}
