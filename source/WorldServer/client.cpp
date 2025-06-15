@@ -2967,11 +2967,11 @@ bool Client::HandleLootItem(Spawn* entity, Item* item, Spawn* target, bool overr
 				guild->AddNewGuildEvent(type, "%s has looted the %s %s", Timer::GetUnixTimeStamp(), true, lootingPlayer->GetName(), adjective, item->CreateItemLink(GetVersion()).c_str());
 				guild->SendMessageToGuild(type, "%s has looted the %s %s", lootingPlayer->GetName(), adjective, item->CreateItemLink(GetVersion()).c_str());
 			}
-
+			
+			lootingClient->CheckPlayerQuestsItemUpdate(item);
+				
 			if (item->GetItemScript() && lua_interface)
 				lua_interface->RunItemScript(item->GetItemScript(), "obtained", item, lootingPlayer);
-
-			lootingClient->CheckPlayerQuestsItemUpdate(item);
 
 			if (GetVersion() <= 561) {
 				EQ2Packet* outapp = lootingPlayer->SendInventoryUpdate(GetVersion());
@@ -8079,6 +8079,9 @@ bool Client::AddItem(Item* item, bool* item_deleted, AddItemType type) {
 		CheckPlayerQuestsItemUpdate(item);
 		if (item->GetItemScript() && lua_interface)
 			lua_interface->RunItemScript(item->GetItemScript(), "obtained", item, player);
+		
+		if(!lua_interface->IsLuaUserDataValid(item) && item_deleted)
+			*item_deleted = true;
 	}
 	else {
 		lua_interface->SetLuaUserDataStale(item);
@@ -8537,7 +8540,6 @@ void Client::BuyItem(int32 item_id, int16 quantity) {
 						bool itemDeleted = false;
 						AddItem(item, &itemDeleted);
 						if (!itemDeleted) {
-							CheckPlayerQuestsItemUpdate(item);
 							if (item && total_available < 0xFF) {
 								world.DecreaseMerchantQuantity(spawn->GetMerchantID(), item_id, quantity);
 								SendBuyMerchantList();
@@ -8634,7 +8636,6 @@ void Client::BuyItem(int32 item_id, int16 quantity) {
 							bool itemDeleted = false;
 							AddItem(item, &itemDeleted);
 							if (!itemDeleted) {
-								CheckPlayerQuestsItemUpdate(item);
 								if (item && total_available < 0xFF) {
 									world.DecreaseMerchantQuantity(spawn->GetMerchantID(), item_id, quantity);
 									SendBuyMerchantList();

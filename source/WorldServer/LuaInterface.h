@@ -355,6 +355,7 @@ public:
 	int32			GetFreeCustomSpellID();
 	
 	void			SetLuaUserDataStale(void* ptr);
+	bool			IsLuaUserDataValid(void* ptr);
 	
 private:
 	bool			shutting_down;

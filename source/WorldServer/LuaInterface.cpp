@@ -2964,6 +2964,15 @@ void LuaInterface::SetLuaUserDataStale(void* ptr) {
 	}
 }
 
+bool LuaInterface::IsLuaUserDataValid(void* ptr) {
+	std::shared_lock lock(MLUAUserData);
+	std::map<void*, LUAUserData*>::iterator itr = user_data_ptr.find(ptr);
+	if(itr != user_data_ptr.end()) {
+		return itr->second->correctly_initialized;
+	}
+	return false;
+}
+
 LUAUserData::LUAUserData(){
 	correctly_initialized = false;
 	quest = 0;
