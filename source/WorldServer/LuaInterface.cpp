@@ -1737,7 +1737,6 @@ void LuaInterface::DeletePendingSpells(bool all) {
 			
 			if(!all) {
 				// rely on targets the spell->caster could be corrupt
-				bool spellDeleted = false;
 				if(spell->targets.size() > 0) {
 					spell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
 					for (int8 i = 0; i < spell->targets.size(); i++) {
@@ -1748,16 +1747,11 @@ void LuaInterface::DeletePendingSpells(bool all) {
 						if(target->IsEntity()) {
 							((Entity*)target)->RemoveWard(spell);
 						}
-						
-						if(!spellDeleted && spell->zone && spell->zone->GetSpellProcess())
-							spell->zone->GetSpellProcess()->DeleteActiveSpell(spell, true);
-
-						spellDeleted = true;
 					}
 					spell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
 				}
 				
-				if(!spellDeleted && spell->zone && spell->zone->GetSpellProcess()) {
+				if(spell->zone && spell->zone->GetSpellProcess()) {
 					spell->zone->GetSpellProcess()->DeleteActiveSpell(spell, true);
 				}
 			}
