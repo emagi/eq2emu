@@ -583,7 +583,7 @@ int32 LoginServer::DetermineCharacterLoginRequest ( UsertoWorldRequest_Struct* u
 	else
 		status = database.GetCharacterAdminStatus ( utwr->lsaccountid , utwr->char_id );
 
-	if(status < 100 && zone_list.ClientConnected(utwr->lsaccountid))
+	if(status < 100 && zone_list.ClientConnected(utwr->lsaccountid, utwr->char_id))
 		status = -9;
 	if(status < 0){
 		LogWrite(WORLD__ERROR, 0, "World", "Login Rejected based on PLAY_ERROR (UserStatus) (MinStatus: %i), UserStatus: %i, CharID: %i",loginserver.minLockedStatus,status,utwr->char_id );
@@ -592,7 +592,7 @@ int32 LoginServer::DetermineCharacterLoginRequest ( UsertoWorldRequest_Struct* u
 				response = PLAY_ERROR_CHAR_NOT_LOADED;
 				break;
 			case -9:
-				response = 0;//PLAY_ERROR_ACCOUNT_IN_USE;
+				response = PLAY_ERROR_ACCOUNT_IN_USE;
 				break;
 			case -8:
 				response = PLAY_ERROR_LOADING_ERROR;

@@ -532,7 +532,7 @@ class ZoneList {
 			client_map.erase(name);
 		MClientList.unlock();
 	}
-	bool ClientConnected(int32 account_id);
+	bool ClientConnected(int32 account_id, int32 char_id);
 	void RemoveClientZoneReference(ZoneServer* zone);
 	void ReloadClientQuests();
 	bool DepopFinished();

@@ -1280,7 +1280,7 @@ int32 ZoneList::GetZonesPlayersCount() {
 	return ret;
 }
 
-bool ZoneList::ClientConnected(int32 account_id){
+bool ZoneList::ClientConnected(int32 account_id, int32 char_id){
 	bool ret = false;
 	map<string, Client*>::iterator itr;
 	MClientList.lock();
@@ -1294,7 +1294,9 @@ bool ZoneList::ClientConnected(int32 account_id){
 			if(client_map.size() > 0){
 				itr=client_map.begin();
 				if(itr == client_map.end()){
-					if(itr->second && itr->second->GetAccountID() == account_id && (itr->second->GetPlayer()->GetActivityStatus() & ACTIVITY_STATUS_LINKDEAD) == 0)
+					if(itr->second && itr->second->GetAccountID() == account_id && itr->second->GetCharacterID() != char_id)
+						ret = true;
+					if(itr->second && itr->second->GetAccountID() == account_id && itr->second->GetCharacterID() == char_id && ((itr->second->GetPlayer()->GetActivityStatus() & ACTIVITY_STATUS_LINKDEAD) == 0))
 						ret = true;
 					break;
 				}
