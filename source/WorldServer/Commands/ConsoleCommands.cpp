@@ -153,7 +153,7 @@ bool ConsoleBroadcastCommand(Seperator *sep)
 
 	char message[4096]; 
 	snprintf(message, sizeof(message), "%s %s", "BROADCAST:", sep->argplus[1]);
-	zone_list.HandleGlobalBroadcast(message);
+	zone_list.TransmitBroadcast(message);
 	return true;
 }
 
@@ -366,7 +366,7 @@ bool ConsoleZoneCommand(Seperator *sep)
 					printf("============================================================================================\n");
 					printf("| %30s | %10s | %42s |\n", "Zone", "Param", "Value");
 					printf("============================================================================================\n");
-					printf("| %30s | %10s | %42s |\n", zone_details.zoneName, "locked", zone_details.lockState ? "true" : "false");
+					printf("| %30s | %10s | %42s |\n", zone_details.zoneName.c_str(), "locked", zone_details.lockState ? "true" : "false");
 				}
 				else
 				{
@@ -487,7 +487,7 @@ bool ConsoleShutdownCommand(Seperator *sep)
 		// shutting down gracefully, warn players.
 		char message[4096]; 
 		snprintf(message, sizeof(message), "BROADCAST: Server is shutting down in %s second(s)", sep->arg[1]);
-		zone_list.HandleGlobalBroadcast(message);
+		zone_list.TransmitBroadcast(message);
 		Sleep(shutdown_delay * 1000);
 	}
 	else {
