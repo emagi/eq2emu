@@ -3069,10 +3069,10 @@ void SpellProcess::AddSelfAndPetToCharTargets(LuaSpell* spell, Spawn* caster, bo
 
 void SpellProcess::DeleteActiveSpell(LuaSpell* spell, bool skipRemoveCurrent) {	
 	lua_interface->SetLuaUserDataStale(spell);
-	if(!skipRemoveCurrent)
+	if(!skipRemoveCurrent) {
 		lua_interface->RemoveCurrentSpell(spell->state, spell, true);
-
-	lua_interface->DeletePendingSpell(spell);
+		lua_interface->DeletePendingSpell(spell);
+	}
 	active_spells.Remove(spell, true, 10000);
 }
 
