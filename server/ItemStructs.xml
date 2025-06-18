@@ -1439,6 +1439,10 @@
 <Data ElementName="name" Type="EQ2_8Bit_String" Size="1" />
 <Data ElementName="description" Type="EQ2_16Bit_String" Size="1" />
 </Struct>
+<Struct Name="Substruct_ItemRecipeFooter" ClientVersion="546" >
+<Data ElementName="name" Type="EQ2_8Bit_String" Size="1" />
+<Data ElementName="description" Type="EQ2_16Bit_String" Size="1" />
+</Struct>
 <Struct Name="Substruct_ItemFooter" ClientVersion="546" >
 <Data ElementName="num_effects" Type="int8" Size="1"  IfFlagNotSet="loot" /> 
 <Data ElementName="effect_array" Type="Array" ArraySizeVariable="num_effects" IfFlagNotSet="loot">
@@ -4826,9 +4830,8 @@
 <Data ElementName="recipe_array" Type="Array" ArraySizeVariable="num_recipes">
 	<Data ElementName="recipe_name" Type="EQ2_8Bit_String" Size="1" />
 </Data>
-<Data ElementName="uses" Type="int16" Size="1" />
 <Data ElementName="scribed" Type="int8" Size="1" />
-<Data ElementName="footer" Substruct="Substruct_ItemFooter" Size="1" />
+<Data ElementName="footer" Substruct="Substruct_ItemRecipeFooter" Size="1" />
 </Struct>
 <Struct Name="WS_ItemRecipeBook" ClientVersion="562" OpcodeName="OP_ClientCmdMsg" OpcodeType="OP_EqExamineInfoCmd">
 <Data ElementName="header" Substruct="Substruct_ItemDescription" Size="1" />
