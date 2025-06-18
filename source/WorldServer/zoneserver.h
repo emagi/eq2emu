@@ -679,7 +679,7 @@ public:
 	void AddFlightPath(int32 id, FlightPathInfo* info);
 	void AddFlightPathLocation(int32 id, FlightPathLocation* location);
 	void DeleteFlightPaths();
-	void SendFlightPathsPackets(Client* client);
+	void SendFlightPathsPackets(Client* client, int32 index = 0xFFFFFFFF);
 	int32 GetFlightPathIndex(int32 id);
 	float GetFlightPathSpeed(int32 id);
 

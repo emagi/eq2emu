@@ -8830,19 +8830,37 @@ void ZoneServer::DeleteFlightPaths() {
 	m_flightPaths.clear();
 }
 
-void ZoneServer::SendFlightPathsPackets(Client* client) {
+void ZoneServer::SendFlightPathsPackets(Client* client, int32 index) {
+	if(client->GetVersion() <= 561 && index == 0xFFFFFFFF)
+		return;
+	
 	// Only send a packet if there are flight paths
 	if (m_flightPathRoutes.size() > 0) {
 		PacketStruct* packet = configReader.getStruct("WS_FlightPathsMsg", client->GetVersion());
 		if (packet) {
 			int32 num_routes = m_flightPaths.size();
+			if(index != 0xFFFFFFFF) {
+				num_routes = 1;
+			}
 			packet->setArrayLengthByName("number_of_routes", num_routes);
 			packet->setArrayLengthByName("number_of_routes2", num_routes);
 			packet->setArrayLengthByName("number_of_routes3", num_routes);
 			packet->setArrayLengthByName("number_of_routes4", num_routes);
 			map<int32, FlightPathInfo*>::iterator itr;
 			int32 i = 0;
+			bool breakout = false;
 			for (itr = m_flightPaths.begin(); itr != m_flightPaths.end(); itr++, i++) {
+				
+				if(index != 0xFFFFFFFF) {
+					if(i != index) {
+						continue;
+					}
+					else {
+						i = 0;
+						breakout = true;
+					}
+				}
+				
 				packet->setArrayDataByName("route_length", m_flightPathRoutes[itr->first].size(), i);
 				packet->setArrayDataByName("ground_mount", itr->second->flying ? 0 : 1, i);
 				packet->setArrayDataByName("allow_dismount", itr->second->dismount ? 1 : 0, i);
@@ -8854,6 +8872,8 @@ void ZoneServer::SendFlightPathsPackets(Client* client) {
 						packet->setSubArrayDataByName("y", (*itr2)->Y, i, j);
 						packet->setSubArrayDataByName("z", (*itr2)->Z, i, j);
 				}
+				if(breakout)
+					break;
 			}
 			client->QueuePacket(packet->serialize());
 			safe_delete(packet);

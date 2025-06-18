@@ -11827,9 +11827,8 @@ void Client::AttemptStartAutoMount() {
 				packet->setDataByName("speed", GetCurrentZone()->GetFlightPathSpeed(GetPendingFlightPath()));
 				QueuePacket(packet->serialize());
 				safe_delete(packet);
-
-				on_auto_mount = true;
 			}
+			on_auto_mount = true;
 		}
 		else {
 			LogWrite(CCLIENT__ERROR, 0, "Client", "OP_ReadyForTakeOffMsg recieved but unable to get an index for path (%u) in zone (%u)", GetPendingFlightPath(), GetCurrentZone()->GetZoneID());
@@ -11837,7 +11836,7 @@ void Client::AttemptStartAutoMount() {
 			EndAutoMount();
 		}
 
-		SetPendingFlightPath(0);
+		//SetPendingFlightPath(0);
 
 	}
 	else
@@ -11888,6 +11887,7 @@ void Client::EndAutoMount() {
 	player->SetMountColor(&mount_color);
 	player->SetMountSaddleColor(&saddle_color);
 	player->SetTempMount(0);
+	SetPendingFlightPath(0);
 }
 
 bool Client::EntityCommandPrecheck(Spawn* spawn, const char* command) {
@@ -12466,6 +12466,10 @@ void Client::SendFlightAutoMount(int32 path_id, int16 mount_id, int8 mount_red_c
 	((Player*)player)->SetTempMountColor(((Entity*)player)->GetMountColor());
 	((Player*)player)->SetTempMountSaddleColor(((Entity*)player)->GetMountSaddleColor());
 
+	int32 index = GetCurrentZone()->GetFlightPathIndex(GetPendingFlightPath());
+	if(GetVersion() <= 561) {
+		GetCurrentZone()->SendFlightPathsPackets(this, index);
+	}
 	PacketStruct* packet = configReader.getStruct("WS_ReadyForTakeOff", GetVersion());
 	if (packet) {
 		QueuePacket(packet->serialize());
@@ -12475,14 +12479,14 @@ void Client::SendFlightAutoMount(int32 path_id, int16 mount_id, int8 mount_red_c
 	if (mount_id)
 		((Entity*)GetPlayer())->SetMount(mount_id, mount_red_color, mount_green_color, mount_blue_color);
 	
+	
 	if(GetVersion() <= 561) {
 		PacketStruct* packet = configReader.getStruct("WS_CreateBoatTransportMsg", GetVersion());
 		if (!packet) {
 			LogWrite(CCLIENT__ERROR, 0, "Client", "WS_CreateBoatTransportMsg missing for version %u", GetVersion());
 			return;
 		}
-		int8 index = (int8)GetCurrentZone()->GetFlightPathIndex(GetPendingFlightPath());
-		packet->setDataByName("path_id", index);
+		packet->setDataByName("path_id", 1); // workaround we send the SendFlightPathsPackets based on the index since the structure seems to only honor the first index as every index+1
 	//	packet->PrintPacket();
 		QueuePacket(packet->serialize());
 		safe_delete(packet);
