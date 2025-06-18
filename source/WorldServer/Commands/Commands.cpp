@@ -3192,8 +3192,7 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 			int32 quest_id = 0;
 			if(sep && sep->arg[0] && sep->IsNumber(0))
 				quest_id = atoul(sep->arg[0]);
-				client->DeleteQuest(quest_id);
-			}
+			client->DeleteQuest(quest_id);
 			break;
 								  }
 		case COMMAND_ACCEPT_QUEST:{
