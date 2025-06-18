@@ -176,7 +176,7 @@ public:
 	void setZonePeerDataSelf(ZoneChangeDetails* opt_details, std::string zoneFileName, std::string zoneName, int32 zoneId,
 		int32 instanceId, float safeX, float safeY, float safeZ, float safeHeading, bool lockState, sint16 minStatus,
 		int16 minLevel, int16 maxLevel, int16 minVersion, int32 defaultLockoutTime, int32 defaultReenterTime, int8 instanceType, int32 numPlayers, bool isCityZone, void* zonePtr = nullptr);
-	bool IsClientConnectedPeer(int32 account_id);
+	bool IsClientConnectedPeer(int32 account_id, int32 char_id);
 	std::string GetCharacterPeerId(std::string charName);
 	void SendPeersChannelMessage(int32 group_id, std::string fromName, std::string message, int16 channel, int32 language_id = 0, int8 custom_type = 0);
 	void SendPeersGuildChannelMessage(int32 guild_id, std::string fromName, std::string message, int16 channel, int32 language_id = 0, int8 custom_type = 0);

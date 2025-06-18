@@ -911,7 +911,7 @@ bool ZoneList::GetZoneByInstance(ZoneChangeDetails* zone_details, int32 instance
 	return (tmp != nullptr) ? true : false;
 }
 
-bool PeerManager::IsClientConnectedPeer(int32 account_id) {
+bool PeerManager::IsClientConnectedPeer(int32 account_id, int32 char_id) {
     for (auto& [peerId, peer] : peers) {
 		if(peer->healthCheck.status != HealthStatus::OK)
 			continue;
@@ -920,6 +920,7 @@ bool PeerManager::IsClientConnectedPeer(int32 account_id) {
 		for (const auto& zone : peer->client_tree->get_child("Clients")) {
 			// Access each field within the current zone
 			int32 client_acct_id = zone.second.get<int32>("account_id");
+			int32 in_character_id = zone.second.get<int32>("character_id");
 			bool is_linkdead = zone.second.get<bool>("is_linkdead");
 			bool is_zoning = zone.second.get<bool>("is_zoning");
 			bool in_zone = zone.second.get<bool>("in_zone");
@@ -927,7 +928,7 @@ bool PeerManager::IsClientConnectedPeer(int32 account_id) {
 			if(client_acct_id == account_id) {
 				if(is_zoning)
 					return true;
-				else if(is_linkdead)
+				else if(is_linkdead && in_character_id == char_id)
 					return false;
 				else if(in_zone)
 					return true;
@@ -1306,7 +1307,7 @@ bool ZoneList::ClientConnected(int32 account_id, int32 char_id){
 		}
 	}
 	if(!ret) {
-		ret = peer_manager.IsClientConnectedPeer(account_id);
+		ret = peer_manager.IsClientConnectedPeer(account_id, char_id);
 	}
 	MClientList.unlock();
 	return ret;

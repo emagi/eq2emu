@@ -455,7 +455,7 @@ class ZoneList {
 	bool GetZone(ZoneChangeDetails* zone_details, int32 opt_zone_id, std::string opt_zone_name = "", bool loadZone = true, bool skip_existing_zones = false, bool increment_zone = true, bool check_peers = true, bool check_instances = false, bool only_always_loaded = false, bool skip_self = false, bool duplicated_zone = false, int32 minLevel = 0, int32 maxLevel = 0, int32 avgLevel = 0, int32 firstLevel = 0);
 	bool GetZoneByInstance(ZoneChangeDetails* zone_details, int32 instance_id, int32 zone_id = 0, bool loadZone = true, bool skip_existing_zones = false, bool increment_zone = true, bool check_peers = true, int32 minLevel = 0, int32 maxLevel = 0, int32 avgLevel = 0, int32 firstLevel = 0);
 	
-	bool IsClientConnectedPeer(int32 account_id);
+	bool IsClientConnectedPeer(int32 account_id, int32 char_id);
 	//ZoneServer*	Get(int32 id, bool loadZone = true, bool skip_existing_zones = false, bool increment_zone = true);
 	//ZoneServer* Get(const char* zone_name, bool loadZone=true, bool skip_existing_zones = false, bool increment_zone = true);
 	//ZoneServer* GetByInstanceID(int32 id, int32 zone_id=0, bool skip_existing_zones = false, bool increment_zone = true);
