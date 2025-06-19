@@ -7608,18 +7608,20 @@ void Client::PopulateQuestRewardItems(vector <Item*>* items, PacketStruct* packe
 
 	if (items) {
 		int32 total_item_count = 0;
-		for (int s = 0; s < items->size(); s++) {
-			Item* tmpItem = items->at(s);
-			if (tmpItem) {
-				if (tmpItem->details.count > 1) {
-					total_item_count += tmpItem->details.count;
-				}
-				else {
-					total_item_count += 1;
+		if(GetVersion() < 546 || GetVersion() > 561) {
+			for (int s = 0; s < items->size(); s++) {
+				Item* tmpItem = items->at(s);
+				if (tmpItem) {
+					if (tmpItem->details.count > 1) {
+						total_item_count += tmpItem->details.count;
+					}
+					else {
+						total_item_count += 1;
+					}
 				}
 			}
 		}
-		packet->setArrayLengthByName(num_rewards_str.c_str(), total_item_count);
+		packet->setArrayLengthByName(num_rewards_str.c_str(), (GetVersion() < 546 || GetVersion() > 561) ? total_item_count : items->size());
 		int16 count = 0;
 		int16 pos = 0;
 		for (int32 i = 0; i < items->size();) {
@@ -7632,7 +7634,10 @@ void Client::PopulateQuestRewardItems(vector <Item*>* items, PacketStruct* packe
 				packet->setItemArrayDataByName(item_str.c_str(), items->at(i), player, pos, 0, 2);
 
 			pos++;
-
+			if(GetVersion() >= 546 && GetVersion() <= 561) {
+				i++;
+				continue;
+			}
 			if (count >= items->at(i)->details.count - 1) {
 				count = 0;
 			}
