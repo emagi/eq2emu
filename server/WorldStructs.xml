@@ -2309,7 +2309,7 @@ to zero and treated like placeholders." />
 <Data ElementName="attack" Type="int16" Size="1" /> <!-- 152 -->
 <Data ElementName="attack_base" Type="int16" Size="1" /> <!-- 154 -->
 <Data ElementName="mitigation_cur" Type="int16" Size="1" /> <!-- 156 -->
-<Data ElementName="mitigation_max" Type="int16" Size="1" /> <!-- 158 -->
+<Data ElementName="mitigation_base" Type="int16" Size="1" /> <!-- 158 -->
 <Data ElementName="absorb" Type="int16" Size="1" /> <!-- 160 -->
 <Data ElementName="avoidance_cur" Type="int16" Size="1" /> <!-- 162 -->
 <Data ElementName="avoidance_max" Type="int16" Size="1" /> <!-- 164 -->
@@ -2540,7 +2540,7 @@ to zero and treated like placeholders." />
 <Data ElementName="attack" Type="int16" Size="1" /> <!-- 147 -->
 <Data ElementName="attack_base" Type="int16" Size="1" /> <!-- 149 -->
 <Data ElementName="mitigation_cur" Type="int16" Size="1" /> <!-- 151 -->
-<Data ElementName="mitigation_max" Type="int16" Size="1" /> <!-- 153 -->
+<Data ElementName="mitigation_base" Type="int16" Size="1" /> <!-- 153 -->
 <Data ElementName="absorb" Type="int16" Size="1" /> <!-- 155 -->
 <Data ElementName="avoidance_cur" Type="int16" Size="1" /> <!-- 157 -->
 <Data ElementName="avoidance_max" Type="int16" Size="1" /> <!-- 159 -->
