@@ -3862,7 +3862,9 @@ bool Client::Process(bool zone_process) {
 
 			player_pos_changed = false;
 
-			GetCurrentZone()->CheckTransporters(this);
+			// avoid a glitch where we keep triggering this over and over again in succession after transporter is selected
+			if(!IsReloadingZone() && !IsZoning())
+				GetCurrentZone()->CheckTransporters(this);
 
 			if (GetPlayer()->GetRegionMap())
 			{
@@ -4894,8 +4896,21 @@ bool Client::GotoSpawn(const char* search_name, bool forceTarget) {
 void Client::MoveInZone(float x, float y, float z, float h) {
 	SetReloadingZone(true);
 	
+	GetPlayer()->SetX(x);
+	GetPlayer()->SetY(y);
+	GetPlayer()->SetZ(z);
+	GetPlayer()->SetHeading(h);
+	
+	GetPlayer()->SetSpawnOrigX(x);
+	GetPlayer()->SetSpawnOrigY(y);
+	GetPlayer()->SetSpawnOrigZ(z);
+	GetPlayer()->SetSpawnOrigHeading(h);
 	SetZoningCoords(x,y,z,h);
 
+	EQ2Packet* pack = GetPlayer()->Move(x, y, z, GetVersion());
+	if(pack)
+		QueuePacket(pack);
+	
 	PacketStruct* packet = configReader.getStruct("WS_TeleportWithinZone", GetVersion());
 	if (packet)
 	{
