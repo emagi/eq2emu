@@ -5800,7 +5800,8 @@ map<int32,int32>* WorldDatabase::GetInstanceRemovedSpawns(int32 instance_id, int
 
 	if( !database_new.Select(&result, "SELECT spawn_location_entry_id, respawn_time FROM instance_spawns_removed WHERE instance_id = %i AND spawn_type = %i", instance_id, type) )
 	{
-		LogWrite(INSTANCE__ERROR, 0, "Instance", "Error in GetInstanceRemovedSpawns() '%s': %i", database_new.GetErrorMsg(), database_new.GetError());
+		if(database_new.GetError()) // reduce spam in logs, only post error if actual error back from DB server 0 means no results
+			LogWrite(INSTANCE__ERROR, 0, "Instance", "Error in GetInstanceRemovedSpawns() '%s': %i", database_new.GetErrorMsg(), database_new.GetError());
 		return ret;
 	}
 	else

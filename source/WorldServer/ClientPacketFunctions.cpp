@@ -354,7 +354,7 @@ void ClientPacketFunctions::SendInstanceList(Client* client) {
 }
 
 void ClientPacketFunctions::SendMaintainedExamineUpdate(Client* client, int8 slot_pos, int32 update_value, int8 update_type){
-	if (!client)
+	if (!client || client->GetVersion() <= 561) // KoS and earlier clients don't support this packet, best to just return and not spam logs w/ errors
 		return;
 
 	PacketStruct* packet = configReader.getStruct("WS_UpdateMaintainedExamine", client->GetVersion());

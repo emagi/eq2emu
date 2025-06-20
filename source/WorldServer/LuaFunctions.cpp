@@ -9884,8 +9884,6 @@ int EQ2Emu_lua_StartHeroicOpportunity(lua_State* state) {
 	HeroicOP* ho = master_ho_list.GetHeroicOP(class_id);
 	if (ho) {
 		ho->SetTarget(target->GetID());
-		LogWrite(SPELL__ERROR, 0, "HO", "caster: %u", caster->GetID());
-		LogWrite(SPELL__ERROR, 0, "HO", "target: %u", target->GetID());
 		if (((Entity*)caster)->GetGroupMemberInfo()) {
 			if (caster->GetZone()->GetSpellProcess()->AddHO(client, ho)) {
 				world.GetGroupManager()->GroupLock(__FUNCTION__, __LINE__);
