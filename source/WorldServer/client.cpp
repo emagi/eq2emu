@@ -4497,6 +4497,10 @@ void Client::SimpleMessage(int8 color, const char* message) {
 }
 
 void Client::SendSpellUpdate(Spell* spell, bool add_silently, bool add_to_hotbar) {
+	// disable potentially putting a spell on the hotbar (like archetypes) that are not to be shown to player or book
+	if(spell && spell->GetSpellData() && spell->GetSpellData()->type == SPELL_BOOK_TYPE_NOT_SHOWN)
+		add_to_hotbar = false;
+	
 	PacketStruct* packet = configReader.getStruct("WS_SpellGainedMsg", GetVersion());
 	if (packet) {
 		int8 xxx = spell->GetSpellData()->is_aa;
