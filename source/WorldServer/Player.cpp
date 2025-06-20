@@ -3474,8 +3474,11 @@ void Player::AddMaintainedSpell(LuaSpell* luaspell){
 void Player::AddSpellEffect(LuaSpell* luaspell, int32 override_expire_time){
 	if(!luaspell || !luaspell->caster)
 		return;
-
+	
 	Spell* spell = luaspell->spell;
+	if(spell->GetSpellData() && spell->GetSpellData()->icon == 0 && spell->GetSpellData()->duration1 == 0 && spell->GetSpellData()->duration2 == 0)
+		return;
+	
 	SpellEffects* old_effect = GetSpellEffect(spell->GetSpellID(), luaspell->caster);
 	SpellEffects* effect = 0;
 	if (old_effect){
