@@ -3389,20 +3389,25 @@ void ZoneServer::CheckTransporters(Client* client) {
 		for (itr = transporter_locations.begin(); itr != transporter_locations.end(); itr++) {
 			loc = *itr;
 			if(client->GetPlayer()->GetDistance(loc->trigger_x, loc->trigger_y, loc->trigger_z) <= loc->trigger_radius){
-				if(loc->destination_zone_id == 0 || loc->destination_zone_id == GetZoneID()){
+				if(loc->destination_zone_id == 0 || (loc->destination_zone_id == GetZoneID() && !loc->force_zone)){
 					EQ2Packet* packet = client->GetPlayer()->Move(loc->destination_x, loc->destination_y, loc->destination_z, client->GetVersion());
 					if(packet)
 						client->QueuePacket(packet);
 				}
 				else{
-					ZoneChangeDetails zone_details;
-					bool foundZone = zone_list.GetZone(&zone_details, loc->destination_zone_id);
-					if(foundZone){
-						client->GetPlayer()->SetX(loc->destination_x);
-						client->GetPlayer()->SetY(loc->destination_y);
-						client->GetPlayer()->SetZ(loc->destination_z);
-						client->GetPlayer()->SetHeading(loc->destination_heading);
-						client->Zone(&zone_details, (ZoneServer*)zone_details.zonePtr);
+					if(loc->force_zone && loc->destination_zone_id == GetZoneID()) {
+						client->MoveInZone(loc->destination_x, loc->destination_y, loc->destination_z, loc->destination_heading);
+					}
+					else {
+						ZoneChangeDetails zone_details;
+						bool foundZone = zone_list.GetZone(&zone_details, loc->destination_zone_id);
+						if(foundZone){
+							client->GetPlayer()->SetX(loc->destination_x);
+							client->GetPlayer()->SetY(loc->destination_y);
+							client->GetPlayer()->SetZ(loc->destination_z);
+							client->GetPlayer()->SetHeading(loc->destination_heading);
+							client->Zone(&zone_details, (ZoneServer*)zone_details.zonePtr);
+						}
 					}
 				}
 				break;
@@ -8574,7 +8579,7 @@ LootTable* ZoneServer::GetLootTable(int32 table_id){
 	return loot_tables[table_id];
 }
 
-void ZoneServer::AddLocationTransporter(int32 zone_id, string message, float trigger_x, float trigger_y, float trigger_z, float trigger_radius, int32 destination_zone_id, float destination_x, float destination_y, float destination_z, float destination_heading, int32 cost, int32 unique_id){
+void ZoneServer::AddLocationTransporter(int32 zone_id, string message, float trigger_x, float trigger_y, float trigger_z, float trigger_radius, int32 destination_zone_id, float destination_x, float destination_y, float destination_z, float destination_heading, int32 cost, int32 unique_id, bool force_zone){
 	LocationTransportDestination* loc = new LocationTransportDestination;
 	loc->message = message;
 	loc->trigger_x = trigger_x;
@@ -8588,6 +8593,7 @@ void ZoneServer::AddLocationTransporter(int32 zone_id, string message, float tri
 	loc->destination_heading = destination_heading;
 	loc->cost = cost;
 	loc->unique_id = unique_id;
+	loc->force_zone = force_zone;
 	MTransporters.lock();
 	if(location_transporters.count(zone_id) == 0)
 		location_transporters[zone_id] = new MutexList<LocationTransportDestination*>();

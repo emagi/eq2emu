@@ -4891,6 +4891,22 @@ bool Client::GotoSpawn(const char* search_name, bool forceTarget) {
 		return true;
 }
 
+void Client::MoveInZone(float x, float y, float z, float h) {
+	SetReloadingZone(true);
+	
+	SetZoningCoords(x,y,z,h);
+
+	PacketStruct* packet = configReader.getStruct("WS_TeleportWithinZone", GetVersion());
+	if (packet)
+	{
+		packet->setDataByName("x", x);
+		packet->setDataByName("y", y);
+		packet->setDataByName("z", z);
+		QueuePacket(packet->serialize());
+		safe_delete(packet);
+	}
+}
+
 bool Client::CheckZoneAccess(const char* zoneName) {
 
 	LogWrite(CCLIENT__DEBUG, 0, "Client", "Zone access check for %s (%u), client: %u", zoneName, database.GetZoneID(zoneName), GetVersion());
@@ -10154,7 +10170,7 @@ void Client::ProcessTeleport(Spawn* spawn, vector<TransportDestination*>* destin
 			transport_list.push_back(destination);
 	}
 	if (transport_list.size() == 0 && destination) {
-		if (destination->destination_zone_id == 0 || destination->destination_zone_id == GetCurrentZone()->GetZoneID()) {
+		if (destination->destination_zone_id == 0 || (destination->destination_zone_id == GetCurrentZone()->GetZoneID() && destination->type != TRANSPORT_TYPE_FORCEZONE)) {
 
 			if (destination->type == TRANSPORT_TYPE_FLIGHT)
 				SendFlightAutoMount(destination->flight_path_id, destination->mount_id, destination->mount_red_color, destination->mount_green_color, destination->mount_blue_color);
@@ -10166,20 +10182,14 @@ void Client::ProcessTeleport(Spawn* spawn, vector<TransportDestination*>* destin
 			}
 		}
 		else {
-
-			// determine if this is an instanced zone that already exists
-			ZoneChangeDetails zone_details;
-			bool foundZone = world.GetGroupManager()->IdentifyMemberInGroupOrRaid(&zone_details, this, destination->destination_zone_id);
-			if (foundZone) {
-				GetPlayer()->SetX(destination->destination_x);
-				GetPlayer()->SetY(destination->destination_y);
-				GetPlayer()->SetZ(destination->destination_z);
-				GetPlayer()->SetHeading(destination->destination_heading);
-				Zone(&zone_details, (ZoneServer*)zone_details.zonePtr, false, is_spell);
+			if (destination->destination_zone_id == GetCurrentZone()->GetZoneID() && destination->type == TRANSPORT_TYPE_FORCEZONE) {
+				MoveInZone(destination->destination_x, destination->destination_y, destination->destination_z, destination->destination_heading);
 			}
 			else {
-				bool isZone = zone_list.GetZone(&zone_details, destination->destination_zone_id);
-				if (isZone) {
+				// determine if this is an instanced zone that already exists
+				ZoneChangeDetails zone_details;
+				bool foundZone = world.GetGroupManager()->IdentifyMemberInGroupOrRaid(&zone_details, this, destination->destination_zone_id);
+				if (foundZone) {
 					GetPlayer()->SetX(destination->destination_x);
 					GetPlayer()->SetY(destination->destination_y);
 					GetPlayer()->SetZ(destination->destination_z);
@@ -10187,7 +10197,17 @@ void Client::ProcessTeleport(Spawn* spawn, vector<TransportDestination*>* destin
 					Zone(&zone_details, (ZoneServer*)zone_details.zonePtr, false, is_spell);
 				}
 				else {
-					SimpleMessage(CHANNEL_COLOR_RED, "Error establishing a zone destination");
+					bool isZone = zone_list.GetZone(&zone_details, destination->destination_zone_id);
+					if (isZone) {
+						GetPlayer()->SetX(destination->destination_x);
+						GetPlayer()->SetY(destination->destination_y);
+						GetPlayer()->SetZ(destination->destination_z);
+						GetPlayer()->SetHeading(destination->destination_heading);
+						Zone(&zone_details, (ZoneServer*)zone_details.zonePtr, false, is_spell);
+					}
+					else {
+						SimpleMessage(CHANNEL_COLOR_RED, "Error establishing a zone destination");
+					}
 				}
 			}
 		}
@@ -10317,7 +10337,7 @@ void Client::ProcessTeleportLocation(EQApplicationPacket* app) {
 				SimpleMessage(CHANNEL_COLOR_RED, "Error processing transport.");
 			else {
 				if (cost == 0 || player->RemoveCoins(cost)) {
-					if (destination->destination_zone_id == 0 || destination->destination_zone_id == GetCurrentZone()->GetZoneID()) {
+					if (destination->destination_zone_id == 0 || (destination->destination_zone_id == GetCurrentZone()->GetZoneID() && destination->type != TRANSPORT_TYPE_FORCEZONE)) {
 
 						if (destination->type == TRANSPORT_TYPE_FLIGHT)
 							SendFlightAutoMount(destination->flight_path_id, destination->mount_id, destination->mount_red_color, destination->mount_green_color, destination->mount_blue_color);
@@ -10329,25 +10349,30 @@ void Client::ProcessTeleportLocation(EQApplicationPacket* app) {
 						}
 					}
 					else {
-						GetPlayer()->SetX(destination->destination_x);
-						GetPlayer()->SetY(destination->destination_y);
-						GetPlayer()->SetZ(destination->destination_z);
-						GetPlayer()->SetHeading(destination->destination_heading);
+						if((destination->destination_zone_id == GetCurrentZone()->GetZoneID() && destination->type == TRANSPORT_TYPE_FORCEZONE)) {
+							MoveInZone(destination->destination_x, destination->destination_y, destination->destination_z, destination->destination_heading);
+						}
+						else {
+							GetPlayer()->SetX(destination->destination_x);
+							GetPlayer()->SetY(destination->destination_y);
+							GetPlayer()->SetZ(destination->destination_z);
+							GetPlayer()->SetHeading(destination->destination_heading);
 
-						// Test if where we're going is an Instanced zone
-						if (!TryZoneInstance(destination->destination_zone_id, false)) {
-							LogWrite(INSTANCE__DEBUG, 0, "Instance", "Attempting to zone normally");
-							ZoneChangeDetails zone_details;
-							bool foundDupeZone = false;
-							duplicate_zoning_id = 0;
-							int32 additional_zones = zone_list.GetHighestDuplicateID("", destination->destination_zone_id, false);
-							if(additional_zones) {
-								if(foundDupeZone = zone_list.GetDuplicateZoneDetails(&zone_details, "", destination->destination_zone_id, duplicateId))
-									duplicate_zoning_id = duplicateId;
-							}
-							
-							if (foundDupeZone || zone_list.GetZone(&zone_details, destination->destination_zone_id)) {
-								Zone(&zone_details, (ZoneServer*)zone_details.zonePtr, false);
+							// Test if where we're going is an Instanced zone
+							if (!TryZoneInstance(destination->destination_zone_id, false)) {
+								LogWrite(INSTANCE__DEBUG, 0, "Instance", "Attempting to zone normally");
+								ZoneChangeDetails zone_details;
+								bool foundDupeZone = false;
+								duplicate_zoning_id = 0;
+								int32 additional_zones = zone_list.GetHighestDuplicateID("", destination->destination_zone_id, false);
+								if(additional_zones) {
+									if(foundDupeZone = zone_list.GetDuplicateZoneDetails(&zone_details, "", destination->destination_zone_id, duplicateId))
+										duplicate_zoning_id = duplicateId;
+								}
+								
+								if (foundDupeZone || zone_list.GetZone(&zone_details, destination->destination_zone_id)) {
+									Zone(&zone_details, (ZoneServer*)zone_details.zonePtr, false);
+								}
 							}
 						}
 					}

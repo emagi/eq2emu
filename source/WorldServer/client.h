@@ -292,6 +292,8 @@ public:
 	bool	IdentifyInstance(ZoneChangeDetails* zone_details, int32 zoneID);
 	bool	TryZoneInstance(int32 zoneID, bool zone_coords_valid = false);
 	bool	GotoSpawn(const char* search_name, bool forceTarget = false);
+	void	MoveInZone(float x, float y, float z, float h);
+	
 	void	DisplayDeadWindow();
 	void	HandlePlayerRevive(int32 point_id);
 	void	Bank(Spawn* banker, bool cancel = false);

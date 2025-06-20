@@ -158,6 +158,7 @@ struct LocationTransportDestination{
 	int32	cost;
 	int32	faction_id;
 	int32	faction_value;
+	bool	force_zone;
 };
 
 struct LottoPlayer {
@@ -348,6 +349,7 @@ struct GlobalLoot {
 #define TRANSPORT_TYPE_ZONE			1
 #define TRANSPORT_TYPE_GENERIC		2
 #define TRANSPORT_TYPE_FLIGHT		3
+#define TRANSPORT_TYPE_FORCEZONE	4
 
 
 // structs MUST start with class_id and race_id, in that order as int8's

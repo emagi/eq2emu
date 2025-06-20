@@ -5615,8 +5615,8 @@ void WorldDatabase::LoadTransporters(ZoneServer* zone){
 				zone->AddTransporter(atoul(row[0]), TRANSPORT_TYPE_ZONE, name, message, atoul(row[4]), atof(row[5]), atof(row[6]), atof(row[7]), atof(row[8]), atoul(row[14]), atoul(row[15]), atoi(row[16]), atoi(row[17]), atoul(row[18]), atoi(row[19]), atoul(row[20]), atoul(row[21]), atoul(row[22]), atoul(row[23]), atoul(row[24]), atoul(row[25]), atoul(row[26]), atoul(row[27]), atoul(row[28]), atoul(row[29]), atoul(row[30]), atoul(row[31]));
 			else if (row[1] && strcmp(row[1], "Flight") == 0)
 				zone->AddTransporter(atoul(row[0]), TRANSPORT_TYPE_FLIGHT, name, message, atoul(row[4]), atof(row[5]), atof(row[6]), atof(row[7]), atof(row[8]), atoul(row[14]), atoul(row[15]), atoi(row[16]), atoi(row[17]), atoul(row[18]), atoi(row[19]), atoul(row[20]), atoul(row[21]), atoul(row[22]), atoul(row[23]), atoul(row[24]), atoul(row[25]), atoul(row[26]), atoul(row[27]), atoul(row[28]), atoul(row[29]), atoul(row[30]), atoul(row[31]));
-			else if(row[1] && strcmp(row[1], "Location") == 0)
-				zone->AddLocationTransporter(atoul(row[9]), message, atof(row[10]), atof(row[11]), atof(row[12]), atof(row[13]), atoul(row[4]), atof(row[5]), atof(row[6]), atof(row[7]), atof(row[8]), atoul(row[14]), atoul(row[15]));
+			else if(row[1] && (strcmp(row[1], "Location") == 0 || strcmp(row[1], "ForceZone") == 0))
+				zone->AddLocationTransporter(atoul(row[9]), message, atof(row[10]), atof(row[11]), atof(row[12]), atof(row[13]), atoul(row[4]), atof(row[5]), atof(row[6]), atof(row[7]), atof(row[8]), atoul(row[14]), atoul(row[15]), (strcmp(row[1], "ForceZone") == 0) ? true : false);
 			else
 				zone->AddTransporter(atoul(row[0]), TRANSPORT_TYPE_GENERIC, "", message, atoul(row[4]), atof(row[5]), atof(row[6]), atof(row[7]), atof(row[8]), atoul(row[14]), atoul(row[15]), atoi(row[16]), atoi(row[17]), atoul(row[18]), atoi(row[19]), atoul(row[20]), atoul(row[21]), atoul(row[22]), atoul(row[23]), atoul(row[24]), atoul(row[25]), atoul(row[26]), atoul(row[27]), atoul(row[28]), atoul(row[29]), atoul(row[30]), atoul(row[31]));
 			total++;

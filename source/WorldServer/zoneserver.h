@@ -1149,7 +1149,7 @@ public:
 	LootTable*			GetLootTable(int32 table_id);
 
 	/* Transporters */
-	void AddLocationTransporter(int32 zone_id, string message, float trigger_x, float trigger_y, float trigger_z, float trigger_radius, int32 destination_zone_id, float destination_x, float destination_y, float destination_z, float destination_heading, int32 cost, int32 unique_id);
+	void AddLocationTransporter(int32 zone_id, string message, float trigger_x, float trigger_y, float trigger_z, float trigger_radius, int32 destination_zone_id, float destination_x, float destination_y, float destination_z, float destination_heading, int32 cost, int32 unique_id, bool force_zone);
 	void AddTransporter(int32 transport_id, int8 type, string name, string message, int32 destination_zone_id, float destination_x, float destination_y, float destination_z, float destination_heading, 
 		int32 cost, int32 unique_id, int8 min_level, int8 max_level, int32 quest_req, int16 quest_step_req, int32 quest_complete, int32 map_x, int32 map_y, int32 expansion_flag, int32 holiday_flag, int32 min_client_version,
 		int32 max_client_version, int32 flight_path_id, int16 mount_id, int8 mount_red_color, int8 mount_green_color, int8 mount_blue_color);
