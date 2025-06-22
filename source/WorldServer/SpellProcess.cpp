@@ -1207,7 +1207,7 @@ void SpellProcess::ProcessSpell(ZoneServer* zone, Spell* spell, Entity* caster, 
 								((Entity*)tmpTarget)->RemoveEffectsFromLuaSpell(conflictSpell);
 								zone->RemoveTargetFromSpell(conflictSpell, tmpTarget, false);
 								CheckRemoveTargetFromSpell(conflictSpell);
-								((Entity*)tmpTarget)->RemoveSpellEffect(conflictSpell);
+								lua_interface->RemoveSpawnFromSpell(conflictSpell, tmpTarget);
 								if(client && IsReady(conflictSpell->spell, client->GetPlayer()))
 									UnlockSpell(client, conflictSpell->spell);
 							}
@@ -3013,7 +3013,7 @@ void SpellProcess::DeleteSpell(LuaSpell* spell)
 				continue;
 
 			if(target->IsEntity()) {
-				((Entity*)target)->RemoveWard(spell);
+				lua_interface->RemoveSpawnFromSpell(spell, target);
 			}
 		}
 		spell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);

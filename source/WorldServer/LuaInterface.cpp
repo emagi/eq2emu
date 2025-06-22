@@ -872,6 +872,16 @@ lua_State* LuaInterface::LoadLuaFile(const char* name) {
 	return 0;
 }
 
+void LuaInterface::RemoveSpawnFromSpell(LuaSpell* spell, Spawn* spawn) {
+	if(spawn->IsEntity()) {
+		((Entity*)spawn)->RemoveProc(0, spell);
+		((Entity*)spawn)->RemoveSpellEffect(spell);
+		((Entity*)spawn)->RemoveSpellBonus(spell);
+		((Entity*)spawn)->RemoveEffectsFromLuaSpell(spell);
+		((Entity*)spawn)->RemoveWard(spell);
+	}
+}
+
 void LuaInterface::RemoveSpell(LuaSpell* spell, bool call_remove_function, bool can_delete, string reason, bool removing_all_spells, bool return_after_call_remove, Spawn* overrideTarget) {
 	if(call_remove_function){
 		lua_getglobal(spell->state, "remove");
@@ -944,10 +954,7 @@ void LuaInterface::RemoveSpell(LuaSpell* spell, bool call_remove_function, bool 
 	
 	if(return_after_call_remove) {
 		if(overrideTarget && overrideTarget->IsEntity()) {
-			((Entity*)overrideTarget)->RemoveProc(0, spell);
-			((Entity*)overrideTarget)->RemoveSpellEffect(spell);
-			((Entity*)overrideTarget)->RemoveSpellBonus(spell);
-			((Entity*)overrideTarget)->RemoveEffectsFromLuaSpell(spell);
+			RemoveSpawnFromSpell(spell, overrideTarget);
 		}
 		return;
 	}
@@ -961,10 +968,7 @@ void LuaInterface::RemoveSpell(LuaSpell* spell, bool call_remove_function, bool 
 		if (!target || !target->IsEntity())
 			continue;
 
-		((Entity*)target)->RemoveProc(0, spell);
-		((Entity*)target)->RemoveSpellEffect(spell);
-		((Entity*)target)->RemoveSpellBonus(spell);
-		((Entity*)target)->RemoveEffectsFromLuaSpell(spell);
+		RemoveSpawnFromSpell(spell, target);
 	}
 
 	multimap<int32,int8>::iterator entries;
@@ -973,10 +977,7 @@ void LuaInterface::RemoveSpell(LuaSpell* spell, bool call_remove_function, bool 
 		Client* tmpClient = zone_list.GetClientByCharID(entries->first);
 		if(tmpClient && tmpClient->GetPlayer())
 		{
-			tmpClient->GetPlayer()->RemoveProc(0, spell);
-			tmpClient->GetPlayer()->RemoveSpellEffect(spell);
-			tmpClient->GetPlayer()->RemoveSpellBonus(spell);
-			tmpClient->GetPlayer()->RemoveEffectsFromLuaSpell(spell);
+			RemoveSpawnFromSpell(spell, tmpClient->GetPlayer());
 		}
 	}
 	spell->char_id_targets.clear(); // TODO: reach out to those clients in different
@@ -997,10 +998,7 @@ void LuaInterface::RemoveSpell(LuaSpell* spell, bool call_remove_function, bool 
 			if(spell->zone && spell->zone->GetSpellProcess()) {
 				spell->zone->GetSpellProcess()->RemoveSpellScriptTimerBySpell(spell, false);
 			}
-			spell->caster->RemoveProc(0, spell);
-			spell->caster->RemoveSpellEffect(spell);
-			spell->caster->RemoveMaintainedSpell(spell);
-			spell->caster->RemoveEffectsFromLuaSpell(spell);
+			RemoveSpawnFromSpell(spell, spell->caster);
 
 			if(spell->spell && spell->spell->GetSpellData() && spell->caster->IsPlayer() && !removing_all_spells)
 			{
@@ -1745,7 +1743,7 @@ void LuaInterface::DeletePendingSpells(bool all) {
 							continue;
 
 						if(target->IsEntity()) {
-							((Entity*)target)->RemoveWard(spell);
+							RemoveSpawnFromSpell(spell, target);
 						}
 					}
 					spell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
