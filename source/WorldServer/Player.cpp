@@ -7404,13 +7404,11 @@ void Player::SaveSpellEffects()
 			info->maintained_effects[i].spell->damage_remaining, info->maintained_effects[i].spell->effect_bitmask, info->maintained_effects[i].spell->num_triggers, info->maintained_effects[i].spell->had_triggers, info->maintained_effects[i].spell->cancel_after_all_triggers,
 			info->maintained_effects[i].spell->crit, info->maintained_effects[i].spell->last_spellattack_hit, info->maintained_effects[i].spell->interrupted, info->maintained_effects[i].spell->resisted, info->maintained_effects[i].spell->has_damaged, (info->maintained_effects[i].expire_timestamp) == 0xFFFFFFFF ? "" : database.getSafeEscapeString(spellProcess->SpellScriptTimerCustomFunction(info->maintained_effects[i].spell).c_str()).c_str(), info->maintained_effects[i].spell->initial_caster_level);
 
-			info->maintained_effects[i].spell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
 			std::string insertTargets = string("insert into character_spell_effect_targets (caster_char_id, target_char_id, target_type, db_effect_type, spell_id, effect_slot, slot_pos) values ");
 			bool firstTarget = true;
 			map<Spawn*, int8> targetsInserted;
-			for (int8 t = 0; t < info->maintained_effects[i].spell->targets.size(); t++) {
-				int32 spawn_id = info->maintained_effects[i].spell->targets.at(t);
-					Spawn* spawn = GetZone()->GetSpawnByID(spawn_id);
+			for (int32 id : info->maintained_effects[i].spell->GetTargets()) {
+					Spawn* spawn = GetZone()->GetSpawnByID(id);
 					LogWrite(SPELL__DEBUG, 0, "Spell", "%s has target %u to identify for spell %s", GetName(), spawn_id, info->maintained_effects[i].spell->spell->GetName());
 					if(spawn && (spawn->IsPlayer() || spawn->IsPet()))
 					{
@@ -7446,23 +7444,22 @@ void Player::SaveSpellEffects()
 						", " + std::to_string(info->maintained_effects[i].slot_pos) + ")");
 						firstTarget = false;
 					}
-			}
-			multimap<int32,int8>::iterator entries;
-			for(entries = info->maintained_effects[i].spell->char_id_targets.begin(); entries != info->maintained_effects[i].spell->char_id_targets.end(); entries++)
-			{
-				if(!firstTarget)
-					insertTargets.append(", ");
+				}
+				for (const auto& [char_id, pet_type] : info->maintained_effects[i].spell->GetCharIDTargets()) {
+				{
+					if(!firstTarget)
+						insertTargets.append(", ");
 
-				LogWrite(SPELL__DEBUG, 0, "Spell", "%s has target %s (%u) added to spell %s", GetName(), spawn ? spawn->GetName() : "NA", entries->first, info->maintained_effects[i].spell->spell->GetName());
-				insertTargets.append("(" + std::to_string(caster_char_id) + ", " + std::to_string(entries->first) + ", " + std::to_string(entries->second) + ", " + 
-				std::to_string(DB_TYPE_MAINTAINEDEFFECTS) + ", " + std::to_string(info->maintained_effects[i].spell_id) + ", " + std::to_string(i) + 
-				", " + std::to_string(info->maintained_effects[i].slot_pos) + ")");
+					LogWrite(SPELL__DEBUG, 0, "Spell", "%s has target (%u) added to spell %s", GetName(), char_id, info->maintained_effects[i].spell->spell->GetName());
+					insertTargets.append("(" + std::to_string(caster_char_id) + ", " + std::to_string(char_id) + ", " + std::to_string(pet_type) + ", " + 
+					std::to_string(DB_TYPE_MAINTAINEDEFFECTS) + ", " + std::to_string(info->maintained_effects[i].spell_id) + ", " + std::to_string(i) + 
+					", " + std::to_string(info->maintained_effects[i].slot_pos) + ")");
 
-				firstTarget = false;
-			}
-			info->maintained_effects[i].spell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
-			if(!firstTarget) {
-				savedEffects.AddQueryAsync(GetCharacterID(), &database, Q_INSERT, insertTargets.c_str());
+					firstTarget = false;
+				}
+				if(!firstTarget) {
+					savedEffects.AddQueryAsync(GetCharacterID(), &database, Q_INSERT, insertTargets.c_str());
+				}
 			}
 		}
 	}

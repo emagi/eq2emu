@@ -1133,8 +1133,7 @@ void PlayerGroupManager::UpdateGroupBuffs() {
 				if (spell && spell->GetSpellData()->group_spell && spell->GetSpellData()->friendly_spell &&
 					(spell->GetSpellData()->target_type == SPELL_TARGET_GROUP_AE || spell->GetSpellData()->target_type == SPELL_TARGET_RAID_AE)) {
 
-					luaspell->MSpellTargets.writelock(__FUNCTION__, __LINE__);
-					luaspell->char_id_targets.clear();
+					luaspell->ClearCharTargets();
 
 					for (target_itr = group->GetMembers()->begin(); target_itr != group->GetMembers()->end(); target_itr++) {
 						group_member = (*target_itr)->member;
@@ -1152,8 +1151,9 @@ void PlayerGroupManager::UpdateGroupBuffs() {
 						if (group_member->GetSpellEffect(spell->GetSpellID(), caster)) {
 							has_effect = true;
 						}
-						if (!has_effect && (std::find(luaspell->removed_targets.begin(),
-							luaspell->removed_targets.end(), group_member->GetID()) != luaspell->removed_targets.end())) {
+						std::vector<int32> removed_targets = luaspell->GetRemovedTargets();
+						if (!has_effect && (std::find(removed_targets.begin(),
+							removed_targets.end(), group_member->GetID()) != removed_targets.end())) {
 							continue;
 						}
 						// Check if player is within range of the caster
@@ -1246,9 +1246,8 @@ void PlayerGroupManager::UpdateGroupBuffs() {
 						}
 					}
 
-					luaspell->targets.swap(new_target_list);
+					luaspell->SwapTargets(new_target_list);
 					SpellProcess::AddSelfAndPet(luaspell, caster);
-					luaspell->MSpellTargets.releasewritelock(__FUNCTION__, __LINE__);
 					new_target_list.clear();
 				}
 			}

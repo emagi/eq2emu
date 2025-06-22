@@ -8189,9 +8189,7 @@ void WorldDatabase::LoadCharacterSpellEffects(int32 char_id, Client* client, int
 						}
 						else
 						{
-							lua_spell->MSpellTargets.writelock(__FUNCTION__, __LINE__);
-							lua_spell->char_id_targets.insert(make_pair(player->GetCharacterID(),0));
-							lua_spell->MSpellTargets.releasewritelock(__FUNCTION__, __LINE__);
+							lua_spell->AddCharIDTarget(player->GetCharacterID(), 0);
 						}
 						player->MSpellEffects.releasewritelock();
 						continue;
@@ -8219,13 +8217,7 @@ void WorldDatabase::LoadCharacterSpellEffects(int32 char_id, Client* client, int
 			info->spell_effects[effect_slot].total_time = total_time;
 			info->spell_effects[effect_slot].spell = lua_spell;
 
-			lua_spell->MSpellTargets.writelock(__FUNCTION__, __LINE__);
-			multimap<int32,int8>::iterator entries;
-			while((entries = lua_spell->char_id_targets.find(player->GetCharacterID())) != lua_spell->char_id_targets.end())
-			{
-				lua_spell->char_id_targets.erase(entries);
-			}
-			lua_spell->MSpellTargets.releasewritelock(__FUNCTION__, __LINE__);
+			lua_spell->AddCharIDTarget(player->GetCharacterID(), 0);
 
 			lua_spell->slot_pos = slot_pos;
 			if(!isExistingLuaSpell)
@@ -8275,8 +8267,6 @@ void WorldDatabase::LoadCharacterSpellEffects(int32 char_id, Client* client, int
 							{
 								if(client != client2)
 								{
-									lua_spell->MSpellTargets.writelock(__FUNCTION__, __LINE__);
-									
 									if(client2->GetPlayer()->GetPet() && maintained_target_type == PET_TYPE_COMBAT)
 									{
 										restoreSpells.insert(make_pair(lua_spell, client2->GetPlayer()->GetPet()));
@@ -8287,29 +8277,16 @@ void WorldDatabase::LoadCharacterSpellEffects(int32 char_id, Client* client, int
 										restoreSpells.insert(make_pair(lua_spell, client2->GetPlayer()->GetCharmedPet()));
 										// target added via restoreSpells
 									}
-									
-									lua_spell->MSpellTargets.releasewritelock(__FUNCTION__, __LINE__);
 								}
 							} // end of pet clause
 							else if(client != client2) // maintained type must be 0, so client
 								restoreSpells.insert(make_pair(lua_spell, client2->GetPlayer()));
 							
-							lua_spell->MSpellTargets.writelock(__FUNCTION__, __LINE__);
-							multimap<int32,int8>::iterator entries;
-							for(entries = lua_spell->char_id_targets.begin(); entries != lua_spell->char_id_targets.end(); entries++)
-							{
-								int32 ent_char_id = entries->first;
-								int8 ent_target_type = entries->second;
-								if(ent_char_id == target_char && ent_target_type == maintained_target_type)
-									entries = lua_spell->char_id_targets.erase(entries);
-							}
-							lua_spell->MSpellTargets.releasewritelock(__FUNCTION__, __LINE__);
+							lua_spell->RemoveCharIDTargetAndType(target_char, maintained_target_type);
 						}
 						else
 						{
-							lua_spell->MSpellTargets.writelock(__FUNCTION__, __LINE__);
-							lua_spell->char_id_targets.insert(make_pair(target_char,maintained_target_type));
-							lua_spell->MSpellTargets.releasewritelock(__FUNCTION__, __LINE__);
+							lua_spell->AddCharIDTarget(target_char,maintained_target_type);
 						}
 					}
 				}

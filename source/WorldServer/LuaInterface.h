@@ -78,8 +78,10 @@ struct LuaSpell{
 	int32			initial_caster_char_id;
 	int32			initial_target;
 	int32			initial_target_char_id;
+	mutable std::shared_mutex targets_mutex;
 	vector<int32>	targets;
 	vector<int32>	removed_targets; // previously cancelled, expired, used, so on
+	mutable std::shared_mutex char_id_targets_mutex;
 	multimap<int32, int8> char_id_targets;
 	Spell*			spell;
 	lua_State*		state;
@@ -99,13 +101,117 @@ struct LuaSpell{
 	bool            cancel_after_all_triggers;
 	bool            had_triggers;
 	bool            had_dmg_remaining;
-	Mutex           MSpellTargets;
 	Mutex           MScriptMutex;
 	int32           effect_bitmask;
 	bool			restored; // restored spell cross zone
 	std::atomic<bool> has_proc;
 	ZoneServer*		zone;
 	int16			initial_caster_level;
+	
+	void AddTarget(int32 target_id) {
+		std::unique_lock lock(targets_mutex);
+		targets.push_back(target_id);
+	}
+	
+	int32 GetPrimaryTargetID() const {
+		std::shared_lock lock(targets_mutex);
+		return targets.empty() ? -1 : targets[0];
+	}
+
+	std::optional<int32_t> GetPrimaryTarget() const {
+		std::shared_lock lock(targets_mutex);
+		if (!targets.empty())
+			return targets[0];
+		return std::nullopt;
+	}
+
+
+	std::vector<int32> GetTargets() {
+		std::shared_lock lock(targets_mutex);
+		return targets;
+	}
+	
+	bool HasNoTargets() const {
+		std::shared_lock lock(targets_mutex);
+		return targets.empty();
+	}
+	
+	int32 GetTargetCount() const {
+		std::shared_lock lock(targets_mutex);
+		return static_cast<int32>(targets.size());
+	}
+	
+	bool HasTarget(int32 id) const {
+		std::shared_lock lock(targets_mutex);
+		return std::find(targets.begin(), targets.end(), id) != targets.end();
+	}
+
+
+	std::vector<int32> GetRemovedTargets() const {
+		std::shared_lock lock(targets_mutex);
+		return removed_targets;
+	}
+
+	void RemoveTarget(int32 target_id) {
+		std::unique_lock lock(targets_mutex);
+		auto& v = targets;
+		v.erase(std::remove(v.begin(), v.end(), target_id), v.end());
+		removed_targets.push_back(target_id);
+	}
+	
+	void AddRemoveTarget(int32 target_id) {
+		std::unique_lock lock(targets_mutex);
+		removed_targets.push_back(target_id);
+	}
+	
+	void SwapTargets(std::vector<int32>& new_targets) {
+		std::unique_lock lock(targets_mutex);
+		targets.swap(new_targets);
+	}
+
+	void ClearTargets() {
+		std::unique_lock lock(targets_mutex);
+		targets.clear();
+		removed_targets.clear();
+	}
+	
+	std::multimap<int32, int8> GetCharIDTargets() const {
+		std::shared_lock lock(char_id_targets_mutex);
+		return char_id_targets;
+	}
+	
+	void AddCharIDTarget(int32 char_id, int8 value) {
+		std::unique_lock lock(char_id_targets_mutex);
+		char_id_targets.insert({char_id, value});
+	}
+
+	bool HasNoCharIDTargets() const {
+		std::shared_lock lock(char_id_targets_mutex);
+		return char_id_targets.empty();
+	}
+	
+	void RemoveCharIDTarget(int32 char_id) {
+		std::unique_lock lock(char_id_targets_mutex);
+		char_id_targets.erase(char_id); // removes all entries with that key
+	}
+
+	void RemoveCharIDTargetAndType(int32 char_id, int8 type) {
+		std::unique_lock lock(char_id_targets_mutex);
+
+		auto range = char_id_targets.equal_range(char_id);
+		for (auto it = range.first; it != range.second; ++it) {
+			if (it->second == type) {
+				char_id_targets.erase(it);
+				break; // remove only one matching pair
+			}
+		}
+	}
+
+	void ClearCharTargets() {
+		std::unique_lock lock(char_id_targets_mutex);
+		char_id_targets.clear();
+	}
+	
 };
 
 enum class LuaArgType { SINT64, INT64, SINT, INT, FLOAT, STRING, BOOL, SPAWN, ZONE, SKILL, ITEM, QUEST, SPELL /* etc */ };

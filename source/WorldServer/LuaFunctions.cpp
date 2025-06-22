@@ -1401,17 +1401,15 @@ int EQ2Emu_lua_SpellHeal(lua_State* state) {
 			if (((Entity*)caster)->SpellHeal(target, distance, luaspell, heal_type, min_heal, max_heal, crit_mod, no_calcs, custom_spell_name))
 				success = true;
 		}
-		if ((!success || luaspell->spell->GetSpellData()->group_spell) && luaspell->targets.size() > 0) {
+		if ((!success || luaspell->spell->GetSpellData()->group_spell) && luaspell->GetTargetCount() > 0) {
 			Spawn* target = 0;
-			ZoneServer* zone = luaspell->caster->GetZone();
-			luaspell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
-			for (int32 i = 0; i < luaspell->targets.size(); i++) {
-				if ((target = zone->GetSpawnByID(luaspell->targets[i]))) {
+			ZoneServer* zone = luaspell->zone;
+			for (int32 id : luaspell->GetTargets()) {
+				if ((target = zone->GetSpawnByID(id))) {
 					float distance = caster->GetDistance(target, true);
 					((Entity*)caster)->SpellHeal(target, distance, luaspell, heal_type, min_heal, max_heal, crit_mod, no_calcs, custom_spell_name);
 				}
 			}
-			luaspell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
 			success = true;
 		}
 		if (success) {
@@ -1494,17 +1492,15 @@ int EQ2Emu_lua_SpellHealPct(lua_State* state) {
 			if (((Entity*)caster)->SpellHeal(target, distance, luaspell, heal_type, min_heal, max_heal, crit_mod, no_calcs, custom_spell_name))
 				success = true;
 		}
-		if ((!success || luaspell->spell->GetSpellData()->group_spell) && luaspell->targets.size() > 0) {
+		if ((!success || luaspell->spell->GetSpellData()->group_spell) && luaspell->GetTargetCount() > 0) {
 			Spawn* target = 0;
-			ZoneServer* zone = luaspell->caster->GetZone();
-			luaspell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
-			for (int32 i = 0; i < luaspell->targets.size(); i++) {
-				if ((target = zone->GetSpawnByID(luaspell->targets[i]))) {
+			ZoneServer* zone = luaspell->zone;
+			for (int32 id : luaspell->GetTargets()) {
+				if ((target = zone->GetSpawnByID(id))) {
 					float distance = caster->GetDistance(target, true);
 					((Entity*)caster)->SpellHeal(target, distance, luaspell, heal_type, min_heal, max_heal, crit_mod, no_calcs, custom_spell_name);
 				}
 			}
-			luaspell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
 			success = true;
 		}
 		if (success) {
@@ -1751,10 +1747,9 @@ int EQ2Emu_lua_AddHate(lua_State* state) {
 	
 	if (entity && entity->IsEntity() && amount != 0) {
 		if (luaspell && luaspell->caster) {
-			ZoneServer* zone = luaspell->caster->GetZone();
-			luaspell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
-			for (int32 i = 0; i < luaspell->targets.size(); i++) {
-				Spawn* spawn = zone->GetSpawnByID(luaspell->targets.at(i));
+			ZoneServer* zone = luaspell->zone;
+			for (int32 id : luaspell->GetTargets()) {
+				Spawn* spawn = zone->GetSpawnByID(id);
 				if (spawn && spawn->IsNPC() && spawn->Alive() && spawn->GetZone()) {
 					entity->CheckEncounterState((Entity*)spawn);
 					((NPC*)spawn)->AddHate((Entity*)entity, amount);
@@ -1762,7 +1757,6 @@ int EQ2Emu_lua_AddHate(lua_State* state) {
 						entity->GetZone()->SendThreatPacket(entity, npc, amount, luaspell->spell->GetName());
 				}
 			}
-			luaspell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
 		}
 		else if (npc && npc->IsNPC() && npc->GetZone()) {
 			entity->CheckEncounterState((Entity*)npc);
@@ -1910,12 +1904,11 @@ int EQ2Emu_lua_SpellDamage(lua_State* state) {
 		bool race_match = false;
 		bool success = false;
 		luaspell->resisted = false;
-		if (luaspell->targets.size() > 0) {
-			ZoneServer* zone = luaspell->caster->GetZone();
+		if (luaspell->GetTargetCount() > 0) {
+			ZoneServer* zone = luaspell->zone;
 			Spawn* target = 0;
-			luaspell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
-			for (int32 i = 0; i < luaspell->targets.size(); i++) {
-				if ((target = zone->GetSpawnByID(luaspell->targets[i]))) {
+			for (int32 id : luaspell->GetTargets()) {
+				if ((target = zone->GetSpawnByID(id))) {
 
 					if (race_req.size() > 0) {
 						for (int8 i = 0; i < race_req.size(); i++) {
@@ -1935,7 +1928,6 @@ int EQ2Emu_lua_SpellDamage(lua_State* state) {
 				}
 			}
 			success = true;
-			luaspell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
 		}
 		else if (target) {
 
@@ -2018,12 +2010,11 @@ int EQ2Emu_lua_SpellDamageExt(lua_State* state) {
 		bool race_match = false;
 		bool success = false;
 		luaspell->resisted = false;
-		if (luaspell->targets.size() > 0) {
-			ZoneServer* zone = luaspell->caster->GetZone();
+		if (luaspell->GetTargetCount() > 0) {
+			ZoneServer* zone = luaspell->zone;
 			Spawn* target = 0;
-			luaspell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
-			for (int32 i = 0; i < luaspell->targets.size(); i++) {
-				if ((target = zone->GetSpawnByID(luaspell->targets[i]))) {
+			for (int32 id : luaspell->GetTargets()) {
+				if ((target = zone->GetSpawnByID(id))) {
 
 					if (race_req.size() > 0) {
 						for (int8 i = 0; i < race_req.size(); i++) {
@@ -2043,7 +2034,6 @@ int EQ2Emu_lua_SpellDamageExt(lua_State* state) {
 				}
 			}
 			success = true;
-			luaspell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
 		}
 		else if (target) {
 
@@ -2455,10 +2445,9 @@ int EQ2Emu_lua_AddSpellBonus(lua_State* state) {
 
 	if (value != 0 && type >= 0) {
 		if (luaspell && luaspell->spell && luaspell->caster) {
-			ZoneServer* zone = luaspell->caster->GetZone();
-			luaspell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
-			for (int32 i = 0; i < luaspell->targets.size(); i++) {
-				Spawn* target = zone->GetSpawnByID(luaspell->targets[i]);
+			ZoneServer* zone = luaspell->zone;
+			for (int32 id : luaspell->GetTargets()) {
+				Spawn* target = zone->GetSpawnByID(id);
 				if (target) {
 					if (target->IsPlayer()) {
 						((Player*)target)->AddSpellBonus(luaspell, type, value, class_req, race_req, faction_req);
@@ -2473,7 +2462,6 @@ int EQ2Emu_lua_AddSpellBonus(lua_State* state) {
 						lua_interface->LogError("%s: Error applying spell bonus on non entity.", lua_interface->GetScriptName(state));
 				}
 			}
-			luaspell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
 			if (!(luaspell->effect_bitmask & EFFECT_FLAG_SPELLBONUS))
 				luaspell->effect_bitmask += EFFECT_FLAG_SPELLBONUS;
 		}
@@ -2599,22 +2587,20 @@ int EQ2Emu_lua_RemoveSpellBonus(lua_State* state) {
 	else if (luaspell && luaspell->spell) {
 		ZoneServer* zone = nullptr;
 		if (luaspell->caster != nullptr)
-			zone = luaspell->caster->GetZone();
+			zone = luaspell->zone;
 		if(!zone && spawn) {
 			zone = spawn->GetZone(); // workaround to try to establish a zone to find the targets and remove the spells
 		}
 		Spawn* target = 0;
 		if(zone) {
-			luaspell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
-			for (int32 i = 0; i < luaspell->targets.size(); i++) {
-				target = zone->GetSpawnByID(luaspell->targets[i]);
+			for (int32 id : luaspell->GetTargets()) {
+				target = zone->GetSpawnByID(id);
 				if (target && target->IsEntity()) {
 					((Entity*)target)->RemoveSpellBonus(luaspell);
 					if (target->IsPlayer())
 						((Player*)target)->SetCharSheetChanged(true);
 				}
 			}
-			luaspell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
 		}
 		else {
 			LogWrite(LUA__ERROR, 0, "LUA", "Error removing spell bonus buff %s called by %s, zone is not available.", luaspell->spell ? luaspell->spell->GetName() : "NotSet", spawn ? spawn->GetName() : "N/A");
@@ -2638,11 +2624,10 @@ int EQ2Emu_lua_AddSkillBonus(lua_State* state) {
 				return 0;
 			}
 			spell_id = luaspell->spell->GetSpellID();
-			ZoneServer* zone = luaspell->caster->GetZone();
+			ZoneServer* zone = luaspell->zone;
 			Spawn* target = 0;
-			luaspell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
-			for (int32 i = 0; i < luaspell->targets.size(); i++) {
-				target = zone->GetSpawnByID(luaspell->targets[i]);
+			for (int32 id : luaspell->GetTargets()) {
+				target = zone->GetSpawnByID(id);
 				if (target && target->Alive()) {
 					if (target->IsPlayer()) {
 						((Player*)target)->AddSkillBonus(spell_id, skill_id, value);
@@ -2664,7 +2649,6 @@ int EQ2Emu_lua_AddSkillBonus(lua_State* state) {
 						LogWrite(LUA__ERROR, 0, "LUA", "Error applying bonus buff on '%s'.  Not a NPC or player.", target->GetName());
 				}
 			}
-			luaspell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
 		}
 		else if (spawn) {
 			if (spawn->IsPlayer()) {
@@ -2699,11 +2683,10 @@ int EQ2Emu_lua_RemoveSkillBonus(lua_State* state) {
 			return 0;
 		}
 		spell_id = luaspell->spell->GetSpellID();
-		ZoneServer* zone = luaspell->caster->GetZone();
+		ZoneServer* zone = luaspell->zone;
 		Spawn* target = 0;
-		luaspell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
-		for (int32 i = 0; i < luaspell->targets.size(); i++) {
-			target = zone->GetSpawnByID(luaspell->targets[i]);
+		for (int32 id : luaspell->GetTargets()) {
+			target = zone->GetSpawnByID(id);
 			if (target) {
 				if (target->IsPlayer()) {
 					((Player*)target)->RemoveSkillBonus(spell_id);
@@ -2720,7 +2703,6 @@ int EQ2Emu_lua_RemoveSkillBonus(lua_State* state) {
 					LogWrite(LUA__ERROR, 0, "LUA", "Error removing skill bonus on '%s'.  Not a NPC or player.", spawn->GetName());
 			}
 		}
-		luaspell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
 	}
 	else if (spawn) {
 		if (spawn->IsPlayer()) {
@@ -2754,11 +2736,10 @@ int EQ2Emu_lua_AddControlEffect(lua_State* state) {
 	}
 	
 	if (!only_add_spawn && luaspell && luaspell->spell && luaspell->caster && type != 0) {
-		ZoneServer* zone = luaspell->caster->GetZone();
+		ZoneServer* zone = luaspell->zone;
 		Spawn* target = 0;
-		luaspell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
-		for (int32 i = 0; i < luaspell->targets.size(); i++) {
-			target = zone->GetSpawnByID(luaspell->targets[i]);
+		for (int32 id : luaspell->GetTargets()) {
+			target = zone->GetSpawnByID(id);
 			if (target && target->IsEntity()) {
 				if (type == CONTROL_EFFECT_TYPE_MEZ) {
 					((Entity*)target)->AddMezSpell(luaspell);
@@ -2840,7 +2821,6 @@ int EQ2Emu_lua_AddControlEffect(lua_State* state) {
 			else
 				lua_interface->LogError("%s: Error applying control effect on non entity '%s'.", lua_interface->GetScriptName(state), (target != nullptr) ? target->GetName() : "NO_TARGET");
 		}
-		luaspell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
 	}
 	else if (only_add_spawn && spawn && spawn->IsEntity()) {
 		if (type == CONTROL_EFFECT_TYPE_MEZ) {
@@ -2921,11 +2901,10 @@ int EQ2Emu_lua_RemoveControlEffect(lua_State* state) {
 	lua_interface->ResetFunctionStack(state);
 	if (spawn && spawn->IsEntity()) {
 		if (!only_remove_spawn && luaspell && luaspell->spell && luaspell->caster) {
-			ZoneServer* zone = luaspell->caster->GetZone();
+			ZoneServer* zone = luaspell->zone;
 			Spawn* target = 0;
-			luaspell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
-			for (int32 i = 0; i < luaspell->targets.size(); i++) {
-				target = zone->GetSpawnByID(luaspell->targets[i]);
+			for (int32 id : luaspell->GetTargets()) {
+				target = zone->GetSpawnByID(id);
 				if (target) {
 					if (type == CONTROL_EFFECT_TYPE_MEZ)
 						((Entity*)target)->RemoveMezSpell(luaspell);
@@ -2955,7 +2934,6 @@ int EQ2Emu_lua_RemoveControlEffect(lua_State* state) {
 						lua_interface->LogError("%s: Unhandled control effect type of %u.", lua_interface->GetScriptName(state), type);
 				}
 			}
-			luaspell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
 		}
 		else if (only_remove_spawn) {
 			if (type == CONTROL_EFFECT_TYPE_MEZ)
@@ -6578,10 +6556,9 @@ int EQ2Emu_lua_AddWard(lua_State* state) {
 	
 	bool ward_was_added = false;
 
-	ZoneServer* zone = spell->caster->GetZone();
-	spell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
-	for (int32 i = 0; i < spell->targets.size(); i++) {
-		Spawn* target = zone->GetSpawnByID(spell->targets.at(i));
+	ZoneServer* zone = spell->zone;
+	for (int32 id : spell->GetTargets()) {
+		Spawn* target = zone->GetSpawnByID(id);
 		if (!target)
 			continue;
 		if (target->IsEntity()) {
@@ -6629,7 +6606,6 @@ int EQ2Emu_lua_AddWard(lua_State* state) {
 			ward_was_added = true;
 		}
 	}
-	spell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
 
 	if (ward_was_added && spell->caster->IsPlayer()) {
 		spell->had_dmg_remaining = true;
@@ -6651,23 +6627,25 @@ int EQ2Emu_lua_AddToWard(lua_State* state) {
 	if(!spell || spell->resisted) {
 		return 0;
 	}
-	ZoneServer* zone = spell->caster->GetZone();
-	spell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
-	if (spell->targets.size() > 0 && zone->GetSpawnByID(spell->targets.at(0))->IsEntity()) {
-		Entity* target = (Entity*)zone->GetSpawnByID(spell->targets.at(0));
+	if(!spell->caster || !spell->zone) {
+		return 0;
+	}
+	ZoneServer* zone = spell->zone;
+	Entity* target = nullptr;
+	if (auto target_id_opt = spell->GetPrimaryTarget(); 
+		target_id_opt && (target = (Entity*)zone->GetSpawnByID(*target_id_opt))) {
 		ward = target->GetWard(spell->spell->GetSpellID());
 		if (target && ward) {
 			ward->DamageLeft += amount;
 			if (ward->DamageLeft > ward->BaseDamage)
 				ward->DamageLeft = ward->BaseDamage;
 
-			for (int32 i = 0; i < spell->targets.size(); i++) {
-				if (Spawn* spawn = zone->GetSpawnByID(spell->targets.at(i)))
+			for (int32 id : spell->GetTargets()) {
+				if (Spawn* spawn = zone->GetSpawnByID(id))
 					zone->SendHealPacket(ward->Spell->caster, spawn, HEAL_PACKET_TYPE_REGEN_ABSORB, amount, ward->Spell->spell->GetName());
 			}
 		}
 	}
-	spell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
 
 	if (ward && spell->caster->IsPlayer())
 		ClientPacketFunctions::SendMaintainedExamineUpdate(((Player*)spell->caster)->GetClient(), spell->slot_pos, ward->DamageLeft, 1);
@@ -6686,17 +6664,15 @@ int EQ2Emu_lua_GetWardAmountLeft(lua_State* state) {
 		return 0;
 	}
 
-	spell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
-	if (spell->caster && spell->caster->GetZone() && spell->targets.size() > 0 && spell->caster->GetZone()->GetSpawnByID(spell->targets.at(0))->IsEntity()) {
-		Entity* target = (Entity*)spell->caster->GetZone()->GetSpawnByID(spell->targets.at(0));
+	Entity* target = nullptr;
+	if (auto target_id_opt = spell->GetPrimaryTarget(); 
+		target_id_opt && spell->zone && (target = (Entity*)spell->zone->GetSpawnByID(*target_id_opt))) {
 		WardInfo* ward = target->GetWard(spell->spell->GetSpellID());
 		if (ward) {
 			lua_interface->SetInt32Value(state, ward->DamageLeft);
-			spell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
 			return 1;
 		}
 	}
-	spell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
 	return 0;
 }
 
@@ -6714,11 +6690,9 @@ int EQ2Emu_lua_GetWardValue(lua_State* state) {
 	string type = lua_interface->GetStringValue(state, 2);
 
 	lua_interface->ResetFunctionStack(state);
-	
-	spell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
-	if (spell->caster && spell->caster->GetZone() && spell->targets.size() > 0 && spell->caster->GetZone()->GetSpawnByID(spell->targets.at(0))->IsEntity()) {
-
-		Entity* target = (Entity*)spell->caster->GetZone()->GetSpawnByID(spell->targets.at(0));
+	Entity* target = nullptr;
+	if (auto target_id_opt = spell->GetPrimaryTarget(); 
+		target_id_opt && spell->zone && (target = (Entity*)spell->zone->GetSpawnByID(*target_id_opt))) {
 		WardInfo* ward = target->GetWard(spell->spell->GetSpellID());
 		if (ward) {
 			if (boost::iequals(type, "damageleft"))
@@ -6745,12 +6719,9 @@ int EQ2Emu_lua_GetWardValue(lua_State* state) {
 				lua_interface->SetInt32Value(state, ward->MaxHitCount);
 			else
 				lua_interface->LogError("%s: LUA GetWardValue command argument type '%s' did not match any options", lua_interface->GetScriptName(state), type.c_str());
-			
-			spell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
 			return 1;
 		}
 	}
-	spell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
 	return 0;
 }
 
@@ -6770,21 +6741,19 @@ int EQ2Emu_lua_RemoveWard(lua_State* state) {
 		return 0;
 	}
 	
-	ZoneServer* zone = spell->caster->GetZone();
+	ZoneServer* zone = spell->zone;
 	if(!zone) {
 		lua_interface->LogError("%s: RemoveWard error: no valid zone for caster", lua_interface->GetScriptName(state));
 		return 0;
 	}
 	
 	Spawn* target = 0;
-	spell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
-	for (int32 i = 0; i < spell->targets.size(); i++) {
-		target = zone->GetSpawnByID(spell->targets.at(i));
+	for (int32 id : spell->GetTargets()) {
+		target = zone->GetSpawnByID(id);
 		if (target && target->IsEntity()) {
 			((Entity*)target)->RemoveWard(spell->spell->GetSpellID());
 		}
 	}
-	spell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
 
 	return 0;
 }
@@ -6824,15 +6793,13 @@ int EQ2Emu_lua_Interrupt(lua_State* state)
 	}
 
 	if (!target && spell) {
-		spell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
-		for (int8 i = 0; i < spell->targets.size(); i++) {
-			target = caster->GetZone()->GetSpawnByID(spell->targets.at(i));
+		for (int32 id : spell->GetTargets()) {
+			target = caster->GetZone()->GetSpawnByID(id);
 			if (!target || !target->IsEntity())
 				continue;
 
 			((Entity*)target)->GetZone()->GetSpellProcess()->Interrupted((Entity*)target, caster, SPELL_ERROR_INTERRUPTED);
 		}
-		spell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
 	}
 	else
 		caster->GetZone()->GetSpellProcess()->Interrupted((Entity*)target, caster, SPELL_ERROR_INTERRUPTED);
@@ -6854,7 +6821,7 @@ int EQ2Emu_lua_Stealth(lua_State* state) {
 		return 0;
 	}
 
-	ZoneServer* zone = spell->caster->GetZone();
+	ZoneServer* zone = spell->zone;
 
 	if (spawn) {
 		if (spawn->IsEntity()) {
@@ -6876,9 +6843,8 @@ int EQ2Emu_lua_Stealth(lua_State* state) {
 		}
 	}
 	else {
-		spell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
-		for (int32 i = 0; i < spell->targets.size(); i++) {
-			spawn = zone->GetSpawnByID(spell->targets.at(i));
+		for (int32 id : spell->GetTargets()) {
+			spawn = zone->GetSpawnByID(id);
 			if (!spawn || !spawn->IsEntity())
 				continue;
 
@@ -6897,7 +6863,6 @@ int EQ2Emu_lua_Stealth(lua_State* state) {
 				break;
 			}
 		}
-		spell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
 	}
 	return 0;
 }
@@ -7237,16 +7202,14 @@ int EQ2Emu_lua_PlayAnimationString(lua_State* state) {
 		return 0;
 	}
 	
-	if (spell && spell->caster && spell->caster->GetZone() && use_all_spelltargets) {
+	if (spell && spell->zone && use_all_spelltargets) {
 		Spawn* target;
-		spell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
-		for (int8 i = 0; i < spell->targets.size(); i++) {
-			target = spell->caster->GetZone()->GetSpawnByID(spell->targets.at(i));
+		for (int32 id : spell->GetTargets()) {
+			target = spell->zone->GetSpawnByID(id);
 			if(target && (!ignore_self || spawn != target)) {
-				spell->caster->GetZone()->HandleEmote(target, name, opt_target, set_no_target);
+				spell->zone->HandleEmote(target, name, opt_target, set_no_target);
 			}
 		}
-		spell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
 	}
 	else {
 		spawn->GetZone()->HandleEmote(spawn, name, opt_target, set_no_target);
@@ -8732,17 +8695,15 @@ int EQ2Emu_lua_AddProc(lua_State* state) {
 		return 0;
 	}
 	
-	if (spell && spell->caster && spell->caster->GetZone() && use_all_spelltargets) {
+	if (spell && spell->zone && use_all_spelltargets) {
 		Spawn* target;
-		spell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
-		for (int8 i = 0; i < spell->targets.size(); i++) {
-			target = spell->caster->GetZone()->GetSpawnByID(spell->targets.at(i));
+		for (int32 id : spell->GetTargets()) {
+			target = spell->zone->GetSpawnByID(id);
 			if (!target || !target->IsEntity())
 				continue;
 
 			((Entity*)target)->AddProc(type, chance, item, spell);
 		}
-		spell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
 	}
 	else
 		((Entity*)spawn)->AddProc(type, chance, item, spell);
@@ -8788,17 +8749,15 @@ int EQ2Emu_lua_AddProcExt(lua_State* state) {
 		return 0;
 	}
 	
-	if (spell && spell->caster && spell->caster->GetZone() && use_all_spelltargets) {
+	if (spell && spell->zone && use_all_spelltargets) {
 		Spawn* target;
-		spell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
-		for (int8 i = 0; i < spell->targets.size(); i++) {
-			target = spell->caster->GetZone()->GetSpawnByID(spell->targets.at(i));
+		for (int32 id : spell->GetTargets()) {
+			target = spell->zone->GetSpawnByID(id);
 			if (!target || !target->IsEntity())
 				continue;
 
 			((Entity*)target)->AddProc(type, chance, item, spell, damage_type, hp_ratio, below_health, target_health, extended_version);
 		}
-		spell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
 	}
 	else
 		((Entity*)spawn)->AddProc(type, chance, item, spell);
@@ -8827,17 +8786,15 @@ int EQ2Emu_lua_RemoveProc(lua_State* state) {
 	if(spawn && spawn->IsEntity()) {
 		((Entity*)spawn)->RemoveProc(item, spell);
 	}
-	else if (spell && spell->caster && spell->caster->GetZone()) {
+	else if (spell && spell->zone) {
 		Spawn* target;
-		spell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
-		for (int8 i = 0; i < spell->targets.size(); i++) {
-			target = spell->caster->GetZone()->GetSpawnByID(spell->targets.at(i));
+		for (int32 id : spell->GetTargets()) {
+			target = spell->zone->GetSpawnByID(id);
 			if (!target || !target->IsEntity())
 				continue;
 
 			((Entity*)target)->RemoveProc(item, spell);
 		}
-		spell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
 		spell->caster->RemoveProc(item, spell);
 	}
 	else if (!spawn) {
@@ -9180,7 +9137,7 @@ int EQ2Emu_lua_AddSpellTimer(lua_State* state) {
 		return 0;
 	}
 
-	if (!spell || (!spell->caster || !spell->caster->GetZone())) {
+	if (!spell || (!spell->caster || !spell->zone)) {
 		lua_interface->LogError("%s: LUA AddSpellTimer command error: spell not found, AddSpellTimer must be used in a spell script", lua_interface->GetScriptName(state));
 		return 0;
 	}
@@ -9206,7 +9163,7 @@ int EQ2Emu_lua_AddSpellTimer(lua_State* state) {
 	if (target)
 		timer->target = target->GetID();
 
-	spell->caster->GetZone()->GetSpellProcess()->AddSpellScriptTimer(timer);
+	spell->zone->GetSpellProcess()->AddSpellScriptTimer(timer);
 	return 0;
 }
 
@@ -9232,65 +9189,59 @@ int EQ2Emu_lua_Resurrect(lua_State* state) {
 	}
 
 	Entity* caster = spell->caster;
-	if (!caster) {
-		lua_interface->LogError("%s: LUA command error: could not find caster", lua_interface->GetScriptName(state));
+	if (!caster || !caster->GetZone()) {
+		lua_interface->LogError("%s: LUA command error: could not find caster or caster has no zone", lua_interface->GetScriptName(state));
 		return 0;
 	}
 
 	Client* client = 0;
 	PendingResurrection* rez = 0;
-	ZoneServer* zone = spell->caster->GetZone();
+	ZoneServer* zone = spell->zone;
 	if (!target) {
-		spell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
-		if (spell->targets.size() > 0) {
-			vector<int32> spell_targets = spell->targets;
-			for (int8 i = 0; i < spell_targets.size(); i++) {
-				target = zone->GetSpawnByID(spell_targets.at(i));
-				if (!target)
-					continue;
-				if (!target->IsPlayer())
-					continue;
+		for (int32 id : spell->GetTargets()) {
+			target = zone->GetSpawnByID(id);
+			if (!target)
+				continue;
+			if (!target->IsPlayer())
+				continue;
 
-				client = ((Player*)target)->GetClient();
+			client = ((Player*)target)->GetClient();
 
-				if (!client)
-					continue;
+			if (!client)
+				continue;
 
-				rez = client->GetCurrentRez();
-				if (rez->active)
-					continue;
-
-				client->GetResurrectMutex()->writelock(__FUNCTION__, __LINE__);
-				rez->active = true;
-				rez->caster = caster->GetID();
-				rez->expire_timer = new Timer;
-				int32 duration = spell->spell->GetSpellDuration();
-				rez->expire_timer->Start(duration * 100);
-				rez->hp_perc = hp_perc;
-				rez->mp_perc = power_perc;
-				rez->range = spell->spell->GetSpellData()->range;
-				rez->spell_name = spell->spell->GetName();
-				if (heal_name.length() > 0)
-					rez->heal_name = heal_name;
-				else
-					rez->heal_name = rez->spell_name;
-				rez->orig_spell_id = spell->spell->GetSpellID();
-				rez->orig_spell_tier = spell->spell->GetSpellTier();
-				rez->revive_sickness_spell_id = revive_spell_id;
-				rez->revive_sickness_spell_tier = revive_spell_tier;
-				rez->no_calcs = no_calcs;
-				rez->crit_mod = crit_mod;
-				rez->spell_visual = spell->spell->GetSpellData()->spell_visual;
-				if (send_window)
-					client->SendResurrectionWindow();
-				else {
-					target->GetZone()->ResurrectSpawn(target, client);
-					rez->should_delete = true;
-				}
-				client->GetResurrectMutex()->releasewritelock(__FUNCTION__, __LINE__);
+			rez = client->GetCurrentRez();
+			if (rez->active)
+				continue;
+			client->GetResurrectMutex()->writelock(__FUNCTION__, __LINE__);
+			rez->active = true;
+			rez->caster = caster->GetID();
+			rez->expire_timer = new Timer;
+			int32 duration = spell->spell->GetSpellDuration();
+			rez->expire_timer->Start(duration * 100);
+			rez->hp_perc = hp_perc;
+			rez->mp_perc = power_perc;
+			rez->range = spell->spell->GetSpellData()->range;
+			rez->spell_name = spell->spell->GetName();
+			if (heal_name.length() > 0)
+				rez->heal_name = heal_name;
+			else
+				rez->heal_name = rez->spell_name;
+			rez->orig_spell_id = spell->spell->GetSpellID();
+			rez->orig_spell_tier = spell->spell->GetSpellTier();
+			rez->revive_sickness_spell_id = revive_spell_id;
+			rez->revive_sickness_spell_tier = revive_spell_tier;
+			rez->no_calcs = no_calcs;
+			rez->crit_mod = crit_mod;
+			rez->spell_visual = spell->spell->GetSpellData()->spell_visual;
+			if (send_window)
+				client->SendResurrectionWindow();
+			else {
+				target->GetZone()->ResurrectSpawn(target, client);
+				rez->should_delete = true;
 			}
+			client->GetResurrectMutex()->releasewritelock(__FUNCTION__, __LINE__);
 		}
-		spell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
 	}
 	else {
 		if(!target->IsPlayer())
@@ -9357,10 +9308,10 @@ int EQ2Emu_lua_SetVision(lua_State* state) {
 		return 0;
 	}
 
-	if (spell && spell->targets.size() > 0) {
-		ZoneServer* zone = spell->caster->GetZone();
-		for (int8 i = 0; i < spell->targets.size(); i++) {
-			Spawn* target = zone->GetSpawnByID(spell->targets.at(i));
+	if (spell && spell->GetTargetCount() > 0) {
+		ZoneServer* zone = spell->zone;
+	for (int32 id : spell->GetTargets()) {
+			Spawn* target = zone->GetSpawnByID(id);
 			if (target && target->IsEntity()) {
 				((Entity*)target)->GetInfoStruct()->set_vision(vision);
 				if (target->IsPlayer())
@@ -9395,10 +9346,10 @@ int EQ2Emu_lua_BlurVision(lua_State* state) {
 		return 0;
 	}
 
-	if (spell && spell->targets.size() > 0) {
-		ZoneServer* zone = spell->caster->GetZone();
-		for (int8 i = 0; i < spell->targets.size(); i++) {
-			Spawn* target = zone->GetSpawnByID(spell->targets.at(i));
+	if (spell && spell->GetTargetCount() > 0) {
+		ZoneServer* zone = spell->zone;
+		for (int32 id : spell->GetTargets()) {
+			Spawn* target = zone->GetSpawnByID(id);
 			if (target && target->IsEntity()) {
 				((Entity*)target)->GetInfoStruct()->set_drunk(intensity);
 				if (target->IsPlayer())
@@ -9433,10 +9384,10 @@ int EQ2Emu_lua_BreatheUnderwater(lua_State* state) {
 		return 0;
 	}
 
-	if (spell && spell->targets.size() > 0) {
-		ZoneServer* zone = spell->caster->GetZone();
-		for (int8 i = 0; i < spell->targets.size(); i++) {
-			Spawn* target = zone->GetSpawnByID(spell->targets.at(i));
+	if (spell && spell->GetTargetCount() > 0) {
+		ZoneServer* zone = spell->zone;
+		for (int32 id : spell->GetTargets()) {
+			Spawn* target = zone->GetSpawnByID(id);
 			if (target && target->IsEntity()) {
 				((Entity*)target)->GetInfoStruct()->set_breathe_underwater(breatheUnderwater);
 				if (target->IsPlayer())
@@ -9488,10 +9439,10 @@ int EQ2Emu_lua_SetSpeedMultiplier(lua_State* state) {
 	if (val > 1.0f)
 		val = 1.0f - (val / 100.0f);
 
-	if (spell && spell->spell && spell->targets.size() > 0) {
-		ZoneServer* zone = spell->caster->GetZone();
-		for (int32 i = 0; i != spell->targets.size(); i++) {
-			Spawn* spawn = zone->GetSpawnByID(spell->targets.at(i));
+	if (spell && spell->spell && spell->GetTargetCount() > 0) {
+		ZoneServer* zone = spell->zone;
+		for (int32 id : spell->GetTargets()) {
+			Spawn* spawn = zone->GetSpawnByID(id);
 			if (spawn && spawn->IsEntity()) {
 				((Entity*)spawn)->SetSpeedMultiplier(val);
 				if (spawn->IsPlayer())
@@ -9519,10 +9470,10 @@ int EQ2Emu_lua_SetIllusion(lua_State* state) {
 	LuaSpell* spell = lua_interface->GetCurrentSpell(state);
 	lua_interface->ResetFunctionStack(state);
 
-	if (spell && spell->spell && spell->targets.size() > 0) {
-		ZoneServer* zone = spell->caster->GetZone();
-		for (int32 i = 0; i < spell->targets.size(); i++) {
-			Spawn* target = zone->GetSpawnByID(spell->targets.at(i));
+	if (spell && spell->spell && spell->GetTargetCount() > 0) {
+		ZoneServer* zone = spell->zone;
+		for (int32 id : spell->GetTargets()) {
+			Spawn* target = zone->GetSpawnByID(id);
 			if (target)
 				target->SetIllusionModel(model);
 		}
@@ -9547,10 +9498,10 @@ int EQ2Emu_lua_ResetIllusion(lua_State* state) {
 	LuaSpell* spell = lua_interface->GetCurrentSpell(state);
 	lua_interface->ResetFunctionStack(state);
 
-	if (spell && spell->spell && spell->targets.size() > 0) {
-		ZoneServer* zone = spell->caster->GetZone();
-		for (int32 i = 0; i < spell->targets.size(); i++) {
-			Spawn* target = zone->GetSpawnByID(spell->targets.at(i));
+	if (spell && spell->spell && spell->GetTargetCount() > 0) {
+		ZoneServer* zone = spell->zone;
+		for (int32 id : spell->GetTargets()) {
+			Spawn* target = zone->GetSpawnByID(id);
 			if (target)
 				target->SetIllusionModel(0);
 		}
@@ -9694,13 +9645,11 @@ int EQ2Emu_lua_CureByType(lua_State* state) {
 		}
 	}
 	else {
-		ZoneServer* zone = spell->caster->GetZone();
+		ZoneServer* zone = spell->zone;
 		vector<int32> targets = spell->targets;
 		vector<Entity*> targets_to_cure;
-		spell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
-		for (int8 i = 0; i < targets.size(); i++) {
-			target = zone->GetSpawnByID(targets.at(i));
-
+		for (int32 id : spell->GetTargets()) {
+			target = zone->GetSpawnByID(id);
 			if (!target || !target->IsEntity())
 				continue;
 
@@ -9708,7 +9657,6 @@ int EQ2Emu_lua_CureByType(lua_State* state) {
 				targets_to_cure.push_back((Entity*)target);
 			}
 		}
-		spell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
 		
 		vector<Entity*>::iterator itr;
 		for(itr = targets_to_cure.begin(); itr != targets_to_cure.end(); itr++) {
@@ -9746,12 +9694,9 @@ int EQ2Emu_lua_CureByControlEffect(lua_State* state) {
 			((Entity*)target)->CureDetrimentByControlEffect(cure_count, cure_type, cure_name.length() > 0 ? cure_name : (string)spell->spell->GetName(), spell->caster, cure_level);
 	}
 	else {
-		ZoneServer* zone = spell->caster->GetZone();
-		vector<int32> targets = spell->targets;
-
-		spell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
-		for (int8 i = 0; i < targets.size(); i++) {
-			target = zone->GetSpawnByID(targets.at(i));
+		ZoneServer* zone = spell->zone;
+		for (int32 id : spell->GetTargets()) {
+			target = zone->GetSpawnByID(id);
 
 			if (!target || !target->IsEntity())
 				continue;
@@ -9759,7 +9704,6 @@ int EQ2Emu_lua_CureByControlEffect(lua_State* state) {
 			if (((Entity*)target)->GetDetCount() > 0)
 				((Entity*)target)->CureDetrimentByControlEffect(cure_count, cure_type, cure_name.length() > 0 ? cure_name : (string)spell->spell->GetName(), spell->caster, cure_level);
 		}
-		spell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
 	}
 	return 0;
 }
@@ -9781,12 +9725,12 @@ int EQ2Emu_lua_CancelSpell(lua_State* state) {
 		return 0;
 	}
 
-	if (!spell->caster->GetZone()) {
+	if (!spell->zone) {
 		lua_interface->LogError("%s: LUA CancelSpell command error: unable to get the zone of the caster", lua_interface->GetScriptName(state));
 		return 0;
 	}
 
-	spell->caster->GetZone()->GetSpellProcess()->AddSpellCancel(spell);
+	spell->zone->GetSpellProcess()->AddSpellCancel(spell);
 
 	return 0;
 }
@@ -9807,16 +9751,14 @@ int EQ2Emu_lua_RemoveStealth(lua_State* state) {
 	if (spawn && spawn->IsEntity())
 		((Entity*)spawn)->RemoveStealthSpell(spell);
 	else {
-		ZoneServer* zone = spell->caster->GetZone();
-		spell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
-		for (int32 i = 0; i < spell->targets.size(); i++) {
-			spawn = zone->GetSpawnByID(spell->targets.at(i));
+		ZoneServer* zone = spell->zone;
+		for (int32 id : spell->GetTargets()) {
+			spawn = zone->GetSpawnByID(id);
 			if (!spawn || !spawn->IsEntity())
 				continue;
 
 			((Entity*)spawn)->RemoveStealthSpell(spell);
 		}
-		spell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
 	}
 	return 0;
 }
@@ -9837,16 +9779,14 @@ int EQ2Emu_lua_RemoveInvis(lua_State* state) {
 	if (spawn && spawn->IsEntity())
 		((Entity*)spawn)->RemoveInvisSpell(spell);
 	else {
-		ZoneServer* zone = spell->caster->GetZone();
-		spell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
-		for (int32 i = 0; i < spell->targets.size(); i++) {
-			spawn = zone->GetSpawnByID(spell->targets.at(i));
+		ZoneServer* zone = spell->zone;
+		for (int32 id : spell->GetTargets()) {
+			spawn = zone->GetSpawnByID(id);
 			if (!spawn || !spawn->IsEntity())
 				continue;
 
 			((Entity*)spawn)->RemoveInvisSpell(spell);
 		}
-		spell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
 	}
 	return 0;
 }
@@ -9973,7 +9913,7 @@ int EQ2Emu_lua_RemoveTriggerFromSpell(lua_State* state) {
 		return 0;
 	}
 	
-	if (!spell->caster || !spell->caster->GetZone()) {
+	if (!spell->caster || !spell->zone) {
 		lua_interface->LogError("%s: LUA RemoveTriggerFromSpell command error: caster / caster zone must be set!", lua_interface->GetScriptName(state));
 		lua_interface->ResetFunctionStack(state);
 		return 0;
@@ -9989,7 +9929,7 @@ int EQ2Emu_lua_RemoveTriggerFromSpell(lua_State* state) {
 	if (remove_count >= spell->num_triggers) {
 		spell->num_triggers = 0;
 		if (spell->cancel_after_all_triggers)
-			spell->caster->GetZone()->GetSpellProcess()->AddSpellCancel(spell);
+			spell->zone->GetSpellProcess()->AddSpellCancel(spell);
 	}
 	else {
 		spell->num_triggers -= remove_count;
@@ -10064,16 +10004,14 @@ int EQ2Emu_lua_AddImmunitySpell(lua_State* state) {
 		Entity* entity = ((Entity*)spawn);
 		entity->AddImmunity(spell, type);
 	}
-	else if(spell->caster && spell->caster->GetZone()) {
-		spell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
-		for (int8 i = 0; i < spell->targets.size(); i++) {
-			spawn = spell->caster->GetZone()->GetSpawnByID(spell->targets.at(i));
+	else if(spell->zone) {
+		for (int32 id : spell->GetTargets()) {
+			spawn = spell->zone->GetSpawnByID(id);
 			if (!spawn || !spawn->IsEntity())
 				continue;
 			Entity* entity = ((Entity*)spawn);
 			entity->AddImmunity(spell, type);
 			}
-		spell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
 	}
 
 	return 0;
@@ -10101,16 +10039,14 @@ int EQ2Emu_lua_RemoveImmunitySpell(lua_State* state) {
 		Entity* entity = ((Entity*)spawn);
 		entity->RemoveImmunity(spell, type);
 	}
-	else if(spell->caster && spell->caster->GetZone()) {
-		spell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
-		for (int8 i = 0; i < spell->targets.size(); i++) {
-			spawn = spell->caster->GetZone()->GetSpawnByID(spell->targets.at(i));
+	else if(spell->zone) {
+		for (int32 id : spell->GetTargets()) {
+			spawn = spell->zone->GetSpawnByID(id);
 			if (!spawn || !spawn->IsEntity())
 				continue;
 			Entity* entity = ((Entity*)spawn);
 			entity->RemoveImmunity(spell, type);
 		}
-		spell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
 	}
 
 	return 0;
@@ -10142,16 +10078,14 @@ int EQ2Emu_lua_SetSpellSnareValue(lua_State* state) {
 
 		((Entity*)spawn)->SetSnareValue(spell, val);
 	}
-	else if(spell && spell->caster && spell->caster->GetZone()) {
-		spell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
-		for (int8 i = 0; i < spell->targets.size(); i++) {
-			spawn = spell->caster->GetZone()->GetSpawnByID(spell->targets.at(i));
+	else if(spell && spell->zone) {
+		for (int32 id : spell->GetTargets()) {
+			spawn = spell->zone->GetSpawnByID(id);
 			if (!spawn || !spawn->IsEntity())
 				continue;
 
 			((Entity*)spawn)->SetSnareValue(spell, val);
 		}
-		spell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
 	}
 
 	return 0;
@@ -11355,18 +11289,18 @@ int EQ2Emu_lua_Evac(lua_State* state) {
 	else {
 
 		LuaSpell* spell = lua_interface->GetCurrentSpell(state);
-		
-		if(!spell || !spell->caster || !spell->caster->GetZone()) {
+			
+		if(!spell || !spell->caster || !spell->zone) {
 			lua_interface->ResetFunctionStack(state);
 			return 0;
 		}
+			
+		ZoneServer* zone = spell->zone;
 		
-		ZoneServer* zone = spell->caster->GetZone();
-		
-		float x = spell->caster->GetZone()->GetSafeX();
-		float y = spell->caster->GetZone()->GetSafeY();
-		float z = spell->caster->GetZone()->GetSafeZ();
-		float h = spell->caster->GetZone()->GetSafeHeading();
+		float x = spell->zone->GetSafeX();
+		float y = spell->zone->GetSafeY();
+		float z = spell->zone->GetSafeZ();
+		float h = spell->zone->GetSafeHeading();
 
 		int numargs = lua_interface->GetNumberOfArgs(state);
 		
@@ -11376,12 +11310,11 @@ int EQ2Emu_lua_Evac(lua_State* state) {
 			z = lua_interface->GetFloatValue(state,3);
 			h = lua_interface->GetFloatValue(state,4);
 		}
-	
+
 		lua_interface->ResetFunctionStack(state);
-		
-		spell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
-		for (int32 i = 0; i < spell->targets.size(); i++) {
-			Spawn* target2 = zone->GetSpawnByID(spell->targets.at(i));
+
+		for (int32 id : spell->GetTargets()) {
+			Spawn* target2 = zone->GetSpawnByID(id);
 			if (!target2)
 				continue;
 
@@ -11389,7 +11322,7 @@ int EQ2Emu_lua_Evac(lua_State* state) {
 				Client* client = ((Player*)target2)->GetClient();
 				if (client) {
 					client->GetCurrentZone()->ClearHate(client->GetPlayer());
-					
+						
 					client->SetReloadingZone(true);
 					target2->SetX(x);
 					target2->SetY(y);
@@ -11402,9 +11335,9 @@ int EQ2Emu_lua_Evac(lua_State* state) {
 					target2->SetSpawnOrigHeading(h);
 
 					target2->SetAppearancePosition(x,y,z);
-					
+						
 					client->SetZoningCoords(x,y,z,h);
-					
+						
 					PacketStruct* packet = configReader.getStruct("WS_TeleportWithinZone", client->GetVersion());
 					if (packet)
 					{
@@ -11414,14 +11347,12 @@ int EQ2Emu_lua_Evac(lua_State* state) {
 						client->QueuePacket(packet->serialize());
 						safe_delete(packet);
 					}
-
 					client->GetCurrentZone()->RemoveSpawn(target2, false, false, true, true);
 					
 					client->GetPlayer()->SetSpawnSentState(target2, SpawnState::SPAWN_STATE_SENT);
 				}
 			}
 		}
-		spell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
 	}
 
 	return 0;
@@ -12367,10 +12298,10 @@ int EQ2Emu_lua_SetAlignment(lua_State* state) {
 
 	lua_interface->ResetFunctionStack(state);
 
-	if (spell && spell->targets.size() > 0) {
-		ZoneServer* zone = spell->caster->GetZone();
-		for (int8 i = 0; i < spell->targets.size(); i++) {
-			Spawn* target = zone->GetSpawnByID(spell->targets.at(i));
+	if (spell && spell->GetTargetCount() > 0) {
+		ZoneServer* zone = spell->zone;
+		for (int32 id : spell->GetTargets()) {
+			Spawn* target = zone->GetSpawnByID(id);
 			if (target && target->IsEntity()) {
 				((Entity*)target)->GetInfoStruct()->set_alignment((sint8)alignment);
 				if (target->IsPlayer())
@@ -14367,11 +14298,11 @@ int EQ2Emu_lua_GetSpellInitialTarget(lua_State* state) {
 			lua_interface->LogError("%s: LUA GetSpellInitialTarget command error, caster does not exist.", lua_interface->GetScriptName(state));
 			return 0;
 		}
-		if(!spell->caster->GetZone()) {
+		if(!spell->zone) {
 			lua_interface->LogError("%s: LUA GetSpellInitialTarget command error, zone does not exist.", lua_interface->GetScriptName(state));
 			return 0;
 		}
-		Spawn* spawn = spell->caster->GetZone()->GetSpawnByID(spell->initial_target);
+		Spawn* spawn = spell->zone->GetSpawnByID(spell->initial_target);
 		if (spawn) {
 			lua_interface->SetSpawnValue(state, spawn);
 			return 1;
@@ -14439,22 +14370,23 @@ int EQ2Emu_lua_GetSpellTargets(lua_State* state) {
 			lua_interface->LogError("%s: LUA GetSpellTargets command error, caster does not exist.", lua_interface->GetScriptName(state));
 			return 0;
 		}
-		if(!spell->caster->GetZone()) {
+		if(!spell->zone) {
 			lua_interface->LogError("%s: LUA GetSpellTargets command error, zone does not exist.", lua_interface->GetScriptName(state));
 			return 0;
 		}
 		
-		if (spell && spell->caster) {
-			ZoneServer* zone = spell->caster->GetZone();
-			spell->MSpellTargets.readlock(__FUNCTION__, __LINE__);
-			lua_createtable(state, spell->targets.size(), 0);
+		if (spell) {
+			ZoneServer* zone = spell->zone;
+			std::vector<int32> targets = spell->GetTargets(); // snapshot under lock
+			lua_createtable(state, targets.size(), 0);          // preallocate array size
 			int newTable = lua_gettop(state);
-			for (int32 i = 0; i < spell->targets.size(); i++) {
-				Spawn* spawn = zone->GetSpawnByID(spell->targets.at(i));
+
+			int i = 0;
+			for (int32_t id : targets) {
+				Spawn* spawn = zone->GetSpawnByID(id);
 				lua_interface->SetSpawnValue(state, spawn);
-				lua_rawseti(state, newTable, i + 1);
+				lua_rawseti(state, newTable, ++i); // Lua is 1-indexed
 			}
-			spell->MSpellTargets.releasereadlock(__FUNCTION__, __LINE__);
 			return 1;
 		}
 	}
