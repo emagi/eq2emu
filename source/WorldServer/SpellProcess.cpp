@@ -570,7 +570,7 @@ bool SpellProcess::ProcessSpell(LuaSpell* spell, bool first_cast, const char* fu
 				}
 			}
 			spell->MScriptMutex.releasewritelock(__FUNCTION__, __LINE__);
-			return true;
+			return ret;
 		}
 		std::string functionCall = ApplyLuaFunction(spell, first_cast, function, timer);
 		if(functionCall.length() < 1) {
