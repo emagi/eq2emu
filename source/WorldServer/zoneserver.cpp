@@ -3395,19 +3395,14 @@ void ZoneServer::CheckTransporters(Client* client) {
 						client->QueuePacket(packet);
 				}
 				else{
-					if(loc->force_zone && loc->destination_zone_id == GetZoneID()) {
-						client->MoveInZone(loc->destination_x, loc->destination_y, loc->destination_z, loc->destination_heading);
-					}
-					else {
-						ZoneChangeDetails zone_details;
-						bool foundZone = zone_list.GetZone(&zone_details, loc->destination_zone_id);
-						if(foundZone){
-							client->GetPlayer()->SetX(loc->destination_x);
-							client->GetPlayer()->SetY(loc->destination_y);
-							client->GetPlayer()->SetZ(loc->destination_z);
-							client->GetPlayer()->SetHeading(loc->destination_heading);
-							client->Zone(&zone_details, (ZoneServer*)zone_details.zonePtr);
-						}
+					ZoneChangeDetails zone_details;
+					bool foundZone = zone_list.GetZone(&zone_details, loc->destination_zone_id);
+					if(foundZone){
+						client->GetPlayer()->SetX(loc->destination_x);
+						client->GetPlayer()->SetY(loc->destination_y);
+						client->GetPlayer()->SetZ(loc->destination_z);
+						client->GetPlayer()->SetHeading(loc->destination_heading);
+						client->Zone(&zone_details, (ZoneServer*)zone_details.zonePtr, false);
 					}
 				}
 				break;
