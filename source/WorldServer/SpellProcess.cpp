@@ -2809,7 +2809,6 @@ void SpellProcess::CheckRemoveTargetFromSpell(LuaSpell* spell, bool allow_delete
 							if (remove_spawn->GetID() == id) {
 								found_target = true;
 								spell->RemoveTarget(id);
-								lua_interface->RemoveSpawnFromSpell(spell, remove_spawn);
 								LogWrite(SPELL__DEBUG, 0, "Spell", "%s CheckRemoveTargetFromSpell %s (%u).", spell->spell->GetName(), remove_spawn->GetName(), remove_spawn->GetID());
 								if(remove_spawn && std::find(spawnsToRemove.begin(), spawnsToRemove.end(), remove_spawn) == spawnsToRemove.end())
 									spawnsToRemove.push_back(remove_spawn);
@@ -2838,8 +2837,7 @@ void SpellProcess::CheckRemoveTargetFromSpell(LuaSpell* spell, bool allow_delete
 			Spawn* target = spawnsToRemove.at(s);
 			if(target) {
 				bool not_last_itr = (s != spawnsToRemove.size() - 1);
-				if(target->IsEntity())
-					((Entity*)target)->RemoveEffectsFromLuaSpell(spell);
+				lua_interface->RemoveSpawnFromSpell(spell, target);
 				if(targets_empty && allow_delete) {
 					lua_interface->RemoveSpell(spell, true, false, !target->Alive() ? "target_dead" : "target_removed", false, not_last_itr, target);
 				}
