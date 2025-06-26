@@ -127,6 +127,7 @@ void Entity::DeleteSpellEffects(bool removeClient)
 				if (IsPlayer())
 					GetInfoStruct()->maintained_effects[i].icon = 0xFFFF;
 				GetInfoStruct()->maintained_effects[i].spell_id = 0xFFFFFFFF;
+				GetInfoStruct()->maintained_effects[i].inherited_spell_id = 0;
 				GetInfoStruct()->maintained_effects[i].spell = nullptr;
 			}
 		}
@@ -139,6 +140,7 @@ void Entity::DeleteSpellEffects(bool removeClient)
 				}
 			}
 			GetInfoStruct()->spell_effects[i].spell_id = 0xFFFFFFFF;
+			GetInfoStruct()->spell_effects[i].inherited_spell_id = 0;
 			GetInfoStruct()->spell_effects[i].icon = 0;	
 			GetInfoStruct()->spell_effects[i].icon_backdrop = 0;
 			GetInfoStruct()->spell_effects[i].tier = 0;
@@ -1177,6 +1179,7 @@ void Entity::RemoveMaintainedSpell(LuaSpell* luaspell){
 	if (found) {
 		memset(&GetInfoStruct()->maintained_effects[29], 0, sizeof(MaintainedEffects));
 		GetInfoStruct()->maintained_effects[29].spell_id = 0xFFFFFFFF;
+		GetInfoStruct()->maintained_effects[29].inherited_spell_id = 0;
 		GetInfoStruct()->maintained_effects[29].icon = 0xFFFF;
 		GetInfoStruct()->maintained_effects[29].spell = nullptr;
 	}
@@ -1198,6 +1201,7 @@ void Entity::RemoveSpellEffect(LuaSpell* spell) {
 		GetZone()->GetSpellProcess()->RemoveTargetFromSpell(spell, this);
 		memset(&GetInfoStruct()->spell_effects[44], 0, sizeof(SpellEffects));
 		GetInfoStruct()->spell_effects[44].spell_id = 0xFFFFFFFF;
+		GetInfoStruct()->spell_effects[44].inherited_spell_id = 0;
 		GetInfoStruct()->spell_effects[44].spell = nullptr;
 		changed = true;
 		info_changed = true;
@@ -1227,12 +1231,12 @@ MaintainedEffects* Entity::GetFreeMaintainedSpellSlot(){
 	return ret;
 }
 
-MaintainedEffects* Entity::GetMaintainedSpell(int32 spell_id){
+MaintainedEffects* Entity::GetMaintainedSpell(int32 spell_id, bool on_char_load){
 	MaintainedEffects* ret = 0;
 	InfoStruct* info = GetInfoStruct();
 	MMaintainedSpells.readlock(__FUNCTION__, __LINE__);
 	for (int i = 0; i<NUM_MAINTAINED_EFFECTS; i++){
-		if (info->maintained_effects[i].spell_id == spell_id){
+		if (info->maintained_effects[i].spell_id == spell_id || (on_char_load && info->maintained_effects[i].inherited_spell_id == id)){
 			ret = &info->maintained_effects[i];
 			break;
 		}
@@ -1256,12 +1260,12 @@ SpellEffects* Entity::GetFreeSpellEffectSlot(){
 	return ret;
 }
 
-SpellEffects* Entity::GetSpellEffect(int32 id, Entity* caster) {
+SpellEffects* Entity::GetSpellEffect(int32 id, Entity* caster, bool on_char_load) {
 	SpellEffects* ret = 0;
 	InfoStruct* info = GetInfoStruct();
 	MSpellEffects.readlock(__FUNCTION__, __LINE__);
 	for(int i = 0; i < 45; i++) {
-		if(info->spell_effects[i].spell_id == id) {
+		if(info->spell_effects[i].spell_id == id || (on_char_load && info->maintained_effects[i].inherited_spell_id == id)) {
 			if (!caster || info->spell_effects[i].caster == caster){
 				ret = &info->spell_effects[i];
 				break;
@@ -2743,6 +2747,7 @@ void Entity::AddDetrimentalSpell(LuaSpell* luaspell, int32 override_expire_times
 	new_det.det_type = data->det_type;
 	new_det.incurable = data->incurable;
 	new_det.spell_id = spell->GetSpellID();
+	new_det.inherited_spell_id = data->inherited_spell_id;
 	new_det.control_effect = data->control_effect_type;
 	new_det.total_time = spell->GetSpellDuration()/10;
 

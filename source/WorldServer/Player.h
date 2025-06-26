@@ -589,7 +589,7 @@ public:
 	EQ2Packet* MoveInventoryItem(sint32 to_bag_id, int16 from_index, int8 new_slot, int8 charges, int8 appearance_type, bool* item_deleted, int16 version = 1);
 	bool IsPlayer(){ return true; }
 	MaintainedEffects* GetFreeMaintainedSpellSlot();
-	MaintainedEffects* GetMaintainedSpell(int32 id);
+	MaintainedEffects* GetMaintainedSpell(int32 id, bool on_char_load = false);
 	MaintainedEffects* GetMaintainedSpellBySlot(int8 slot);
 	MaintainedEffects* GetMaintainedSpells();
 	SpellEffects* GetFreeSpellEffectSlot();
@@ -1050,7 +1050,10 @@ public:
 	void DismissAllPets();
 
 	void SaveSpellEffects();
-
+	void SaveCustomSpellFields(LuaSpell* luaspell);
+	void SaveCustomSpellDataIndex(LuaSpell* luaspell);
+	void SaveCustomSpellEffectsDisplay(LuaSpell* luaspell);
+	
 	void SetSaveSpellEffects(bool val) { stop_save_spell_effects = val; }
 	AppearanceData SavedApp;
 	CharFeatures SavedFeatures;

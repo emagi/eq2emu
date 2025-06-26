@@ -222,7 +222,7 @@ void Spell::AddSpellLuaData(int8 type, int int_value, int int_value2, float floa
 	data->string_value = string_value;
 	data->string_value2 = string_value2;
 	data->string_helper = helper;
-
+	data->needs_db_save = false;
 	lua_data.push_back(data);
 }
 
@@ -237,6 +237,7 @@ void Spell::AddSpellLuaDataInt(int value, int value2, string helper) {
 	data->float_value2 = 0;
 	data->bool_value = false;
 	data->string_helper = helper;
+	data->needs_db_save = false;
 
 	lua_data.push_back(data);
 }
@@ -252,6 +253,7 @@ void Spell::AddSpellLuaDataFloat(float value, float value2, string helper) {
 	data->float_value2 = value2;
 	data->bool_value = false;
 	data->string_helper = helper;
+	data->needs_db_save = false;
 
 	lua_data.push_back(data);
 }
@@ -265,6 +267,7 @@ void Spell::AddSpellLuaDataBool(bool value, string helper) {
 	data->float_value = 0;
 	data->bool_value = value;
 	data->string_helper = helper;
+	data->needs_db_save = false;
 
 	lua_data.push_back(data);
 }
@@ -282,6 +285,7 @@ void Spell::AddSpellLuaDataString(string value, string value2,string helper) {
 	data->string_value = value;
 	data->string_value2 = value2;
 	data->string_helper = helper;
+	data->needs_db_save = false;
 
 	lua_data.push_back(data);
 }
@@ -1154,6 +1158,7 @@ void Spell::AddSpellEffect(int8 percentage, int8 subbullet, string description){
 	effect->description = description;
 	effect->subbullet = subbullet;
 	effect->percentage = percentage;
+	effect->needs_db_save = false;
 	
 	effects.push_back(effect);
 }

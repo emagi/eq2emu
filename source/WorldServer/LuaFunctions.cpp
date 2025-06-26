@@ -12436,12 +12436,16 @@ int EQ2Emu_lua_SetSpellData(lua_State* state) {
 
 	boost::to_lower(field);
 
-	bool valSet = false;
+	bool setVal = false;
 
-	spell->spell->SetSpellData(state, field, fieldArg);
+	setVal = spell->spell->SetSpellData(state, field, fieldArg);
 	lua_interface->ResetFunctionStack(state);
-
-	return valSet;
+	if(setVal) {
+		spell->MarkFieldModified(field);
+	}
+	lua_interface->SetBooleanValue(state, setVal);
+	
+	return 1;
 }
 
 int EQ2Emu_lua_SetSpellDataIndex(lua_State* state) {
@@ -12509,8 +12513,14 @@ int EQ2Emu_lua_SetSpellDataIndex(lua_State* state) {
 	}
 	
 	lua_interface->ResetFunctionStack(state);
+	
+	lua_interface->SetBooleanValue(state, setVal);
 
-	return setVal;
+	if(setVal) {
+		data->needs_db_save = true;
+	}
+	
+	return 1;
 }
 
 
@@ -12607,21 +12617,29 @@ int EQ2Emu_lua_SetSpellDisplayEffect(lua_State* state) {
 		return 0;
 	}
 
+	bool setVal = true;
 	// do we need to lock? eh probably not this should only be used before use of the custom spell
 	SpellDisplayEffect* effect = spell->spell->effects[idx];
 
-	if (field == "description")
+	if (field == "description") {
 		effect->description = string(lua_interface->GetStringValue(state, 4));
-	else if (field == "bullet")
-		effect->subbullet = lua_interface->GetInt8Value(state, 4);
-	else if (field == "percentage")
-		effect->percentage = lua_interface->GetInt8Value(state, 4);
-	else { // no match
-		lua_interface->ResetFunctionStack(state);
-		return 0;
+		effect->needs_db_save = true;
 	}
-
+	else if (field == "bullet") {
+		effect->subbullet = lua_interface->GetInt8Value(state, 4);
+		effect->needs_db_save = true;
+	}
+	else if (field == "percentage") {
+		effect->percentage = lua_interface->GetInt8Value(state, 4);
+		effect->needs_db_save = true;
+	}
+	else {
+		setVal = false;
+	}
+	
 	lua_interface->ResetFunctionStack(state);
+	
+	lua_interface->SetBooleanValue(state, setVal);
 	
 	return 1;
 }

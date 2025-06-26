@@ -55,6 +55,7 @@ struct MaintainedEffects{
 	int32	target;
 	int8	target_type;
 	int32	spell_id; 
+	int32	inherited_spell_id; 
 	int32	slot_pos; 
 	int16	icon;
 	int16	icon_backdrop;
@@ -67,6 +68,7 @@ struct MaintainedEffects{
 
 struct SpellEffects{
 	int32	spell_id; 
+	int32	inherited_spell_id; 
 	Entity*	caster;
 	float	total_time;
 	int32	expire_timestamp;
@@ -78,6 +80,7 @@ struct SpellEffects{
 
 struct DetrimentalEffects {
 	int32	spell_id; 
+	int32	inherited_spell_id; 
 	Entity*	caster;
 	int32	expire_timestamp;
 	int16	icon;
@@ -1067,6 +1070,7 @@ struct InfoStruct{
 		for(int i=0;i<45;i++){
 			if(i<30){
 				maintained_effects[i].spell_id = 0xFFFFFFFF;
+				maintained_effects[i].inherited_spell_id = 0;
 				if (spawn->IsPlayer())
 					maintained_effects[i].icon = 0xFFFF;
 
@@ -1074,6 +1078,7 @@ struct InfoStruct{
 			}
 			spell_effects[i].icon = 0;	
 			spell_effects[i].spell_id = 0xFFFFFFFF;	
+			spell_effects[i].inherited_spell_id = 0;
 			spell_effects[i].icon_backdrop = 0;
 			spell_effects[i].tier = 0;
 			spell_effects[i].total_time = 0.0f;
@@ -1425,7 +1430,7 @@ public:
 	virtual void AddSkillBonus(int32 spell_id, int32 skill_id, float value);
 	void AddDetrimentalSpell(LuaSpell* spell, int32 override_expire_timestamp = 0);
 	DetrimentalEffects* GetDetrimentalEffect(int32 spell_id, Entity* caster);
-	virtual MaintainedEffects* GetMaintainedSpell(int32 spell_id);
+	virtual MaintainedEffects* GetMaintainedSpell(int32 spell_id, bool on_char_load = false);
 	void RemoveDetrimentalSpell(LuaSpell* spell);
 	void	SetDeity(int8 new_deity){
 			deity = new_deity;
@@ -1489,7 +1494,7 @@ public:
 	void	DoRegenUpdate();
 	MaintainedEffects* GetFreeMaintainedSpellSlot();
 	SpellEffects* GetFreeSpellEffectSlot();
-	SpellEffects* GetSpellEffect(int32 id, Entity* caster = 0);
+	SpellEffects* GetSpellEffect(int32 id, Entity* caster = 0, bool on_char_load = false);
 	SpellEffects* GetSpellEffectBySpellType(int8 spell_type);
 	SpellEffects* GetSpellEffectWithLinkedTimer(int32 id, int32 linked_timer = 0, sint32 type_group_spell_id = 0, Entity* caster = 0);
 	LuaSpell* HasLinkedTimerID(LuaSpell* spell, Spawn* target = nullptr,  bool stackWithOtherPlayers = true);

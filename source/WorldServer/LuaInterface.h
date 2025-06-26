@@ -22,6 +22,7 @@
 
 #include <mutex>
 #include <shared_mutex>
+#include <unordered_set>
 
 #include "Spawn.h"
 #include "Spells.h"
@@ -73,6 +74,18 @@ struct OptionWindowOption {
 #define EFFECT_FLAG_FEAR_IMMUNE 2097152
 #define EFFECT_FLAG_SAFEFALL 4194304
 
+enum class SpellFieldType {
+	Integer,
+	Float,
+	Boolean,
+	String
+};
+
+using SpellFieldGetter = std::function<std::string(SpellData*)>;
+extern const std::unordered_map<std::string, std::function<void(Spell*, const std::string&)>> SpellFieldGenericSetters;
+extern const std::unordered_map<std::string, std::pair<SpellFieldType, SpellFieldGetter>> SpellDataFieldAccessors;
+extern std::unordered_map<std::string, std::function<void(Spell*, const std::string&)>> SpellDataFieldSetters;
+
 struct LuaSpell{
 	Entity*			caster;
 	int32			initial_caster_char_id;
@@ -107,6 +120,9 @@ struct LuaSpell{
 	std::atomic<bool> has_proc;
 	ZoneServer*		zone;
 	int16			initial_caster_level;
+	
+	std::unordered_set<std::string> modified_fields; 
+	mutable std::shared_mutex spell_modify_mutex;
 	
 	void AddTarget(int32 target_id) {
 		std::unique_lock lock(targets_mutex);
@@ -212,6 +228,63 @@ struct LuaSpell{
 		char_id_targets.clear();
 	}
 	
+	void MarkFieldModified(const std::string& field) {
+		std::unique_lock lock(spell_modify_mutex);
+		modified_fields.insert(field);
+	}
+
+	bool IsFieldModified(const std::string& field) const {
+		std::shared_lock lock(spell_modify_mutex);
+		return modified_fields.find(field) != modified_fields.end();
+	}
+
+	void ClearFieldModifications() {
+		std::unique_lock lock(spell_modify_mutex);
+		modified_fields.clear();
+	}
+	
+	std::unordered_set<std::string> GetModifiedFieldsCopy() const {
+		std::shared_lock lock(spell_modify_mutex);
+		return modified_fields; // safe shallow copy
+	}
+	
+	bool SetSpellDataGeneric(const std::string& field, int value) {
+		return SetSpellDataGeneric(field, std::to_string(value));
+	}
+
+	bool SetSpellDataGeneric(const std::string& field, float value) {
+		return SetSpellDataGeneric(field, std::to_string(value));
+	}
+
+	bool SetSpellDataGeneric(const std::string& field, bool value) {
+		return SetSpellDataGeneric(field, value ? "1" : "0");
+	}
+	
+	bool SetSpellDataGeneric(const std::string& field, const std::string& value) {
+		auto it = SpellFieldGenericSetters.find(field);
+		if (it == SpellFieldGenericSetters.end())
+			return false;
+
+		if (!spell)
+			return false;
+
+		it->second(spell, value);
+		return true;
+	}
+	
+	bool SetSpellDataIndex(int idx, const std::string& value, const std::string& value2 = "");
+	
+	bool SetSpellDataIndex(int idx, int value, int value2) {
+		return SetSpellDataIndex(idx, std::to_string(value), std::to_string(value2));
+	}
+
+	bool SetSpellDataIndex(int idx, float value, float value2) {
+		return SetSpellDataIndex(idx, std::to_string(value), std::to_string(value2));
+	}
+
+	bool SetSpellDataIndex(int idx, bool value) {
+		return SetSpellDataIndex(idx, value ? "1" : "0");
+	}
 };
 
 enum class LuaArgType { SINT64, INT64, SINT, INT, FLOAT, STRING, BOOL, SPAWN, ZONE, SKILL, ITEM, QUEST, SPELL /* etc */ };

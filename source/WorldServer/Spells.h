@@ -205,6 +205,7 @@ struct LUAData{
 	sint32	int_value2;
 	float	float_value2;
 	string	string_helper;
+	bool	needs_db_save;
 };
 struct SpellScriptTimer {
 	LuaSpell*		spell;
@@ -224,6 +225,7 @@ struct SpellDisplayEffect{
 	int8	percentage;
 	int8	subbullet;
 	string	description;
+	bool	needs_db_save;
 };
 
 enum GivenByType {
@@ -352,6 +354,12 @@ public:
 	int16 GetSavageryRequired(Spawn* spawn);
 	int16 GetDissonanceRequired(Spawn* spawn);
 	SpellData* GetSpellData();
+	SpellDisplayEffect* GetSpellDisplayEffectSafe(int index) const {
+		if (index < 0 || index >= effects.size())
+			return nullptr;
+		return effects[index];
+	}
+
 	bool GetSpellData(lua_State* state, std::string field);
 	bool SetSpellData(lua_State* state, std::string field, int8 fieldArg);
 	bool ScribeAllowed(Player* player);

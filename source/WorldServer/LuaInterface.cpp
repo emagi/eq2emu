@@ -39,6 +39,149 @@ extern WorldDatabase database;
 extern ZoneList zone_list;
 
 
+const std::unordered_map<std::string, std::pair<SpellFieldType, SpellFieldGetter>> SpellDataFieldAccessors = {
+	{"spell_book_type", {SpellFieldType::Integer, [](SpellData* d) { return std::to_string(d->spell_book_type); }}},
+	{"icon", {SpellFieldType::Integer, [](SpellData* d) { return std::to_string(d->icon); }}},
+	{"icon_heroic_op", {SpellFieldType::Integer, [](SpellData* d) { return std::to_string(d->icon_heroic_op); }}},
+	{"icon_backdrop", {SpellFieldType::Integer, [](SpellData* d) { return std::to_string(d->icon_backdrop); }}},
+	{"type", {SpellFieldType::Integer, [](SpellData* d) { return std::to_string(d->type); }}},
+	{"class_skill", {SpellFieldType::Integer, [](SpellData* d) { return std::to_string(d->class_skill); }}},
+	{"min_class_skill_req", {SpellFieldType::Integer, [](SpellData* d) { return std::to_string(d->min_class_skill_req); }}},
+	{"mastery_skill", {SpellFieldType::Integer, [](SpellData* d) { return std::to_string(d->mastery_skill); }}},
+	{"ts_loc_index", {SpellFieldType::Integer, [](SpellData* d) { return std::to_string(d->ts_loc_index); }}},
+	{"num_levels", {SpellFieldType::Integer, [](SpellData* d) { return std::to_string(d->num_levels); }}},
+	{"tier", {SpellFieldType::Integer, [](SpellData* d) { return std::to_string(d->tier); }}},
+	{"hp_req", {SpellFieldType::Integer, [](SpellData* d) { return std::to_string(d->hp_req); }}},
+	{"hp_upkeep", {SpellFieldType::Integer, [](SpellData* d) { return std::to_string(d->hp_upkeep); }}},
+	{"power_req", {SpellFieldType::Float, [](SpellData* d) { return std::to_string(d->power_req); }}},
+	{"power_by_level", {SpellFieldType::Boolean, [](SpellData* d) { return d->power_by_level ? "1" : "0"; }}},
+	{"power_upkeep", {SpellFieldType::Integer, [](SpellData* d) { return std::to_string(d->power_upkeep); }}},
+	{"savagery_req", {SpellFieldType::Integer, [](SpellData* d) { return std::to_string(d->savagery_req); }}},
+	{"savagery_upkeep", {SpellFieldType::Integer, [](SpellData* d) { return std::to_string(d->savagery_upkeep); }}},
+	{"dissonance_req", {SpellFieldType::Integer, [](SpellData* d) { return std::to_string(d->dissonance_req); }}},
+	{"dissonance_upkeep", {SpellFieldType::Integer, [](SpellData* d) { return std::to_string(d->dissonance_upkeep); }}},
+	{"target_type", {SpellFieldType::Integer, [](SpellData* d) { return std::to_string(d->target_type); }}},
+	{"cast_time", {SpellFieldType::Integer, [](SpellData* d) { return std::to_string(d->cast_time); }}},
+	{"recovery", {SpellFieldType::Float, [](SpellData* d) { return std::to_string(d->recovery); }}},
+	{"recast", {SpellFieldType::Float, [](SpellData* d) { return std::to_string(d->recast); }}},
+	{"linked_timer", {SpellFieldType::Integer, [](SpellData* d) { return std::to_string(d->linked_timer); }}},
+	{"radius", {SpellFieldType::Float, [](SpellData* d) { return std::to_string(d->radius); }}},
+	{"max_aoe_targets", {SpellFieldType::Integer, [](SpellData* d) { return std::to_string(d->max_aoe_targets); }}},
+	{"friendly_spell", {SpellFieldType::Integer, [](SpellData* d) { return std::to_string(d->friendly_spell); }}},
+	{"req_concentration", {SpellFieldType::Integer, [](SpellData* d) { return std::to_string(d->req_concentration); }}},
+	{"range", {SpellFieldType::Float, [](SpellData* d) { return std::to_string(d->range); }}},
+	{"duration1", {SpellFieldType::Integer, [](SpellData* d) { return std::to_string(d->duration1); }}},
+	{"duration2", {SpellFieldType::Integer, [](SpellData* d) { return std::to_string(d->duration2); }}},
+	{"resistibility", {SpellFieldType::Float, [](SpellData* d) { return std::to_string(d->resistibility); }}},
+	{"duration_until_cancel", {SpellFieldType::Boolean, [](SpellData* d) { return d->duration_until_cancel ? "1" : "0"; }}},
+	{"power_req_percent", {SpellFieldType::Integer, [](SpellData* d) { return std::to_string(d->power_req_percent); }}},
+	{"hp_req_percent", {SpellFieldType::Integer, [](SpellData* d) { return std::to_string(d->hp_req_percent); }}},
+	{"savagery_req_percent", {SpellFieldType::Integer, [](SpellData* d) { return std::to_string(d->savagery_req_percent); }}},
+	{"dissonance_req_percent", {SpellFieldType::Integer, [](SpellData* d) { return std::to_string(d->dissonance_req_percent); }}},
+	{"name", {SpellFieldType::String, [](SpellData* d) { return d->name.data; }}},
+	{"description", {SpellFieldType::String, [](SpellData* d) { return d->description.data; }}},
+	{"success_message", {SpellFieldType::String, [](SpellData* d) { return d->success_message; }}},
+	{"fade_message", {SpellFieldType::String, [](SpellData* d) { return d->fade_message; }}},
+	{"fade_message_others", {SpellFieldType::String, [](SpellData* d) { return d->fade_message_others; }}},
+	{"cast_type", {SpellFieldType::Integer, [](SpellData* d) { return std::to_string(d->cast_type).c_str(); }}},
+	{"lua_script", {SpellFieldType::String, [](SpellData* d) { return d->lua_script; }}},
+	{"interruptable", {SpellFieldType::Boolean, [](SpellData* d) { return d->interruptable ? "1" : "0"; }}},
+	{"spell_visual", {SpellFieldType::Integer, [](SpellData* d) { return std::to_string(d->spell_visual); }}},
+	{"effect_message", {SpellFieldType::String, [](SpellData* d) { return d->effect_message; }}},
+	{"min_range", {SpellFieldType::Float, [](SpellData* d) { return std::to_string(d->min_range); }}},
+	{"can_effect_raid", {SpellFieldType::Integer, [](SpellData* d) { return std::to_string(d->can_effect_raid); }}},
+	{"affect_only_group_members", {SpellFieldType::Integer, [](SpellData* d) { return std::to_string(d->affect_only_group_members); }}},
+	{"group_spell", {SpellFieldType::Integer, [](SpellData* d) { return std::to_string(d->group_spell); }}},
+	{"hit_bonus", {SpellFieldType::Float, [](SpellData* d) { return std::to_string(d->hit_bonus); }}},
+	{"display_spell_tier", {SpellFieldType::Integer, [](SpellData* d) { return std::to_string(d->display_spell_tier); }}},
+	{"is_active", {SpellFieldType::Integer, [](SpellData* d) { return std::to_string(d->is_active); }}},
+	{"det_type", {SpellFieldType::Integer, [](SpellData* d) { return std::to_string(d->det_type); }}},
+	{"incurable", {SpellFieldType::Boolean, [](SpellData* d) { return d->incurable ? "1" : "0"; }}},
+	{"control_effect_type", {SpellFieldType::Integer, [](SpellData* d) { return std::to_string(d->control_effect_type); }}},
+	{"casting_flags", {SpellFieldType::Integer, [](SpellData* d) { return std::to_string(d->casting_flags); }}},
+	{"cast_while_moving", {SpellFieldType::Boolean, [](SpellData* d) { return d->cast_while_moving ? "1" : "0"; }}},
+	{"persist_through_death", {SpellFieldType::Boolean, [](SpellData* d) { return d->persist_through_death ? "1" : "0"; }}},
+	{"not_maintained", {SpellFieldType::Boolean, [](SpellData* d) { return d->not_maintained ? "1" : "0"; }}},
+	{"is_aa", {SpellFieldType::Boolean, [](SpellData* d) { return d->is_aa ? "1" : "0"; }}},
+	{"savage_bar", {SpellFieldType::Integer, [](SpellData* d) { return std::to_string(d->savage_bar); }}},
+	{"savage_bar_slot", {SpellFieldType::Integer, [](SpellData* d) { return std::to_string(d->savage_bar_slot); }}},
+	{"soe_spell_crc", {SpellFieldType::Integer, [](SpellData* d) { return std::to_string(d->soe_spell_crc); }}},
+	{"spell_type", {SpellFieldType::Integer, [](SpellData* d) { return std::to_string(d->spell_type); }}},
+	{"spell_name_crc", {SpellFieldType::Integer, [](SpellData* d) { return std::to_string(d->spell_name_crc); }}},
+	{"type_group_spell_id", {SpellFieldType::Integer, [](SpellData* d) { return std::to_string(d->type_group_spell_id); }}},
+	{"can_fizzle", {SpellFieldType::Boolean, [](SpellData* d) { return d->can_fizzle ? "1" : "0"; }}}
+};
+
+const std::unordered_map<std::string, std::function<void(Spell*, const std::string&)>> SpellFieldGenericSetters = {
+    { "spell_book_type", [](Spell* spell, const std::string& val) { spell->GetSpellData()->spell_book_type = static_cast<int32>(std::stoi(val)); } },
+    { "icon", [](Spell* spell, const std::string& val) { spell->GetSpellData()->icon = static_cast<sint16>(std::stoi(val)); } },
+    { "icon_heroic_op", [](Spell* spell, const std::string& val) { spell->GetSpellData()->icon_heroic_op = static_cast<int16>(std::stoi(val)); } },
+    { "icon_backdrop", [](Spell* spell, const std::string& val) { spell->GetSpellData()->icon_backdrop = static_cast<int16>(std::stoi(val)); } },
+    { "type", [](Spell* spell, const std::string& val) { spell->GetSpellData()->type = static_cast<int16>(std::stoi(val)); } },
+    { "class_skill", [](Spell* spell, const std::string& val) { spell->GetSpellData()->class_skill = static_cast<int32>(std::stoi(val)); } },
+    { "min_class_skill_req", [](Spell* spell, const std::string& val) { spell->GetSpellData()->min_class_skill_req = static_cast<int16>(std::stoi(val)); } },
+    { "mastery_skill", [](Spell* spell, const std::string& val) { spell->GetSpellData()->mastery_skill = static_cast<int32>(std::stoi(val)); } },
+    { "ts_loc_index", [](Spell* spell, const std::string& val) { spell->GetSpellData()->ts_loc_index = static_cast<int8>(std::stoi(val)); } },
+    { "num_levels", [](Spell* spell, const std::string& val) { spell->GetSpellData()->num_levels = static_cast<int8>(std::stoi(val)); } },
+    { "tier", [](Spell* spell, const std::string& val) { spell->GetSpellData()->tier = static_cast<int8>(std::stoi(val)); } },
+    { "hp_req", [](Spell* spell, const std::string& val) { spell->GetSpellData()->hp_req = static_cast<int16>(std::stoi(val)); } },
+    { "hp_upkeep", [](Spell* spell, const std::string& val) { spell->GetSpellData()->hp_upkeep = static_cast<int16>(std::stoi(val)); } },
+    { "power_req", [](Spell* spell, const std::string& val) { spell->GetSpellData()->power_req = std::stof(val); } },
+    { "power_by_level", [](Spell* spell, const std::string& val) { spell->GetSpellData()->power_by_level = (val == "1" || val == "true"); } },
+    { "power_upkeep", [](Spell* spell, const std::string& val) { spell->GetSpellData()->power_upkeep = static_cast<int16>(std::stoi(val)); } },
+    { "savagery_req", [](Spell* spell, const std::string& val) { spell->GetSpellData()->savagery_req = static_cast<int16>(std::stoi(val)); } },
+    { "savagery_upkeep", [](Spell* spell, const std::string& val) { spell->GetSpellData()->savagery_upkeep = static_cast<int16>(std::stoi(val)); } },
+    { "dissonance_req", [](Spell* spell, const std::string& val) { spell->GetSpellData()->dissonance_req = static_cast<int16>(std::stoi(val)); } },
+    { "dissonance_upkeep", [](Spell* spell, const std::string& val) { spell->GetSpellData()->dissonance_upkeep = static_cast<int16>(std::stoi(val)); } },
+    { "target_type", [](Spell* spell, const std::string& val) { spell->GetSpellData()->target_type = static_cast<int16>(std::stoi(val)); } },
+    { "cast_time", [](Spell* spell, const std::string& val) { spell->GetSpellData()->cast_time = static_cast<int16>(std::stoi(val)); } },
+    { "recovery", [](Spell* spell, const std::string& val) { spell->GetSpellData()->recovery = std::stof(val); } },
+    { "recast", [](Spell* spell, const std::string& val) { spell->GetSpellData()->recast = std::stof(val); } },
+    { "linked_timer", [](Spell* spell, const std::string& val) { spell->GetSpellData()->linked_timer = static_cast<int32>(std::stoi(val)); } },
+    { "radius", [](Spell* spell, const std::string& val) { spell->GetSpellData()->radius = std::stof(val); } },
+    { "max_aoe_targets", [](Spell* spell, const std::string& val) { spell->GetSpellData()->max_aoe_targets = static_cast<int16>(std::stoi(val)); } },
+    { "friendly_spell", [](Spell* spell, const std::string& val) { spell->GetSpellData()->friendly_spell = static_cast<int8>(std::stoi(val)); } },
+    { "req_concentration", [](Spell* spell, const std::string& val) { spell->GetSpellData()->req_concentration = static_cast<int16>(std::stoi(val)); } },
+    { "range", [](Spell* spell, const std::string& val) { spell->GetSpellData()->range = std::stof(val); } },
+    { "duration1", [](Spell* spell, const std::string& val) { spell->GetSpellData()->duration1 = static_cast<sint32>(std::stoi(val)); } },
+    { "duration2", [](Spell* spell, const std::string& val) { spell->GetSpellData()->duration2 = static_cast<sint32>(std::stoi(val)); } },
+    { "resistibility", [](Spell* spell, const std::string& val) { spell->GetSpellData()->resistibility = std::stof(val); } },
+    { "duration_until_cancel", [](Spell* spell, const std::string& val) { spell->GetSpellData()->duration_until_cancel = (val == "1" || val == "true"); } },
+    { "power_req_percent", [](Spell* spell, const std::string& val) { spell->GetSpellData()->power_req_percent = static_cast<int8>(std::stoi(val)); } },
+    { "hp_req_percent", [](Spell* spell, const std::string& val) { spell->GetSpellData()->hp_req_percent = static_cast<int8>(std::stoi(val)); } },
+    { "savagery_req_percent", [](Spell* spell, const std::string& val) { spell->GetSpellData()->savagery_req_percent = static_cast<int8>(std::stoi(val)); } },
+    { "dissonance_req_percent", [](Spell* spell, const std::string& val) { spell->GetSpellData()->dissonance_req_percent = static_cast<int8>(std::stoi(val)); } },
+    { "name", [](Spell* spell, const std::string& val) { spell->GetSpellData()->name.data = val; } },
+    { "description", [](Spell* spell, const std::string& val) { spell->GetSpellData()->description.data = val; } },
+    { "success_message", [](Spell* spell, const std::string& val) { spell->GetSpellData()->success_message = val; } },
+    { "fade_message", [](Spell* spell, const std::string& val) { spell->GetSpellData()->fade_message = val; } },
+    { "fade_message_others", [](Spell* spell, const std::string& val) { spell->GetSpellData()->fade_message_others = val; } },
+    { "cast_type", [](Spell* spell, const std::string& val) { spell->GetSpellData()->cast_type = static_cast<int8>(std::stoi(val)); } },
+    { "call_frequency", [](Spell* spell, const std::string& val) { spell->GetSpellData()->call_frequency = static_cast<int32>(std::stoi(val)); } },
+    { "interruptable", [](Spell* spell, const std::string& val) { spell->GetSpellData()->interruptable = (val == "1" || val == "true"); } },
+    { "spell_visual", [](Spell* spell, const std::string& val) { spell->GetSpellData()->spell_visual = static_cast<int32>(std::stoi(val)); } },
+    { "effect_message", [](Spell* spell, const std::string& val) { spell->GetSpellData()->effect_message = val; } },
+    { "min_range", [](Spell* spell, const std::string& val) { spell->GetSpellData()->min_range = std::stof(val); } },
+    { "can_effect_raid", [](Spell* spell, const std::string& val) { spell->GetSpellData()->can_effect_raid = static_cast<int8>(std::stoi(val)); } },
+    { "affect_only_group_members", [](Spell* spell, const std::string& val) { spell->GetSpellData()->affect_only_group_members = static_cast<int8>(std::stoi(val)); } },
+    { "group_spell", [](Spell* spell, const std::string& val) { spell->GetSpellData()->group_spell = static_cast<int8>(std::stoi(val)); } },
+    { "hit_bonus", [](Spell* spell, const std::string& val) { spell->GetSpellData()->hit_bonus = std::stof(val); } },
+    { "display_spell_tier", [](Spell* spell, const std::string& val) { spell->GetSpellData()->display_spell_tier = static_cast<int8>(std::stoi(val)); } },
+    { "is_active", [](Spell* spell, const std::string& val) { spell->GetSpellData()->is_active = static_cast<int8>(std::stoi(val)); } },
+    { "det_type", [](Spell* spell, const std::string& val) { spell->GetSpellData()->det_type = static_cast<int8>(std::stoi(val)); } },
+    { "incurable", [](Spell* spell, const std::string& val) { spell->GetSpellData()->incurable = (val == "1" || val == "true"); } },
+    { "control_effect_type", [](Spell* spell, const std::string& val) { spell->GetSpellData()->control_effect_type = static_cast<int8>(std::stoi(val)); } },
+    { "casting_flags", [](Spell* spell, const std::string& val) { spell->GetSpellData()->casting_flags = static_cast<int32>(std::stoi(val)); } },
+    { "cast_while_moving", [](Spell* spell, const std::string& val) { spell->GetSpellData()->cast_while_moving = (val == "1" || val == "true"); } },
+    { "persist_through_death", [](Spell* spell, const std::string& val) { spell->GetSpellData()->persist_through_death = (val == "1" || val == "true"); } },
+    { "not_maintained", [](Spell* spell, const std::string& val) { spell->GetSpellData()->not_maintained = (val == "1" || val == "true"); } },
+    { "is_aa", [](Spell* spell, const std::string& val) { spell->GetSpellData()->is_aa = (val == "1" || val == "true"); } },
+    { "savage_bar", [](Spell* spell, const std::string& val) { spell->GetSpellData()->savage_bar = static_cast<int8>(std::stoi(val)); } },
+    { "spell_type", [](Spell* spell, const std::string& val) { spell->GetSpellData()->spell_type = static_cast<int8>(std::stoi(val)); } },
+    { "type_group_spell_id", [](Spell* spell, const std::string& val) { spell->GetSpellData()->type_group_spell_id = static_cast<sint32>(std::stoi(val)); } },
+    { "can_fizzle", [](Spell* spell, const std::string& val) { spell->GetSpellData()->can_fizzle = (val == "1" || val == "true"); } },
+};
+
 LuaInterface::LuaInterface() {
 	shutting_down = false;
 	lua_system_reloading = false;
@@ -3066,4 +3209,41 @@ LUASpellWrapper::LUASpellWrapper() {
 
 bool LUASpellWrapper::IsSpell() {
 	return true;
+}
+
+bool LuaSpell::SetSpellDataIndex(int idx, const std::string& value, const std::string& value2) {
+	if (!spell || spell->lua_data.size() <= idx)
+		return false;
+
+	LUAData* data = spell->lua_data[idx];
+	if (!data)
+		return false;
+
+	bool setVal = true;
+
+	switch (data->type) {
+	case 0: // int + int
+		data->int_value = std::stoi(value);
+		data->int_value2 = std::stoi(value2);
+		break;
+	case 1: // float + float
+		data->float_value = std::stof(value);
+		data->float_value2 = std::stof(value2);
+		break;
+	case 2: // bool
+		data->bool_value = (value == "1" || value == "true");
+		break;
+	case 3: // string + string
+		data->string_value = value;
+		data->string_value2 = value2;
+		break;
+	default:
+		setVal = false;
+		break;
+	}
+
+	if (setVal)
+		data->needs_db_save = true;
+
+	return setVal;
 }

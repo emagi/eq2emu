@@ -656,6 +656,9 @@ public:
 									  float x, float y, float z, float heading, int32 gridid, int32 charid, int32 zoneid, int32 instanceid);
 	bool				DeleteSpiritShard(int32 id);
 
+	void				LoadCustomSpellData(Client* client, LuaSpell* luaspell);
+	void				LoadCustomSpellDataIndex(Client* client, LuaSpell* luaspell);
+	void				LoadCustomSpellDisplayEffects(Client* client, LuaSpell* luaspell);
 	void				LoadCharacterSpellEffects(int32 char_id, Client *client, int8 db_spell_type);
 
 	int32				GetMysqlExpCurve(int level);

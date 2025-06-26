@@ -3284,10 +3284,12 @@ PlayerInfo::PlayerInfo(Player* in_player){
 	for(int i=0;i<45;i++){
 		if(i<30){
 			info_struct->maintained_effects[i].spell_id = 0xFFFFFFFF;
+			info_struct->maintained_effects[i].inherited_spell_id = 0;
 			info_struct->maintained_effects[i].icon = 0xFFFF;
 			info_struct->maintained_effects[i].spell = nullptr;
 		}
-		info_struct->spell_effects[i].spell_id = 0xFFFFFFFF;	
+		info_struct->spell_effects[i].spell_id = 0xFFFFFFFF;
+		info_struct->spell_effects[i].inherited_spell_id = 0;	
 		info_struct->spell_effects[i].icon = 0;		
 		info_struct->spell_effects[i].icon_backdrop = 0;
 		info_struct->spell_effects[i].tier = 0;
@@ -3324,12 +3326,12 @@ MaintainedEffects* Player::GetFreeMaintainedSpellSlot(){
 	return ret;
 }
 
-MaintainedEffects* Player::GetMaintainedSpell(int32 id){
+MaintainedEffects* Player::GetMaintainedSpell(int32 id, bool on_char_load){
 	MaintainedEffects* ret = 0;
 	InfoStruct* info = GetInfoStruct();
 	GetMaintainedMutex()->readlock(__FUNCTION__, __LINE__);
 	for(int i=0;i<NUM_MAINTAINED_EFFECTS;i++){
-		if(info->maintained_effects[i].spell_id == id){
+		if(info->maintained_effects[i].spell_id == id || (on_char_load && info->maintained_effects[i].inherited_spell_id == id)){
 			ret = &info->maintained_effects[i];
 			break;
 		}
@@ -3560,6 +3562,7 @@ void Player::RemoveMaintainedSpell(LuaSpell* luaspell){
 	if (found) {
 		memset(&GetInfoStruct()->maintained_effects[29], 0, sizeof(MaintainedEffects));
 		GetInfoStruct()->maintained_effects[29].spell_id = 0xFFFFFFFF;
+		GetInfoStruct()->maintained_effects[29].inherited_spell_id = 0;
 		GetInfoStruct()->maintained_effects[29].icon = 0xFFFF;
 		GetInfoStruct()->maintained_effects[29].spell = nullptr;
 		charsheet_changed = true;
@@ -3580,6 +3583,7 @@ void Player::RemoveSpellEffect(LuaSpell* spell){
 	if (found) {
 		memset(&GetInfoStruct()->spell_effects[44], 0, sizeof(SpellEffects));
 		GetInfoStruct()->spell_effects[44].spell_id = 0xFFFFFFFF;
+		GetInfoStruct()->spell_effects[44].inherited_spell_id = 0;
 		GetInfoStruct()->spell_effects[44].spell = nullptr;
 		changed = true;
 		info_changed = true;
@@ -7331,6 +7335,110 @@ NPC* Player::InstantiateSpiritShard(float origX, float origY, float origZ, float
 		return npc;
 }
 
+void Player::SaveCustomSpellFields(LuaSpell* luaspell) {
+	if (!luaspell || !luaspell->spell || !luaspell->spell->IsCopiedSpell())
+		return;
+
+	auto spell_data = luaspell->spell->GetSpellData();
+	std::unordered_set<std::string> modified_fields = luaspell->GetModifiedFieldsCopy();
+
+	Query savedEffects;
+	for (const std::string& field : modified_fields) {
+		auto it = SpellDataFieldAccessors.find(field);
+		if (it == SpellDataFieldAccessors.end())
+			continue;
+
+		const auto& [type, getter] = it->second;
+		std::string value = getter(spell_data);
+
+		std::string type_str;
+		switch (type) {
+			case SpellFieldType::Integer: type_str = "int"; break;
+			case SpellFieldType::Float:   type_str = "float"; break;
+			case SpellFieldType::Boolean: type_str = "bool"; break;
+			case SpellFieldType::String:  type_str = "string"; break;
+			default: continue;
+		}
+
+		savedEffects.AddQueryAsync(GetCharacterID(), &database, Q_INSERT, "INSERT INTO character_custom_spell_data (charid, spell_id, field, type, value) VALUES (%u, %u, '%s', '%s', '%s')",
+			GetCharacterID(),
+			luaspell->spell->GetSpellData()->inherited_spell_id,
+			database.getSafeEscapeString(field.c_str()).c_str(),
+			type_str.c_str(),
+			database.getSafeEscapeString(value.c_str()).c_str());
+	}
+}
+
+
+void Player::SaveCustomSpellDataIndex(LuaSpell* luaspell) {
+	if (!luaspell || !luaspell->spell || !luaspell->spell->IsCopiedSpell())
+		return;
+	
+	auto& vec = luaspell->spell->lua_data;
+
+	Query savedEffects;
+	for (int i = 0; i < vec.size(); ++i) {
+		LUAData* data = vec[i];
+		if (!data || !data->needs_db_save)
+			continue;
+
+		std::string value1, value2, type;
+		switch (data->type) {
+			case 0:
+				value1 = std::to_string(data->int_value);
+				value2 = std::to_string(data->int_value2);
+				type = "int";
+				break;
+			case 1:
+				value1 = std::to_string(data->float_value);
+				value2 = std::to_string(data->float_value2);
+				type = "float";
+				break;
+			case 2:
+				value1 = data->bool_value ? "1" : "0";
+				type = "bool";
+				break;
+			case 3:
+				value1 = database.getSafeEscapeString(data->string_value.c_str());
+				value2 = database.getSafeEscapeString(data->string_value2.c_str());
+				type = "string";
+				break;
+			default:
+				continue;
+		}
+
+		savedEffects.AddQueryAsync(GetCharacterID(), &database, Q_INSERT, "INSERT INTO character_custom_spell_dataindex (charid, spell_id, idx, type, value1, value2) VALUES (%u, %u, %d, '%s', '%s', '%s')", GetCharacterID(),
+			luaspell->spell->GetSpellData()->inherited_spell_id,
+			i,
+			type.c_str(), value1.c_str(), value2.c_str());
+	}
+}
+
+void Player::SaveCustomSpellEffectsDisplay(LuaSpell* luaspell) {
+	if (!luaspell || !luaspell->spell || !luaspell->spell->IsCopiedSpell())
+		return;
+	
+	auto& vec = luaspell->spell->effects;
+
+	Query savedEffects;
+	for (int i = 0; i < vec.size(); ++i) {
+		SpellDisplayEffect* eff = vec[i];
+		if (!eff || !eff->needs_db_save)
+			continue;
+
+		std::string charid = std::to_string(GetCharacterID());
+
+		savedEffects.AddQueryAsync(GetCharacterID(), &database, Q_INSERT, "INSERT INTO character_custom_spell_display (charid, spell_id, idx, field, value) VALUES (%u, %u, %d, 'description', '%s')",
+			GetCharacterID(), luaspell->spell->GetSpellData()->inherited_spell_id, i,
+			database.getSafeEscapeString(eff->description.c_str()).c_str());
+
+		savedEffects.AddQueryAsync(GetCharacterID(), &database, Q_INSERT, "INSERT INTO character_custom_spell_display (charid, spell_id, idx, field, value) VALUES (%u, %u, %d, 'bullet', '%d')",
+			GetCharacterID(), luaspell->spell->GetSpellData()->inherited_spell_id, i, eff->subbullet);
+
+		savedEffects.AddQueryAsync(GetCharacterID(), &database, Q_INSERT, "INSERT INTO character_custom_spell_display (charid, spell_id, idx, field, value) VALUES (%u, %u, %d, 'percentage', '%d')",
+			GetCharacterID(), luaspell->spell->GetSpellData()->inherited_spell_id, i, eff->percentage);
+	}
+}
 void Player::SaveSpellEffects()
 {
 	if(stop_save_spell_effects)
@@ -7346,6 +7454,9 @@ void Player::SaveSpellEffects()
 	Query savedEffects;
 	savedEffects.AddQueryAsync(GetCharacterID(), &database, Q_DELETE, "delete from character_spell_effects where charid=%u", GetCharacterID());
 	savedEffects.AddQueryAsync(GetCharacterID(), &database, Q_DELETE, "delete from character_spell_effect_targets where caster_char_id=%u", GetCharacterID());
+	savedEffects.AddQueryAsync(GetCharacterID(), &database, Q_DELETE, "delete from character_custom_spell_dataindex where charid=%u", GetCharacterID());
+	savedEffects.AddQueryAsync(GetCharacterID(), &database, Q_DELETE, "delete from character_custom_spell_display where charid=%u", GetCharacterID());
+	savedEffects.AddQueryAsync(GetCharacterID(), &database, Q_DELETE, "delete from character_custom_spell_data where charid=%u", GetCharacterID());
 	InfoStruct* info = GetInfoStruct();
 	MSpellEffects.readlock(__FUNCTION__, __LINE__);
 	MMaintainedSpells.readlock(__FUNCTION__, __LINE__);
@@ -7376,6 +7487,10 @@ void Player::SaveSpellEffects()
 			info->spell_effects[i].total_time, timestamp, database.getSafeEscapeString(info->spell_effects[i].spell->file_name.c_str()).c_str(), info->spell_effects[i].spell->spell->IsCopiedSpell(), GetCharacterID(), 
 			info->spell_effects[i].spell->damage_remaining, info->spell_effects[i].spell->effect_bitmask, info->spell_effects[i].spell->num_triggers, info->spell_effects[i].spell->had_triggers, info->spell_effects[i].spell->cancel_after_all_triggers,
 			info->spell_effects[i].spell->crit, info->spell_effects[i].spell->last_spellattack_hit, info->spell_effects[i].spell->interrupted, info->spell_effects[i].spell->resisted, info->spell_effects[i].spell->has_damaged, (info->maintained_effects[i].expire_timestamp) == 0xFFFFFFFF ? "" : database.getSafeEscapeString(spellProcess->SpellScriptTimerCustomFunction(info->spell_effects[i].spell).c_str()).c_str(), info->spell_effects[i].spell->initial_caster_level);
+		
+			SaveCustomSpellFields(info->spell_effects[i].spell);
+			SaveCustomSpellDataIndex(info->spell_effects[i].spell);
+			SaveCustomSpellEffectsDisplay(info->spell_effects[i].spell);
 		}
 		if (i < NUM_MAINTAINED_EFFECTS && info->maintained_effects[i].spell_id != 0xFFFFFFFF){
 			Spawn* spawn = GetZone()->GetSpawnByID(info->maintained_effects[i].spell->initial_target);
@@ -7404,6 +7519,10 @@ void Player::SaveSpellEffects()
 			info->maintained_effects[i].spell->damage_remaining, info->maintained_effects[i].spell->effect_bitmask, info->maintained_effects[i].spell->num_triggers, info->maintained_effects[i].spell->had_triggers, info->maintained_effects[i].spell->cancel_after_all_triggers,
 			info->maintained_effects[i].spell->crit, info->maintained_effects[i].spell->last_spellattack_hit, info->maintained_effects[i].spell->interrupted, info->maintained_effects[i].spell->resisted, info->maintained_effects[i].spell->has_damaged, (info->maintained_effects[i].expire_timestamp) == 0xFFFFFFFF ? "" : database.getSafeEscapeString(spellProcess->SpellScriptTimerCustomFunction(info->maintained_effects[i].spell).c_str()).c_str(), info->maintained_effects[i].spell->initial_caster_level);
 
+			SaveCustomSpellFields(info->maintained_effects[i].spell);
+			SaveCustomSpellDataIndex(info->maintained_effects[i].spell);
+			SaveCustomSpellEffectsDisplay(info->maintained_effects[i].spell);
+			
 			std::string insertTargets = string("insert into character_spell_effect_targets (caster_char_id, target_char_id, target_type, db_effect_type, spell_id, effect_slot, slot_pos) values ");
 			bool firstTarget = true;
 			map<Spawn*, int8> targetsInserted;

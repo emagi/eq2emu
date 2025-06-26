@@ -5283,6 +5283,11 @@ bool WorldDatabase::DeleteCharacter(int32 account_id, int32 character_id){
 	query.AddQueryAsync(character_id, this, Q_DELETE, "delete from character_titles where char_id = %u", character_id);
 	query.AddQueryAsync(character_id, this, Q_DELETE, "delete from char_colors where char_id = %u", character_id);
 	query.AddQueryAsync(character_id, this, Q_DELETE, "delete from statistics where char_id = %u", character_id);
+	query.AddQueryAsync(character_id, this, Q_DELETE, "delete from character_spell_effects where charid=%u", character_id);
+	query.AddQueryAsync(character_id, this, Q_DELETE, "delete from character_spell_effect_targets where caster_char_id=%u", character_id);
+	query.AddQueryAsync(character_id, this, Q_DELETE, "delete from character_custom_spell_dataindex where charid=%u", character_id);
+	query.AddQueryAsync(character_id, this, Q_DELETE, "delete from character_custom_spell_display where charid=%u", character_id);
+	query.AddQueryAsync(character_id, this, Q_DELETE, "delete from character_custom_spell_data where charid=%u", character_id);
 		
 	return true;
 }
@@ -7970,6 +7975,94 @@ int32 WorldDatabase::CreateSpiritShard(const char* name, int32 level, int8 race,
 	return query.GetLastInsertedID();
 }
 
+void WorldDatabase::LoadCustomSpellData(Client* client, LuaSpell* luaspell) {
+	if (!luaspell || !luaspell->spell || !luaspell->spell->GetSpellData() || !luaspell->spell->IsCopiedSpell())
+		return;
+
+	auto spell_data = luaspell->spell->GetSpellData();
+
+	DatabaseResult result;
+	if (!database_new.Select(&result, "SELECT field, type, value FROM character_custom_spell_data WHERE charid = %u AND spell_id = %u",
+		client->GetPlayer()->GetCharacterID(), luaspell->spell->GetSpellData()->inherited_spell_id))
+		return;
+
+	while (result.Next()) {
+		std::string field = result.GetStringStr("field");
+		std::string type = result.GetStringStr("type");
+		std::string value = result.GetStringStr("value");
+
+		if (type == "int")
+			luaspell->SetSpellDataGeneric(field, atoi(value.c_str()));
+		else if (type == "float")
+			luaspell->SetSpellDataGeneric(field, static_cast<float>(atof(value.c_str())));
+		else if (type == "bool")
+			luaspell->SetSpellDataGeneric(field, value == "1");
+		else if (type == "string")
+			luaspell->SetSpellDataGeneric(field, value);
+		
+		luaspell->MarkFieldModified(field);
+	}
+}
+
+void WorldDatabase::LoadCustomSpellDataIndex(Client* client, LuaSpell* luaspell) {
+	if (!luaspell || !luaspell->spell || !luaspell->spell->GetSpellData() || !luaspell->spell->IsCopiedSpell())
+		return;
+
+	DatabaseResult result;
+	if (!database_new.Select(&result, "SELECT idx, type, value1, value2 FROM character_custom_spell_dataindex WHERE charid = %u AND spell_id = %u",
+		client->GetPlayer()->GetCharacterID(), luaspell->spell->GetSpellData()->inherited_spell_id))
+		return;
+
+	while (result.Next()) {
+		int idx = result.GetInt32Str("idx");
+		std::string type = result.GetStringStr("type");
+		std::string v1 = result.GetStringStr("value1");
+		std::string v2 = result.GetStringStr("value2");
+
+		if (type == "int")
+			luaspell->SetSpellDataIndex(idx, atoi(v1.c_str()), atoi(v2.c_str()));
+		else if (type == "float")
+			luaspell->SetSpellDataIndex(idx, static_cast<float>(atof(v1.c_str())), static_cast<float>(atof(v2.c_str())));
+		else if (type == "bool")
+			luaspell->SetSpellDataIndex(idx, v1 == "1");
+		else if (type == "string")
+			luaspell->SetSpellDataIndex(idx, v1, v2);
+	}
+}
+
+void WorldDatabase::LoadCustomSpellDisplayEffects(Client* client, LuaSpell* luaspell) {
+	if (!luaspell || !luaspell->spell || !luaspell->spell->GetSpellData() || !luaspell->spell->IsCopiedSpell())
+		return;
+
+	DatabaseResult result;
+	if (!database_new.Select(&result, "SELECT idx, field, value FROM character_custom_spell_display WHERE charid = %u AND spell_id = %u",
+		client->GetPlayer()->GetCharacterID(), luaspell->spell->GetSpellData()->inherited_spell_id))
+		return;
+
+	while (result.Next()) {
+		int idx = result.GetInt32Str("idx");
+		std::string field = result.GetStringStr("field");
+		std::string value = result.GetStringStr("value");
+
+		SpellDisplayEffect* effect = luaspell->spell->GetSpellDisplayEffectSafe(idx);
+		if (!effect)
+			continue;
+
+		if (field == "description") {
+			effect->description = value;
+			effect->needs_db_save = true;
+		}
+		else if (field == "bullet") {
+			effect->subbullet = atoi(value.c_str());
+			effect->needs_db_save = true;
+		}
+		else if (field == "percentage") {
+			effect->percentage = atoi(value.c_str());
+			effect->needs_db_save = true;
+		}
+	}
+}
+
 void WorldDatabase::LoadCharacterSpellEffects(int32 char_id, Client* client, int8 db_spell_type) 
 {
 	SpellProcess* spellProcess = client->GetCurrentZone()->GetSpellProcess();
@@ -8049,7 +8142,7 @@ void WorldDatabase::LoadCharacterSpellEffects(int32 char_id, Client* client, int
 		bool isExistingLuaSpell = false;
 		MaintainedEffects* effect = nullptr;
 		Client* tmpCaster = nullptr;
-		if(caster_char_id == player->GetCharacterID() && (target_char_id == 0xFFFFFFFF || target_char_id == player->GetCharacterID()) && (effect = player->GetMaintainedSpell(spell_id)) != nullptr)
+		if(caster_char_id == player->GetCharacterID() && (target_char_id == 0xFFFFFFFF || target_char_id == player->GetCharacterID()) && (effect = player->GetMaintainedSpell(spell_id, true)) != nullptr)
 		{
 			safe_delete(lua_spell);
 			lua_spell = effect->spell;
@@ -8059,9 +8152,9 @@ void WorldDatabase::LoadCharacterSpellEffects(int32 char_id, Client* client, int
 			isExistingLuaSpell = true;
 		}
 		else if ( caster_char_id != player->GetCharacterID() && (tmpCaster = zone_list.GetClientByCharID(caster_char_id)) != nullptr 
-					 && tmpCaster->GetPlayer() && (effect = tmpCaster->GetPlayer()->GetMaintainedSpell(spell_id)) != nullptr)
+					 && tmpCaster->GetPlayer() && (effect = tmpCaster->GetPlayer()->GetMaintainedSpell(spell_id, true)) != nullptr)
 		{
-			if(effect->spell && effect->spell_id == spell_id)
+			if(effect->spell && (effect->spell_id == spell_id || effect->inherited_spell_id == spell_id))
 			{
 				safe_delete(lua_spell);
 				if(tmpCaster->GetCurrentZone() == player->GetZone())
@@ -8155,6 +8248,10 @@ void WorldDatabase::LoadCharacterSpellEffects(int32 char_id, Client* client, int
 		//lua_spell->num_calls  ??
 		//if(target_char_id == player->GetCharacterID())
 		//	lua_spell->targets.push_back(player->GetID());
+		LogWrite(LUA__WARNING, 0, "LUA", "WorldDatabase::LoadCustomSpell: %s (%u) lua_spell caster %s (%u), caster char id: %u. IsCopiedSpell: %u", lua_spell->spell->GetName(), lua_spell->spell->GetSpellID(), lua_spell->caster ? lua_spell->caster->GetName() : "", lua_spell->caster ? lua_spell->caster->GetID() : 0, caster_char_id, lua_spell->spell->IsCopiedSpell());
+		LoadCustomSpellData(client, lua_spell);
+		LoadCustomSpellDataIndex(client, lua_spell);
+		LoadCustomSpellDisplayEffects(client, lua_spell);
 		
 		if(db_spell_type == DB_TYPE_SPELLEFFECTS)
 		{
@@ -8212,7 +8309,8 @@ void WorldDatabase::LoadCharacterSpellEffects(int32 char_id, Client* client, int
 				info->spell_effects[effect_slot].expire_timestamp = Timer::GetCurrentTime2() + expire_timestamp;
 			info->spell_effects[effect_slot].icon = icon;
 			info->spell_effects[effect_slot].icon_backdrop = icon_backdrop;
-			info->spell_effects[effect_slot].spell_id = spell_id;
+			info->spell_effects[effect_slot].spell_id = lua_spell->spell->GetSpellID();
+			info->spell_effects[effect_slot].inherited_spell_id = lua_spell->spell->GetSpellData()->inherited_spell_id;
 			info->spell_effects[effect_slot].tier = tier;
 			info->spell_effects[effect_slot].total_time = total_time;
 			info->spell_effects[effect_slot].spell = lua_spell;
@@ -8315,7 +8413,8 @@ void WorldDatabase::LoadCharacterSpellEffects(int32 char_id, Client* client, int
 				info->maintained_effects[effect_slot].expire_timestamp = Timer::GetCurrentTime2() + expire_timestamp;
 			info->maintained_effects[effect_slot].icon = icon;
 			info->maintained_effects[effect_slot].icon_backdrop = icon_backdrop;
-			info->maintained_effects[effect_slot].spell_id = spell_id;
+			info->maintained_effects[effect_slot].spell_id = lua_spell->spell->GetSpellID();
+			info->maintained_effects[effect_slot].inherited_spell_id = lua_spell->spell->GetSpellData()->inherited_spell_id;
 			info->maintained_effects[effect_slot].tier = tier;
 			info->maintained_effects[effect_slot].total_time = total_time;
 			info->maintained_effects[effect_slot].spell = lua_spell;
@@ -8387,7 +8486,7 @@ void WorldDatabase::LoadCharacterSpellEffects(int32 char_id, Client* client, int
 					Client* tmpCaster = nullptr;
 					MaintainedEffects* effect = nullptr;
 					if (caster_char_id != player->GetCharacterID() && (tmpCaster = zone_list.GetClientByCharID(caster_char_id)) != nullptr && (cross_zone_target_buff || 
-								 tmpCaster->GetCurrentZone() == player->GetZone()) && tmpCaster->GetPlayer() && (effect = tmpCaster->GetPlayer()->GetMaintainedSpell(in_spell_id)) != nullptr)
+								 tmpCaster->GetCurrentZone() == player->GetZone()) && tmpCaster->GetPlayer() && (effect = tmpCaster->GetPlayer()->GetMaintainedSpell(in_spell_id, true)) != nullptr)
 					{
 						if(prev_target_type > 0)
 						{
@@ -8399,7 +8498,7 @@ void WorldDatabase::LoadCharacterSpellEffects(int32 char_id, Client* client, int
 									restoreSpells.insert(make_pair(effect->spell, player->GetCharmedPet()));
 							}
 						}
-						else if(!player->GetSpellEffect(effect->spell_id, tmpCaster->GetPlayer()))
+						else if(!player->GetSpellEffect(effect->spell_id, tmpCaster->GetPlayer(), true))
 						{
 							if(effect->spell->initial_target_char_id == player->GetCharacterID())
 								effect->spell->initial_target = player->GetID();
