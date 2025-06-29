@@ -420,7 +420,7 @@ void Client::SendLoginInfo() {
 		database.LoadCharacterQuestRewards(this);
 		database.LoadPlayerMail(this);
 	}
-	LogWrite(CCLIENT__DEBUG, 0, "Client", "Send Quest Journal...");
+	LogWrite(CCLIENT__DEBUG, 0, "Client", "Client::SendLoginInfo %s Send Quest Journal...", GetPlayer()->GetName());
 	SendQuestJournal(true, 0, false);
 
 	if (version > 561) // right version? possibly not!
@@ -7204,14 +7204,15 @@ void Client::AddPlayerQuest(Quest* quest, bool call_accepted, bool send_packets)
 	quest->SetPlayer(player);
 	quest->SetSaveNeeded(true);
 
+	LogWrite(CCLIENT__DEBUG, 0, "Client", "Client::AddPlayerQuest %s added quest %s id %u...", GetPlayer()->GetName(), quest->GetName(), quest->GetQuestID());
+	
 	current_quest_id = quest->GetQuestID();
 	if (send_packets && quest->GetQuestGiver() > 0)
 		GetCurrentZone()->SendSpawnChangesByDBID(quest->GetQuestGiver(), this, false, true);
 	if (lua_interface && call_accepted)
 		lua_interface->CallQuestFunction(quest, "Accepted", player);
+	
 	if (send_packets) {
-		LogWrite(CCLIENT__DEBUG, 0, "Client", "Send Quest Journal...");
-		//SendQuestJournal();
 		SendQuestJournalUpdate(quest);
 
 		// sent twice to match live
@@ -7240,15 +7241,15 @@ void Client::RemovePlayerQuest(int32 id, bool send_update, bool delete_quest) {
 		int32 quest_giver = player->player_quests[id]->GetQuestGiver();
 		GetPlayer()->MPlayerQuests.releasewritelock(__FUNCTION__, __LINE__);
 
+		LogWrite(CCLIENT__DEBUG, 0, "Client", "Client::RemovePlayerQuest %s remove quest id %u...", GetPlayer()->GetName(), id);
+	
 		if (send_update && quest_giver > 0)
 			GetCurrentZone()->SendSpawnChangesByDBID(quest_giver, this, false, true);
 		if (send_update) {
-			LogWrite(CCLIENT__DEBUG, 0, "Client", "Send Quest Journal...");
 			SendQuestJournal(false, 0, true);
 		}
 		player->RemoveQuest(id, delete_quest);
 		if (send_update) {
-			LogWrite(CCLIENT__DEBUG, 0, "Client", "Send Quest Journal...");
 			SendQuestJournal(false, 0, true);
 			GetCurrentZone()->SendAllSpawnsForVisChange(this);
 		}
@@ -7290,7 +7291,7 @@ void Client::SendQuestFailure(Quest* quest) {
 		for (int32 i = 0; i < failures->size(); i++) {
 			step = failures->at(i);
 			QueuePacket(quest->QuestJournalReply(GetVersion(), GetNameCRC(), player, step, 1, false, true));
-			LogWrite(CCLIENT__DEBUG, 0, "Client", "Send Quest Journal...");
+			LogWrite(CCLIENT__DEBUG, 0, "Client", "Client::SendQuestFailure %s quest failure for %s id %u...", GetPlayer()->GetName(), quest->GetName(), quest->GetQuestID());
 			SendQuestJournal(false, 0, true);
 		}
 		failures->clear();
@@ -7318,8 +7319,9 @@ void Client::SendQuestUpdate(Quest* quest) {
 					QueuePacket(quest->QuestJournalReply(GetVersion(), GetNameCRC(), player, step));
 				updated = true;
 			}
-			LogWrite(CCLIENT__DEBUG, 0, "Client", "Send Quest Journal...");
-
+			if(updated) {
+				LogWrite(CCLIENT__DEBUG, 0, "Client", "Client::SendQuestUpdate %s step %u updated %s id %u...", GetPlayer()->GetName(), step->GetStepID(), quest->GetName(), quest->GetQuestID());
+			}
 		}
 		if (lua_interface && quest->GetCompleted() && quest->GetCompleteAction()) {
 			lua_interface->CallQuestFunction(quest, quest->GetCompleteAction(), player);
@@ -7810,8 +7812,10 @@ void Client::GiveQuestReward(Quest* quest, bool has_displayed) {
 
 	AddPendingQuestAcceptReward(quest);
 
+	LogWrite(CCLIENT__DEBUG, 0, "Client", "Client::GiveQuestReward %s completed quest, displaying reward for %s id %u...", GetPlayer()->GetName(), quest->GetName(), quest->GetQuestID());
+
 	DisplayQuestComplete(quest, quest->GetQuestTemporaryState(), quest->GetQuestTemporaryDescription());
-	LogWrite(CCLIENT__DEBUG, 0, "Client", "Send Quest Journal...");
+	
 	SendQuestJournal();
 
 	if (quest->GetQuestTemporaryState()) {

@@ -7360,7 +7360,7 @@ void Player::SaveCustomSpellFields(LuaSpell* luaspell) {
 			default: continue;
 		}
 
-		savedEffects.AddQueryAsync(GetCharacterID(), &database, Q_INSERT, "INSERT INTO character_custom_spell_data (charid, spell_id, field, type, value) VALUES (%u, %u, '%s', '%s', '%s')",
+		savedEffects.AddQueryAsync(GetCharacterID(), &database, Q_INSERT, "INSERT IGNORE INTO character_custom_spell_data (charid, spell_id, field, type, value) VALUES (%u, %u, '%s', '%s', '%s')",
 			GetCharacterID(),
 			luaspell->spell->GetSpellData()->inherited_spell_id,
 			database.getSafeEscapeString(field.c_str()).c_str(),
@@ -7407,7 +7407,7 @@ void Player::SaveCustomSpellDataIndex(LuaSpell* luaspell) {
 				continue;
 		}
 
-		savedEffects.AddQueryAsync(GetCharacterID(), &database, Q_INSERT, "INSERT INTO character_custom_spell_dataindex (charid, spell_id, idx, type, value1, value2) VALUES (%u, %u, %d, '%s', '%s', '%s')", GetCharacterID(),
+		savedEffects.AddQueryAsync(GetCharacterID(), &database, Q_INSERT, "INSERT IGNORE INTO character_custom_spell_dataindex (charid, spell_id, idx, type, value1, value2) VALUES (%u, %u, %d, '%s', '%s', '%s')", GetCharacterID(),
 			luaspell->spell->GetSpellData()->inherited_spell_id,
 			i,
 			type.c_str(), value1.c_str(), value2.c_str());
@@ -7428,14 +7428,14 @@ void Player::SaveCustomSpellEffectsDisplay(LuaSpell* luaspell) {
 
 		std::string charid = std::to_string(GetCharacterID());
 
-		savedEffects.AddQueryAsync(GetCharacterID(), &database, Q_INSERT, "INSERT INTO character_custom_spell_display (charid, spell_id, idx, field, value) VALUES (%u, %u, %d, 'description', '%s')",
+		savedEffects.AddQueryAsync(GetCharacterID(), &database, Q_INSERT, "INSERT IGNORE INTO character_custom_spell_display (charid, spell_id, idx, field, value) VALUES (%u, %u, %d, 'description', '%s')",
 			GetCharacterID(), luaspell->spell->GetSpellData()->inherited_spell_id, i,
 			database.getSafeEscapeString(eff->description.c_str()).c_str());
 
-		savedEffects.AddQueryAsync(GetCharacterID(), &database, Q_INSERT, "INSERT INTO character_custom_spell_display (charid, spell_id, idx, field, value) VALUES (%u, %u, %d, 'bullet', '%d')",
+		savedEffects.AddQueryAsync(GetCharacterID(), &database, Q_INSERT, "INSERT IGNORE INTO character_custom_spell_display (charid, spell_id, idx, field, value) VALUES (%u, %u, %d, 'bullet', '%d')",
 			GetCharacterID(), luaspell->spell->GetSpellData()->inherited_spell_id, i, eff->subbullet);
 
-		savedEffects.AddQueryAsync(GetCharacterID(), &database, Q_INSERT, "INSERT INTO character_custom_spell_display (charid, spell_id, idx, field, value) VALUES (%u, %u, %d, 'percentage', '%d')",
+		savedEffects.AddQueryAsync(GetCharacterID(), &database, Q_INSERT, "INSERT IGNORE INTO character_custom_spell_display (charid, spell_id, idx, field, value) VALUES (%u, %u, %d, 'percentage', '%d')",
 			GetCharacterID(), luaspell->spell->GetSpellData()->inherited_spell_id, i, eff->percentage);
 	}
 }
@@ -7443,7 +7443,7 @@ void Player::SaveSpellEffects()
 {
 	if(stop_save_spell_effects)
 	{
-		LogWrite(PLAYER__WARNING, 0, "Player", "SaveSpellEffects called while player constructing / deconstructing!");
+		LogWrite(PLAYER__WARNING, 0, "Player", "%s: SaveSpellEffects called while player constructing / deconstructing!", GetName());
 		return;
 	}
 

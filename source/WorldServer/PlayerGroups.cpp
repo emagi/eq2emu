@@ -906,25 +906,6 @@ int32 PlayerGroupManager::GetGroupSize(int32 group_id) {
 	return ret;
 }
 
-void PlayerGroupManager::SendGroupQuests(int32 group_id, Client* client) {
-	std::shared_lock lock(MGroups);
-	GroupMemberInfo* info = 0;
-	if (m_groups.count(group_id) > 0) {
-		m_groups[group_id]->MGroupMembers.readlock(__FUNCTION__, __LINE__);
-		deque<GroupMemberInfo*>* members = m_groups[group_id]->GetMembers();
-		deque<GroupMemberInfo*>::iterator itr;
-		for (itr = members->begin(); itr != members->end(); itr++) {
-			info = *itr;
-			if (info->client) {
-				LogWrite(PLAYER__DEBUG, 0, "Player", "Send Quest Journal...");
-				info->client->SendQuestJournal(false, client);
-				client->SendQuestJournal(false, info->client);
-			}
-		}
-		m_groups[group_id]->MGroupMembers.releasereadlock(__FUNCTION__, __LINE__);
-	}
-}
-
 bool PlayerGroupManager::HasGroupCompletedQuest(int32 group_id, int32 quest_id) {
 	std::shared_lock lock(MGroups);
 	bool questComplete = true;

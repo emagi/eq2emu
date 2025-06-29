@@ -627,24 +627,7 @@ public:
 	sint32 GetServerStatisticValue(int32 stat_id);
 	void RemoveServerStatistics();
 	
-	//PlayerGroup* AddGroup(Client* leader);
-	//void AddGroupMember(PlayerGroup* group, Client* member);
-	//void RemoveGroupMember(Client* member, bool immediate = false);
-	//void DisbandGroup(PlayerGroup* group, bool lock = true);
-	void SendGroupQuests(PlayerGroup* group, Client* client);
-	//void UpdateGroupBuffs();
-	//void RemoveGroupBuffs(PlayerGroup *group, Client *client);
-	//void SetPendingGroup(char* name, char* leader);
-	//void GroupMessage(PlayerGroup* group, const char* message, ...);
-	//void SimpleGroupMessage(PlayerGroup* group, const char* message);
-	//void GroupChatMessage(PlayerGroup* group, Spawn* from, const char* message);
-	//const char*	GetPendingGroup(string name);
-	//void GroupReadLock();
-	//void GroupReadUnLock();
-	//void CheckRemoveGroupedPlayer();
-	//void SendGroupUpdate(PlayerGroup* group, Client* exclude = 0);
 	bool RejoinGroup(Client* client, int32 group_id);
-	//bool MakeLeader(Client* leader, string new_leader);
 	
 	void AddBonuses(Item* item, ItemStatsValues* values, int16 type, float value, Entity* entity);
 	int32 CreateGuild(const char* guild_name, Client* leader = 0, int32 group_id = 0);
@@ -754,6 +737,7 @@ public:
 	static void Web_worldhandle_setguildpermission(const http::request<http::string_body>& req, http::response<http::string_body>& res);
 	static void Web_worldhandle_setguildeventfilter(const http::request<http::string_body>& req, http::response<http::string_body>& res);
 	static void Web_worldhandle_peerstatus(const http::request<http::string_body>& req, http::response<http::string_body>& res);
+	static void Web_worldhandle_activequery(const http::request<http::string_body>& req, http::response<http::string_body>& res);
 	
 	static void Web_populate_status(boost::property_tree::ptree& pt);
 	

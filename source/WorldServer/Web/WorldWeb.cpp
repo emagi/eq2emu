@@ -1377,3 +1377,29 @@ void World::Web_worldhandle_peerstatus(const http::request<http::string_body>& r
 	res.body() = json;
 	res.prepare_payload();
 }
+
+void World::Web_worldhandle_activequery(const http::request<http::string_body>& req, http::response<http::string_body>& res) {
+	res.set(http::field::content_type, "application/json; charset=utf-8");
+	boost::property_tree::ptree pt, json_tree;
+
+	std::istringstream json_stream(req.body());
+	boost::property_tree::read_json(json_stream, json_tree);
+
+	int32 character_id = 0;
+	bool remove_query = false;
+	if (auto char_id = json_tree.get_optional<int32>("char_id")) {
+		character_id = char_id.get();
+	}
+	if (auto remove = json_tree.get_optional<bool>("remove")) {
+		remove_query = remove.get();
+	}
+	
+	if(character_id) {
+		if(remove_query) {
+			database.RemovePeerActiveQuery(character_id);
+		}
+		else {
+			database.AddPeerActiveQuery(character_id);
+		}
+	}
+}

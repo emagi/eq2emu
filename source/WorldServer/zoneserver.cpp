@@ -3243,7 +3243,7 @@ bool ZoneServer::CallSpawnScript(Spawn* npc, int8 type, Spawn* spawn, const char
 				bool fileExists = (stat(tmpScript.c_str(), &buffer) == 0);
 				if (fileExists)
 				{
-					LogWrite(SPAWN__WARNING, 0, "Spawn", "No script file described in the database, overriding with SpawnScript at %s", (char*)tmpScript.c_str());
+					LogWrite(SPAWN__WARNING, 0, "Spawn", "No script file described in the database for spawn %s with database spawn id %u, overriding with SpawnScript at %s", npc->GetName(), npc->GetDatabaseID(), (char*)tmpScript.c_str());
 					npc->SetSpawnScript(tmpScript);
 					script = npc->GetSpawnScript();
 				}

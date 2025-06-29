@@ -49,7 +49,9 @@ using namespace std;
 #include "emu_opcodes.h"
 #ifdef WORLD
 	#include "../WorldServer/WorldDatabase.h"
+	#include "../WorldServer/Web/PeerManager.h"
 	extern WorldDatabase database;
+	extern PeerManager peer_manager;
 #endif
 #ifdef LOGIN
 	#include "../LoginServer/LoginDatabase.h"
@@ -401,7 +403,7 @@ void Database::RunAsyncQueries(int32 queryid)
 	}
 	FreeDBInstance(asyncdb);
 
-	bool isActive = IsActiveQuery(queryid);
+	bool isActive = LocalIsActiveQuery(queryid);
 	if (isActive)
 	{
 		continueAsync = true;
@@ -444,7 +446,7 @@ void Database::AddAsyncQuery(Query* query)
 	asyncQueriesMutex[query->GetQueryID()]->releasewritelock();
 	DBAsyncMutex.releasewritelock();
 
-	bool isActive = IsActiveQuery(query->GetQueryID(), query);
+	bool isActive = LocalIsActiveQuery(query->GetQueryID(), query);
 	if (!isActive)
 	{
 	continueAsync = true;
@@ -533,35 +535,68 @@ void Database::RemoveActiveQuery(Query* query)
 		}
 	}
 	DBQueryMutex.releasewritelock(__FUNCTION__, __LINE__);
+	
+	bool isActive = LocalIsActiveQuery(query->GetQueryID());
+	if(!isActive) {
+		peer_manager.sendPeersActiveQuery(query->GetQueryID(), true);
+	}
 }
 
 void Database::AddActiveQuery(Query* query)
 {
+	peer_manager.sendPeersActiveQuery(query->GetQueryID(), false);
 	DBQueryMutex.writelock(__FUNCTION__, __LINE__);
 	activeQuerySessions.push_back(query);
 	DBQueryMutex.releasewritelock(__FUNCTION__, __LINE__);
 }
 
-bool Database::IsActiveQuery(int32 id, Query* skip)
+bool Database::IsActiveQuery(int32 id, Query* skip) {
+	if (LocalIsActiveQuery(id, skip))
+		return true;
+
+	{
+		auto now = std::chrono::steady_clock::now();
+		std::lock_guard<std::mutex> lock(_peerMtx);
+
+		// remove any entries older than timeout
+		for (auto it = _peerActive.begin(); it != _peerActive.end(); ) {
+			if (now - it->second > kStaleTimeout)
+				it = _peerActive.erase(it);
+			else
+				++it;
+		}
+
+		// if this id is still in the map, it's active
+		if (_peerActive.find(id) != _peerActive.end())
+			return true;
+	}
+
+	return false;
+}
+
+bool Database::LocalIsActiveQuery(int32 id, Query* skip)
 {
 	bool isActive = false;
-
 	DBQueryMutex.readlock(__FUNCTION__, __LINE__);
-	vector<Query*>::iterator itr;
-	for (itr = activeQuerySessions.begin(); itr != activeQuerySessions.end(); itr++)
-	{
-		Query* query = *itr;
-		if (query == skip)
-			continue;
-
-		if (query->GetQueryID() == id)
-		{
+	for (auto query : activeQuerySessions) {
+		if (query == skip) continue;
+		if (query->GetQueryID() == id) {
 			isActive = true;
 			break;
 		}
 	}
 	DBQueryMutex.releasereadlock(__FUNCTION__, __LINE__);
-
 	return isActive;
+}
+
+void Database::AddPeerActiveQuery(int32 charID) {
+	auto now = std::chrono::steady_clock::now();
+	std::lock_guard<std::mutex> lock(_peerMtx);
+	_peerActive[charID] = now;  // inserts or updates timestamp
+}
+
+void Database::RemovePeerActiveQuery(int32 charID) {
+	std::lock_guard<std::mutex> lock(_peerMtx);
+	_peerActive.erase(charID);
 }
 #endif

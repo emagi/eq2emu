@@ -1,6 +1,6 @@
 /*  
     EQ2Emulator:  Everquest II Server Emulator
-    Copyright (C) 2005 - 2025  EQ2EMulator Development Team (http://www.eq2emu.com formerly http://www.eq2emulator.net)
+    Copyright (C) 2005 - 2026  EQ2EMulator Development Team (http://www.eq2emu.com formerly http://www.eq2emulator.net)
 
     This file is part of EQ2Emulator.
 
@@ -282,6 +282,7 @@ void World::init(std::string web_ipaddr, int16 web_port, std::string cert_file, 
 			world_webserver->register_route("/setguildeventfilter", World::Web_worldhandle_setguildeventfilter);
 			
 			world_webserver->register_route("/peerstatus", World::Web_worldhandle_peerstatus);
+			world_webserver->register_route("/activequery", World::Web_worldhandle_activequery);
 			world_webserver->run();
 			LogWrite(INIT__INFO, 0, "Init", "World Web Server is listening on %s:%u..", web_ipaddr.c_str(), web_port);
 			web_success = true;
@@ -377,8 +378,6 @@ void World::Process(){
 		WritePlayerStatistics();
 	if (server_stats_timer.Check())
 		WriteServerStatistics();
-	/*if(remove_grouped_player.Check())
-		CheckRemoveGroupedPlayer();*/
 	if (group_buff_updates.Check())
 		GetGroupManager()->UpdateGroupBuffs();
 	if (guilds_timer.Check())
@@ -2104,57 +2103,11 @@ void World::DeleteMerchantsInfo(){
 
 
 void World::DeleteSpawns(){
-	//reloading = true;
-	//ClearLootTables();
-	/*
-	map<int32, NPC*>::iterator npc_list_iter;
-	for(npc_list_iter=npc_list.begin();npc_list_iter!=npc_list.end();npc_list_iter++) {
-		safe_delete(npc_list_iter->second);
-	} 
-	npc_list.clear();
-	map<int32, Object*>::iterator object_list_iter;
-	for(object_list_iter=object_list.begin();object_list_iter!=object_list.end();object_list_iter++) {
-		safe_delete(object_list_iter->second);
-	}
-	object_list.clear();
-	map<int32, GroundSpawn*>::iterator groundspawn_list_iter;
-	for(groundspawn_list_iter=groundspawn_list.begin();groundspawn_list_iter!=groundspawn_list.end();groundspawn_list_iter++) {
-		safe_delete(groundspawn_list_iter->second);
-	}
-	groundspawn_list.clear();
-	map<int32, Widget*>::iterator widget_list_iter;
-	for(widget_list_iter=widget_list.begin();widget_list_iter!=widget_list.end();widget_list_iter++) {
-		safe_delete(widget_list_iter->second);
-	}
-	widget_list.clear();
-	map<int32, Sign*>::iterator sign_list_iter;
-	for(sign_list_iter=sign_list.begin();sign_list_iter!=sign_list.end();sign_list_iter++) {
-		safe_delete(sign_list_iter->second);
-	}
-	sign_list.clear();*/
 	map<int32, AppearanceData*>::iterator appearance_list_iter;
 	for(appearance_list_iter=npc_appearance_list.begin();appearance_list_iter!=npc_appearance_list.end();appearance_list_iter++) {
 		safe_delete(appearance_list_iter->second);
 	}
 	npc_appearance_list.clear();
-
-	/*
-	map<int32, vector<EntityCommand*>* >::iterator command_list_iter;
-	for(command_list_iter=entity_command_list.begin();command_list_iter!=entity_command_list.end();command_list_iter++) {
-		vector<EntityCommand*>* v = command_list_iter->second;
-		if(v){
-			for(int32 i=0;i<v->size();i++){
-				safe_delete(v->at(i));
-			}
-			safe_delete(v);
-		}
-	}
-	entity_command_list.clear();
-	*/
-
-	//DeleteGroundSpawnItems();
-	//DeleteTransporters();
-	//DeleteTransporterMaps();
 }
 
 void World::ReloadGuilds() {
@@ -2215,46 +2168,6 @@ void World::RemoveServerStatistics() {
 		safe_delete(stat_itr->second);
 	server_statistics.clear();
 }
-
-void World::SendGroupQuests(PlayerGroup* group, Client* client){
-	return;
-	/*if(!group)
-		return;
-	GroupMemberInfo* info = 0;
-	MGroups.readlock(__FUNCTION__, __LINE__);
-	deque<GroupMemberInfo*>::iterator itr;
-	for(itr = group->members.begin(); itr != group->members.end(); itr++){
-		info = *itr;
-		if(info->client){
-			LogWrite(PLAYER__DEBUG, 0, "Player", "Send Quest Journal...");
-			info->client->SendQuestJournal(false, client);
-			client->SendQuestJournal(false, info->client);
-		}
-	}
-	MGroups.releasereadlock(__FUNCTION__, __LINE__);*/
-}
-
-/*void World::CheckRemoveGroupedPlayer(){
-	map<GroupMemberInfo*, int32>::iterator itr;
-	GroupMemberInfo* found = 0;
-	MGroups.readlock(__FUNCTION__, __LINE__);
-	for(itr = group_removal_pending.begin(); itr != group_removal_pending.end(); itr++){
-		if(itr->second < Timer::GetCurrentTime2()){
-			found = itr->first;
-			break;
-		}
-	}
-	MGroups.releasereadlock(__FUNCTION__, __LINE__);
-	if(found){
-		if(!found->client || (found->client && found->client->IsConnected() == false))
-			DeleteGroupMember(found);
-		else{
-			MGroups.writelock(__FUNCTION__, __LINE__);
-			group_removal_pending.erase(found);
-			MGroups.releasewritelock(__FUNCTION__, __LINE__);
-		}
-	}
-}*/
 
 bool World::RejoinGroup(Client* client, int32 group_id){
 	if (!group_id) // no need if no group id!

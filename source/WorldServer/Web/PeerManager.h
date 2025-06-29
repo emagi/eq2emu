@@ -220,6 +220,7 @@ public:
 	std::shared_ptr<Peer> getCurrentPrimary();
 
 	void sendPeersMessage(const std::string& endpoint, int32 command, int32 sub_command = 0);
+	void sendPeersActiveQuery(int32 character_id, bool remove = false);
 
 	void sendZonePlayerList(std::vector<string>* queries, std::vector<WhoAllPeerPlayer>* peer_list, bool isGM);
 

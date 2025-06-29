@@ -35,6 +35,9 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <mutex>
+#include <unordered_map>
+#include <chrono>
 
 using namespace std;
 class Query;
@@ -60,12 +63,15 @@ public:
 	void AddActiveQuery(Query* query);
 	bool IsActiveQuery(int32 id, Query* skip=0);
 	void PingAsyncDatabase();
+	
+    void AddPeerActiveQuery(int32 charID);
+    void RemovePeerActiveQuery(int32 charID);
 #endif
 protected:
 
 private:
 	void InitVars();
-
+	bool LocalIsActiveQuery(int32 id, Query* skip = nullptr);
 #ifdef WORLD
 	void PurgeDBInstances();
 	void FreeDBInstance(Database* cur);
@@ -77,6 +83,9 @@ private:
 	Mutex DBAsyncMutex;
 	Mutex DBInstanceMutex;
 	Mutex DBQueryMutex;
+	std::unordered_map<int32, std::chrono::steady_clock::time_point> _peerActive;
+	std::mutex _peerMtx;
+	static constexpr std::chrono::seconds kStaleTimeout{30};
 #endif
 };
 

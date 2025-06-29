@@ -838,3 +838,21 @@ void PeerManager::sendPeersMessage(const std::string& endpoint, int32 command, i
 		peer_https_pool.sendPostRequestToPeerAsync(peer->id, peer->webAddr, std::to_string(peer->webPort), endpoint.c_str(), jsonPayload);
 	}
 }
+
+void PeerManager::sendPeersActiveQuery(int32 character_id, bool remove) {
+
+	boost::property_tree::ptree root;
+
+	root.put("char_id", character_id);
+	root.put("remove", remove);
+
+	std::ostringstream jsonStream;
+	boost::property_tree::write_json(jsonStream, root);
+	std::string jsonPayload = jsonStream.str();
+	for (const auto& [id, peer] : peers) {
+		if (peer->healthCheck.status != HealthStatus::OK)
+			continue;
+
+		peer_https_pool.sendPostRequestToPeerAsync(peer->id, peer->webAddr, std::to_string(peer->webPort), "/activequery", jsonPayload);
+	}
+}
