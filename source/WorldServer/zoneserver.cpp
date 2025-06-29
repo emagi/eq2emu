@@ -664,19 +664,6 @@ void ZoneServer::DeleteData(bool boot_clients){
 	MWidgetTimers.writelock(__FUNCTION__, __LINE__);
 	widget_timers.clear();
 	MWidgetTimers.releasewritelock(__FUNCTION__, __LINE__);
-
-	map<int16, PacketStruct*>::iterator struct_itr;
-	for (struct_itr = versioned_info_structs.begin(); struct_itr != versioned_info_structs.end(); struct_itr++)
-		safe_delete(struct_itr->second);
-	versioned_info_structs.clear();
-
-	for (struct_itr = versioned_pos_structs.begin(); struct_itr != versioned_pos_structs.end(); struct_itr++)
-		safe_delete(struct_itr->second);
-	versioned_pos_structs.clear();
-
-	for (struct_itr = versioned_vis_structs.begin(); struct_itr != versioned_vis_structs.end(); struct_itr++)
-		safe_delete(struct_itr->second);
-	versioned_vis_structs.clear();
 }
 
 void ZoneServer::RemoveLocationProximities() {
@@ -8089,18 +8076,12 @@ void ZoneServer::SetSpawnStructs(Client* client) {
 	//Save a copy of the correct spawn substructs for the client's player, save here a copy if we don't have one
 	PacketStruct* pos = configReader.getStruct("Substruct_SpawnPositionStruct", client_ver);
 	player->SetSpawnPosStruct(pos);
-	if (versioned_pos_structs.count(pos->GetVersion()) == 0)
-		versioned_pos_structs[pos->GetVersion()] = new PacketStruct(pos, true);
 
 	PacketStruct* vis = configReader.getStruct("Substruct_SpawnVisualizationInfoStruct", client_ver);
 	player->SetSpawnVisStruct(vis);
-	if (versioned_vis_structs.count(vis->GetVersion()) == 0)
-		versioned_vis_structs[vis->GetVersion()] = new PacketStruct(vis, true);
 
 	PacketStruct* info = configReader.getStruct("Substruct_SpawnInfoStruct", client_ver);
 	player->SetSpawnInfoStruct(info);
-	if (versioned_info_structs.count(info->GetVersion()) == 0)
-		versioned_info_structs[info->GetVersion()] = new PacketStruct(info, true);
 
 	PacketStruct* header = configReader.getStruct("WS_SpawnStruct_Header", client_ver);
 	player->SetSpawnHeaderStruct(header);
@@ -9290,30 +9271,38 @@ bool ZoneServer::HouseItemSpawnExists(int32 item_id) {
 }
 
 void ZoneServer::ProcessPendingSpawns() {
-	MPendingSpawnListAdd.writelock(__FUNCTION__, __LINE__);
-	list<Spawn*>::iterator itr2;
-	for (itr2 = pending_spawn_list_add.begin(); itr2 != pending_spawn_list_add.end(); itr2++) {
-		Spawn* spawn = *itr2;
-		
-		MSpawnList.writelock(__FUNCTION__, __LINE__);
-		if (spawn)
-			spawn_list[spawn->GetID()] = spawn;
-		
-		if(spawn->IsCollector()) {
-			subspawn_list[SUBSPAWN_TYPES::COLLECTOR].insert(make_pair(spawn->GetID(),spawn));
-		}
-		if(spawn->GetPickupItemID()) {
-			subspawn_list[SUBSPAWN_TYPES::HOUSE_ITEM_SPAWN].insert(make_pair(spawn->GetPickupItemID(),spawn));
-			housing_spawn_map.insert(make_pair(spawn->GetID(), spawn->GetPickupItemID()));
-		}
-		MSpawnList.releasewritelock(__FUNCTION__, __LINE__);
-		
-		CheckSpawnRange(spawn);
+	std::vector<Spawn*> toAdd;
+	{
+		MPendingSpawnListAdd.writelock(__FUNCTION__, __LINE__);
+		toAdd.reserve(pending_spawn_list_add.size());
+		for (auto *p : pending_spawn_list_add)
+			toAdd.push_back(p);
+		pending_spawn_list_add.clear();
+		MPendingSpawnListAdd.releasewritelock(__FUNCTION__, __LINE__);
 	}
-
-	pending_spawn_list_add.clear();
-	MPendingSpawnListAdd.releasewritelock(__FUNCTION__, __LINE__);
-	spawn_check_add.Trigger();
+	
+	bool spawnsAdded = false;
+	
+	for (auto *p : toAdd)
+	{
+		MSpawnList.writelock(__FUNCTION__, __LINE__);
+		spawn_list[p->GetID()] = p;
+		
+		if(p->IsCollector()) {
+			subspawn_list[SUBSPAWN_TYPES::COLLECTOR].insert(make_pair(p->GetID(),p));
+		}
+		if(p->GetPickupItemID()) {
+			subspawn_list[SUBSPAWN_TYPES::HOUSE_ITEM_SPAWN].insert(make_pair(p->GetPickupItemID(),p));
+			housing_spawn_map.insert(make_pair(p->GetID(), p->GetPickupItemID()));
+		}
+		
+		MSpawnList.releasewritelock(__FUNCTION__, __LINE__);
+		CheckSpawnRange(p);
+		spawnsAdded = true;
+	}
+	
+	if(spawnsAdded)
+		spawn_check_add.Trigger();
 }
 
 void ZoneServer::AddSpawnToGrid(Spawn* spawn, int32 grid_id) {

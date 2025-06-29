@@ -981,10 +981,6 @@ private:
 	bool	can_gate;
 	bool	can_evac;
 
-	map<int16, PacketStruct*> versioned_pos_structs;
-	map<int16, PacketStruct*> versioned_info_structs;
-	map<int16, PacketStruct*> versioned_vis_structs;
-
 	/* Weather Stuff */
 	bool	weather_enabled;			// false = disabled, true = enabled
 	int8	weather_type;				// 0 = normal, 1 = dynamic, 2 = random, 3 = chaotic
