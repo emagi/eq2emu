@@ -537,7 +537,7 @@ void World::Web_worldhandle_addcharauth(const http::request<http::string_body>& 
 
 	int32 account_id = 0;
 	int32 key = 0;
-	int32 zoneId, instanceId;
+	int32 zoneId = 0, instanceId = 0;
 	bool firstLogin = false;
 
 	std::string clientIP("");
@@ -1402,4 +1402,11 @@ void World::Web_worldhandle_activequery(const http::request<http::string_body>& 
 			database.AddPeerActiveQuery(character_id);
 		}
 	}
+	
+	pt.put("success", 1);
+	std::ostringstream oss;
+	boost::property_tree::write_json(oss, pt);
+	std::string json = oss.str();
+	res.body() = json;
+	res.prepare_payload();
 }
