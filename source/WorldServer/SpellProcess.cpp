@@ -2149,7 +2149,8 @@ void SpellProcess::GetSpellTargets(LuaSpell* luaspell)
 								luaspell->initial_target = target->GetID();
 								luaspell->initial_target_char_id = (target && target->IsPlayer()) ? ((Player*)target)->GetCharacterID() : 0;
 								AddLuaSpellTarget(luaspell, target->GetID());
-								GetPlayerGroupTargets((Player*)target, caster, luaspell);
+								if(target_type == SPELL_TARGET_OTHER_GROUP_AE)
+									GetPlayerGroupTargets((Player*)target, caster, luaspell);
 
 							}
 							else if (secondary_target && target->IsPlayer() && ((Entity*)caster)->AttackAllowed((Entity*)secondary_target))
@@ -2158,7 +2159,12 @@ void SpellProcess::GetSpellTargets(LuaSpell* luaspell)
 								luaspell->initial_target = secondary_target->GetID();
 								luaspell->initial_target_char_id = (secondary_target && secondary_target->IsPlayer()) ? ((Player*)secondary_target)->GetCharacterID() : 0;
 								AddLuaSpellTarget(luaspell, secondary_target->GetID());
-								GetPlayerGroupTargets((Player*)secondary_target, caster, luaspell);
+								if(target_type == SPELL_TARGET_OTHER_GROUP_AE)
+									GetPlayerGroupTargets((Player*)secondary_target, caster, luaspell);
+							}
+							else if(target->IsNPC() && ((Entity*)caster)->AttackAllowed((Entity*)target)) {
+								// caster is NPC and potentially in a spawn group with other NPCs
+								AddNPCGroupOrSelfTarget(luaspell, target);
 							}
 						}
 					} // end friendly spell check
@@ -2179,6 +2185,10 @@ void SpellProcess::GetSpellTargets(LuaSpell* luaspell)
 						luaspell->initial_target = target->GetID();
 						luaspell->initial_target_char_id = (target && target->IsPlayer()) ? ((Player*)target)->GetCharacterID() : 0;
 						AddLuaSpellTarget(luaspell, target->GetID());
+					}
+					else if(target->IsNPC() && ((Entity*)caster)->AttackAllowed((Entity*)target)) {
+						// caster is NPC and potentially in a spawn group with other NPCs
+						AddNPCGroupOrSelfTarget(luaspell, target);
 					}
 				}
 			}
@@ -2280,7 +2290,7 @@ void SpellProcess::GetSpellTargets(LuaSpell* luaspell)
 			else if (data->friendly_spell) 
 			{
 				// caster is an Entity
-				if (luaspell->caster->IsEntity()) 
+				if (caster->IsPlayer()) 
 				{
 					// entity caster is in a player group
 					if (((Entity*)caster)->GetGroupMemberInfo()) 
@@ -2339,7 +2349,7 @@ void SpellProcess::GetSpellTargets(LuaSpell* luaspell)
 				}
 				else if (caster->IsNPC()) // caster is NOT a player
 				{
-					// caster is NPC and in a spawn group with other NPCs
+					// caster is NPC and in a spawn group with other NPCs check FRIENDLY
 					vector<Spawn*>* group = ((NPC*)caster)->GetSpawnGroup();
 					if (group) 
 					{
@@ -2349,7 +2359,7 @@ void SpellProcess::GetSpellTargets(LuaSpell* luaspell)
 						{
 							Spawn* group_member = *itr;
 
-							if (group_member->IsNPC() && group_member->Alive() && ((Entity*)caster)->AttackAllowed(((Entity*)group_member))){
+							if (group_member->IsNPC() && group_member->Alive()){
 								AddLuaSpellTarget(luaspell, group_member->GetID(), false);
 								if (((Entity*)group_member)->HasPet()){
 									Entity* pet = ((Entity*)group_member)->GetPet();
@@ -2366,7 +2376,7 @@ void SpellProcess::GetSpellTargets(LuaSpell* luaspell)
 						AddSelfAndPet(luaspell, caster);
 
 					safe_delete(group);
-				} // end is player
+				} // end is npc
 			} // end is friendly
 		} // end is Group AE
 
@@ -3044,6 +3054,40 @@ bool SpellProcess::AddLuaSpellTarget(LuaSpell* lua_spell, int32 id, bool lock_sp
 	}
 	
 	return ret;
+}
+
+void SpellProcess::AddNPCGroupOrSelfTarget(LuaSpell* luaspell, Spawn* target) {
+	if(!target->IsNPC())
+		return;
+	
+	int8 target_type = luaspell->spell->GetSpellData()->target_type;
+	Spawn* caster = luaspell->caster;
+	vector<Spawn*>* group = ((NPC*)target)->GetSpawnGroup();
+	if (target_type == SPELL_TARGET_OTHER_GROUP_AE && group) 
+	{
+		vector<Spawn*>::iterator itr;
+
+		for (itr = group->begin(); itr != group->end(); itr++) 
+		{
+			Spawn* group_member = *itr;
+
+			if (group_member->IsNPC() && group_member->Alive() && ((Entity*)caster)->AttackAllowed(((Entity*)group_member))){
+				AddLuaSpellTarget(luaspell, group_member->GetID(), false);
+				if (((Entity*)group_member)->HasPet()){
+					Entity* pet = ((Entity*)group_member)->GetPet();
+					if (pet)
+						AddLuaSpellTarget(luaspell, pet->GetID(), false);
+					pet = ((Entity*)group_member)->GetCharmedPet();
+					if (pet)
+						AddLuaSpellTarget(luaspell, pet->GetID(), false);
+				}
+			}
+		}
+	}
+	else
+		AddLuaSpellTarget(luaspell, target->GetID());
+
+	safe_delete(group);
 }
 
 void SpellProcess::ReplaceEffectTokens(std::string& message, Spawn* in_caster, Spawn* in_target) {

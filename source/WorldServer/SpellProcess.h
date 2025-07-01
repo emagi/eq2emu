@@ -400,6 +400,7 @@ public:
 	static void AddSelfAndPetToCharTargets(LuaSpell* spell, Spawn* caster, bool onlyPet=false);
 	void DeleteActiveSpell(LuaSpell* spell, bool skipRemoveCurrent = false);
 	static bool AddLuaSpellTarget(LuaSpell* lua_spell, int32 id, bool lock_spell_targets = true);
+	static void AddNPCGroupOrSelfTarget(LuaSpell* luaspell, Spawn* target);
 	mutable std::shared_mutex MSpellProcess;
 	
 	static void ReplaceEffectTokens(std::string& message, Spawn* in_caster, Spawn* in_target);
