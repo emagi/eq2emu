@@ -1504,70 +1504,67 @@ void ZoneServer::AddPendingDelete(Spawn* spawn) {
 }
 
 void ZoneServer::DeleteSpawns(bool delete_all) {
-	MSpawnDeleteList.writelock(__FUNCTION__, __LINE__);
-	MPendingSpawnRemoval.readlock(__FUNCTION__, __LINE__);
-	if(spawn_delete_list.size() > 0){
-		map<Spawn*, int32>::iterator itr;
-		map<Spawn*, int32>::iterator erase_itr;
-		int32 current_time = Timer::GetCurrentTime2();
-		Spawn* spawn = 0;
-		for (itr = spawn_delete_list.begin(); itr != spawn_delete_list.end(); ) {
-			if (delete_all || current_time >= itr->second){
-				// we haven't removed it from the spawn list yet..
-				if(!delete_all && m_pendingSpawnRemove.count(itr->first->GetID()))
-					continue;
-				
-				spawn = itr->first;
-				
-				lua_interface->SetLuaUserDataStale(spawn);
-				
-				if (spellProcess) {
-					spellProcess->RemoveCaster(spawn, true);
-				}
+    // 1) Snapshot & clear delete‐list
+    MSpawnDeleteList.writelock(__FUNCTION__, __LINE__);
+    std::vector<std::pair<Spawn*,int32>> to_process(
+        spawn_delete_list.begin(), spawn_delete_list.end()
+    );
+    spawn_delete_list.clear();
+    MSpawnDeleteList.releasewritelock(__FUNCTION__, __LINE__);
 
-				if(movementMgr != nullptr) {
-					movementMgr->RemoveMob((Entity*)spawn);
-				}
+	MSpawnList.writelock(__FUNCTION__, __LINE__);
+    int32 current_time = Timer::GetCurrentTime2();
+    for (auto &entry : to_process) {
+        Spawn* spawn = entry.first;
+        int32  when  = entry.second;
 
-				// delete brain if it has one
-				if(spawn->IsNPC()) {
-					NPC* tmpNPC = (NPC*)spawn;
-					if(tmpNPC->Brain())
-						tmpNPC->SetBrain(nullptr);
-				}
+        if (!delete_all && current_time < when)
+            continue;
+		
+		MPendingSpawnRemoval.readlock(__FUNCTION__, __LINE__);
+		if(!delete_all && m_pendingSpawnRemove.count(spawn->GetID()))
+			continue;
+		MPendingSpawnRemoval.releasereadlock(__FUNCTION__, __LINE__);
 
-				erase_itr = itr++;
-				spawn_delete_list.erase(erase_itr);
-				
-				MSpawnList.writelock(__FUNCTION__, __LINE__);
-				std::map<int32, Spawn*>::iterator sitr = spawn_list.find(spawn->GetID());
-				if(sitr != spawn_list.end()) {
-					spawn_list.erase(sitr);
-				}
-				
-				if(spawn->IsCollector()) {
-					std::map<int32, Spawn*>::iterator subitr = subspawn_list[SUBSPAWN_TYPES::COLLECTOR].find(spawn->GetID());
-					if(subitr != subspawn_list[SUBSPAWN_TYPES::COLLECTOR].end()) {
-						subspawn_list[SUBSPAWN_TYPES::COLLECTOR].erase(subitr);
-					}
-				}
-				
-				if(spawn->GetPickupItemID()) {
-					std::map<int32, Spawn*>::iterator subitr = subspawn_list[SUBSPAWN_TYPES::HOUSE_ITEM_SPAWN].find(spawn->GetPickupItemID());
-					if(subitr != subspawn_list[SUBSPAWN_TYPES::HOUSE_ITEM_SPAWN].end() && subitr->second == spawn) {
-						subspawn_list[SUBSPAWN_TYPES::HOUSE_ITEM_SPAWN].erase(subitr);
-					}
-					housing_spawn_map.erase(spawn->GetID());
-				}
-				MSpawnList.releasewritelock(__FUNCTION__, __LINE__);
-				safe_delete(spawn);
-			}
-			else
-				itr++;
+		lua_interface->SetLuaUserDataStale(spawn);
+		
+		if (spellProcess) {
+			spellProcess->RemoveCaster(spawn, true);
 		}
+
+		if(movementMgr != nullptr) {
+			movementMgr->RemoveMob((Entity*)spawn);
+		}
+
+		// delete brain if it has one
+		if(spawn->IsNPC()) {
+			NPC* tmpNPC = (NPC*)spawn;
+			if(tmpNPC->Brain())
+				tmpNPC->SetBrain(nullptr);
+		}
+		
+		std::map<int32, Spawn*>::iterator sitr = spawn_list.find(spawn->GetID());
+		if(sitr != spawn_list.end()) {
+			spawn_list.erase(sitr);
+		}
+		
+		if(spawn->IsCollector()) {
+			std::map<int32, Spawn*>::iterator subitr = subspawn_list[SUBSPAWN_TYPES::COLLECTOR].find(spawn->GetID());
+			if(subitr != subspawn_list[SUBSPAWN_TYPES::COLLECTOR].end()) {
+				subspawn_list[SUBSPAWN_TYPES::COLLECTOR].erase(subitr);
+			}
+		}
+		
+		if(spawn->GetPickupItemID()) {
+			std::map<int32, Spawn*>::iterator subitr = subspawn_list[SUBSPAWN_TYPES::HOUSE_ITEM_SPAWN].find(spawn->GetPickupItemID());
+			if(subitr != subspawn_list[SUBSPAWN_TYPES::HOUSE_ITEM_SPAWN].end() && subitr->second == spawn) {
+				subspawn_list[SUBSPAWN_TYPES::HOUSE_ITEM_SPAWN].erase(subitr);
+			}
+			housing_spawn_map.erase(spawn->GetID());
+		}
+		safe_delete(spawn);
 	}
-	MPendingSpawnRemoval.releasereadlock(__FUNCTION__, __LINE__);
-	MSpawnDeleteList.releasewritelock(__FUNCTION__, __LINE__);
+	MSpawnList.releasewritelock(__FUNCTION__, __LINE__);
 }
 
 void ZoneServer::AddDamagedSpawn(Spawn* spawn){
