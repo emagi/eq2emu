@@ -1504,26 +1504,35 @@ void ZoneServer::AddPendingDelete(Spawn* spawn) {
 }
 
 void ZoneServer::DeleteSpawns(bool delete_all) {
-    // 1) Snapshot & clear delete‐list
-    MSpawnDeleteList.writelock(__FUNCTION__, __LINE__);
-    std::vector<std::pair<Spawn*,int32>> to_process(
-        spawn_delete_list.begin(), spawn_delete_list.end()
-    );
-    spawn_delete_list.clear();
-    MSpawnDeleteList.releasewritelock(__FUNCTION__, __LINE__);
+	// 1) Snapshot & clear delete‐list
+	MSpawnDeleteList.writelock(__FUNCTION__, __LINE__);
+	std::vector<std::pair<Spawn*,int32>> to_process(
+		spawn_delete_list.begin(), spawn_delete_list.end()
+	);
+	spawn_delete_list.clear();
+	MSpawnDeleteList.releasewritelock(__FUNCTION__, __LINE__);
 
+	// Prepare a list of entries we’ll need to keep around
+	std::vector<std::pair<Spawn*,int32>> to_keep;
+	to_keep.reserve(to_process.size());
+	
 	MSpawnList.writelock(__FUNCTION__, __LINE__);
-    int32 current_time = Timer::GetCurrentTime2();
-    for (auto &entry : to_process) {
-        Spawn* spawn = entry.first;
-        int32  when  = entry.second;
+	int32 current_time = Timer::GetCurrentTime2();
+	for (auto &entry : to_process) {
+		Spawn* spawn = entry.first;
+		int32  when  = entry.second;
 
-        if (!delete_all && current_time < when)
-            continue;
+		if (!delete_all && current_time < when) {
+			to_keep.emplace_back(entry);
+			continue;
+		}
 		
 		MPendingSpawnRemoval.readlock(__FUNCTION__, __LINE__);
-		if(!delete_all && m_pendingSpawnRemove.count(spawn->GetID()))
+		if(!delete_all && m_pendingSpawnRemove.count(spawn->GetID())) {
+			to_keep.emplace_back(entry);
+			MPendingSpawnRemoval.releasereadlock(__FUNCTION__, __LINE__);
 			continue;
+		}
 		MPendingSpawnRemoval.releasereadlock(__FUNCTION__, __LINE__);
 
 		lua_interface->SetLuaUserDataStale(spawn);
@@ -1565,6 +1574,15 @@ void ZoneServer::DeleteSpawns(bool delete_all) {
 		safe_delete(spawn);
 	}
 	MSpawnList.releasewritelock(__FUNCTION__, __LINE__);
+	
+	// Add all the kept entries
+	if (!to_keep.empty()) {
+		MSpawnDeleteList.writelock(__FUNCTION__, __LINE__);
+		for (auto &kv : to_keep) {
+			spawn_delete_list.emplace(kv.first, kv.second);
+		}
+		MSpawnDeleteList.releasewritelock(__FUNCTION__, __LINE__);
+	}
 }
 
 void ZoneServer::AddDamagedSpawn(Spawn* spawn){
