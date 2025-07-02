@@ -86,17 +86,28 @@ std::string base64_encode(const std::string& input) {
 	return encoded_string;
 }
 
-HTTPSClient::HTTPSClient(const std::string& certFile, const std::string& keyFile)
-	: certFile(certFile), keyFile(keyFile) {
-		// SSL and TCP setup
-		sslCtx = createSSLContext();
-	}
+HTTPSClient::HTTPSClient(const std::string& certFile,
+                         const std::string& keyFile)
+  : certFile(certFile)
+  , keyFile(keyFile)
+  , ioc_()
+  , workGuard_(boost::asio::make_work_guard(ioc_))   // ◀︎ keep run() from returning
+  , sslCtx(createSSLContext())
+  , pool_(ioc_, *sslCtx)                // pass sslCtx here
+{
+  // fire up the background I/O thread
+  runner_ = std::thread([&]{ ioc_.run(); });
+}
+
+HTTPSClient::~HTTPSClient() {
+  workGuard_.reset();
+  ioc_.stop();
+  runner_.join();
+}
 
 std::shared_ptr<boost::asio::ssl::context> HTTPSClient::createSSLContext() {
 	auto sslCtx = std::make_shared<boost::asio::ssl::context>(boost::asio::ssl::context::tlsv13_client);
 	sslCtx->set_options(boost::asio::ssl::context::default_workarounds | boost::asio::ssl::context::no_sslv2 | boost::asio::ssl::context::single_dh_use);
-	sslCtx->use_certificate_file(certFile, boost::asio::ssl::context::pem);
-	sslCtx->use_private_key_file(keyFile, boost::asio::ssl::context::pem);
 	sslCtx->set_verify_mode(ssl::verify_peer);
 	sslCtx->set_default_verify_paths();
 	return sslCtx;
@@ -127,324 +138,281 @@ std::string HTTPSClient::buildCookieHeader() const {
 	return cookieHeader;
 }
 
-std::string HTTPSClient::sendRequest(const std::string& server, const std::string& port, const std::string& target) {
-	try {
-		boost::asio::io_context ioContext;
+std::string HTTPSClient::sendRequest(
+	const std::string& server,
+	const std::string& port,
+	const std::string& target) {
+  // promise/future to block until async completes
+  std::promise<std::pair<boost::system::error_code, std::string>> p;
+  auto f = p.get_future();
 
-		auto stream = std::make_shared<boost::asio::ssl::stream<boost::asio::ip::tcp::socket>>(ioContext, *sslCtx);
-		auto resolver = std::make_shared<boost::asio::ip::tcp::resolver>(ioContext);
-		auto results = resolver->resolve(server, port);
+  // call the async overload
+  sendRequest(server, port, target,
+	[&p](boost::system::error_code ec, std::string body) {
+	  p.set_value({ec, std::move(body)});
+	});
 
-		// Persistent objects to manage response, request, and buffer
-		auto res = std::make_shared<http::response<http::string_body>>();
-		auto buffer = std::make_shared<boost::beast::flat_buffer>();
-		auto req = std::make_shared<http::request<http::string_body>>(http::verb::get, target, 11);
-
-		// SNI hostname (required for many hosts)
-		if (!SSL_set_tlsext_host_name(stream->native_handle(), server.c_str())) {
-			throw boost::beast::system_error(
-				boost::beast::error_code(static_cast<int>(::ERR_get_error()), boost::asio::error::get_ssl_category()));
-		}
-
-		// Prepare request headers
-		req->set(http::field::host, server);
-		req->set(http::field::user_agent, BOOST_BEAST_VERSION_STRING);
-		req->set(boost::beast::http::field::connection, "close");
-		req->set(http::field::content_type, "application/json");
-		if (!cookies.empty()) {
-			req->set(http::field::cookie, buildCookieHeader());
-		}
-		else {
-			std::string credentials = net.GetCmdUser() + ":" + net.GetCmdPassword();
-			std::string encodedCredentials = base64_encode(credentials);
-			req->set(http::field::authorization, "Basic " + encodedCredentials);
-		}
-
-		// Step 1: Asynchronous connect with timeout
-		auto connect_timer = std::make_shared<boost::asio::steady_timer>(ioContext);
-		connect_timer->expires_after(std::chrono::seconds(2));
-
-		connect_timer->async_wait([stream, server, port, target](boost::system::error_code ec) {
-			if (!ec) {
-				stream->lowest_layer().cancel();  // Cancel operation on timeout
-				LogWrite(PEERING__ERROR, 0, "Peering", "%s: Connect Timeout for %s:%s/%s", __FUNCTION__, server.c_str(), port.c_str(), target.c_str());
-				peer_manager.SetPeerErrorState(server, port);
-			}
-			});
-
-		auto timer = std::make_shared<boost::asio::steady_timer>(ioContext, std::chrono::seconds(2));
-		boost::asio::async_connect(stream->lowest_layer(), results,
-			[stream, connect_timer, req, buffer, res, timer, server, port, target](boost::system::error_code ec, const auto&) {
-				connect_timer->cancel();
-				if (ec) {
-					LogWrite(PEERING__ERROR, 0, "Peering", "%s: Connect Error %s for %s:%s/%s", __FUNCTION__, ec.message().c_str(), server.c_str(), port.c_str(), target.c_str());
-					peer_manager.SetPeerErrorState(server, port);
-					return;
-				}
-
-				// Step 2: Asynchronous handshake with timeout
-				timer->expires_after(std::chrono::seconds(2));
-
-				timer->async_wait([stream, server, port, target](boost::system::error_code ec) {
-					if (!ec) {
-						stream->lowest_layer().cancel();
-						LogWrite(PEERING__ERROR, 0, "Peering", "%s: Handshake Timeout for %s:%s/%s", __FUNCTION__, server.c_str(), port.c_str(), target.c_str());
-						peer_manager.SetPeerErrorState(server, port);
-					}
-					});
-
-				stream->async_handshake(boost::asio::ssl::stream_base::client,
-					[stream, timer, req, buffer, res, server, port, target](boost::system::error_code ec) {
-						timer->cancel();
-						if (ec) {
-							LogWrite(PEERING__ERROR, 0, "Peering", "%s: Handshake Error %s for %s:%s/%s", __FUNCTION__, ec.message().c_str(), server.c_str(), port.c_str(), target.c_str());
-							peer_manager.SetPeerErrorState(server, port);
-							return;
-						}
-
-						// Step 3: Asynchronous write request
-						timer->expires_after(std::chrono::seconds(2));
-
-						timer->async_wait([stream, server, port, target](boost::system::error_code ec) {
-							if (!ec) {
-								stream->lowest_layer().cancel();
-								LogWrite(PEERING__ERROR, 0, "Peering", "%s: Write Timeout for %s:%s/%s", __FUNCTION__, server.c_str(), port.c_str(), target.c_str());
-								peer_manager.SetPeerErrorState(server, port);
-							}
-							});
-
-						http::async_write(*stream, *req,
-							[stream, buffer, res, timer, server, port, target](boost::system::error_code ec, std::size_t) {
-								timer->cancel();
-								if (ec) {
-									LogWrite(PEERING__ERROR, 0, "Peering", "%s: Write Error %s for %s:%s/%s", __FUNCTION__, ec.message().c_str(), server.c_str(), port.c_str(), target.c_str());
-									peer_manager.SetPeerErrorState(server, port);
-									return;
-								}
-
-								// Step 4: Asynchronous read response
-								timer->expires_after(std::chrono::seconds(2));
-
-								timer->async_wait([stream, server, port, target](boost::system::error_code ec) {
-									if (!ec) {
-										stream->lowest_layer().cancel();
-										LogWrite(PEERING__ERROR, 0, "Peering", "%s: Read Timeout for %s:%s/%s", __FUNCTION__, server.c_str(), port.c_str(), target.c_str());
-										peer_manager.SetPeerErrorState(server, port);
-									}
-									});
-
-								http::async_read(*stream, *buffer, *res,
-									[stream, timer, res, server, port, target](boost::system::error_code ec, std::size_t) {
-										timer->cancel();
-										if (ec) {
-											LogWrite(PEERING__ERROR, 0, "Peering", "%s: Read Error %s for %s:%s/%s", __FUNCTION__, ec.message().c_str(), server.c_str(), port.c_str(), target.c_str());
-											peer_manager.SetPeerErrorState(server, port);
-											return;
-										}
-
-										// Step 5: Shutdown the stream
-										stream->async_shutdown([stream, server, port](boost::system::error_code ec) {
-											if (ec && ec != boost::asio::error::eof) {
-												// ignore these
-												//std::cerr << "Shutdown error: " << ec.message() << std::endl;
-											}
-											});
-									});
-							});
-					});
-			});
-
-		ioContext.run();
-
-		// Store cookies from the response
-		if (res->base().count(http::field::set_cookie) > 0) {
-			auto set_cookie_value = res->base()[http::field::set_cookie].to_string();
-			std::istringstream streamdata(set_cookie_value);
-			std::string token;
-
-			// Parse "Set-Cookie" field for name-value pairs
-			while (std::getline(streamdata, token, ';')) {
-				auto pos = token.find('=');
-				if (pos != std::string::npos) {
-					std::string name = token.substr(0, pos);
-					std::string value = token.substr(pos + 1);
-					cookies[name] = value;  // Store each cookie
-				}
-			}
-		}
-
-		if (res->body() == "Unauthorized") {
-			cookies.clear();
-		}
-
-		// Return the response body, if available
-		return res->body();
-	}
-	catch (const std::exception& e) {
-		LogWrite(PEERING__ERROR, 0, "Peering", "%s: Request Error %s for %s:%s/%s", __FUNCTION__, e.what() ? e.what() : "??", server.c_str(), port.c_str(), target.c_str());
-		return {};
-	}
+  auto [ec, body] = f.get();
+  if (ec) {
+	LogWrite(PEERING__ERROR, 0, "Peering",
+			 "%s: Request Error %s", __FUNCTION__, ec.message().c_str());
+	return {};
+  }
+  return body;
 }
 
-std::string HTTPSClient::sendPostRequest(const std::string& server, const std::string& port, const std::string& target, const std::string& jsonPayload) {
-	try {
-		boost::asio::io_context ioContext;
+// async GET
+void HTTPSClient::sendRequest(
+	const std::string& server,
+	const std::string& port,
+	const std::string& target,
+	std::function<void(boost::system::error_code, std::string)> done)
+{
+  pool_.acquire(server, port,
+	[this, server, port, target, done](auto ps, auto ec) {
+	  if (ec) return done(ec, "");
 
-		// SSL and TCP setup
-		auto stream = std::make_shared<boost::asio::ssl::stream<boost::asio::ip::tcp::socket>>(ioContext, *sslCtx);
-		auto resolver = std::make_shared<boost::asio::ip::tcp::resolver>(ioContext);
-		auto results = resolver->resolve(server, port);
+	  auto req = std::make_shared<
+		http::request<http::string_body>>(
+		  http::verb::get, target, 11);
 
-		// Persistent objects to manage response, request, and buffer
-		auto res = std::make_shared<http::response<http::string_body>>();
-		auto buffer = std::make_shared<boost::beast::flat_buffer>();
-		auto req = std::make_shared<http::request<http::string_body>>(http::verb::post, target, 11);
+	  req->set(http::field::host, server);
+	  req->set(http::field::user_agent, BOOST_BEAST_VERSION_STRING);
+	  req->set(http::field::connection, "keep-alive");
+	  if (!cookies.empty()) {
+		req->set(http::field::cookie, buildCookieHeader());
+	  } else {
+		auto creds = net.GetCmdUser() + ":" + net.GetCmdPassword();
+		req->set(http::field::authorization,
+				 "Basic " + base64_encode(creds));
+	  }
 
-		// SNI hostname (required for many hosts)
-		if (!SSL_set_tlsext_host_name(stream->native_handle(), server.c_str())) {
-			throw boost::beast::system_error(
-				boost::beast::error_code(static_cast<int>(::ERR_get_error()), boost::asio::error::get_ssl_category()));
+	  auto buffer = std::make_shared<boost::beast::flat_buffer>();
+	  auto res    = std::make_shared<
+		http::response<http::string_body>>();
+	  auto write_timer   = std::make_shared<boost::asio::steady_timer>(ioc_);
+	  auto read_timer    = std::make_shared<boost::asio::steady_timer>(ioc_);
+
+	  write_timer->expires_after(std::chrono::seconds(2));
+	  write_timer->async_wait([ps](auto ec){
+		if (!ec) {
+		  // cancel the write if it’s still pending
+		  ps->stream.lowest_layer().cancel();
 		}
-
-		// Prepare HTTP POST request with JSON payload
-		req->set(http::field::host, server);
-		req->set(http::field::user_agent, BOOST_BEAST_VERSION_STRING);
-		req->set(boost::beast::http::field::connection, "close");
-		req->set(http::field::content_type, "application/json");
-		if (!cookies.empty()) {
-			req->set(http::field::cookie, buildCookieHeader());
-		}
-		else {
-			std::string credentials = net.GetCmdUser() + ":" + net.GetCmdPassword();
-			std::string encodedCredentials = base64_encode(credentials);
-			req->set(http::field::authorization, "Basic " + encodedCredentials);
-		}
-
-		req->body() = jsonPayload;
-		req->prepare_payload();
-
-		// Step 1: Asynchronous connect with timeout
-		auto connect_timer = std::make_shared<boost::asio::steady_timer>(ioContext);
-		connect_timer->expires_after(std::chrono::seconds(2));
-
-		connect_timer->async_wait([stream, server, port, target](boost::system::error_code ec) {
+	  });
+	  // capture 'req' so it sticks around till write completes
+	  http::async_write(ps->stream, *req,
+		[this, ps, req, buffer, res, write_timer, read_timer, server, port, done]
+		(boost::system::error_code ec, std::size_t) {
+			write_timer->cancel();
+			
+		  if (ec) {
+			// write failed—drop this connection entirely
+			ps->stream.lowest_layer().close();
+			return done(ec, "");
+		  }
+		  
+		  read_timer->expires_after(std::chrono::seconds(5));
+		  read_timer->async_wait([ps](auto ec){
 			if (!ec) {
-				stream->lowest_layer().cancel();  // Cancel operation on timeout
-				LogWrite(PEERING__ERROR, 0, "Peering", "%s: Connect Timeout for %s:%s/%s", __FUNCTION__, server.c_str(), port.c_str(), target.c_str());
-				peer_manager.SetPeerErrorState(server, port);
+			  // cancel the read if it’s still pending
+			  ps->stream.lowest_layer().cancel();
 			}
-			});
+		  });
+		  
+		  http::async_read(ps->stream, *buffer, *res,
+			[this, ps, buffer, res, read_timer, server, port, done]
+			(boost::system::error_code ec, std::size_t) {
+				read_timer->cancel();
+				
+			  if (ec) {
+				// read failed or timed out—drop it
+				ps->stream.lowest_layer().close();
+				return done(ec, "");
+			  }
+			  
+			  pool_.release(server, port, ps);
 
-		auto timer = std::make_shared<boost::asio::steady_timer>(ioContext, std::chrono::seconds(2));
-		boost::asio::async_connect(stream->lowest_layer(), results,
-			[stream, connect_timer, req, buffer, res, timer, server, port, target](boost::system::error_code ec, const auto&) {
-				connect_timer->cancel();
-				if (ec) {
-					LogWrite(PEERING__ERROR, 0, "Peering", "%s: Connect Error %s for %s:%s/%s", __FUNCTION__, ec.message().c_str(), server.c_str(), port.c_str(), target.c_str());
-					peer_manager.SetPeerErrorState(server, port);
-					return;
+				auto status = res->result();
+				if (status == http::status::unauthorized) {
+				  cookies.clear();  // clear out any bad cookies
+				  return done({},
+							  "Unauthorized");
 				}
-
-				// Step 2: Asynchronous handshake with timeout
-				timer->expires_after(std::chrono::seconds(2));
-
-				timer->async_wait([stream, server, port, target](boost::system::error_code ec) {
-					if (!ec) {
-						stream->lowest_layer().cancel();
-						LogWrite(PEERING__ERROR, 0, "Peering", "%s: Handshake Timeout for %s:%s/%s", __FUNCTION__, server.c_str(), port.c_str(), target.c_str());
-						peer_manager.SetPeerErrorState(server, port);
-					}
-					});
-
-				stream->async_handshake(boost::asio::ssl::stream_base::client,
-					[stream, timer, req, buffer, res, server, port, target](boost::system::error_code ec) {
-						timer->cancel();
-						if (ec) {
-							LogWrite(PEERING__ERROR, 0, "Peering", "%s: Handshake Error %s for %s:%s/%s", __FUNCTION__, ec.message().c_str(), server.c_str(), port.c_str(), target.c_str());
-							peer_manager.SetPeerErrorState(server, port);
-							return;
-						}
-
-						// Step 3: Asynchronous write request
-						timer->expires_after(std::chrono::seconds(2));
-
-						timer->async_wait([stream, server, port, target](boost::system::error_code ec) {
-							if (!ec) {
-								stream->lowest_layer().cancel();
-								LogWrite(PEERING__ERROR, 0, "Peering", "%s: Write Timeout for %s:%s/%s", __FUNCTION__, server.c_str(), port.c_str(), target.c_str());
-								peer_manager.SetPeerErrorState(server, port);
-							}
-							});
-
-						http::async_write(*stream, *req,
-							[stream, buffer, res, timer, server, port, target](boost::system::error_code ec, std::size_t) {
-								timer->cancel();
-								if (ec) {
-									LogWrite(PEERING__ERROR, 0, "Peering", "%s: Write Error %s for %s:%s/%s", __FUNCTION__, ec.message().c_str(), server.c_str(), port.c_str(), target.c_str());
-									peer_manager.SetPeerErrorState(server, port);
-									return;
-								}
-
-								// Step 4: Asynchronous read response
-								timer->expires_after(std::chrono::seconds(2));
-
-								timer->async_wait([stream, server, port, target](boost::system::error_code ec) {
-									if (!ec) {
-										stream->lowest_layer().cancel();
-										LogWrite(PEERING__ERROR, 0, "Peering", "%s: Read Timeout for %s:%s/%s", __FUNCTION__, server.c_str(), port.c_str(), target.c_str());
-										peer_manager.SetPeerErrorState(server, port);
-									}
-									});
-
-								http::async_read(*stream, *buffer, *res,
-									[stream, timer, res, server, port, target](boost::system::error_code ec, std::size_t) {
-										timer->cancel();
-										if (ec) {
-											LogWrite(PEERING__ERROR, 0, "Peering", "%s: Read Error %s for %s:%s/%s", __FUNCTION__, ec.message().c_str(), server.c_str(), port.c_str(), target.c_str());
-											peer_manager.SetPeerErrorState(server, port);
-											return;
-										}
-
-										// Step 5: Shutdown the stream
-										stream->async_shutdown([stream, server, port](boost::system::error_code ec) {
-											if (ec && ec != boost::asio::error::eof) {
-												// ignore these
-												//std::cerr << "Shutdown error: " << ec.message() << std::endl;
-											}
-											});
-									});
-							});
-					});
-			});
-
-		ioContext.run();
-
-		// Store cookies from the response
-		if (res->base().count(http::field::set_cookie) > 0) {
-			auto set_cookie_value = res->base()[http::field::set_cookie].to_string();
-			std::istringstream stream(set_cookie_value);
-			std::string token;
-
-			// Parse "Set-Cookie" field for name-value pairs
-			while (std::getline(stream, token, ';')) {
-				auto pos = token.find('=');
-				if (pos != std::string::npos) {
-					std::string name = token.substr(0, pos);
-					std::string value = token.substr(pos + 1);
-					cookies[name] = value;  // Store each cookie
+				if (status != http::status::ok) {
+				  LogWrite(PEERING__ERROR, 0, "Peering",
+						   "%s: HTTP error %u", __FUNCTION__, status);
+				  return done(
+					boost::system::error_code(
+					  static_cast<int>(status),
+					  boost::asio::error::get_ssl_category()
+					),
+					"");
 				}
+			  // cookie logic
+			  if (res->base().count(http::field::set_cookie)) {
+				auto hdr = res->base()[http::field::set_cookie]
+							   .to_string();
+				std::istringstream ss(hdr);
+				std::string token;
+				while (std::getline(ss, token, ';')) {
+				  auto pos = token.find('=');
+				  if (pos!=std::string::npos) {
+					cookies[token.substr(0,pos)] =
+					  token.substr(pos+1);
+				  }
+				}
+			  }
+			  if (res->body() == "Unauthorized")
+				cookies.clear();
+
+			  done({}, res->body());
+			});
+		});
+	});
+}
+
+
+std::string HTTPSClient::sendPostRequest(
+	const std::string& server,
+	const std::string& port,
+	const std::string& target,
+	const std::string& jsonPayload) {
+  std::promise<std::pair<boost::system::error_code, std::string>> p;
+  auto f = p.get_future();
+
+  // call the async version internally
+  sendPostRequest(server, port, target, jsonPayload,
+	[&p](boost::system::error_code ec, std::string body) {
+	  p.set_value({ec, std::move(body)});
+	});
+
+  auto [ec, body] = f.get();
+  if (ec) {
+	LogWrite(PEERING__ERROR, 0, "Peering",
+			 "%s: error %s", __FUNCTION__, ec.message().c_str());
+	return {};
+  }
+  return body;
+}
+
+// async POST
+void HTTPSClient::sendPostRequest(
+	const std::string& server,
+	const std::string& port,
+	const std::string& target,
+	const std::string& jsonPayload,
+	std::function<void(boost::system::error_code, std::string)> done)
+{
+  pool_.acquire(server, port,
+	[this, server, port, target, jsonPayload, done](auto ps, auto ec) {
+	  if (ec) return done(ec, "");
+
+	  // — heap-allocated POST req —
+	  auto req = std::make_shared<
+		http::request<http::string_body>>(
+		  http::verb::post, target, 11);
+
+	  req->set(http::field::host, server);
+	  req->set(http::field::user_agent, BOOST_BEAST_VERSION_STRING);
+	  req->set(http::field::connection, "keep-alive");
+	  req->set(http::field::content_type,
+			   "application/json");
+	  if (!cookies.empty()) {
+		req->set(http::field::cookie,
+				 buildCookieHeader());
+	  } else {
+		auto creds = net.GetCmdUser() + ":" +
+					 net.GetCmdPassword();
+		req->set(http::field::authorization,
+				 "Basic " + base64_encode(creds));
+	  }
+
+	  req->body() = jsonPayload;
+	  req->prepare_payload();
+
+	  auto buffer = std::make_shared<
+		boost::beast::flat_buffer>();
+	  auto res    = std::make_shared<
+		http::response<http::string_body>>();
+	  auto write_timer   = std::make_shared<boost::asio::steady_timer>(ioc_);
+	  auto read_timer    = std::make_shared<boost::asio::steady_timer>(ioc_);
+
+	  write_timer->expires_after(std::chrono::seconds(2));
+	  write_timer->async_wait([ps](auto ec){
+		if (!ec) {
+		  // cancel the write if it’s still pending
+		  ps->stream.lowest_layer().cancel();
+		}
+	  });
+	  // keep 'req' alive until write finishes
+	  http::async_write(ps->stream, *req,
+		[this, ps, req, buffer, res, write_timer, read_timer, server, port, done]
+		(boost::system::error_code ec, std::size_t) {
+		write_timer->cancel();
+			
+		  if (ec) {
+			// write failed—drop this connection entirely
+			ps->stream.lowest_layer().close();
+			return done(ec, "");
+		  }
+		  
+		  read_timer->expires_after(std::chrono::seconds(5));
+		  read_timer->async_wait([ps](auto ec){
+			if (!ec) {
+			  // cancel the read if it’s still pending
+			  ps->stream.lowest_layer().cancel();
 			}
-		}
+		  });
 
-		if (res->body() == "Unauthorized") {
-			cookies.clear();
-		}
+		  http::async_read(ps->stream, *buffer, *res,
+			[this, ps, buffer, res, read_timer, server, port, done]
+			(boost::system::error_code ec, std::size_t) {
+				read_timer->cancel();
+				
+			  if (ec) {
+				// read failed or timed out—drop it
+				ps->stream.lowest_layer().close();
+				return done(ec, "");
+			  }
+			  
+			  pool_.release(server, port, ps);
 
-		// Return the response body, if available
-		return res->body();
-	}
-	catch (const std::exception& e) {
-		LogWrite(PEERING__ERROR, 0, "Peering", "%s: Request Error %s for %s:%s/%s", __FUNCTION__, e.what() ? e.what() : "??", server.c_str(), port.c_str(), target.c_str());
-		return {};
-	}
+				auto status = res->result();
+				if (status == http::status::unauthorized) {
+				  cookies.clear();  // clear out any bad cookies
+				  return done({},
+							  "Unauthorized");
+				}
+				if (status != http::status::ok) {
+				  LogWrite(PEERING__ERROR, 0, "Peering",
+						   "%s: HTTP error %u", __FUNCTION__, status);
+				  return done(
+					boost::system::error_code(
+					  static_cast<int>(status),
+					  boost::asio::error::get_ssl_category()
+					),
+					"");
+				}
+			  // cookie logic
+			  if (res->base().count(http::field::set_cookie)) {
+				auto hdr = res->base()[http::field::set_cookie]
+							   .to_string();
+				std::istringstream ss(hdr);
+				std::string token;
+				while (std::getline(ss, token, ';')) {
+				  auto pos = token.find('=');
+				  if (pos!=std::string::npos) {
+					cookies[token.substr(0,pos)] =
+					  token.substr(pos+1);
+				  }
+				}
+			  }
+			  if (res->body() == "Unauthorized")
+				cookies.clear();
+
+			  done({}, res->body());
+			});
+		});
+	});
 }

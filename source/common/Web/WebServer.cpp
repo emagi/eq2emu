@@ -76,11 +76,11 @@ std::string WebServer::my_password_callback(
 //void handle_root(const http::request<http::string_body>& req, http::response<http::string_body>& res);
 
 WebServer::WebServer(const std::string& address, unsigned short port, const std::string& cert_file, const std::string& key_file, const std::string& key_password, const std::string& hardcode_user, const std::string& hardcode_password)
-    : ioc_(1),
-      ssl_ctx_(ssl::context::tlsv13_server),
-      acceptor_(ioc_, {boost_net::ip::make_address(address), port}) {
+	: ioc_(1),
+	  ssl_ctx_(ssl::context::tlsv13_server),
+	  acceptor_(ioc_, {boost_net::ip::make_address(address), port}) {
 		  keypasswd = key_password;
-    // Initialize SSL context
+	// Initialize SSL context
 	if(cert_file.size() < 1 || key_file.size() < 1) {
 		is_ssl = false;
 	}
@@ -91,7 +91,7 @@ WebServer::WebServer(const std::string& address, unsigned short port, const std:
 		is_ssl = true;
 	}
 	keypasswd = ""; // reset no longer needed
-    // Initialize some test credentials
+	
 	if(hardcode_user.size() > 0 && hardcode_password.size() > 0)
 		credentials_[hardcode_user] = hardcode_password;
 	
@@ -157,66 +157,74 @@ void WebServer::on_accept(beast::error_code ec, tcp::socket socket) {
     do_accept();
 }
 
+void WebServer::do_session(tcp::socket socket) {
+    try {
+        bool close = false;
+        beast::flat_buffer buffer;
+
+        while (!close) {
+            // 1) Read a complete request
+            http::request<http::string_body> req;
+            http::read(socket, buffer, req);
+
+            // 2) Invoke your handler, giving it a lambda that
+            //    sets up version/keep_alive on the response
+            handle_request(std::move(req), [&](auto&& response) {
+                // mirror HTTP version
+                response.version(req.version());
+                // propagate the client’s keep-alive choice
+                response.keep_alive(req.keep_alive());
+
+                // if the client asked us to close, mark for shutdown
+                if (! req.keep_alive())
+                    close = true;
+
+                http::write(socket, response);
+            });
+
+            // 3) Discard anything left in the buffer so the next
+            //    http::read starts fresh
+            buffer.consume(buffer.size());
+        }
+
+        beast::error_code ec;
+        socket.shutdown(tcp::socket::shutdown_send, ec);
+    }
+    catch (const std::exception& e) {
+		// irrelevant spam for now really
+    }
+}
+
 void WebServer::do_session_ssl(tcp::socket socket) {
     try {
-		ssl::stream<tcp::socket> stream(std::move(socket), ssl_ctx_);
-		stream.handshake(ssl::stream_base::server);
-		
+        ssl::stream<tcp::socket> stream(std::move(socket), ssl_ctx_);
+        stream.handshake(ssl::stream_base::server);
+
         bool close = false;
         beast::flat_buffer buffer;
 
         while (!close) {
             http::request<http::string_body> req;
-	
-			http::read(stream, buffer, req);
-			
-            // Send the response
+            http::read(stream, buffer, req);
+
             handle_request(std::move(req), [&](auto&& response) {
-                if (response.need_eof()) {
+                response.version(req.version());
+                response.keep_alive(req.keep_alive());
+                if (! req.keep_alive())
                     close = true;
-                }
-				http::write(stream, response);
+                http::write(stream, response);
             });
 
-            if (close) break;
+            buffer.consume(buffer.size());
         }
 
         beast::error_code ec;
-        socket.shutdown(tcp::socket::shutdown_send, ec);
+        stream.next_layer().shutdown(tcp::socket::shutdown_send, ec);
     }
     catch (const std::exception& e) {
 		// irrelevant spam for now really
     }
 }
-
-void WebServer::do_session(tcp::socket socket) {
-    try {		
-        bool close = false;
-        beast::flat_buffer buffer;
-
-        while (!close) {
-            http::request<http::string_body> req;
-			http::read(socket, buffer, req);
-			
-            // Send the response
-            handle_request(std::move(req), [&](auto&& response) {
-                if (response.need_eof()) {
-                    close = true;
-                }
-				http::write(socket, response);
-            });
-
-            if (close) break;
-        }
-
-        beast::error_code ec;
-        socket.shutdown(tcp::socket::shutdown_send, ec);
-    }
-    catch (const std::exception& e) {
-		// irrelevant spam for now really
-    }
-}
-
 
 template <class Body, class Allocator>
 void WebServer::handle_request(http::request<Body, http::basic_fields<Allocator>>&& req, std::function<void(http::response<http::string_body>&&)> send) {
