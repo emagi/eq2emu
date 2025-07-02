@@ -1516,7 +1516,6 @@ void ZoneServer::DeleteSpawns(bool delete_all) {
 	std::vector<std::pair<Spawn*,int32>> to_keep;
 	to_keep.reserve(to_process.size());
 	
-	MSpawnList.writelock(__FUNCTION__, __LINE__);
 	int32 current_time = Timer::GetCurrentTime2();
 	for (auto &entry : to_process) {
 		Spawn* spawn = entry.first;
@@ -1535,8 +1534,9 @@ void ZoneServer::DeleteSpawns(bool delete_all) {
 		}
 		MPendingSpawnRemoval.releasereadlock(__FUNCTION__, __LINE__);
 
+		MSpawnList.writelock(__FUNCTION__, __LINE__);
 		lua_interface->SetLuaUserDataStale(spawn);
-		
+
 		if (spellProcess) {
 			spellProcess->RemoveCaster(spawn, true);
 		}
@@ -1572,8 +1572,8 @@ void ZoneServer::DeleteSpawns(bool delete_all) {
 			housing_spawn_map.erase(spawn->GetID());
 		}
 		safe_delete(spawn);
+		MSpawnList.releasewritelock(__FUNCTION__, __LINE__);
 	}
-	MSpawnList.releasewritelock(__FUNCTION__, __LINE__);
 	
 	// Add all the kept entries
 	if (!to_keep.empty()) {
