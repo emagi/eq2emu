@@ -473,7 +473,7 @@ int32 WorldDatabase::LoadHouseItem(int32 item_id)
 			{
 				LogWrite(ITEM__DEBUG, 5, "Items", "\tItem HouseItem for item_id %u", id);
 				LogWrite(ITEM__DEBUG, 5, "Items", "\ttype: %i, %i, %u, %.2f, %u", ITEM_TYPE_HOUSE, atoul(row[1]), atoi(row[2]), atof(row[3]), atoul(row[4]));
-				item->SetItemType(ITEM_TYPE_HOUSE);
+				item->SetItemType(ITEM_TYPE_HOUSE); // container will be overwritten by LoadHouseContainers which is ran after
 				item->houseitem_info->status_rent_reduction = atoi(row[2]);
 				item->houseitem_info->coin_rent_reduction = atof(row[3]);
 				item->houseitem_info->house_only = atoi(row[4]);
@@ -1069,7 +1069,7 @@ void WorldDatabase::LoadItemList(int32 item_id)
 	LogWrite(ITEM__DEBUG, 0, "Items", "\tLoaded %u Skill Items", LoadSkillItems(item_id));
 	LogWrite(ITEM__DEBUG, 0, "Items", "\tLoaded %u Adornment Items", LoadAdornments(item_id));
 	LogWrite(ITEM__DEBUG, 0, "Items", "\tLoaded %u Recipe Book Items", LoadRecipeBookItems(item_id));
-	LogWrite(ITEM__DEBUG, 0, "Items", "\tLoaded %u House Containers", LoadHouseContainers(item_id));
+	LogWrite(ITEM__DEBUG, 0, "Items", "\tLoaded %u House Containers", LoadHouseContainers(item_id)); // must be called after LoadHouseItem
 
 	LogWrite(ITEM__DEBUG, 0, "Items", "Loading Item Appearances...");
 	LogWrite(ITEM__DEBUG, 0, "Items", "\tLoaded %u Item Appearances", LoadItemAppearances(item_id));

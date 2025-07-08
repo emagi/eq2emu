@@ -4034,7 +4034,7 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 
 				Item* item = client->GetPlayer()->item_list.GetItemFromUniqueID(uniqueid);
 				//Item* item = player->GetEquipmentList()->GetItem(slot);
-				if (item && item->IsHouseItem())
+				if (item && (item->IsHouseItem() || item->IsHouseContainer()))
 				{
 					if (!client->HasOwnerOrEditAccess())
 					{

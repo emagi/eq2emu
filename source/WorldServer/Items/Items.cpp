@@ -238,7 +238,7 @@ vector<Item*>* MasterItemList::GetItems(string name, int64 itype, int64 ltype, i
 						break;
 					}
 					case ITEM_BROKER_TYPE_HOUSEITEM:{
-						if(item->IsHouseItem())
+						if(item->IsHouseItem() || item->IsHouseContainer())
 							should_add = true;
 						break;
 					}
@@ -1072,6 +1072,11 @@ void Item::SetItem(Item* old_item){
 			break;
 		}
 		case ITEM_TYPE_HOUSE_CONTAINER:{
+			houseitem_info = new HouseItem_Info;
+			if(old_item->houseitem_info) {
+				memcpy(houseitem_info, old_item->houseitem_info, sizeof(HouseItem_Info));
+			}
+			
 			// House Containers
 			housecontainer_info = new HouseContainer_Info;
 			if (old_item->housecontainer_info) {
@@ -1577,6 +1582,10 @@ void Item::SetItemType(int8 in_type){
 		memset(houseitem_info, 0, sizeof(HouseItem_Info));
 	}
 	else if(IsHouseContainer() && !housecontainer_info){
+		if(!houseitem_info) {
+			houseitem_info = new HouseItem_Info;
+			memset(houseitem_info, 0, sizeof(HouseItem_Info));
+		}
 		housecontainer_info = new HouseContainer_Info;
 		housecontainer_info->allowed_types = 0;
 		housecontainer_info->broker_commission = 0;
@@ -2493,6 +2502,11 @@ void Item::serialize(PacketStruct* packet, bool show_name, Player* player, int16
 						
 			}			
 			case ITEM_TYPE_HOUSE_CONTAINER:{
+				if(houseitem_info && client->GetVersion() >= 374){
+					packet->setDataByName("status_rent_reduction", houseitem_info->status_rent_reduction);
+					packet->setDataByName("coin_rent_reduction", houseitem_info->coin_rent_reduction);
+					packet->setDataByName("house_only", houseitem_info->house_only);
+				}
 				//House Containers
 				if(housecontainer_info && client->GetVersion() >= 374){
 					packet->setDataByName("allowed_types", housecontainer_info->allowed_types);
@@ -3736,7 +3750,7 @@ void PlayerItemList::AddItemToPacket(PacketStruct* packet, Player* player, Item*
 		//TODO: Add check to allow scribe
 		menu_data += ITEM_MENU_TYPE_SCRIBE;
 	}
-	if (item->generic_info.item_type == 10){
+	if (item->generic_info.item_type == ITEM_TYPE_HOUSE || item->generic_info.item_type == ITEM_TYPE_HOUSE_CONTAINER){
 		menu_data += ITEM_MENU_TYPE_TEST1;
 		menu_data += ITEM_MENU_TYPE_HOUSE;
 	}
