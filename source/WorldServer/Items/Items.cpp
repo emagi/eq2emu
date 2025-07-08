@@ -1073,6 +1073,7 @@ void Item::SetItem(Item* old_item){
 		}
 		case ITEM_TYPE_HOUSE_CONTAINER:{
 			houseitem_info = new HouseItem_Info;
+			memset(houseitem_info, 0, sizeof(HouseItem_Info));
 			if(old_item->houseitem_info) {
 				memcpy(houseitem_info, old_item->houseitem_info, sizeof(HouseItem_Info));
 			}
