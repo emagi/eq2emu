@@ -2497,7 +2497,8 @@ to zero and treated like placeholders." />
 <Data ElementName="rain2" Type="float" Size="1" /><!-- 4761 -->
 <Data ElementName="status_points" Type="int32" Size="1" /> <!-- 4765 -->
 <Data ElementName="guild_status" Type="int32" Size="1" /> <!-- 4769 -->
-<Data ElementName="unknown7" Type="int8" Size="3" /> <!-- 4773 -->
+<Data ElementName="unknown7" Type="int8" Size="2" /> <!-- 4773 -->
+<Data ElementName="vault_slots" Type="int8" Size="1" /> <!-- 4773 -->
 <Data ElementName="house_zone" Type="char" Size="61" /> <!-- 4776 -->
 <Data ElementName="bind_zone" Type="char" Size="61" /> <!-- 4837 -->
 </Struct>
@@ -2729,7 +2730,8 @@ to zero and treated like placeholders." />
 <Data ElementName="status_points" Type="int32" Size="1" /> <!-- 4765 -->
 <Data ElementName="guild_status" Type="int32" Size="1" /> <!-- 4769 -->
 <Data ElementName="lifetime_guild_status" Type="int32" Size="1" /> <!-- 4769 -->
-<Data ElementName="unknown7" Type="int8" Size="5" /> <!-- 4773 -->
+<Data ElementName="unknown7" Type="int8" Size="4" /> <!-- 4773 -->
+<Data ElementName="vault_slots" Type="int8" Size="1" /> <!-- 4773 -->
 <Data ElementName="house_zone" Type="char" Size="61" /> <!-- 4776 -->
 <Data ElementName="bind_zone" Type="char" Size="61" /> <!-- 4837 -->
 </Struct>
@@ -3455,7 +3457,7 @@ to zero and treated like placeholders." />
 <Data ElementName="rain2" Type="float" Size="1" />
 <Data ElementName="status_points" Type="int32" Size="1" />
 <Data ElementName="guild_status" Type="int32" Size="1" />
-<Data ElementName="unknownx527" Type="int8" Size="1" />
+<Data ElementName="vault_slots" Type="int8" Size="1" />
 <Data ElementName="house_zone" Type="char" Size="48" />
 <Data ElementName="unknownx526_1" Type="int32" Size="1" />
 <Data ElementName="unknownx526_2" Type="int32" Size="1" />
@@ -10462,6 +10464,21 @@ to zero and treated like placeholders." />
 <Data ElementName="command_handler" Type="int16" />
 <Data ElementName="arguments" Type="EQ2_16Bit_String" Size="1" />
 </Struct>
+<Struct Name="WS_HouseStorage" ClientVersion="546" OpcodeName="OP_ClientCmdMsg" OpcodeType="OP_EqUpdateStoreCmd">
+<Data ElementName="spawn_id" Type="int32" />
+<Data ElementName="your_item_count" Type="int16" />
+<Data ElementName="your_item_array" Type="Array" ArraySizeVariable="your_item_count">
+  <Data ElementName="your_item_name" Type="EQ2_8Bit_String" />
+  <Data ElementName="unique_id" Type="int64" />
+  <Data ElementName="unique_id2" Type="int64" />
+  <Data ElementName="your_item_quantity" Type="int16" />
+  <Data ElementName="your_item_icon" Type="int16" />
+  <Data ElementName="your_item_unknown4" Type ="int8" Size="4" />
+  <Data ElementName="your_item_background" Type="int8" />
+  <Data ElementName="your_item_unknown4" Type ="int8" Size="9" />
+</Data>
+<Data ElementName="type" Type="int8"/> <!-- 4 opens window -->
+</Struct>
 <Struct Name="WS_UpdateMerchant" ClientVersion="1" OpcodeName="OP_ClientCmdMsg" OpcodeType="OP_EqUpdateMerchantCmd">
 <Data ElementName="spawn_id" Type="int32" />
 <Data ElementName="num_items" Type="int16" />
@@ -10945,7 +10962,9 @@ to zero and treated like placeholders." />
 <Struct Name="WS_StartBroker" ClientVersion="1" OpcodeName="OP_ClientCmdMsg" OpcodeType="OP_EqStartBrokerCmd">
 <Data ElementName="spawn_id" Type="int32" />
 <Data ElementName="unknown" Type="int32" />
-<Data ElementName="unknown2" Type="int8" Size="6" />
+<Data ElementName="unknown2" Type="int8" Size="4" />
+<Data ElementName="unknown3" Type="int8" Size="1" />
+<Data ElementName="unknown4" Type="int8" Size="1" />
 </Struct>
 <Struct Name="WS_BrokerBags" ClientVersion="1" OpcodeName="OP_ChatToggleFriendMsg" >
 <Data ElementName="char_id" Type="int32" />
@@ -19456,9 +19475,8 @@ to zero and treated like placeholders." />
 <Data ElementName="house_name" Type="EQ2_16Bit_String" />
 <Data ElementName="upkeep_cost_coins" Type="int64"/>
 <Data ElementName="upkeep_cost_status" Type="sint32"/>
-<Data ElementName="escrow_balance_coins" Type="int32"/>
+<Data ElementName="escrow_balance_coins" Type="int64"/>
 <Data ElementName="escrow_balance_status" Type="int32"/>
-<Data ElementName="unknownx" Type="int32" Size="1"/>
 <Data ElementName="upkeep_due" Type="int32" />
 <Data ElementName="privlage_level" Type="int8" />
 <Data ElementName="house_type" Type="int8" />
