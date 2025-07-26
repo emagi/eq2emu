@@ -1,21 +1,21 @@
-/*
-EQ2Emu:  Everquest II Server Emulator
-Copyright (C) 2007-2025  EQ2Emu Development Team (https://www.eq2emu.com)
+/*  
+    EQ2Emulator:  Everquest II Server Emulator
+    Copyright (C) 2005 - 2026  EQ2EMulator Development Team (http://www.eq2emu.com formerly http://www.eq2emulator.net)
 
-This file is part of EQ2Emu.
+    This file is part of EQ2Emulator.
 
-EQ2Emu is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+    EQ2Emulator is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-EQ2Emu is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+    EQ2Emulator is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License
-along with EQ2Emu.  If not, see <http://www.gnu.org/licenses/>.
+    You should have received a copy of the GNU General Public License
+    along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "PeerManager.h"
@@ -854,5 +854,85 @@ void PeerManager::sendPeersActiveQuery(int32 character_id, bool remove) {
 			continue;
 
 		peer_https_pool.sendPostRequestToPeerAsync(peer->id, peer->webAddr, std::to_string(peer->webPort), "/activequery", jsonPayload);
+	}
+}
+
+void PeerManager::sendPeersAddSeller(int32 character_id, int32 house_id, std::string name, bool saleEnabled, bool invEnabled) {
+	boost::property_tree::ptree root;
+	root.put("character_id", character_id);
+	root.put("house_id", house_id);
+	root.put("name", name);
+	root.put("sale_enabled", saleEnabled);
+	root.put("inventory_enabled", invEnabled);
+
+	std::ostringstream jsonStream;
+	boost::property_tree::write_json(jsonStream, root);
+	std::string jsonPayload = jsonStream.str();
+	LogWrite(PEERING__DEBUG, 0, "Peering", "%s: Add Seller, CharID: %u", __FUNCTION__, character_id);
+
+	for (const auto& [id, peer] : peers) {
+		if (peer->healthCheck.status != HealthStatus::OK)
+			continue;
+		peer_https_pool.sendPostRequestToPeerAsync(peer->id, peer->webAddr, std::to_string(peer->webPort), "/addseller", jsonPayload);
+	}
+}
+
+void PeerManager::sendPeersRemoveSeller(int32 character_id) {
+	boost::property_tree::ptree root;
+	root.put("character_id", character_id);
+
+	std::ostringstream jsonStream;
+	boost::property_tree::write_json(jsonStream, root);
+	std::string jsonPayload = jsonStream.str();
+	LogWrite(PEERING__DEBUG, 0, "Peering", "%s: Remove Seller, CharID: %u", __FUNCTION__, character_id);
+
+	for (const auto& [id, peer] : peers) {
+		if (peer->healthCheck.status != HealthStatus::OK)
+			continue;
+		peer_https_pool.sendPostRequestToPeerAsync(peer->id, peer->webAddr, std::to_string(peer->webPort), "/removeseller", jsonPayload);
+	}
+}
+
+void PeerManager::sendPeersAddItemSale(int32 character_id, int32 house_id, int32 itemID, int64 uniqueID, int64 price, sint32 invSlotID, int16 slotID, int16 count, bool inInventory, bool forSale, std::string itemCreator) {
+	boost::property_tree::ptree root;
+	root.put("character_id", character_id);
+	root.put("house_id", house_id);
+	root.put("item_creator", itemCreator);
+	root.put("item_id", itemID);
+	root.put("unique_id", uniqueID);
+	root.put("price", price);
+	root.put("inv_slot_id", invSlotID);
+	root.put("slot_id", slotID);
+	root.put("count", count);
+	root.put("in_inventory", inInventory);
+	root.put("for_sale", forSale);
+
+	std::ostringstream jsonStream;
+	boost::property_tree::write_json(jsonStream, root);
+	std::string jsonPayload = jsonStream.str();
+	LogWrite(PEERING__DEBUG, 0, "Peering", "%s: Add Item Sale, CharID: %u, UniqueID: %u, ItemID: %u", __FUNCTION__, character_id, uniqueID, itemID);
+
+	for (const auto& [id, peer] : peers) {
+		if (peer->healthCheck.status != HealthStatus::OK)
+			continue;
+		peer_https_pool.sendPostRequestToPeerAsync(peer->id, peer->webAddr, std::to_string(peer->webPort), "/additemsale", jsonPayload);
+	}
+}
+
+
+void PeerManager::sendPeersRemoveItemSale(int32 character_id, int64 uniqueID) {
+	boost::property_tree::ptree root;
+	root.put("character_id", character_id);
+	root.put("unique_id", uniqueID);
+
+	std::ostringstream jsonStream;
+	boost::property_tree::write_json(jsonStream, root);
+	std::string jsonPayload = jsonStream.str();
+	LogWrite(PEERING__DEBUG, 0, "Peering", "%s: Remove Item Sale, CharID: %u, UniqueID: %u", __FUNCTION__, character_id, uniqueID);
+
+	for (const auto& [id, peer] : peers) {
+		if (peer->healthCheck.status != HealthStatus::OK)
+			continue;
+		peer_https_pool.sendPostRequestToPeerAsync(peer->id, peer->webAddr, std::to_string(peer->webPort), "/removeitemsale", jsonPayload);
 	}
 }

@@ -1,6 +1,6 @@
 /*  
     EQ2Emulator:  Everquest II Server Emulator
-    Copyright (C) 2007  EQ2EMulator Development Team (http://www.eq2emulator.net)
+    Copyright (C) 2005 - 2026  EQ2EMulator Development Team (http://www.eq2emu.com formerly http://www.eq2emulator.net)
 
     This file is part of EQ2Emulator.
 
@@ -17,6 +17,7 @@
     You should have received a copy of the GNU General Public License
     along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 */
+
 #include "../common/debug.h"
 #include "../common/Log.h"
 
@@ -101,6 +102,7 @@ LuaInterface* lua_interface = new LuaInterface();
 #include "Titles.h"
 #include "Languages.h"
 #include "Achievements/Achievements.h"
+#include "./Broker/BrokerManager.h"
 
 volatile bool RunLoops = true;
 sint32 numclients = 0;
@@ -118,7 +120,6 @@ extern Variables variables;
 extern PeerManager peer_manager;
 extern HTTPSClientPool peer_https_pool;
 ConfigReader configReader;
-int32 MasterItemList::next_unique_id = 0;
 int last_signal = 0;
 RuleManager rule_manager;
 MasterTitlesList master_titles_list;
@@ -126,7 +127,7 @@ MasterLanguagesList master_languages_list;
 ChestTrapList chest_trap_list;
 extern MasterAchievementList master_achievement_list;
 extern map<int16, int16> EQOpcodeVersions;
-
+extern BrokerManager broker;
 
 ThreadReturnType ItemLoad (void* tmp);
 ThreadReturnType AchievmentLoad (void* tmp);
@@ -283,7 +284,6 @@ int main(int argc, char** argv) {
 		// JA: Load all Item info
 		LogWrite(ITEM__INFO, 0, "Items", "Loading Items...");
 		database.LoadItemList();
-		MasterItemList::ResetUniqueID(database.LoadNextUniqueItemID());
 		
 		LogWrite(SPELL__INFO, 0, "Spells", "Loading Spells...");
 		database.LoadSpells();
@@ -310,9 +310,6 @@ int main(int argc, char** argv) {
 		LogWrite(MERCHANT__INFO, 0, "Merchants", "Loading Merchants...");
 		database.LoadMerchantInformation();
 	}
-
-	LogWrite(GUILD__INFO, 0, "Guilds", "Loading Guilds...");
-	database.LoadGuilds();
 
 	LogWrite(TRADESKILL__INFO, 0, "Recipes", "Loading Recipe Books...");
 	database.LoadRecipeBooks();
@@ -344,7 +341,6 @@ int main(int argc, char** argv) {
 	
 	LogWrite(WORLD__INFO, 0, "World", "Loading House Zone Data...");
 	database.LoadHouseZones();
-	database.LoadPlayerHouses();
 
 	LogWrite(WORLD__INFO, 0, "World", "Loading Heroic OP Data...");
 	database.LoadHOStarters();
@@ -368,10 +364,21 @@ int main(int argc, char** argv) {
 			Sleep(10);
 		LogWrite(WORLD__INFO, 0, "World", "Load threads finished.");
 	}
+	
+	LogWrite(GUILD__INFO, 0, "Guilds", "Loading Guilds...");
+	database.LoadGuilds();
+		
+	LogWrite(WORLD__INFO, 0, "World", "Loading Player House Data...");
+	database.LoadPlayerHouses();
 
 	LogWrite(WORLD__INFO, 0, "World", "Total World startup time: %u seconds.", Timer::GetUnixTimeStamp() - t_total);
 	int ret_code = 0;
 	if (eqsf.Open(net.GetWorldPort())) {
+		world.world_loaded = true; // need this set ahead so peering starts sending data also
+		
+		LogWrite(WORLD__INFO, 0, "World", "Loading Broker Data...");
+		database.LoadBrokerData(broker);
+		
 		if (strlen(net.GetWorldAddress()) == 0)
 			LogWrite(NET__INFO, 0, "Net", "World server listening on port %i", net.GetWorldPort());
 		else
@@ -380,7 +387,6 @@ int main(int argc, char** argv) {
 		if(strlen(net.GetInternalWorldAddress())>0)
 			LogWrite(NET__INFO, 0, "Net", "World server listening on: %s:%i", net.GetInternalWorldAddress(), net.GetWorldPort());
 		
-		world.world_loaded = true;
 		world.world_uptime = getCurrentTimestamp();
 		#ifdef WIN32
 			_beginthread(StartPeerPoll, 0, NULL);
@@ -558,8 +564,8 @@ ThreadReturnType ItemLoad (void* tmp)
 	
 	LogWrite(ITEM__INFO, 0, "Items", "Loading Items...");
 	db.LoadItemList();
-	MasterItemList::ResetUniqueID(db.LoadNextUniqueItemID());
-
+	db.ResetNextUniqueItemID();
+	
 	// Relies on the item list so needs to be in the item thread
 	LogWrite(COLLECTION__INFO, 0, "Collect", "Loading Collections...");
 	db.LoadCollections();

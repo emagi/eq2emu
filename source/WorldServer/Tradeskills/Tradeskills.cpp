@@ -1,6 +1,6 @@
-/*
+/*  
     EQ2Emulator:  Everquest II Server Emulator
-    Copyright (C) 2007  EQ2EMulator Development Team (http://www.eq2emulator.net)
+    Copyright (C) 2005 - 2026  EQ2EMulator Development Team (http://www.eq2emu.com formerly http://www.eq2emulator.net)
 
     This file is part of EQ2Emulator.
 
@@ -17,6 +17,7 @@
     You should have received a copy of the GNU General Public License
     along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 */
+
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string.hpp>
 
@@ -253,6 +254,7 @@ void TradeskillMgr::BeginCrafting(Client* client, vector<pair<int32,int16>> comp
 
 	// TODO: use the vecotr to lock inventory slots
 	vector<pair<int32, int16>>::iterator itr;
+	vector<pair<int32, int16>>::iterator itr2;
 	bool missingItem = false;
 	int32 itemid = 0;
 	vector<Item*> tmpItems;
@@ -266,7 +268,16 @@ void TradeskillMgr::BeginCrafting(Client* client, vector<pair<int32,int16>> comp
 			break;
 		}
 		
-		item->details.item_locked = true;
+		if(!item->TryLockItem(LockReason::LockReason_Crafting)) {
+			for (itr = components.begin(); itr != components.end(); itr++) {
+				itemid = itr->first;
+				Item* item = client->GetPlayer()->item_list.GetItemFromUniqueID(itemid);
+				if(item)
+					item->TryUnlockItem(LockReason::LockReason_Crafting);
+			}
+			missingItem = true;
+			break;
+		}
 		tmpItems.push_back(item);
 	}
 	
@@ -280,7 +291,8 @@ void TradeskillMgr::BeginCrafting(Client* client, vector<pair<int32,int16>> comp
 		vector<Item*>::iterator itemitr;
 		for (itemitr = tmpItems.begin(); itemitr != tmpItems.end(); itemitr++) {
 			Item* tmpItem = *itemitr;
-			tmpItem->details.item_locked = false;
+			if(tmpItem)
+				tmpItem->TryUnlockItem(LockReason::LockReason_Crafting);
 		}
 		ClientPacketFunctions::StopCrafting(client);
 		return;
@@ -358,13 +370,13 @@ void TradeskillMgr::StopCrafting(Client* client, bool lock) {
 		item = client->GetPlayer()->item_list.GetItemFromUniqueID(itmid);
 		if (item && item->details.count <= qty)
 		{
-			item->details.item_locked = false;
+			item->TryUnlockItem(LockReason::LockReason_Crafting);
 			client->GetPlayer()->item_list.RemoveItem(item);
 			updateInvReq = true;
 		}
 		else if(item) {
 			item->details.count -= qty;
-			item->details.item_locked = false;
+			item->TryUnlockItem(LockReason::LockReason_Crafting);
 			item->save_needed = true;
 			updateInvReq = true;
 		}

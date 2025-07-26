@@ -1,6 +1,6 @@
 /*  
     EQ2Emulator:  Everquest II Server Emulator
-    Copyright (C) 2007  EQ2EMulator Development Team (http://www.eq2emulator.net)
+    Copyright (C) 2005 - 2026  EQ2EMulator Development Team (http://www.eq2emu.com formerly http://www.eq2emulator.net)
 
     This file is part of EQ2Emulator.
 
@@ -17,6 +17,7 @@
     You should have received a copy of the GNU General Public License
     along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 */
+
 #ifndef __NPC_AI_H__
 #define __NPC_AI_H__
 #include "NPC.h"
@@ -59,7 +60,7 @@ public:
 	/// <param name="hate">The amount of hate to add</param>
 	virtual void AddHate(Entity* entity, sint32 hate);
 	/// <summary>Completely clears the hate list for this npc</summary>
-	void ClearHate();
+	void ClearHate(bool lockSpawnList = true);
 	/// <summary>Removes the given entity from this NPC's hate list</summary>
 	/// <param name="entity">Entity to remove from this NPC's hate list</param>
 	void ClearHate(Entity* entity);

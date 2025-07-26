@@ -1,6 +1,6 @@
 /*  
     EQ2Emulator:  Everquest II Server Emulator
-    Copyright (C) 2005 - 2025  EQ2EMulator Development Team (http://www.eq2emu.com formerly http://www.eq2emulator.net)
+    Copyright (C) 2005 - 2026  EQ2EMulator Development Team (http://www.eq2emu.com formerly http://www.eq2emulator.net)
 
     This file is part of EQ2Emulator.
 
@@ -120,6 +120,7 @@ Spawn::Spawn(){
 	has_spawn_proximities = false;
 	pickup_item_id = 0;
 	pickup_unique_item_id = 0;
+	house_character_id = 0;
 	disable_sounds = false;
 	has_quests_required = false;
 	has_history_required = false;
@@ -153,6 +154,7 @@ Spawn::Spawn(){
 	respawn_offset_high = 0;
 	duplicated_spawn = true;
 	ResetKnockedBack();
+	spawn_script_setdb = false;
 }
 
 Spawn::~Spawn(){
@@ -1925,8 +1927,9 @@ const char* Spawn::GetSpawnScript(){
 		return 0;
 }
 
-void Spawn::SetSpawnScript(string name){
+void Spawn::SetSpawnScript(string name, bool db_set){
 	spawn_script = name;
+	spawn_script_setdb = db_set;
 }
 
 void Spawn::SetPrimaryCommand(const char* name, const char* command, float distance){

@@ -1,22 +1,23 @@
-/*
-	EQ2Emulator:  Everquest II Server Emulator
-	Copyright (C) 2007  EQ2EMulator Development Team (http://www.eq2emulator.net)
+/*  
+    EQ2Emulator:  Everquest II Server Emulator
+    Copyright (C) 2005 - 2026  EQ2EMulator Development Team (http://www.eq2emu.com formerly http://www.eq2emulator.net)
 
-	This file is part of EQ2Emulator.
+    This file is part of EQ2Emulator.
 
-	EQ2Emulator is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
+    EQ2Emulator is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-	EQ2Emulator is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
+    EQ2Emulator is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-	You should have received a copy of the GNU General Public License
-	along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
+    You should have received a copy of the GNU General Public License
+    along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 */
+
 #include "LuaFunctions.h"
 #include "Spawn.h"
 #include "WorldDatabase.h"
@@ -37,6 +38,7 @@
 #include "ClientPacketFunctions.h"
 #include "Transmute.h"
 #include "Titles.h"
+#include "./Broker/BrokerManager.h"
 #include <boost/algorithm/string/predicate.hpp>
 #include <sstream> 
 #include <boost/algorithm/string.hpp>
@@ -60,6 +62,7 @@ extern MasterRaceTypeList race_types_list;
 extern MasterLanguagesList master_languages_list;
 extern MasterTitlesList master_titles_list;
 extern RuleManager rule_manager;
+extern BrokerManager broker;
 
 vector<string> ParseString(string strVal, char delim) {
 	stringstream ss(strVal);
@@ -9646,7 +9649,6 @@ int EQ2Emu_lua_CureByType(lua_State* state) {
 	}
 	else {
 		ZoneServer* zone = spell->zone;
-		vector<int32> targets = spell->targets;
 		vector<Entity*> targets_to_cure;
 		for (int32 id : spell->GetTargets()) {
 			target = zone->GetSpawnByID(id);
@@ -9797,6 +9799,7 @@ int EQ2Emu_lua_StartHeroicOpportunity(lua_State* state) {
 
 	Spawn* caster = lua_interface->GetSpawn(state);
 	int8 class_id = lua_interface->GetInt8Value(state, 2);
+	Spawn* targetOverride = lua_interface->GetSpawn(state, 3);
 	lua_interface->ResetFunctionStack(state);
 
 	if (!caster) {
@@ -9810,10 +9813,13 @@ int EQ2Emu_lua_StartHeroicOpportunity(lua_State* state) {
 	}
 
 	Spawn* target = caster->GetTarget();
-	if (!target) {
+	if (!target && !targetOverride) {
 		lua_interface->LogError("%s: LUA StartHeroicOpportunity command error: target is not valid", lua_interface->GetScriptName(state));
 		return 0;
 	}
+	
+	if(!target)
+		target = targetOverride;
 
 	Client* client = ((Player*)caster)->GetClient();
 	if (!client) {
@@ -14655,4 +14661,104 @@ int EQ2Emu_lua_GetExpRequiredByLevel(lua_State* state) {
 	
 	lua_interface->SetInt32Value(state, exp_required);
 	return 1;
+}
+
+int EQ2Emu_lua_ShowShopWindow(lua_State* state) {
+	
+	Spawn* player = lua_interface->GetSpawn(state);
+	Spawn* from_spawn = lua_interface->GetSpawn(state, 2);
+	lua_interface->ResetFunctionStack(state);
+	if (player) {
+		Client* client = 0;
+		if (player->IsPlayer())
+			client = ((Player*)player)->GetClient();
+		if (client) {
+			client->OpenShopWindow(from_spawn, true);
+		}
+	}
+	return 0;
+}
+
+int EQ2Emu_lua_SetSpawnHouseScript(lua_State* state) {
+	
+	Spawn* target = lua_interface->GetSpawn(state);
+	string lua_script = lua_interface->GetStringValue(state, 2);
+	lua_interface->ResetFunctionStack(state);
+	if (target && target->GetDatabaseID() && !target->IsPlayer() && !target->IsBot()) {
+		database.UpdateHouseSpawnScript(target->GetDatabaseID(), lua_script);
+		bool scriptActive = false;
+		if (lua_interface && lua_interface->GetSpawnScript(lua_script.c_str()) != 0) {
+			scriptActive = true;
+			target->SetSpawnScript(lua_script);
+		}
+		if (scriptActive) {
+			target->GetZone()->CallSpawnScript(target, SPAWN_SCRIPT_SPAWN);
+		}
+	}
+	return 0;
+}
+
+int EQ2Emu_lua_SendBook(lua_State* state) {
+	
+	Spawn* target = lua_interface->GetSpawn(state);
+	int32 item_id = lua_interface->GetInt32Value(state, 2);
+	lua_interface->ResetFunctionStack(state);
+	if (target && target->IsPlayer() && ((Player*)target)->GetClient()) {
+		Item* item = master_item_list.GetItem(item_id);
+		if (item) {
+			((Player*)target)->GetClient()->SendShowBook(target, item->name, item->book_language, item->book_pages);
+		}
+	}
+	return 0;
+}
+
+int EQ2Emu_lua_GetPickupItemID(lua_State* state) {
+	Spawn* spawn = lua_interface->GetSpawn(state);
+	lua_interface->ResetFunctionStack(state);
+	if (spawn) {
+		lua_interface->SetInt32Value(state, spawn->GetPickupItemID());
+		return 1;
+	}
+	return 0;
+}
+
+int EQ2Emu_lua_SetHouseCharacterID(lua_State* state) {
+	Spawn* spawn = lua_interface->GetSpawn(state);
+	int32 character_id = lua_interface->GetInt32Value(state, 2);
+	lua_interface->ResetFunctionStack(state);
+	if (spawn) {
+		if(!character_id) {
+			PlayerHouse* ph = world.GetPlayerHouseByInstanceID(spawn->GetZone()->GetInstanceID());
+			if(ph)
+				spawn->SetHouseCharacterID(ph->character_id);
+		}
+		else {
+			spawn->SetHouseCharacterID(character_id);
+		}
+	}
+	return 0;
+}
+
+int EQ2Emu_lua_GetHouseCharacterID(lua_State* state) {
+	Spawn* spawn = lua_interface->GetSpawn(state);
+	lua_interface->ResetFunctionStack(state);
+	if (spawn) {
+		lua_interface->SetInt32Value(state, spawn->GetHouseCharacterID());
+	}
+	else {
+		lua_interface->SetInt32Value(state, 0);
+	}
+	return 1;
+}
+
+int EQ2Emu_lua_ShowHouseShopMerchant(lua_State* state) {
+	Spawn* spawn = lua_interface->GetSpawn(state);
+	Spawn* player = lua_interface->GetSpawn(state, 2);
+	lua_interface->ResetFunctionStack(state);
+	if (spawn && player && player->IsPlayer()) {
+		if(player->GetClient())
+			player->GetClient()->SendMerchantWindow(spawn, false);
+	}
+	
+	return 0;
 }

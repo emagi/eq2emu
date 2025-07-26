@@ -1,6 +1,6 @@
 /*  
     EQ2Emulator:  Everquest II Server Emulator
-    Copyright (C) 2007  EQ2EMulator Development Team (http://www.eq2emulator.net)
+    Copyright (C) 2005 - 2026  EQ2EMulator Development Team (http://www.eq2emu.com formerly http://www.eq2emulator.net)
 
     This file is part of EQ2Emulator.
 
@@ -17,6 +17,7 @@
     You should have received a copy of the GNU General Public License
     along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 */
+
 #ifndef __EQ2_SPELL_PROCESS__
 #define __EQ2_SPELL_PROCESS__
 #include <mutex>
@@ -182,7 +183,8 @@ public:
 	/// <param name='lock'>??? not currently used</param>
 	/// <param name='harvest_spell'>Is this a harvest spell?</param>
 	void ProcessSpell(ZoneServer* zone, Spell* spell, Entity* caster, Spawn* target = 0, bool lock = true, bool harvest_spell = false, LuaSpell* customSpell = 0, int16 custom_cast_time = 0, bool in_heroic_opp = false);
-
+	void PrintTargets(LuaSpell* spell, std::string stage);
+	
 	/// <summary>Cast an EntityCommand (right click menu)</summary>
 	/// <param name='zone'>The current ZoneServer</param>
 	/// <param name='entity_command'>the EntityCommand to cast</param>

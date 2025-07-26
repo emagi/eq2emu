@@ -1,6 +1,6 @@
 /*  
     EQ2Emulator:  Everquest II Server Emulator
-    Copyright (C) 2007  EQ2EMulator Development Team (http://www.eq2emulator.net)
+    Copyright (C) 2005 - 2026  EQ2EMulator Development Team (http://www.eq2emu.com formerly http://www.eq2emulator.net)
 
     This file is part of EQ2Emulator.
 
@@ -17,6 +17,7 @@
     You should have received a copy of the GNU General Public License
     along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 */
+
 #ifndef EQ2WORLD_EMU_DATABASE_H
 #define EQ2WORLD_EMU_DATABASE_H
 
@@ -50,6 +51,7 @@
 #include "Rules/Rules.h"
 #include "Languages.h"
 #include "World.h"
+#include "Broker/BrokerManager.h"
 
 using namespace std;
 
@@ -175,13 +177,13 @@ public:
 	void	SaveWorldTime(WorldTime* time);
 
 	bool	SaveSpawnInfo(Spawn* spawn);
-	int32	GetNextSpawnIDInZone(int32 zone_id);
+	int32	GetNextSpawnIDInZone(int32 zone_id, bool isInstanceType = false);
 	bool	SaveSpawnEntry(Spawn* spawn, const char* spawn_location_name, int8 percent, float x_offset, float y_offset, float z_offset, bool save_zonespawn = true, bool create_spawnlocation = true);
 	float	GetSpawnLocationPlacementOffsetX(int32 location_id);
 	float	GetSpawnLocationPlacementOffsetY(int32 location_id);
 	float	GetSpawnLocationPlacementOffsetZ(int32 location_id);
-	int32	GetNextSpawnLocation();
-	bool	CreateNewSpawnLocation(int32 id, const char* name);
+	int32	GetNextSpawnLocation(bool isInstanceType = false);
+	bool	CreateNewSpawnLocation(int32 id, const char* name, bool isHouseType = false);
 	bool	RemoveSpawnFromSpawnLocation(Spawn* spawn);
 	int32	GetSpawnLocationCount(int32 location, Spawn* spawn = 0);
 	vector<string>* GetSpawnNameList(const char* in_name);
@@ -240,7 +242,7 @@ public:
 	void	UpdateStartingSkillbar(int32 char_id, int8 class_id, int8 race_id);
 	void	UpdateStartingTitles(int32 char_id, int8 class_id, int8 race_id, int8 gender_id);
 	bool	UpdateSpawnLocationSpawns(Spawn* spawn);
-	bool	UpdateSpawnWidget(int32 widget_id, char* query);
+	bool	UpdateSpawnWidget(int32 widget_id, char* query, bool is_house = false);
 	bool	CheckVersionTable();
 	void	LoadFactionAlliances();
 	void	LoadFactionList();
@@ -275,16 +277,16 @@ public:
 	void	LoadGroundSpawnItems(ZoneServer* zone);
 	void	LoadSpawns(ZoneServer* zone);
 	int8	GetAppearanceType(string type);
-	void	LoadNPCs(ZoneServer* zone);
+	void	LoadNPCs(ZoneServer* zone, bool isInstanceType = false);
 	void	LoadSpiritShards(ZoneServer* zone);
 	int32	LoadAppearances(ZoneServer* zone, Client* client = 0);
 	int32	LoadNPCSpells();
 	int32	LoadNPCSkills(ZoneServer* zone);
 	int32	LoadNPCEquipment(ZoneServer* zone);
-	void	LoadObjects(ZoneServer* zone);
-	void	LoadGroundSpawns(ZoneServer* zone);
-	void	LoadWidgets(ZoneServer* zone);
-	void	LoadSigns(ZoneServer* zone);
+	void	LoadObjects(ZoneServer* zone, bool isInstanceType = false);
+	void	LoadGroundSpawns(ZoneServer* zone, bool isInstanceType = false);
+	void	LoadWidgets(ZoneServer* zone, bool isInstanceType = false);
+	void	LoadSigns(ZoneServer* zone, bool isInstanceType = false);
 	void	ReloadItemList(int32 item_id = 0);
 	void	LoadItemList(int32 item_id = 0);
 	int32	LoadItemStats(int32 item_id = 0);
@@ -293,7 +295,8 @@ public:
 	int32	LoadItemLevelOverride(int32 item_id = 0);
 	int32	LoadItemEffects(int32 item_id = 0);
 	int32	LoadBookPages(int32 item_id = 0);
-	int32	LoadNextUniqueItemID();
+	int64	LoadNextUniqueItemID();
+	void	ResetNextUniqueItemID();
 	int32	LoadSkillItems(int32 item_id = 0);
 	int32	LoadRangeWeapons(int32 item_id = 0);
 	int32	LoadThrownWeapons(int32 item_id = 0);
@@ -662,6 +665,17 @@ public:
 	void				LoadCharacterSpellEffects(int32 char_id, Client *client, int8 db_spell_type);
 
 	int32				GetMysqlExpCurve(int level);
+	
+	bool				RemoveBrokerItem(int32 cid, int64 uid, int32 quantity);
+	int32				LoadBrokerSellers(BrokerManager &broker);
+	int32 				LoadBrokerItems(BrokerManager &broker);
+	int32 				LoadBrokerData(BrokerManager &broker);
+
+	void 				ClearSellerSession(int32 character_id);
+	void 				AddToSellerSession(int32 character_id, int64 amount);
+	int64 				GetSellerSession(int32 character_id);	
+	
+	bool				UpdateHouseSpawnScript(int32 dbid, std::string scriptName);
 private:
 	DatabaseNew			database_new;
 	std::map<int32, string>	zone_names;

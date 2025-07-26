@@ -1,6 +1,6 @@
 /*  
     EQ2Emulator:  Everquest II Server Emulator
-    Copyright (C) 2005 - 2025  EQ2EMulator Development Team (http://www.eq2emu.com formerly http://www.eq2emulator.net)
+    Copyright (C) 2005 - 2026  EQ2EMulator Development Team (http://www.eq2emu.com formerly http://www.eq2emulator.net)
 
     This file is part of EQ2Emulator.
 
@@ -17,6 +17,7 @@
     You should have received a copy of the GNU General Public License
     along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 */
+
 #include "Entity.h"
 #include <math.h>
 #include "Items/Items.h"
@@ -149,8 +150,8 @@ void Entity::DeleteSpellEffects(bool removeClient)
 			GetInfoStruct()->spell_effects[i].spell = nullptr;
 		}
 	}
-	MMaintainedSpells.releasewritelock(__FUNCTION__, __LINE__);
 	MSpellEffects.releasewritelock(__FUNCTION__, __LINE__);
+	MMaintainedSpells.releasewritelock(__FUNCTION__, __LINE__);
 	
 	map<LuaSpell*,bool>::iterator deletedPtrItrs;
 	for(deletedPtrItrs = deletedPtrs.begin(); deletedPtrItrs != deletedPtrs.end(); deletedPtrItrs++) {
@@ -1091,6 +1092,11 @@ void Entity::DoRegenUpdate(){
 void Entity::AddMaintainedSpell(LuaSpell* luaspell){
 	if (!luaspell)
 		return;
+	
+	if(luaspell->spell->GetSpellData()->not_maintained || luaspell->spell->GetSpellData()->duration1 == 0) {
+		LogWrite(NPC__SPELLS, 5, "NPC", "AddMaintainedSpell Spell ID: %u, Concentration: %u disallowed, not_maintained true (%u) or duration is 0 (%u).", luaspell->spell->GetSpellData()->id, luaspell->spell->GetSpellData()->req_concentration, luaspell->spell->GetSpellData()->not_maintained, luaspell->spell->GetSpellData()->duration1);
+		return;
+	}
 
 	Spell* spell = luaspell->spell;
 	MaintainedEffects* effect = GetFreeMaintainedSpellSlot();
@@ -1290,7 +1296,7 @@ SpellEffects* Entity::GetSpellEffectBySpellType(int8 spell_type) {
 	return ret;
 }
 
-SpellEffects* Entity::GetSpellEffectWithLinkedTimer(int32 id, int32 linked_timer, sint32 type_group_spell_id, Entity* caster) {
+SpellEffects* Entity::GetSpellEffectWithLinkedTimer(int32 id, int32 linked_timer, sint32 type_group_spell_id, Entity* caster, bool notCaster) {
 	SpellEffects* ret = 0;
 	InfoStruct* info = GetInfoStruct();
 	MSpellEffects.readlock(__FUNCTION__, __LINE__);
@@ -1301,7 +1307,7 @@ SpellEffects* Entity::GetSpellEffectWithLinkedTimer(int32 id, int32 linked_timer
 				 (linked_timer > 0 && info->spell_effects[i].spell->spell->GetSpellData()->linked_timer == linked_timer) ||
 				(type_group_spell_id > 0 && info->spell_effects[i].spell->spell->GetSpellData()->type_group_spell_id == type_group_spell_id))
 			{
-				if (type_group_spell_id >= -1 && (!caster || info->spell_effects[i].caster == caster)){
+				if (type_group_spell_id >= -1 && (!caster || (!notCaster && info->spell_effects[i].caster == caster) || (notCaster && info->spell_effects[i].caster != caster))){
 					ret = &info->spell_effects[i];
 					break;
 				}
@@ -1312,12 +1318,14 @@ SpellEffects* Entity::GetSpellEffectWithLinkedTimer(int32 id, int32 linked_timer
 	return ret;
 }
 
-LuaSpell* Entity::HasLinkedTimerID(LuaSpell* spell, Spawn* target, bool stackWithOtherPlayers) {
+LuaSpell* Entity::HasLinkedTimerID(LuaSpell* spell, Spawn* target, bool stackWithOtherPlayers, bool checkNotCaster) {
 	if(!spell->spell->GetSpellData()->linked_timer && !spell->spell->GetSpellData()->type_group_spell_id)
 		return nullptr;
 	LuaSpell* ret = nullptr;
 	InfoStruct* info = GetInfoStruct();
-	MSpellEffects.readlock(__FUNCTION__, __LINE__);
+	std::vector<int32> targets = spell->GetTargets();
+	
+	MMaintainedSpells.readlock(__FUNCTION__, __LINE__);
 	//this for loop primarily handles self checks and 'friendly' checks
 	for(int i = 0; i < NUM_MAINTAINED_EFFECTS; i++) {
 			if(info->maintained_effects[i].spell_id != 0xFFFFFFFF)
@@ -1327,20 +1335,33 @@ LuaSpell* Entity::HasLinkedTimerID(LuaSpell* spell, Spawn* target, bool stackWit
 					(spell->spell->GetSpellData()->type_group_spell_id > 0 && spell->spell->GetSpellData()->type_group_spell_id == info->maintained_effects[i].spell->spell->GetSpellData()->type_group_spell_id)) && 
 					((spell->spell->GetSpellData()->friendly_spell) || 
 					(!spell->spell->GetSpellData()->friendly_spell && spell->spell->GetSpellData()->type_group_spell_id >= -1 && spell->caster == info->maintained_effects[i].spell->caster) ) &&
-					(target == nullptr || info->maintained_effects[i].spell->initial_target == target->GetID())) {
+					(target == nullptr || info->maintained_effects[i].spell->HasTarget(target->GetID()) || info->maintained_effects[i].spell->HasAnyTarget(targets))) {
 					ret = info->maintained_effects[i].spell;
 					break;
 				}
 			}
 	}
-	MSpellEffects.releasereadlock(__FUNCTION__, __LINE__);
-
-	if(!ret && !stackWithOtherPlayers && target && target->IsEntity())
-	{
-		SpellEffects* effect = ((Entity*)target)->GetSpellEffectWithLinkedTimer(spell->spell->GetSpellID(), spell->spell->GetSpellData()->linked_timer, spell->spell->GetSpellData()->type_group_spell_id, nullptr);
-		if(effect)
-			ret = effect->spell;
+	MMaintainedSpells.releasereadlock(__FUNCTION__, __LINE__);
+	
+	if(checkNotCaster && ret && ret->caster != spell->caster)
+		return ret;
+	else if(checkNotCaster && ret)
+		ret = nullptr;
+	
+	for (int32 id : spell->GetTargets()) {
+		Spawn* tmpTarget = spell->zone->GetSpawnByID(id);
+		if(!ret && !stackWithOtherPlayers && tmpTarget && tmpTarget->IsEntity())
+		{
+			SpellEffects* effect = ((Entity*)tmpTarget)->GetSpellEffectWithLinkedTimer(spell->spell->GetSpellID(), spell->spell->GetSpellData()->linked_timer, spell->spell->GetSpellData()->type_group_spell_id, checkNotCaster ? spell->caster : nullptr, checkNotCaster);
+			if(effect) {
+				ret = effect->spell;
+				break;
+			}
+		}
 	}
+	
+	if(checkNotCaster && ret && ret->caster == spell->caster)
+		ret = nullptr;
 	
 	return ret;
 }

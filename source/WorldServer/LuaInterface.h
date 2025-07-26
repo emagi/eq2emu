@@ -1,6 +1,6 @@
 /*  
     EQ2Emulator:  Everquest II Server Emulator
-    Copyright (C) 2007  EQ2EMulator Development Team (http://www.eq2emulator.net)
+    Copyright (C) 2005 - 2026  EQ2EMulator Development Team (http://www.eq2emu.com formerly http://www.eq2emulator.net)
 
     This file is part of EQ2Emulator.
 
@@ -17,6 +17,7 @@
     You should have received a copy of the GNU General Public License
     along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 */
+
 #ifndef LUA_INTERFACE_H
 #define LUA_INTERFACE_H
 
@@ -161,7 +162,16 @@ struct LuaSpell{
 		std::shared_lock lock(targets_mutex);
 		return std::find(targets.begin(), targets.end(), id) != targets.end();
 	}
-
+	
+	bool HasAnyTarget(const std::vector<int32>& ids) const {
+		std::shared_lock lock(targets_mutex);
+		return std::any_of(
+			ids.begin(), ids.end(),
+			[this](int32 id){
+				return std::find(targets.begin(), targets.end(), id) != targets.end();
+			}
+		);
+	}
 
 	std::vector<int32> GetRemovedTargets() const {
 		std::shared_lock lock(targets_mutex);

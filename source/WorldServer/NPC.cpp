@@ -1,6 +1,6 @@
 /*  
     EQ2Emulator:  Everquest II Server Emulator
-    Copyright (C) 2007  EQ2EMulator Development Team (http://www.eq2emulator.net)
+    Copyright (C) 2005 - 2026  EQ2EMulator Development Team (http://www.eq2emu.com formerly http://www.eq2emulator.net)
 
     This file is part of EQ2Emulator.
 
@@ -17,6 +17,7 @@
     You should have received a copy of the GNU General Public License
     along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 */
+
 #include "NPC.h"
 #include "WorldDatabase.h"
 #include <math.h>
@@ -108,6 +109,8 @@ NPC::NPC(NPC* old_npc){
 		SetLootDropType(old_npc->GetLootDropType());
 		has_spells = old_npc->HasSpells();
 		SetScaredByStrongPlayers(old_npc->IsScaredByStrongPlayers());
+		if(old_npc->GetSpawnScriptSetDB() && old_npc->GetSpawnScript())
+			SetSpawnScript(std::string(old_npc->GetSpawnScript()));
 	}
 }
 

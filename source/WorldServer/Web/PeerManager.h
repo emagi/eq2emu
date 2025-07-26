@@ -1,21 +1,21 @@
-/*
-EQ2Emu:  Everquest II Server Emulator
-Copyright (C) 2007-2025  EQ2Emu Development Team (https://www.eq2emu.com)
+/*  
+    EQ2Emulator:  Everquest II Server Emulator
+    Copyright (C) 2005 - 2026  EQ2EMulator Development Team (http://www.eq2emu.com formerly http://www.eq2emulator.net)
 
-This file is part of EQ2Emu.
+    This file is part of EQ2Emulator.
 
-EQ2Emu is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+    EQ2Emulator is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-EQ2Emu is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+    EQ2Emulator is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License
-along with EQ2Emu.  If not, see <http://www.gnu.org/licenses/>.
+    You should have received a copy of the GNU General Public License
+    along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #ifndef PEERMANAGER_H
@@ -225,6 +225,12 @@ public:
 	void sendZonePlayerList(std::vector<string>* queries, std::vector<WhoAllPeerPlayer>* peer_list, bool isGM);
 
 	bool GetClientGuildDetails(int32 matchCharID, GuildMember* member_details);
+	
+	
+	void sendPeersAddSeller(int32 character_id, int32 house_id, std::string name, bool saleEnabled, bool invEnabled);
+	void sendPeersRemoveSeller(int32 character_id);
+	void sendPeersAddItemSale(int32 character_id, int32 house_id, int32 itemID, int64 uniqueID, int64 price, sint32 invSlotID, int16 slotID, int16 count, bool inInventory, bool forSale, std::string itemCreator);
+	void sendPeersRemoveItemSale(int32 character_id, int64 uniqueID);
 
 };
 

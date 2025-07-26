@@ -1,6 +1,6 @@
 /*  
     EQ2Emulator:  Everquest II Server Emulator
-    Copyright (C) 2005 - 2025  EQ2EMulator Development Team (http://www.eq2emu.com formerly http://www.eq2emulator.net)
+    Copyright (C) 2005 - 2026  EQ2EMulator Development Team (http://www.eq2emu.com formerly http://www.eq2emulator.net)
 
     This file is part of EQ2Emulator.
 
@@ -94,6 +94,7 @@
 #include "AltAdvancement/AltAdvancement.h"
 #include "Bots/Bot.h"
 #include "VisualStates.h"
+#include "Broker/BrokerManager.h"
 
 extern WorldDatabase database;
 extern const char* ZONE_NAME;
@@ -130,6 +131,7 @@ extern MasterRecipeBookList master_recipebook_list;
 extern VisualStates visual_states;
 extern PeerManager peer_manager;
 extern HTTPSClientPool peer_https_pool;
+extern BrokerManager broker;
 
 using namespace std;
 
@@ -242,6 +244,10 @@ Client::Client(EQStream* ieqs) : underworld_cooldown_timer(5000), pos_update(125
 	recipe_xor_packet = nullptr;
 	recipe_packet_count = 0;
 	recipe_orig_packet_size = 0;
+	gm_store_search = false;
+	SetShopWindowStatus(false);
+	search_page = 0;
+	firstlogin_transmit = false;
 }
 
 Client::~Client() {
@@ -306,7 +312,7 @@ void Client::RemoveClientFromZone() {
 		zone_list.RemoveClientFromMap(player->GetName(), this);
 
 	safe_delete(camp_timer);
-	safe_delete(search_items);
+	ClearItemSearch();
 	safe_delete(current_rez.expire_timer);
 	safe_delete(pending_last_name);
 	safe_delete_array(incoming_paperdoll.image_bytes);
@@ -838,8 +844,10 @@ void Client::SendCharInfo() {
 	if (player->GetHP() < player->GetTotalHP() || player->GetPower() < player->GetTotalPower())
 		GetCurrentZone()->AddDamagedSpawn(player);
 
-	if (firstlogin)
+	if (firstlogin) {
+		firstlogin_transmit = true;
 		firstlogin = false;
+	}
 
 	player->ClearProcs();
 	items = player->GetEquippedItemList();
@@ -910,6 +918,8 @@ void Client::SendCharInfo() {
 	GetPlayer()->SetSaveSpellEffects(false);
 	GetPlayer()->SetCharSheetChanged(true);
 	GetPlayer()->SetReturningFromLD(false);
+	
+	broker.LockActiveItemsForClient(this);
 }
 
 void Client::SendZoneSpawns() {
@@ -1491,7 +1501,7 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
 					spawn->position_changed = true;
 
 					_snprintf(query, 256, "open_heading=%f,include_heading=1", newHeading);
-					if (database.UpdateSpawnWidget(widget->GetWidgetID(), query))
+					if (database.UpdateSpawnWidget(widget->GetWidgetID(), query, GetCurrentZone()->GetInstanceType() == Instance_Type::PERSONAL_HOUSE_INSTANCE))
 						SimpleMessage(CHANNEL_COLOR_YELLOW, "Successfully saved widget open heading information.");
 				}
 				else
@@ -1508,7 +1518,7 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
 
 					spawn->position_changed = true;
 					_snprintf(query, 256, "closed_heading=%f,include_heading=1", newHeading);
-					if (database.UpdateSpawnWidget(widget->GetWidgetID(), query))
+					if (database.UpdateSpawnWidget(widget->GetWidgetID(), query, GetCurrentZone()->GetInstanceType() == Instance_Type::PERSONAL_HOUSE_INSTANCE))
 						SimpleMessage(CHANNEL_COLOR_YELLOW, "Successfully saved widget close heading information.");
 
 					if (spawn->GetSpawnLocationID())
@@ -1921,6 +1931,26 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
 					if (GetPlayer()->IsDeletedSpawn()) {
 						GetPlayer()->SetDeletedSpawn(false);
 					}
+					
+					if(firstlogin_transmit) {
+						if (auto info = broker.GetSellerInfo(GetPlayer()->GetCharacterID())) {
+							auto logs = broker.GetSellerLog(GetPlayer()->GetCharacterID());
+							for (auto const & log : logs) {
+								SendHouseSaleLog(log.message,
+												 0,
+												 0,
+												 0);
+							}
+						}
+						firstlogin_transmit = false;
+					}
+					if(HasOwnerOrEditAccess()) { // we are in their own house
+						int64 coin_session = database.GetSellerSession(GetPlayer()->GetCharacterID());
+						if(coin_session) {
+							OpenShopWindow(nullptr, false, 1);
+						}
+					}
+					
 					ResetZoningCoords();
 					SetReadyForUpdates();
 					GetPlayer()->SendSpawnChanges(true);
@@ -2130,9 +2160,7 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
 			EQ2_CommandString remote(app->pBuffer, app->size);
 
 			LogWrite(PACKET__DEBUG, 1, "Packet", "RemoteCmdMsg Packet dump:");
-#if EQDEBUG >= 9
 			DumpPacket(app);
-#endif
 			commands.Process(remote.handler, &remote.command, this);
 		}
 		else //bad client, disconnect
@@ -2448,10 +2476,12 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
 				int32 spawn_index = 0;
 
 				if (GetVersion() <= 561) {
-					spawn_index = packet->getType_int32_ByName("house_id");
+					house_id = packet->getType_int32_ByName("house_id");
+					spawn_index = GetPlayer()->GetTarget() ? GetPlayer()->GetTarget()->GetID() : 0;
 				}
 				else {
 					house_id = packet->getType_int64_ByName("house_id");
+					spawn_index = packet->getType_int32_ByName("spawn_id");
 				}
 				ZoneChangeDetails zone_details;
 				if (GetHouseZoneServer(&zone_details, spawn_index, house_id)) {
@@ -2904,8 +2934,8 @@ bool Client::HandleLootItem(Spawn* entity, Item* item, Spawn* target, bool overr
 		return false;
 	}
 
-	if (lootingPlayer->item_list.HasFreeSlot() || lootingPlayer->item_list.CanStack(item)) {
-		if (lootingPlayer->item_list.AssignItemToFreeSlot(item)) {
+	if (lootingPlayer->item_list.HasFreeSlot() || lootingPlayer->item_list.CanStack(item, false)) {
+		if (lootingPlayer->item_list.AssignItemToFreeSlot(item, true)) {
 
 			if (item->CheckFlag2(HEIRLOOM)) { // TODO: RAID Support
 				GroupMemberInfo* gmi = lootingClient->GetPlayer()->GetGroupMemberInfo();
@@ -3396,6 +3426,16 @@ void Client::HandleExamineInfoRequest(EQApplicationPacket* app) {
 			item = GetPlayer()->GetAppearanceEquipmentList()->GetItemFromUniqueID(id);
 		if (!item)
 			item = master_item_list.GetItem(id);
+		if (!item && HasOwnerOrEditAccess())
+			item = GetPlayer()->item_list.GetVaultItemFromUniqueID(id, true);
+		if(!item && GetMerchantTransactionID()) {
+			Spawn* merchant = GetPlayer()->GetZone()->GetSpawnByID(GetMerchantTransactionID());
+			if(merchant && merchant->GetHouseCharacterID() && merchant->GetPickupUniqueItemID()) {
+				if(auto itemInfo = broker.GetActiveItem(merchant->GetHouseCharacterID(), id)) {
+					item = master_item_list.GetItem(itemInfo->item_id);
+				}	
+			}
+		}
 		if (item) {// && sent_item_details.count(id) == 0){
 			MItemDetails.writelock(__FUNCTION__, __LINE__);
 			sent_item_details[id] = true;
@@ -3407,7 +3447,7 @@ void Client::HandleExamineInfoRequest(EQApplicationPacket* app) {
 				delete item;
 		}
 		else {
-			LogWrite(WORLD__ERROR, 0, "World", "HandleExamineInfoRequest: Unknown Item ID = %u", id);
+			LogWrite(WORLD__ERROR, 0, "World", "HandleExamineInfoRequest#0: Unknown Item ID = %u", id);
 			DumpPacket(app);
 		}
 	}
@@ -3430,6 +3470,16 @@ void Client::HandleExamineInfoRequest(EQApplicationPacket* app) {
 			item = GetPlayer()->GetAppearanceEquipmentList()->GetItemFromUniqueID(unique_id);
 		if (!item)
 			item = master_item_list.GetItem(id);
+		
+		if(!item && GetMerchantTransactionID()) {
+			Spawn* merchant = GetPlayer()->GetZone()->GetSpawnByID(GetMerchantTransactionID());
+			if(merchant && merchant->GetHouseCharacterID() && merchant->GetPickupUniqueItemID()) {
+				if(auto itemInfo = broker.GetActiveItem(merchant->GetHouseCharacterID(), id)) {
+					item = master_item_list.GetItem(itemInfo->item_id);
+				}	
+			}
+		}
+		
 		if (item) {
 			MItemDetails.writelock(__FUNCTION__, __LINE__);
 			sent_item_details[id] = true;
@@ -3438,7 +3488,7 @@ void Client::HandleExamineInfoRequest(EQApplicationPacket* app) {
 			QueuePacket(app);
 		}
 		else {
-			LogWrite(WORLD__ERROR, 0, "World", "HandleExamineInfoRequest: Unknown Item ID = %u", id);
+			LogWrite(WORLD__ERROR, 0, "World", "HandleExamineInfoRequest#1: Unknown Item ID = %u", id);
 			DumpPacket(app);
 		}
 	}
@@ -3462,6 +3512,16 @@ void Client::HandleExamineInfoRequest(EQApplicationPacket* app) {
 		//int16 unknown5 = request->getType_sint16_ByName("unknown5");
 		//printf("Type: (%i) Unknown_0: (%u) Unknown_1: (%u) Unknown2: (%i) Unique ID: (%u) Unknown5: (%i) Item ID: (%u)\n",type,unknown_0,unknown_1,unknown2,unique_id,unknown5,id);
 		Item* item = master_item_list.GetItem(id);
+		
+		if(!item && GetMerchantTransactionID()) {
+			Spawn* merchant = GetPlayer()->GetZone()->GetSpawnByID(GetMerchantTransactionID());
+			if(merchant && merchant->GetHouseCharacterID() && merchant->GetPickupUniqueItemID()) {
+				if(auto itemInfo = broker.GetActiveItem(merchant->GetHouseCharacterID(), id)) {
+					item = master_item_list.GetItem(itemInfo->item_id);
+				}	
+			}
+		}
+		
 		if (item) {
 			//only display popup for non merchant links
 			EQ2Packet* app = item->serialize(GetVersion(), (request->getType_int8_ByName("show_popup") != 0), GetPlayer(), true, 0, 0, GetVersion() > 561 ? true : false);
@@ -3469,7 +3529,7 @@ void Client::HandleExamineInfoRequest(EQApplicationPacket* app) {
 			QueuePacket(app);
 		}
 		else {
-			LogWrite(WORLD__ERROR, 0, "World", "HandleExamineInfoRequest: Unknown Item ID = %u", id);
+			LogWrite(WORLD__ERROR, 0, "World", "HandleExamineInfoRequest#2: Unknown Item ID = %u", id);
 			DumpPacket(app);
 		}
 	}
@@ -3798,7 +3858,7 @@ bool Client::Process(bool zone_process) {
 	if (temp_placement_timer.Check()) {
 		if (GetTempPlacementSpawn() && GetPlayer()->WasSentSpawn(GetTempPlacementSpawn()->GetID()) && !hasSentTempPlacementSpawn) {
 			int8 placement = 0;
-			int32 uniqueID = GetPlacementUniqueItemID();
+			int64 uniqueID = GetPlacementUniqueItemID();
 			Item* uniqueItem = GetPlayer()->item_list.GetItemFromUniqueID(uniqueID);
 			if (uniqueItem && uniqueItem->houseitem_info)
 				placement = uniqueItem->houseitem_info->house_location;
@@ -8107,7 +8167,9 @@ bool Client::AddItem(Item* item, bool* item_deleted, AddItemType type) {
 
 		return false;
 	}
-
+	
+	OpenShopWindow(nullptr);
+	
 	return true;
 }
 
@@ -8301,6 +8363,9 @@ void Client::SellItem(int32 item_id, int16 quantity, int32 unique_id) {
 	Guild* guild = GetPlayer()->GetGuild();
 	if (spawn && spawn->GetMerchantID() > 0 && (!(spawn->GetMerchantType() & MERCHANT_TYPE_NO_BUY)) &&
 		spawn->IsClientInMerchantLevelRange(this)) {
+		if((spawn->GetMerchantType() & MERCHANT_TYPE_LOTTO))
+			return;
+		
 		int32 total_sell_price = 0;
 		int32 total_status_sell_price = 0; //for status
 		float multiplier = CalculateBuyMultiplier(spawn->GetMerchantID());
@@ -8316,11 +8381,15 @@ void Client::SellItem(int32 item_id, int16 quantity, int32 unique_id) {
 		if (!item)
 			item = player->item_list.GetItemFromID(item_id);
 		if (item && master_item) {
-			if(item->details.inv_slot_id == -3 || item->details.inv_slot_id == -4) {
+			if(item->details.inv_slot_id == InventorySlotType::BANK || item->details.inv_slot_id == InventorySlotType::SHARED_BANK) {
 				SimpleMessage(CHANNEL_COLOR_RED, "You cannot sell an item in the bank.");
 				return;
 			}
-			if (item->details.item_locked || item->details.equip_slot_id)
+			if(GetPlayer()->item_list.IsItemInSlotType(item, InventorySlotType::HOUSE_VAULT)) {
+				SimpleMessage(CHANNEL_COLOR_RED, "You cannot sell an item in the house vault.");
+				return;
+			}
+			if (item->IsItemLocked() || item->details.equip_slot_id)
 			{
 				SimpleMessage(CHANNEL_COLOR_RED, "You cannot sell the item in use.");
 				return;
@@ -8418,6 +8487,9 @@ void Client::BuyBack(int32 item_id, int16 quantity) {
 	Spawn* spawn = GetCurrentZone()->GetSpawnByID(GetMerchantTransactionID());
 	if (spawn && spawn->GetMerchantID() > 0 && (!(spawn->GetMerchantType() & MERCHANT_TYPE_NO_BUY_BACK)) &&
 		spawn->IsClientInMerchantLevelRange(this)) {
+		if((spawn->GetMerchantType() & MERCHANT_TYPE_LOTTO))
+			return;
+		
 		deque<BuyBackItem*>::iterator itr;
 		BuyBackItem* buyback = 0;
 		BuyBackItem* closest = 0;
@@ -8446,7 +8518,7 @@ void Client::BuyBack(int32 item_id, int16 quantity) {
 			sint64 dispFlags = 0;
 			if (item && item->GetItemScript() && lua_interface && lua_interface->RunItemScript(item->GetItemScript(), "buyback_display_flags", item, player, nullptr, &dispFlags) && (dispFlags & DISPLAY_FLAG_NO_BUY))
 				SimpleMessage(CHANNEL_NARRATIVE, "You do not meet all the requirements to buy this item.");
-			else if (!player->item_list.HasFreeSlot() && !player->item_list.CanStack(item))
+			else if (!player->item_list.HasFreeSlot() && !player->item_list.CanStack(item, false))
 				SimpleMessage(CHANNEL_COLOR_RED, "You do not have any slots available for this item.");
 			else if (player->RemoveCoins(closest->quantity * closest->price)) {
 				bool removed = false;
@@ -8489,9 +8561,15 @@ void Client::BuyBack(int32 item_id, int16 quantity) {
 
 void Client::BuyItem(int32 item_id, int16 quantity) {
 	// Get the merchant we are buying from
+	LogWrite(CCLIENT__ERROR, 0, "Client", "buy item %u quantity %u", item_id, quantity);
+
 	Spawn* spawn = GetCurrentZone()->GetSpawnByID(GetMerchantTransactionID());
 	// Make sure the spawn has a merchant list
-	if (spawn && spawn->GetMerchantID() > 0 && spawn->IsClientInMerchantLevelRange(this)) {
+	if(spawn && spawn->GetHouseCharacterID()) {
+		broker.BuyItem(this, spawn->GetHouseCharacterID(), item_id, quantity);
+		SendMerchantWindow(spawn, false);
+	}
+	else if (spawn && spawn->GetMerchantID() > 0 && spawn->IsClientInMerchantLevelRange(this)) {
 		int32 total_buy_price = 0;
 		float multiplier = CalculateBuyMultiplier(spawn->GetMerchantID());
 		int32 sell_price = 0;
@@ -8538,7 +8616,7 @@ void Client::BuyItem(int32 item_id, int16 quantity) {
 			total_buy_price = sell_price * quantity;
 			item = new Item(master_item);
 			item->details.count = quantity;
-			if (!player->item_list.HasFreeSlot() && !player->item_list.CanStack(item)) {
+			if (!player->item_list.HasFreeSlot() && !player->item_list.CanStack(item, false)) {
 				SimpleMessage(CHANNEL_COLOR_RED, "You do not have any slots available for this item.");
 				lua_interface->SetLuaUserDataStale(item);
 				safe_delete(item);
@@ -8683,6 +8761,9 @@ void Client::BuyItem(int32 item_id, int16 quantity) {
 void Client::RepairItem(int32 item_id) {
 	Spawn* spawn = GetCurrentZone()->GetSpawnByID(GetMerchantTransactionID());
 	if (spawn && (spawn->GetMerchantType() & MERCHANT_TYPE_REPAIR)) {
+		if((spawn->GetMerchantType() & MERCHANT_TYPE_LOTTO))
+			return;
+		
 		Item* item = player->item_list.GetItemFromID(item_id);
 		if (!item)
 			item = player->GetEquipmentList()->GetItemFromItemID(item_id);
@@ -8721,6 +8802,9 @@ void Client::RepairItem(int32 item_id) {
 void Client::RepairAllItems() {
 	Spawn* spawn = GetCurrentZone()->GetSpawnByID(GetMerchantTransactionID());
 	if (spawn && (spawn->GetMerchantType() & MERCHANT_TYPE_REPAIR)) {
+		if((spawn->GetMerchantType() & MERCHANT_TYPE_LOTTO))
+			return;
+		
 		vector<Item*>* repairable_items = GetRepairableItems();
 		if (repairable_items && repairable_items->size() > 0) {
 			vector<Item*>::iterator itr;
@@ -8869,6 +8953,9 @@ void Client::SendAchievementUpdate(bool first_login) {
 void Client::SendBuyMerchantList(bool sell) {
 	Spawn* spawn = GetCurrentZone()->GetSpawnByID(GetMerchantTransactionID());
 	if (spawn && spawn->GetMerchantID() > 0 && spawn->IsClientInMerchantLevelRange(this)) {
+		if((spawn->GetMerchantType() & MERCHANT_TYPE_LOTTO))
+			return;
+		
 		vector<MerchantItemInfo>* items = world.GetMerchantItemList(spawn->GetMerchantID(), spawn->GetMerchantType(), player);
 		if (items) {
 			PacketStruct* packet = configReader.getStruct("WS_UpdateMerchant", GetVersion());
@@ -9028,8 +9115,8 @@ void Client::SendSellMerchantList(bool sell) {
 				for (test_itr = items->begin(); test_itr != items->end(); test_itr++) {
 					bool isbagwithitems = false;
 					
-					if(test_itr->second && (test_itr->second->details.inv_slot_id == -3 || test_itr->second->details.inv_slot_id == -4))
-						continue; // omit bank/shared-bank
+					if(test_itr->second && (test_itr->second->details.inv_slot_id < 0))
+						continue; // omit bank/shared-bank/vault/anything with negative inventory slot id
 					
 					if (test_itr->second && test_itr->second->IsBag() && (test_itr->second->details.num_slots - test_itr->second->details.num_free_slots != test_itr->second->details.num_slots))
 						isbagwithitems = true;
@@ -9479,7 +9566,7 @@ void Client::SendGuildCreateWindow() {
 	}
 }
 
-void Client::AddBuyBack(int32 unique_id, int32 item_id, int16 quantity, int32 price, bool save_needed) {
+void Client::AddBuyBack(int64 unique_id, int32 item_id, int16 quantity, int32 price, bool save_needed) {
 	BuyBackItem* item = new BuyBackItem;
 	item->item_id = item_id;
 	item->unique_id = unique_id;
@@ -10406,19 +10493,88 @@ void Client::AddSendNewSpells(vector<Spell*>* spells) {
 	}
 }
 
-void Client::SetItemSearch(vector<Item*>* items) {
+void Client::SetItemSearch(vector<Item*>* items, map<string, string> values) {
 	if (items) {
-		safe_delete(search_items);
-		search_items = items;
+		ClearItemSearch();
+		{
+			std::lock_guard<std::mutex> L(item_search_mtx_);
+			search_items = items;
+			search_values = values;
+		}
 	}
 
 }
 
-vector<Item*>* Client::GetSearchItems() {
-	return search_items;
+void Client::ClearItemSearch() {
+    std::lock_guard<std::mutex> L(item_search_mtx_);
+	if(search_items) {
+		for (auto it = search_items->begin(); it != search_items->end(); /* no increment here */) {
+			Item* item = *it;
+			if (item->is_search_store_item) {
+				safe_delete(item);
+				// erase returns the next iterator
+				it = search_items->erase(it);
+			} else {
+				++it;
+			}
+		}
+	}
+	safe_delete(search_items);
+}
+
+void Client::SendSellerItemByItemUniqueId(int64 unique_id) {
+    std::lock_guard<std::mutex> L(item_search_mtx_);
+    if (!search_items) return;
+
+    for (Item* item : *search_items) {
+        if (item && item->details.unique_id == unique_id) {
+			EQ2Packet* app = item->serialize(GetVersion(), true, GetPlayer());
+			QueuePacket(app);
+			break;
+        }
+    }
+}
+
+
+void Client::BuySellerItemByItemUniqueId(int64 unique_id, int16 quantity) {
+	int32 seller_id = 0;
+	
+	{
+		std::lock_guard<std::mutex> L(item_search_mtx_);
+		if (!search_items) return;
+
+		for (Item* item : *search_items) {
+			if (item && item->details.unique_id == unique_id) {
+				seller_id = item->seller_char_id;
+				break;
+			}
+		}
+	}
+	
+	if(seller_id) {
+		if(broker.BuyItem(this, seller_id, unique_id, quantity)) {
+			vector<Item*>* items = master_item_list.GetItems(search_values, this);
+			if(items){
+				SetItemSearch(items, search_values);
+				SearchStore(search_page);
+			}
+		}
+	}
+	else {
+		Message(CHANNEL_COLOR_RED, "Could not find seller %u when attempting to buy unique id %u.", seller_id, unique_id);
+	}
+}
+
+void Client::SetSellerStatus() {
+	bool sellInv = broker.CanSellFromInventory(GetPlayer()->GetCharacterID());
+	bool itemsSelling = broker.IsSellingItems(GetPlayer()->GetCharacterID());
+	broker.AddSeller(GetPlayer()->GetCharacterID(), std::string(GetPlayer()->GetName()), 
+	GetPlayer()->GetPlayerInfo()->GetHouseZoneID(), true, sellInv);
 }
 
 void Client::SearchStore(int32 page) {
+    std::lock_guard<std::mutex> L(item_search_mtx_);
+	SetSearchPage(page);
 	if (search_items) {
 		PacketStruct* packet = configReader.getStruct("WS_BrokerItems", GetVersion());
 		if (packet) {
@@ -10447,27 +10603,49 @@ void Client::SearchStore(int32 page) {
 					std::string teststr("test ");
 					teststr.append(std::to_string(i));
 					packet->setArrayDataByName("string_one", teststr.c_str(), i);
-					packet->setArrayDataByName("string_two", "testtwo", i);
-					packet->setArrayDataByName("seller_name", "EQ2EMuDev", i);
-					packet->setArrayDataByName("item_id", item->details.item_id, i);
-					packet->setArrayDataByName("item_id2", item->details.item_id, i);
+					if(IsGMStoreSearch()) {
+						packet->setArrayDataByName("seller_name", "EQ2EMuDev", i);
+						packet->setArrayDataByName("item_id", item->details.item_id, i);
+						packet->setArrayDataByName("item_id2", item->details.item_id, i);
+						packet->setArrayDataByName("sell_price", item->sell_price, i);
+						if (item->stack_count == 0)
+							packet->setArrayDataByName("quantity", 1, i);
+						else
+							packet->setArrayDataByName("quantity", item->stack_count, i);
+						packet->setArrayDataByName("string_two", "testtwo", i);
+					}
+					else {
+						packet->setArrayDataByName("seller_name", item->seller_name.c_str(), i);
+						packet->setArrayDataByName("item_id", item->details.unique_id, i);
+						packet->setArrayDataByName("item_id2", item->details.unique_id, i);
+						packet->setArrayDataByName("sell_price", item->broker_price, i);
+						packet->setArrayDataByName("quantity", item->details.count, i);
+						if(item->seller_house_id) {
+							HouseZone* hz = world.GetHouseZone(item->seller_house_id);
+							if(hz && item->seller_name.size() > 0) {
+								string name;
+								name = item->seller_name;
+								name.append("'s ");
+								name.append(hz->name);
+								packet->setArrayDataByName("string_two", name.c_str(), i);
+							}
+						}
+					}
+
 					packet->setArrayDataByName("icon", item->GetIcon(GetVersion()), i);
 					//packet->setArrayDataByName("unknown2b", i, i);
 					packet->setArrayDataByName("item_seller_id", 1, i);
-					if (item->stack_count == 0)
-						packet->setArrayDataByName("quantity", 1, i);
-					else
-						packet->setArrayDataByName("quantity", item->stack_count, i);
 					packet->setArrayDataByName("stack_size", item->stack_count, i);
 
-					packet->setArrayDataByName("sell_price", item->sell_price, i);
 
 
 					std::string tmpStr("");
 					tmpStr.append(item->name.c_str());
-					tmpStr.append(" (");
-					tmpStr.append(std::to_string(item->details.item_id));
-					tmpStr.append(")");
+					if(IsGMStoreSearch()) {
+						tmpStr.append(" (");
+						tmpStr.append(std::to_string(item->details.item_id));
+						tmpStr.append(")");
+					}
 
 					packet->setArrayDataByName("item_name", tmpStr.c_str(), i);
 					packet->setArrayDataByName("req_level", item->generic_info.adventure_default_level, i);
@@ -12035,6 +12213,9 @@ bool Client::HandleNewLogin(int32 account_id, int32 access_code)
 					new_client_login = NewLoginState::LOGIN_ALLOWED;
 				}
 
+				// vault slots
+				RefreshVaultSlotCount();
+				
 				const char* zone_script = world.GetZoneScript(GetCurrentZone()->GetZoneID());
 				if (zone_script && lua_interface)
 					lua_interface->RunZoneScript(zone_script, "new_client", GetCurrentZone(), GetPlayer());
@@ -12337,6 +12518,126 @@ void Client::SendDefaultCommand(Spawn* spawn, const char* command, float distanc
 	}
 }
 
+void Client::RefreshVaultSlotCount() {
+	std::vector<PlayerHouse*> houses = world.GetAllPlayerHouses(GetCharacterID());
+	if (!houses.empty()) {
+		int8 bestSlots = 0;
+		int32 bestZoneID = 0;
+
+		for (PlayerHouse* ph : houses) {
+			if (!ph) 
+				continue;
+			HouseZone* hz = world.GetHouseZone(ph->house_id);
+			if (!hz) 
+				continue;
+
+			if (hz->vault_slots > bestSlots) {
+				bestSlots  = hz->vault_slots;
+				bestZoneID = ph->house_id;
+			}
+		}
+
+		if (bestZoneID != 0) {
+			GetPlayer()->GetPlayerInfo()->SetHouseZone(bestZoneID);
+			GetPlayer()->SetHouseVaultSlots(bestSlots);
+		}
+	}
+}
+
+
+/*
+**
+ October 18, 2005, 07:17:51 PM Rocawne buys Elemental Vestment (Adept I) for 1 Platinum, 0 Gold, 0 Silver, 0 Copper
+October 19, 2005, 02:57:20 AM Radian buys A Rusting Gear for 5 Gold, 75 Silver, 0 Copper
+
+but then they stop outputting coin that equals 0
+
+October 20, 2005, 05:29:33 AM Kilea buys Rules of the Sandscrawler Clan - Page 7 for 9 Gold, 75 Silver
+October 21, 2005, 12:29:41 AM Meldo buys Oozing Wound (Apprentice IV) for 10 Gold
+
+February 14, 2006, 02:59:32 PM Tom buys 13 pu-erh tea leafes for 4 Gold, 55 Silver
+**/
+void Client::SendHouseSaleLog(std::string message, int64 coin_session, int64 coin_total, int8 flag) {
+	PacketStruct* packet = configReader.getStruct("WS_HouseStoreLog", GetVersion());
+	if (packet) {
+		packet->setDataByName("data", message.c_str());
+		packet->setDataByName("coin_gain_session", coin_session);
+		packet->setDataByName("coin_gain_alltime", coin_total);
+		packet->setDataByName("sales_log_open", flag);
+		EQ2Packet* outapp = packet->serialize();
+		QueuePacket(outapp);
+		safe_delete(packet);
+	}			
+}
+
+void Client::SetItemSaleStatus(int64 unique_id, bool status) {
+	broker.SetSaleStatus(GetPlayer()->GetCharacterID(), unique_id, status);
+	OpenShopWindow(nullptr);
+}
+
+void Client::OpenShopWindow(Spawn* interaction, bool sendAlways, int8 saleLogOnly) {
+	 if (GetCurrentZone()->GetInstanceType() == PERSONAL_HOUSE_INSTANCE && !HasOwnerOrEditAccess()) {
+		SimpleMessage(CHANNEL_COLOR_RED, "This is not your home!");
+		return;
+	}
+	
+	auto info = broker.GetSellerInfo(GetPlayer()->GetCharacterID());
+	bool wasOpen = false;
+
+	if(!saleLogOnly) {
+		wasOpen = GetShopWindowStatus();
+		
+		if(sendAlways)
+			SetShopWindowStatus(true);
+		
+		if(!GetShopWindowStatus() && !sendAlways)
+			return; // don't send window is not open
+		
+		if(!info)
+			broker.AddSeller(GetPlayer()->GetCharacterID(), std::string(GetPlayer()->GetName()), GetPlayer()->GetPlayerInfo()->GetHouseZoneID(), true, false);
+				
+		GetPlayer()->item_list.GetVaultItems(this, interaction ? interaction->GetID() : GetPlayer()->GetID(), GetPlayer()->GetHouseVaultSlots(), info ? info->sell_from_inventory : false);
+
+		broker.LockActiveItemsForClient(this);
+	}
+	
+	if(!wasOpen && info) {
+		int64 coin_session = database.GetSellerSession(GetPlayer()->GetCharacterID());
+		if(coin_session) {
+			broker.ResetSellerSessionCoins(GetPlayer()->GetCharacterID());
+			std::string msg = FormatCoinReceiveMessage(coin_session, "consigned sales");
+			broker.LogSaleMessage(GetPlayer()->GetCharacterID(), msg);
+			GetPlayer()->AddCoins(coin_session);
+			SimpleMessage(CHANNEL_NARRATIVE, msg.c_str());
+			SendHouseSaleLog(msg, info ? coin_session : 0, info ? info->coin_total : 0, saleLogOnly);
+		}
+		else {
+			SendHouseSaleLog("", 0, info ? info->coin_total : 0, saleLogOnly);
+		}
+	}
+}
+
+void Client::SetItemSaleCost(int64 unique_id, int32 platinum, int32 gold, int32 silver, int32 copper) {
+	int64 cost = platinum * 1000000 + gold * 10000 + silver * 100 + copper;
+	broker.SetSalePrice(GetPlayer()->GetCharacterID(), unique_id, cost);
+	OpenShopWindow(nullptr);
+}
+
+void Client::AddItemSale(int64 unique_id, int32 item_id, int64 price, int32 inv_slot_id, int16 slot_id, int16 count, bool inInventory, bool forSale, std::string itemCreator) {
+	SaleItem it{};
+	it.unique_id      = unique_id;
+	it.character_id   = GetPlayer()->GetCharacterID();
+	it.house_id       = GetPlayer()->GetPlayerInfo()->GetHouseZoneID();
+	it.item_id        = item_id;
+	it.cost_copper    = price;
+	it.for_sale       = forSale;
+	it.inv_slot_id    = inv_slot_id;
+	it.slot_id        = slot_id;
+	it.count          = count;
+	it.from_inventory = inInventory;
+	it.creator = itemCreator;
+	broker.AddItem(it);
+}
 bool Client::HandleHouseEntityCommands(Spawn* spawn, int32 spawnid, string command)
 {
 	if (GetCurrentZone()->GetInstanceType() != PERSONAL_HOUSE_INSTANCE)
@@ -12369,26 +12670,12 @@ bool Client::PopulateHouseSpawn(PacketStruct* place_object)
 	{
 		Spawn* tmp = GetTempPlacementSpawn();
 
-		int32 spawn_group_id = database.GetNextSpawnLocation();
+		int32 spawn_group_id = database.GetNextSpawnLocation(true);
 		tmp->SetSpawnLocationID(spawn_group_id);
 
 		float newHeading = place_object->getType_float_ByName("heading") + 180;
 
 		int32 spawnDBID = 0;
-		if (GetCurrentZone()->house_object_database_lookup.count(tmp->GetModelType()) > 0)
-		{
-			spawnDBID = GetCurrentZone()->house_object_database_lookup.Get(tmp->GetModelType());
-			tmp->SetDatabaseID(spawnDBID);
-		}
-		else
-		{
-			spawnDBID = database.FindHouseInstanceSpawn(tmp);
-			if (spawnDBID)
-			{
-				GetCurrentZone()->house_object_database_lookup.Put(tmp->GetModelType(), spawnDBID);
-				tmp->SetDatabaseID(spawnDBID);
-			}
-		}
 
 		tmp->SetX(place_object->getType_float_ByName("x"));
 		tmp->SetY(place_object->getType_float_ByName("y"));
@@ -12404,7 +12691,6 @@ bool Client::PopulateHouseSpawn(PacketStruct* place_object)
 
 		if (!spawnDBID)
 		{
-			GetCurrentZone()->house_object_database_lookup.Put(tmp->GetModelType(), tmp->GetDatabaseID());
 			// we need to copy as to not delete the ZoneServer object_list entry this on house item pickup
 			GetCurrentZone()->AddObject(tmp->GetDatabaseID(), ((Object*)tmp)->Copy());
 		}
@@ -12423,33 +12709,41 @@ bool Client::PopulateHouseSpawnFinalize()
 		GetCurrentZone()->AddSpawn(tmp);
 		GetCurrentZone()->SendSpawnChanges(tmp, this);
 		SetTempPlacementSpawn(nullptr);
-		int32 uniqueID = GetPlacementUniqueItemID();
-		Item* uniqueItem = GetPlayer()->item_list.GetItemFromUniqueID(uniqueID);
+		int64 uniqueID = GetPlacementUniqueItemID();
+		Item* uniqueItem = GetPlayer()->item_list.GetVaultItemFromUniqueID(uniqueID);
+		if(!uniqueItem) {
+			Message(CHANNEL_COLOR_RED, "Missing unique item!");
+			return false;
+		}
+		if(!uniqueItem->TryLockItem(LockReason::LockReason_House)) {
+			Message(CHANNEL_COLOR_RED, "Item could not be locked for house placement!");
+			return false;
+		}
+		else {
+			QueuePacket(GetPlayer()->SendInventoryUpdate(GetVersion()));
+		}
+
 		tmp->SetPickupItemID(uniqueItem->details.item_id);
 		tmp->SetPickupUniqueItemID(uniqueID);
-
-		if (uniqueItem)
+		if (GetCurrentZone()->GetInstanceType() == PERSONAL_HOUSE_INSTANCE)
 		{
-			if (GetCurrentZone()->GetInstanceType() == PERSONAL_HOUSE_INSTANCE)
-			{
-				Query query;
-				query.RunQuery2(Q_INSERT, "insert into spawn_instance_data set spawn_id = %u, spawn_location_id = %u, pickup_item_id = %u, pickup_unique_item_id = %u", tmp->GetDatabaseID(), tmp->GetSpawnLocationID(), tmp->GetPickupItemID(), uniqueID);
-			}
-
-			if (uniqueItem->GetItemScript() &&
-				lua_interface->RunItemScript(uniqueItem->GetItemScript(), "placed", uniqueItem, GetPlayer(), tmp))
-			{
-				uniqueItem = GetPlayer()->item_list.GetItemFromUniqueID(uniqueID);
-			}
-
-			if (uniqueItem) {
-				database.DeleteItem(GetCharacterID(), uniqueItem, 0);
-				GetPlayer()->item_list.RemoveItem(uniqueItem, true);
-				QueuePacket(GetPlayer()->SendInventoryUpdate(GetVersion()));
-			}
-
-			SetPlacementUniqueItemID(0);
+			Query query;
+			query.RunQuery2(Q_INSERT, "insert into spawn_instance_data set spawn_id = %u, spawn_location_id = %u, pickup_item_id = %u, pickup_unique_item_id = %u", tmp->GetDatabaseID(), tmp->GetSpawnLocationID(), tmp->GetPickupItemID(), uniqueID);
 		}
+
+		if (uniqueItem->GetItemScript() &&
+			lua_interface->RunItemScript(uniqueItem->GetItemScript(), "placed", uniqueItem, GetPlayer(), tmp))
+		{
+			uniqueItem = GetPlayer()->item_list.GetItemFromUniqueID(uniqueID);
+		}
+
+		if (uniqueItem && uniqueItem->generic_info.item_type != ITEM_TYPE_HOUSE_CONTAINER) {
+			database.DeleteItem(GetCharacterID(), uniqueItem, 0);
+			GetPlayer()->item_list.RemoveItem(uniqueItem, true);
+				QueuePacket(GetPlayer()->SendInventoryUpdate(GetVersion()));
+		}
+
+		SetPlacementUniqueItemID(0);
 		return true;
 	}
 
@@ -13648,6 +13942,18 @@ bool Client::GetHouseZoneServer(ZoneChangeDetails* zone_details, int32 spawn_id,
 			hz = world.GetHouseZone(ph->house_id);
 		}
 	}
+	if(!ph) {
+		Spawn* houseWidget = GetPlayer()->GetSpawnByIndex(house_id);
+		if (houseWidget && houseWidget->IsWidget() && ((Widget*)houseWidget)->GetHouseID()) {
+			hz = world.GetHouseZone(((Widget*)houseWidget)->GetHouseID());
+			if (hz) {
+				ph = world.GetPlayerHouseByHouseID(GetPlayer()->GetCharacterID(), hz->id);
+			}
+			else {
+				Message(CHANNEL_COLOR_YELLOW, "HouseWidget#2 spawn index %u house zone could not be found.", spawn_id);
+			}
+		}
+	}
 
 	if (ph && hz) {
 		if (zone_list.GetZoneByInstance(zone_details, ph->instance_id, hz->zone_id)) {
@@ -13770,4 +14076,144 @@ bool Client::SendDialogChoice(int32 spawnID, const std::string& windowTextPrompt
 	safe_delete(p);
 	
 	return true;
+}
+
+void Client::SendMerchantWindow(Spawn* spawn, bool sell) {
+	if(GetVersion() < 561) {
+		sell = false; // doesn't support in the same way as AoM just open the normal buy/sell window
+	}
+	if(spawn) {
+		SetMerchantTransaction(spawn);
+		if (spawn->GetHouseCharacterID() > 0) {
+			if (auto info = broker.GetSellerInfo(spawn->GetHouseCharacterID())) {		
+				PacketStruct* packet = configReader.getStruct("WS_UpdateMerchant", GetVersion());
+				if (packet) {
+					packet->setDataByName("spawn_id", GetPlayer()->GetIDWithPlayerSpawn(spawn));
+					int32 i = 0;
+					int tmp_level = 0;
+					sint8 item_difficulty = 0;
+					auto items = broker.GetActiveForSaleItems(spawn->GetHouseCharacterID());
+					int32 itemCount = 0;
+					for (auto const& itm : items) {
+						if(itm.inv_slot_id != spawn->GetPickupUniqueItemID())
+							continue;
+						if (!itm.for_sale) {
+							continue;
+						}
+						itemCount++;
+					}
+					packet->setArrayLengthByName("num_items", itemCount);
+					
+					for (auto const& itm : items) {
+						if(itm.inv_slot_id != spawn->GetPickupUniqueItemID())
+							continue;
+						if (!itm.for_sale) {
+							continue;
+						}
+
+						Item* item = master_item_list.GetItem(itm.item_id);
+						if (!item)
+							continue;
+
+						packet->setArrayDataByName("item_name", item->name.c_str(), i);
+						packet->setArrayDataByName("item_id", itm.unique_id, i);
+						//packet->setArrayDataByName("unique_item_id", item->details.item_id, i);
+						packet->setArrayDataByName("stack_size", itm.count, i);
+						packet->setArrayDataByName("icon", item->GetIcon(GetVersion()), i);
+						if (item->generic_info.adventure_default_level > 0)
+							tmp_level = item->generic_info.adventure_default_level;
+						else
+							tmp_level = item->generic_info.tradeskill_default_level;
+						packet->setArrayDataByName("level", tmp_level, i);
+						if (rule_manager.GetZoneRule(GetCurrentZoneID(), R_World, DisplayItemTiers)->GetBool()) {
+							packet->setArrayDataByName("tier", item->details.tier, i);
+						}
+						packet->setArrayDataByName("item_id2", item->details.item_id, i);
+						item_difficulty = player->GetArrowColor(tmp_level);
+						if (item_difficulty != ARROW_COLOR_WHITE && item_difficulty != ARROW_COLOR_RED && item_difficulty != ARROW_COLOR_GRAY)
+							item_difficulty = ARROW_COLOR_WHITE;
+
+						sint64 overrideValue = 0;
+						if (item->GetItemScript() && lua_interface && lua_interface->RunItemScript(item->GetItemScript(), "item_difficulty", item, player, nullptr, &overrideValue))
+							item_difficulty = (sint8)overrideValue;
+
+						item_difficulty -= 6;
+						if (item_difficulty < 0)
+							item_difficulty *= -1;
+
+						packet->setArrayDataByName("item_difficulty", item_difficulty, i);
+						packet->setArrayDataByName("quantity", 1, i);
+						packet->setArrayDataByName("unknown5", 255, i);
+						packet->setArrayDataByName("stack_size2", itm.count, i);
+
+						sint64 dispFlags = 0;
+						if (item->GetItemScript() && lua_interface && lua_interface->RunItemScript(item->GetItemScript(), "buy_display_flags", item, player, nullptr, &dispFlags))
+							packet->setArrayDataByName("display_flags", (int8)dispFlags, i);
+
+						std::string overrideValueStr;
+						// classic client isn't properly tracking this field, DoF we don't have it identified yet, but no field to cause any issues (can add later if identified)
+						if (GetVersion() >= 546 && item->GetItemScript() && lua_interface && lua_interface->RunItemScriptWithReturnString(item->GetItemScript(), "item_description", item, player, &overrideValueStr))
+							packet->setArrayDataByName("description", overrideValueStr.c_str(), i);
+
+						packet->setArrayDataByName("price", itm.cost_copper, i);
+						
+						i++;
+					}
+				}
+			
+				if (GetVersion() < 561) {
+					//buy is 0 so dont need to set it
+					if (sell)
+						packet->setDataByName("type", 1);
+				}
+				else if (GetVersion() == 561) {
+					packet->setDataByName("type", 2);
+				}
+				else {
+					if (sell)
+						packet->setDataByName("type", 130);
+					else
+						packet->setDataByName("type", 2);
+				}
+				EQ2Packet* outapp = packet->serialize();
+				QueuePacket(outapp);
+				safe_delete(packet);
+				if(GetVersion() > 561) {
+					PacketStruct* packet = configReader.getStruct("WS_UpdateMerchant", GetVersion());
+					if (packet) {
+						packet->setDataByName("spawn_id", 0xFFFFFFFF);
+						packet->setDataByName("type", 16);
+						EQ2Packet* outapp = packet->serialize();
+						if (outapp)
+							QueuePacket(outapp);
+						safe_delete(packet);
+					}
+				}
+			}
+		}
+		else if (spawn->GetMerchantID() > 0 && spawn->IsClientInMerchantLevelRange(this)){
+			SendHailCommand(spawn);
+			//MerchantFactionMultiplier* multiplier = world.GetMerchantMultiplier(spawn->GetMerchantID());
+			//if(!multiplier || (multiplier && GetPlayer()->GetFactions()->GetFactionValue(multiplier->faction_id) >= multiplier->faction_min)){
+			SendBuyMerchantList(sell);
+			if(!(spawn->GetMerchantType() & MERCHANT_TYPE_NO_BUY))
+				SendSellMerchantList(sell);
+			if(!(spawn->GetMerchantType() & MERCHANT_TYPE_NO_BUY_BACK))
+				SendBuyBackList(sell);
+
+			if(GetVersion() > 561) {
+				PacketStruct* packet = configReader.getStruct("WS_UpdateMerchant", GetVersion());
+				if (packet) {
+					packet->setDataByName("spawn_id", 0xFFFFFFFF);
+					packet->setDataByName("type", 16);
+					EQ2Packet* outapp = packet->serialize();
+					if (outapp)
+						QueuePacket(outapp);
+					safe_delete(packet);
+				}
+			}
+		}
+		if (spawn->GetMerchantType() & MERCHANT_TYPE_REPAIR)
+			SendRepairList();
+	}
 }

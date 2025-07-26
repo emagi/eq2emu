@@ -1,6 +1,6 @@
 /*  
     EQ2Emulator:  Everquest II Server Emulator
-    Copyright (C) 2007  EQ2EMulator Development Team (http://www.eq2emulator.net)
+    Copyright (C) 2005 - 2026  EQ2EMulator Development Team (http://www.eq2emu.com formerly http://www.eq2emulator.net)
 
     This file is part of EQ2Emulator.
 
@@ -17,6 +17,7 @@
     You should have received a copy of the GNU General Public License
     along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 */
+
 #ifndef LUA_FUNCTIONS_H
 #define LUA_FUNCTIONS_H
 
@@ -684,4 +685,12 @@ int EQ2Emu_lua_GetZonePlayerFirstLevel(lua_State* state);
 int EQ2Emu_lua_GetSpellRequiredLevel(lua_State* state);
 
 int EQ2Emu_lua_GetExpRequiredByLevel(lua_State* state);
+
+int EQ2Emu_lua_ShowShopWindow(lua_State* state);
+int EQ2Emu_lua_SetSpawnHouseScript(lua_State* state);
+int EQ2Emu_lua_SendBook(lua_State* state);
+int EQ2Emu_lua_GetPickupItemID(lua_State* state);
+int EQ2Emu_lua_SetHouseCharacterID(lua_State* state);
+int EQ2Emu_lua_GetHouseCharacterID(lua_State* state);
+int EQ2Emu_lua_ShowHouseShopMerchant(lua_State* state);
 #endif

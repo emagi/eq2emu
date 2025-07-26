@@ -1,21 +1,21 @@
-/*
-EQ2Emu:  Everquest II Server Emulator
-Copyright (C) 2007-2025  EQ2Emu Development Team (https://www.eq2emu.com)
+/*  
+    EQ2Emulator:  Everquest II Server Emulator
+    Copyright (C) 2005 - 2026  EQ2EMulator Development Team (http://www.eq2emu.com formerly http://www.eq2emulator.net)
 
-This file is part of EQ2Emu.
+    This file is part of EQ2Emulator.
 
-EQ2Emu is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+    EQ2Emulator is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-EQ2Emu is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+    EQ2Emulator is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License
-along with EQ2Emu.  If not, see <http://www.gnu.org/licenses/>.
+    You should have received a copy of the GNU General Public License
+    along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "HTTPSClientPool.h"
@@ -24,6 +24,7 @@ along with EQ2Emu.  If not, see <http://www.gnu.org/licenses/>.
 #include "../LoginServer.h"
 #include "../LuaInterface.h"
 #include "../Guilds/Guild.h"
+#include "../Broker/BrokerManager.h"
 
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
@@ -44,6 +45,7 @@ extern MasterSpellList master_spell_list;
 extern MasterFactionList master_faction_list;
 extern ClientList client_list;
 extern GuildList guild_list;
+extern BrokerManager broker;
 
 PeerManager peer_manager;
 HTTPSClientPool peer_https_pool;
@@ -1404,6 +1406,177 @@ void World::Web_worldhandle_activequery(const http::request<http::string_body>& 
 	}
 	
 	pt.put("success", 1);
+	std::ostringstream oss;
+	boost::property_tree::write_json(oss, pt);
+	std::string json = oss.str();
+	res.body() = json;
+	res.prepare_payload();
+}
+
+void World::Web_worldhandle_addseller(const http::request<http::string_body>& req, http::response<http::string_body>& res) {
+	res.set(http::field::content_type, "application/json; charset=utf-8");
+	boost::property_tree::ptree pt, json_tree;
+
+	std::istringstream json_stream(req.body());
+	boost::property_tree::read_json(json_stream, json_tree);
+	std::string playerName("");
+	int32 houseID = 0, charID = 0;
+	bool saleEnabled = false, invEnabled = false, success = false;
+	if (auto character_id = json_tree.get_optional<int32>("character_id")) {
+		charID = character_id.get();
+	}
+	if (auto name = json_tree.get_optional<std::string>("name")) {
+		playerName = name.get();
+	}
+	if (auto house_id = json_tree.get_optional<int32>("house_id")) {
+		houseID = house_id.get();
+	}
+	if (auto sale_enabled = json_tree.get_optional<bool>("sale_enabled")) {
+		saleEnabled = sale_enabled.get();
+	}
+	if (auto inventory_enabled = json_tree.get_optional<bool>("inventory_enabled")) {
+		invEnabled = inventory_enabled.get();
+	}
+	
+	if(charID) {
+		broker.AddSeller(charID, playerName, houseID, saleEnabled, invEnabled);
+		success = true;
+	}
+	
+	pt.put("success", success);
+	pt.put("character_id", charID);
+	std::ostringstream oss;
+	boost::property_tree::write_json(oss, pt);
+	std::string json = oss.str();
+	res.body() = json;
+	res.prepare_payload();
+}
+
+void World::Web_worldhandle_removeseller(const http::request<http::string_body>& req, http::response<http::string_body>& res) {
+	res.set(http::field::content_type, "application/json; charset=utf-8");
+	boost::property_tree::ptree pt, json_tree;
+
+	std::istringstream json_stream(req.body());
+	boost::property_tree::read_json(json_stream, json_tree);
+	int32 charID = 0;
+	bool success = false;
+	if (auto character_id = json_tree.get_optional<int32>("character_id")) {
+		charID = character_id.get();
+	}
+	
+	if(charID) {
+		broker.RemoveSeller(charID, true);
+		success = true;
+	}
+	
+	pt.put("success", success);
+	pt.put("character_id", charID);
+	std::ostringstream oss;
+	boost::property_tree::write_json(oss, pt);
+	std::string json = oss.str();
+	res.body() = json;
+	res.prepare_payload();
+}
+
+void World::Web_worldhandle_additemsale(const http::request<http::string_body>& req, http::response<http::string_body>& res) {
+	res.set(http::field::content_type, "application/json; charset=utf-8");
+	boost::property_tree::ptree pt, json_tree;
+
+	std::istringstream json_stream(req.body());
+	boost::property_tree::read_json(json_stream, json_tree);
+	int32 houseID = 0, charID = 0;
+	bool success = false;
+	int32 itemID = 0;
+	int64 uniqueID = 0, inPrice = 0;
+	sint32 invSlotID = 0;
+	int16 slotID = 0, inCount = 0;
+	bool inInventory = false;
+	bool forSale = false;
+	std::string itemCreator("");
+	if (auto character_id = json_tree.get_optional<int32>("character_id")) {
+		charID = character_id.get();
+	}
+	if (auto house_id = json_tree.get_optional<int32>("house_id")) {
+		houseID = house_id.get();
+	}
+	if (auto item_id = json_tree.get_optional<int32>("item_id")) {
+		itemID = item_id.get();
+	}
+	if (auto unique_id = json_tree.get_optional<int64>("unique_id")) {
+		uniqueID = unique_id.get();
+	}
+	if (auto price = json_tree.get_optional<int64>("price")) {
+		inPrice = price.get();
+	}
+	if (auto inv_slot_id = json_tree.get_optional<sint32>("inv_slot_id")) {
+		invSlotID = inv_slot_id.get();
+	}
+	if (auto slot_id = json_tree.get_optional<int16>("slot_id")) {
+		slotID = slot_id.get();
+	}
+	if (auto count = json_tree.get_optional<int16>("count")) {
+		inCount = count.get();
+	}
+	if (auto in_inventory = json_tree.get_optional<bool>("in_inventory")) {
+		inInventory = in_inventory.get();
+	}
+	if (auto for_sale = json_tree.get_optional<bool>("for_sale")) {
+		forSale = for_sale.get();
+	}
+	if (auto item_creator = json_tree.get_optional<std::string>("item_creator")) {
+		itemCreator = item_creator.get();
+	}
+	
+	
+	if(charID && uniqueID && itemID) {
+			SaleItem it{};
+			it.unique_id      = uniqueID;
+			it.character_id   = charID;
+			it.house_id       = houseID;
+			it.item_id        = itemID;
+			it.cost_copper    = inPrice;
+			it.for_sale       = forSale;
+			it.inv_slot_id    = invSlotID;
+			it.slot_id        = slotID;
+			it.count          = inCount;
+			it.from_inventory = inInventory;
+			it.creator = itemCreator;
+			broker.AddItem(it, true);
+			success = true;
+	}
+	
+	pt.put("success", success);
+	pt.put("character_id", charID);
+	std::ostringstream oss;
+	boost::property_tree::write_json(oss, pt);
+	std::string json = oss.str();
+	res.body() = json;
+	res.prepare_payload();
+}
+
+void World::Web_worldhandle_removeitemsale(const http::request<http::string_body>& req, http::response<http::string_body>& res) {
+	res.set(http::field::content_type, "application/json; charset=utf-8");
+	boost::property_tree::ptree pt, json_tree;
+
+	std::istringstream json_stream(req.body());
+	boost::property_tree::read_json(json_stream, json_tree);
+	int32 charID = 0;
+	int64 uniqueID = 0;
+	bool success = false;
+	if (auto character_id = json_tree.get_optional<int32>("character_id")) {
+		charID = character_id.get();
+	}
+	if (auto unique_id = json_tree.get_optional<int64>("unique_id")) {
+		uniqueID = unique_id.get();
+	}
+	
+	if(charID && uniqueID) {
+		broker.OnPeerRemoveItem(charID, uniqueID);
+		success = true;
+	}
+	
+	pt.put("success", success);
+	pt.put("character_id", charID);
 	std::ostringstream oss;
 	boost::property_tree::write_json(oss, pt);
 	std::string json = oss.str();

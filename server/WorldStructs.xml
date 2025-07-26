@@ -10469,15 +10469,21 @@ to zero and treated like placeholders." />
 <Data ElementName="your_item_count" Type="int16" />
 <Data ElementName="your_item_array" Type="Array" ArraySizeVariable="your_item_count">
   <Data ElementName="your_item_name" Type="EQ2_8Bit_String" />
-  <Data ElementName="unique_id" Type="int64" />
+  <Data ElementName="cost" Type="int64" />
   <Data ElementName="unique_id2" Type="int64" />
   <Data ElementName="your_item_quantity" Type="int16" />
   <Data ElementName="your_item_icon" Type="int16" />
-  <Data ElementName="your_item_unknown4" Type ="int8" Size="4" />
-  <Data ElementName="your_item_background" Type="int8" />
-  <Data ElementName="your_item_unknown4" Type ="int8" Size="9" />
+  <Data ElementName="your_item_unknown5" Type ="int8" Size="1" />
+  <Data ElementName="storage_flags" Type ="int8" />
+  <Data ElementName="your_item_unknown6" Type ="int8" Size="12" />
 </Data>
-<Data ElementName="type" Type="int8"/> <!-- 4 opens window -->
+<Data ElementName="type" Type="int8"/> <!-- 4 opens window & start selling button, 6 opens window & stop selling button -->
+</Struct>
+<Struct Name="WS_HouseStoreLog" ClientVersion="546" OpcodeName="OP_ClientCmdMsg" OpcodeType="OP_EqStoreLogCmd">
+  <Data ElementName="data" Type="EQ2_16Bit_String" />
+  <Data ElementName="coin_gain_session" Type="int64" /> <!-- sending twice will reset coin session -->
+  <Data ElementName="coin_gain_alltime" Type="int64" />
+  <Data ElementName="sales_log_open" Type="int8" />
 </Struct>
 <Struct Name="WS_UpdateMerchant" ClientVersion="1" OpcodeName="OP_ClientCmdMsg" OpcodeType="OP_EqUpdateMerchantCmd">
 <Data ElementName="spawn_id" Type="int32" />

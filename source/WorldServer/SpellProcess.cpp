@@ -1,6 +1,6 @@
 /*  
     EQ2Emulator:  Everquest II Server Emulator
-    Copyright (C) 2007  EQ2EMulator Development Team (http://www.eq2emulator.net)
+    Copyright (C) 2005 - 2026  EQ2EMulator Development Team (http://www.eq2emu.com formerly http://www.eq2emulator.net)
 
     This file is part of EQ2Emulator.
 
@@ -17,6 +17,7 @@
     You should have received a copy of the GNU General Public License
     along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 */
+
 #include "SpellProcess.h"
 #include "../common/Log.h"
 #include "Tradeskills/Tradeskills.h"
@@ -433,10 +434,15 @@ bool SpellProcess::DeleteCasterSpell(LuaSpell* spell, string reason, bool removi
 	bool ret = false;
 	Spawn* target = 0;
 	bool target_valid = false;
+
 	if(spell) {
+		LogWrite(SPELL__INFO, 0, "Spell", "SpellProcess::DeleteCasterSpell Spell: %s, Reason: %s, RemoveTarget: %s.", 
+										spell->spell->GetName(), reason.c_str(), remove_target ? "Yes" : "All");
 		if(remove_target) {
 		for (int32 id : spell->GetTargets()) {
 				if(remove_target->GetID() == id) {
+					LogWrite(SPELL__INFO, 0, "Spell", "SpellProcess::DeleteCasterSpell RemoveTarget Spell: %s, Reason: %s, Target: %s.", 
+												spell->spell->GetName(), reason.c_str(), remove_target->GetName());
 					if(remove_target->IsEntity()){
 						spell->RemoveTarget(remove_target->GetID());
 						lua_interface->RemoveSpawnFromSpell(spell, remove_target);
@@ -485,13 +491,19 @@ bool SpellProcess::DeleteCasterSpell(LuaSpell* spell, string reason, bool removi
 			CheckRemoveTargetFromSpell(spell, removing_all_spells, removing_all_spells);
 			ZoneServer* zone = spell->zone;
 			if(zone) {
+			LogWrite(SPELL__DEBUG, 0, "Spell", "SpellProcess::DeleteCasterSpell RemoveTargets Spell: %s.", 
+										spell->spell->GetName());
             for (int32 id : spell->GetTargets()) {
 					target = zone->GetSpawnByID(id);
 					if(target && target->IsEntity()){
+						LogWrite(SPELL__INFO, 0, "Spell", "SpellProcess::DeleteCasterSpell RemoveTargets Spell: %s, Reason: %s, CurrentTarget: %s (%u).", 
+													spell->spell->GetName(), reason.c_str(), target->GetName(), id);
 						spell->RemoveTarget(target->GetID());
 						lua_interface->RemoveSpawnFromSpell(spell, target);
 					}
 					else{
+						LogWrite(SPELL__INFO, 0, "Spell", "SpellProcess::DeleteCasterSpell RemoveTarget Spell: %s, Reason: %s, CurrentTarget: ??Unknown??.", 
+													spell->spell->GetName(), reason.c_str());
 						spell->RemoveTarget(spell->caster->GetID());
 						lua_interface->RemoveSpawnFromSpell(spell, spell->caster);
 					}
@@ -637,6 +649,7 @@ bool SpellProcess::CastInstant(Spell* spell, Entity* caster, Entity* target, boo
 	lua_spell->initial_target = target->GetID();
 	lua_spell->initial_target_char_id = (target && target->IsPlayer()) ? ((Player*)target)->GetCharacterID() : 0;
 	GetSpellTargets(lua_spell);
+	PrintTargets(lua_spell, "instant");
 
 	if (!lua_spell->spell->IsCopiedSpell())
 	{
@@ -1019,6 +1032,23 @@ Spell* SpellProcess::GetSpell(Entity* caster){
 	return spell;
 }
 
+void SpellProcess::PrintTargets(LuaSpell* spell, std::string stage) {
+	std::vector<int32> targets = spell->GetTargets();
+	if(spell->zone) {
+		for (int32_t id : targets) {
+			Spawn* tmp = spell->zone->GetSpawnByID(id);
+			if(tmp) {
+				LogWrite(SPELL__INFO, 0, "Spell", "SpellProcess::PrintTarget(%s) Spell: %s, Spawn: %s (%u) (DBID: %u).", 
+										stage.c_str(), spell->spell->GetName(), tmp->GetName(), tmp->GetID(), tmp->GetDatabaseID());
+			}
+			else {
+				LogWrite(SPELL__ERROR, 0, "Spell", "SpellProcess::PrintTarget(%s) Spell: %s SpawnID: %u - ??Unknown??.", 
+										stage.c_str(), spell->spell->GetName(), id);
+			}
+		}
+	}
+}
+
 void SpellProcess::ProcessSpell(ZoneServer* zone, Spell* spell, Entity* caster, Spawn* target, bool lock, bool harvest_spell, LuaSpell* customSpell, int16 custom_cast_time, bool in_heroic_opp)
 {
 	if((customSpell != 0 || spell != 0) && caster)
@@ -1173,6 +1203,8 @@ void SpellProcess::ProcessSpell(ZoneServer* zone, Spell* spell, Entity* caster, 
 			return;
 		}
 		
+		PrintTargets(lua_spell, "cast");
+		
 		LuaSpell* conflictSpell = caster->HasLinkedTimerID(lua_spell, target, (spell_type == SPELL_TYPE_DD || spell_type == SPELL_TYPE_DOT));
 		if(conflictSpell)
 		{
@@ -1185,18 +1217,17 @@ void SpellProcess::ProcessSpell(ZoneServer* zone, Spell* spell, Entity* caster, 
 						if(spell->GetSpellData()->friendly_spell)
 						{
 							ZoneServer* zone = caster->GetZone();
-							Spawn* tmpTarget = zone->GetSpawnByID(conflictSpell->initial_target);
-							if(tmpTarget && tmpTarget->IsEntity())
-							{
-								((Entity*)tmpTarget)->RemoveEffectsFromLuaSpell(conflictSpell);
-								zone->RemoveTargetFromSpell(conflictSpell, tmpTarget, false);
-								CheckRemoveTargetFromSpell(conflictSpell);
-								lua_interface->RemoveSpawnFromSpell(conflictSpell, tmpTarget);
-								if(client && IsReady(conflictSpell->spell, client->GetPlayer()))
-									UnlockSpell(client, conflictSpell->spell);
+							
+							for (int32 id : conflictSpell->GetTargets()) {
+								Spawn* tmpTarget = zone->GetSpawnByID(id);
+								if(tmpTarget && tmpTarget->IsEntity())
+								{
+									((Entity*)tmpTarget)->RemoveEffectsFromLuaSpell(conflictSpell);
+									zone->RemoveTargetFromSpell(conflictSpell, tmpTarget, false);
+									CheckRemoveTargetFromSpell(conflictSpell);
+									lua_interface->RemoveSpawnFromSpell(conflictSpell, tmpTarget);
+								}
 							}
-							DeleteSpell(lua_spell);
-							return;
 						}
 						else if(lua_spell->spell->GetSpellData()->spell_type == SPELL_TYPE_DEBUFF)
 						{
@@ -1205,11 +1236,11 @@ void SpellProcess::ProcessSpell(ZoneServer* zone, Spell* spell, Entity* caster, 
 						}
 					}
 				}
-				else
-				{
-					SpellCannotStack(zone, client, lua_spell->caster, lua_spell, conflictSpell);
-					return;
-				}	
+					else
+					{
+						SpellCannotStack(zone, client, lua_spell->caster, lua_spell, conflictSpell);
+						return;
+					}	
 			}
 		}
 
@@ -1717,8 +1748,8 @@ bool SpellProcess::CastProcessedSpell(LuaSpell* spell, bool passive, bool in_her
 		}
 	}
 	
-	if(client && client->GetCurrentZone() && 
-		!spell->spell->GetSpellData()->friendly_spell)
+	PrintTargets(spell, "castprocess");
+	if(client && client->GetCurrentZone())
 	{
 		ZoneServer* zone = client->GetCurrentZone();
 		Spawn* tmpTarget = zone->GetSpawnByID(spell->initial_target);
@@ -1726,8 +1757,30 @@ bool SpellProcess::CastProcessedSpell(LuaSpell* spell, bool passive, bool in_her
 		LuaSpell* conflictSpell = spell->caster->HasLinkedTimerID(spell, tmpTarget, (spell_type == SPELL_TYPE_DD || spell_type == SPELL_TYPE_DOT));
 		if(conflictSpell && tmpTarget && tmpTarget->IsEntity())
 		{
-			((Entity*)tmpTarget)->RemoveSpellEffect(conflictSpell);
-			zone->RemoveTargetFromSpell(conflictSpell, tmpTarget);
+			if(conflictSpell->spell->GetSpellData()->min_class_skill_req > 0 && spell->spell->GetSpellData()->min_class_skill_req > 0)
+			{
+				if(conflictSpell->spell->GetSpellData()->min_class_skill_req <= spell->spell->GetSpellData()->min_class_skill_req)
+				{
+					if(spell->spell->GetSpellData()->duration_until_cancel && !spell->num_triggers)
+					{
+						for (int32 id : conflictSpell->GetTargets()) {
+							Spawn* tmpTarget = zone->GetSpawnByID(id);
+							if(tmpTarget && tmpTarget->IsEntity())
+							{
+								((Entity*)tmpTarget)->RemoveEffectsFromLuaSpell(conflictSpell);
+								zone->RemoveTargetFromSpell(conflictSpell, tmpTarget, false);
+								CheckRemoveTargetFromSpell(conflictSpell);
+								lua_interface->RemoveSpawnFromSpell(conflictSpell, tmpTarget);
+							}
+						}
+					}
+				}
+				else
+				{
+					SpellCannotStack(zone, client, spell->caster, spell, conflictSpell);
+					return false;
+				}
+			}
 		}
 	}
 
@@ -1813,19 +1866,37 @@ bool SpellProcess::CastProcessedSpell(LuaSpell* spell, bool passive, bool in_her
 				}
 				continue;
 			}
-			if (firstTarget && !spell->spell->GetSpellData()->not_maintained) {
-				spell->caster->AddMaintainedSpell(spell);
-			}
-			firstTarget = false;
 			
 			SpellEffects* effect = ((Entity*)target)->GetSpellEffect(spell->spell->GetSpellID());
-			if (effect && effect->tier > spell->spell->GetSpellTier()) {
+
+			if(!effect)
+				effect = ((Entity*)target)->GetSpellEffectWithLinkedTimer(spell->spell->GetSpellID(), spell->spell->GetSpellData()->linked_timer, spell->spell->GetSpellData()->type_group_spell_id, spell->caster, true);
+
+			if (effect && effect->spell != spell && effect->tier > spell->spell->GetSpellTier()) {
 				if(client) {
 					spell->caster->GetZone()->SendSpellFailedPacket(client, SPELL_ERROR_TAKE_EFFECT_MOREPOWERFUL);
 					client->SimpleMessage(CHANNEL_COLOR_YELLOW, "The spell did not take hold as the target already has a better spell of this type.");
+					
+					if (!passive)
+						SendFinishedCast(spell, client);
+					
+					if(spell->zone)
+						spell->zone->GetSpellProcess()->RemoveSpellScriptTimerBySpell(spell);
+					DeleteActiveSpell(spell, true);
+					return false;
 				}
 			}
 			else{
+				if(effect && effect->spell != spell) {
+					if(effect->spell->zone)
+						effect->spell->zone->GetSpellProcess()->RemoveSpellScriptTimerBySpell(effect->spell);
+					
+					DeleteActiveSpell(effect->spell, true);
+				}
+				if (firstTarget) {
+					spell->caster->AddMaintainedSpell(spell);
+				}
+				firstTarget = false;
 				((Entity*)target)->AddSpellEffect(spell);
 				if(spell->spell->GetSpellData()->det_type > 0)
 					((Entity*)target)->AddDetrimentalSpell(spell);
@@ -2251,6 +2322,8 @@ void SpellProcess::GetSpellTargets(LuaSpell* luaspell)
 				}
 				else // default self cast for group/raid AE
 				{
+					if(caster->IsPlayer())
+						GetPlayerGroupTargets((Player*)caster, caster, luaspell, true);
 					target = caster;
 					luaspell->initial_target = caster->GetID();
 					luaspell->initial_target_char_id = (caster && caster->IsPlayer()) ? ((Player*)caster)->GetCharacterID() : 0;
@@ -2818,8 +2891,9 @@ void SpellProcess::CheckRemoveTargetFromSpell(LuaSpell* spell, bool allow_delete
 						for (int32 id : spell->GetTargets()) {
 							if (remove_spawn->GetID() == id) {
 								found_target = true;
+								
 								spell->RemoveTarget(id);
-								LogWrite(SPELL__DEBUG, 0, "Spell", "%s CheckRemoveTargetFromSpell %s (%u).", spell->spell->GetName(), remove_spawn->GetName(), remove_spawn->GetID());
+								LogWrite(SPELL__DEBUG, 0, "Spell", "SpellProcess::CheckRemoveTargetFromSpell Spell: %s, Spawn: %s (%u).", spell->spell->GetName(), remove_spawn->GetName(), remove_spawn->GetID());
 								if(remove_spawn && std::find(spawnsToRemove.begin(), spawnsToRemove.end(), remove_spawn) == spawnsToRemove.end())
 									spawnsToRemove.push_back(remove_spawn);
 								break;
@@ -3035,6 +3109,16 @@ void SpellProcess::AddSelfAndPetToCharTargets(LuaSpell* spell, Spawn* caster, bo
 
 void SpellProcess::DeleteActiveSpell(LuaSpell* spell, bool skipRemoveCurrent) {	
 	lua_interface->SetLuaUserDataStale(spell);
+	if(spell->zone) {
+		for (int32 id : spell->GetTargets()) {
+			Spawn* target = spell->zone->GetSpawnByID(id);
+			if(target)
+				lua_interface->RemoveSpawnFromSpell(spell, target);
+		}
+	}
+	if	(spell->caster) {
+		((Entity*)spell->caster)->RemoveMaintainedSpell(spell);
+	}
 	if(!skipRemoveCurrent) {
 		lua_interface->RemoveCurrentSpell(spell->state, spell, true);
 		lua_interface->DeletePendingSpell(spell);
@@ -3052,7 +3136,21 @@ bool SpellProcess::AddLuaSpellTarget(LuaSpell* lua_spell, int32 id, bool lock_sp
 		lua_spell->AddTarget(id);
 		ret = true;
 	}
-	
+
+	if(lua_spell->zone) {
+		Spawn* target = lua_spell->zone->GetSpawnByID(id);
+		if(target && target->IsPlayer()){
+			lua_spell->AddCharIDTarget(((Player*)target)->GetCharacterID(), 0);
+			if (((Entity*)target)->HasPet()){	
+				Entity* pet = ((Entity*)target)->GetPet();
+				if (pet)
+					lua_spell->AddCharIDTarget(((Player*)target)->GetCharacterID(), PET_TYPE_COMBAT);
+				pet = ((Entity*)target)->GetCharmedPet();
+				if (pet)
+					lua_spell->AddCharIDTarget(((Player*)target)->GetCharacterID(), PET_TYPE_CHARMED);
+			}
+		}
+	}
 	return ret;
 }
 

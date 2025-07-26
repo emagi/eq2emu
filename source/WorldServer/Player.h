@@ -1,6 +1,6 @@
 /*  
     EQ2Emulator:  Everquest II Server Emulator
-    Copyright (C) 2005 - 2025  EQ2EMulator Development Team (http://www.eq2emu.com formerly http://www.eq2emulator.net)
+    Copyright (C) 2005 - 2026  EQ2EMulator Development Team (http://www.eq2emu.com formerly http://www.eq2emulator.net)
 
     This file is part of EQ2Emulator.
 
@@ -225,7 +225,7 @@ struct QuickBarItem{
 	int16				icon_type;
 	int32				id;
 	int8				tier;
-	int32				unique_id;
+	int64				unique_id;
 	EQ2_16BitString		text;
 };
 
@@ -1103,8 +1103,11 @@ public:
 	void	SetActiveFoodUniqueID(int32 unique_id, bool update_db = true);
 	void	SetActiveDrinkUniqueID(int32 unique_id, bool update_db = true);
 	
-	int32	GetActiveFoodUniqueID() { return active_food_unique_id; }
-	int32	GetActiveDrinkUniqueID() { return active_drink_unique_id; }
+	int64	GetActiveFoodUniqueID() { return active_food_unique_id; }
+	int64	GetActiveDrinkUniqueID() { return active_drink_unique_id; }
+	
+	void	SetHouseVaultSlots(int8 allowed_slots) { house_vault_slots = allowed_slots; }
+	int8	GetHouseVaultSlots() { return house_vault_slots; }
 	
 	Mutex MPlayerQuests;
 	float   pos_packet_speed;
@@ -1264,8 +1267,10 @@ private:
 	Quest*  GetAnyQuest(int32 quest_id);
 	Quest*	GetCompletedQuest(int32 quest_id);
 	
-	std::atomic<int32> active_food_unique_id;
-	std::atomic<int32> active_drink_unique_id;
+	std::atomic<int64> active_food_unique_id;
+	std::atomic<int64> active_drink_unique_id;
+	
+	int8 house_vault_slots;
 };
 #pragma pack()
 #endif

@@ -1,21 +1,21 @@
-/*
-EQ2Emulator:  Everquest II Server Emulator
-Copyright (C) 2007  EQ2EMulator Development Team (http://www.eq2emulator.net)
+/*  
+    EQ2Emulator:  Everquest II Server Emulator
+    Copyright (C) 2005 - 2026  EQ2EMulator Development Team (http://www.eq2emu.com formerly http://www.eq2emulator.net)
 
-This file is part of EQ2Emulator.
+    This file is part of EQ2Emulator.
 
-EQ2Emulator is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+    EQ2Emulator is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-EQ2Emulator is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+    EQ2Emulator is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License
-along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
+    You should have received a copy of the GNU General Public License
+    along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "PlayerGroups.h"
@@ -34,6 +34,7 @@ extern ZoneList	zone_list;
 extern RuleManager rule_manager;
 extern PeerManager peer_manager;
 extern WorldDatabase database;
+extern LuaInterface* lua_interface;
 /******************************************************** PlayerGroup ********************************************************/
 
 PlayerGroup::PlayerGroup(int32 id) {
@@ -1094,6 +1095,7 @@ void PlayerGroupManager::UpdateGroupBuffs() {
 			caster = *vitr;
 			caster->GetMaintainedMutex()->readlock(__FUNCTION__, __LINE__);
 			// go through the player's maintained spells
+			bool skipSpell = false;
 			me = caster->GetMaintainedSpells();
 			for (i = 0; i < NUM_MAINTAINED_EFFECTS; i++) {
 				if (me[i].spell_id == 0xFFFFFFFF)
@@ -1113,9 +1115,7 @@ void PlayerGroupManager::UpdateGroupBuffs() {
 
 				if (spell && spell->GetSpellData()->group_spell && spell->GetSpellData()->friendly_spell &&
 					(spell->GetSpellData()->target_type == SPELL_TARGET_GROUP_AE || spell->GetSpellData()->target_type == SPELL_TARGET_RAID_AE)) {
-
 					luaspell->ClearCharTargets();
-
 					for (target_itr = group->GetMembers()->begin(); target_itr != group->GetMembers()->end(); target_itr++) {
 						group_member = (*target_itr)->member;
 
@@ -1127,8 +1127,39 @@ void PlayerGroupManager::UpdateGroupBuffs() {
 
 						client = (*target_itr)->client;
 
+						LuaSpell* conflictSpell = caster->HasLinkedTimerID(luaspell, group_member, false, true);
+						if(conflictSpell && group_member && group_member->IsEntity())
+						{
+							if(conflictSpell->spell->GetSpellData()->min_class_skill_req > 0 && spell->GetSpellData()->min_class_skill_req > 0)
+							{
+								if(conflictSpell->spell->GetSpellData()->min_class_skill_req <= spell->GetSpellData()->min_class_skill_req)
+								{
+									if(spell->GetSpellData()->duration_until_cancel && !luaspell->num_triggers)
+									{
+										for (int32 id : conflictSpell->GetTargets()) {
+											Spawn* tmpTarget = caster->GetZone()->GetSpawnByID(id);
+											if(tmpTarget && tmpTarget->IsEntity())
+											{
+												((Entity*)tmpTarget)->RemoveEffectsFromLuaSpell(conflictSpell);
+												caster->GetZone()->RemoveTargetFromSpell(conflictSpell, tmpTarget, false);
+												caster->GetZone()->GetSpellProcess()->CheckRemoveTargetFromSpell(conflictSpell);
+												lua_interface->RemoveSpawnFromSpell(conflictSpell, tmpTarget);
+											}
+										}
+									}
+								}
+								else
+								{
+									// this is a spell that is no good, have to abort!
+									caster->GetMaintainedMutex()->releasereadlock(__FUNCTION__, __LINE__);
+									caster->GetZone()->GetSpellProcess()->SpellCannotStack(caster->GetZone(), client, caster, luaspell, conflictSpell);
+									skipSpell = true;
+									break;
+								}
+							}
+						}
 						has_effect = false;
-
+						
 						if (group_member->GetSpellEffect(spell->GetSpellID(), caster)) {
 							has_effect = true;
 						}
@@ -1226,13 +1257,18 @@ void PlayerGroupManager::UpdateGroupBuffs() {
 								client->QueuePacket(packet);
 						}
 					}
-
-					luaspell->SwapTargets(new_target_list);
-					SpellProcess::AddSelfAndPet(luaspell, caster);
-					new_target_list.clear();
+					if(!skipSpell) {
+						luaspell->SwapTargets(new_target_list);
+						SpellProcess::AddSelfAndPet(luaspell, caster);
+						new_target_list.clear();
+					}
+					else
+						break;
 				}
 			}
-			caster->GetMaintainedMutex()->releasereadlock(__FUNCTION__, __LINE__);
+			
+			if(!skipSpell)
+				caster->GetMaintainedMutex()->releasereadlock(__FUNCTION__, __LINE__);
 		}
 	}
 }

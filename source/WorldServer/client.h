@@ -1,22 +1,23 @@
-/*
-	EQ2Emulator:  Everquest II Server Emulator
-	Copyright (C) 2007  EQ2EMulator Development Team (http://www.eq2emulator.net)
+/*  
+    EQ2Emulator:  Everquest II Server Emulator
+    Copyright (C) 2005 - 2026  EQ2EMulator Development Team (http://www.eq2emu.com formerly http://www.eq2emulator.net)
 
-	This file is part of EQ2Emulator.
+    This file is part of EQ2Emulator.
 
-	EQ2Emulator is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
+    EQ2Emulator is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-	EQ2Emulator is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
+    EQ2Emulator is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-	You should have received a copy of the GNU General Public License
-	along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
+    You should have received a copy of the GNU General Public License
+    along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 */
+
 #ifndef CLIENT_H
 #define CLIENT_H
 
@@ -77,7 +78,7 @@ struct QueuedQuest {
 
 struct BuyBackItem {
 	int32	item_id;
-	int32	unique_id;
+	int64	unique_id;
 	int16	quantity;
 	int32	price;
 	bool	save_needed;
@@ -340,6 +341,7 @@ public:
 	inline int32		GetAccountID() { return account_id; }
 	inline const char* GetAccountName() { return account_name; }
 	inline sint16		GetAdminStatus() { return admin_status; }
+	inline bool			IsGMStoreSearch() { return gm_store_search; }
 	inline int16		GetVersion() { return version; }
 	void SetNameCRC(int32 val) { name_crc = val; }
 	int32 GetNameCRC() { return name_crc; }
@@ -348,8 +350,8 @@ public:
 	void				SetVersion(int16 new_version) { version = new_version; }
 	void				SetAccountID(int32 in_accountid) { account_id = in_accountid; }
 	void				SetCharacterID(int32 in_characterid) { character_id = in_characterid; }
-	void				SetAdminStatus(sint16 in_status) { admin_status = in_status; }
-
+	void				SetAdminStatus(sint16 in_status) { admin_status = in_status; SetGMStoreSearch(false); }
+	void				SetGMStoreSearch(bool setting_val) { gm_store_search = setting_val; }
 
 	void	DetermineCharacterUpdates();
 
@@ -429,7 +431,7 @@ public:
 	void	BuyBack(int32 item_id, int16 quantity);
 	void	RepairItem(int32 item_id);
 	void	RepairAllItems();
-	void	AddBuyBack(int32 unique_id, int32 item_id, int16 quantity, int32 price, bool save_needed = true);
+	void	AddBuyBack(int64 unique_id, int32 item_id, int16 quantity, int32 price, bool save_needed = true);
 	deque<BuyBackItem*>* GetBuyBacks();
 	vector<Item*>* GetRepairableItems();
 	vector<Item*>* GetItemsByEffectType(ItemEffectType type, ItemEffectType secondary_effect = NO_EFFECT_TYPE);
@@ -452,9 +454,13 @@ public:
 	void	SendNewAdventureSpells();
 	void	SendNewTradeskillSpells();
 	string	GetCoinMessage(int32 total_coins);
-	void	SetItemSearch(vector<Item*>* items);
-	vector<Item*>* GetSearchItems();
+	void	SetItemSearch(vector<Item*>* items, map<string, string> values);
+	void	ClearItemSearch();
+	
 	void	SearchStore(int32 page);
+	void	SendSellerItemByItemUniqueId(int64 unique_id);
+	void	BuySellerItemByItemUniqueId(int64 unique_id, int16 quantity);
+	void	SetSellerStatus();
 	void	SetPlayer(Player* new_player);
 
 	void	AddPendingQuestAcceptReward(Quest* quest);
@@ -564,12 +570,20 @@ public:
 
 	Spawn* GetTempPlacementSpawn() { return tempPlacementSpawn; }
 
-	void SetPlacementUniqueItemID(int32 id) { placement_unique_item_id = id; }
-	int32 GetPlacementUniqueItemID() { return placement_unique_item_id; }
+	void SetPlacementUniqueItemID(int64 id) { placement_unique_item_id = id; }
+	int64 GetPlacementUniqueItemID() { return placement_unique_item_id; }
 
 	void SetHasOwnerOrEditAccess(bool val) { hasOwnerOrEditAccess = val; }
 	bool HasOwnerOrEditAccess() { return hasOwnerOrEditAccess; }
-
+	void RefreshVaultSlotCount();
+	void SendHouseSaleLog(std::string message, int64 coin_session, int64 coin_total, int8 flag);
+	void SetItemSaleStatus(int64 unique_id, bool status);
+	void OpenShopWindow(Spawn* interaction, bool sendAlways = false, int8 saleLogOnly = 0);
+	void SetShopWindowStatus(bool status) { shop_window_open = status; }
+	bool GetShopWindowStatus() { return shop_window_open; }// false for disabled , true for enabled
+	void SetItemSaleCost(int64 unique_id, int32 platinum, int32 gold, int32 silver, int32 copper);
+	void AddItemSale(int64 unique_id, int32 item_id, int64 price, int32 inv_slot_id, int16 slot_id, int16 count, bool inInventory, bool forSale, std::string itemCreator);
+	
 	bool HandleHouseEntityCommands(Spawn* spawn, int32 spawnid, string command);
 	// find an appropriate spawn to use for the house object, save spawn location/entry data to DB
 	bool PopulateHouseSpawn(PacketStruct* place_object);
@@ -725,6 +739,10 @@ public:
 	
 	void	SetLastTellName(std::string tellName) { last_tell_name = tellName; }
 	std::string GetLastTellName() { return last_tell_name; }
+	
+	void SetSearchPage(int32 page) { search_page = page; }
+	
+	void SendMerchantWindow(Spawn* spawn, bool sell);
 	DialogManager dialog_manager;
 private:
 	void	AddRecipeToPlayerPack(Recipe* recipe, PacketStruct* packet, int16* i);
@@ -745,6 +763,8 @@ private:
 	Mutex	MQuestQueue;
 	Mutex	MDeletePlayer;
 	vector<Item*>* search_items;
+	map<string, string> search_values;
+	int32 search_page;
 	int32 waypoint_id = 0;
 	map<string, WaypointInfo> waypoints;
 	int32	transport_spawn_id;
@@ -775,6 +795,7 @@ private:
 	int32	account_id;
 	int32	character_id;
 	sint16	admin_status; // -2 Banned, -1 Suspended, 0 User, etc.
+	bool	gm_store_search;
 	char	account_name[64];
 	char	zone_name[64];
 	int32	zoneID;
@@ -811,8 +832,9 @@ private:
 	float	zoning_y;
 	float	zoning_z;
 	float	zoning_h;
-	bool	firstlogin;
-
+	std::atomic<bool> firstlogin;
+	std::atomic<bool> firstlogin_transmit;
+	
 	enum 	NewLoginState { LOGIN_NONE, LOGIN_DELAYED, LOGIN_ALLOWED, LOGIN_INITIAL_LOAD, LOGIN_SEND };
 	NewLoginState	new_client_login; // 1 = delayed state, 2 = let client in
 	Timer	underworld_cooldown_timer;
@@ -857,7 +879,7 @@ private:
 	int32 delayedAccessKey;
 	Timer delayTimer;
 	Spawn* tempPlacementSpawn;
-	int32 placement_unique_item_id;
+	int64 placement_unique_item_id;
 	bool hasOwnerOrEditAccess;
 	bool hasSentTempPlacementSpawn;
 
@@ -891,6 +913,10 @@ private:
 	int recipe_orig_packet_size;
 	
 	std::string last_tell_name;
+	
+	mutable std::mutex item_search_mtx_;
+	std::atomic<bool> shop_window_open;
+	map<string, string> str_values;
 };
 
 class ClientList {

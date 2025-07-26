@@ -1,6 +1,6 @@
 /*  
     EQ2Emulator:  Everquest II Server Emulator
-    Copyright (C) 2005 - 2025  EQ2EMulator Development Team (http://www.eq2emu.com formerly http://www.eq2emulator.net)
+    Copyright (C) 2005 - 2026  EQ2EMulator Development Team (http://www.eq2emu.com formerly http://www.eq2emulator.net)
 
     This file is part of EQ2Emulator.
 
@@ -229,6 +229,7 @@ struct PlayerHouse {
 	int64 escrow_coins;
 	int32 escrow_status;
 	string player_name;
+	int32 character_id;
 	list<Deposit> deposits;
 	map<string, Deposit> depositsMap;
 	list<HouseHistory> history;
@@ -425,6 +426,7 @@ public:
 	std::string zoneDescription;
 	std::string zoneMotd;
 	std::string zoneSkyFile;
+	std::string zoneLuaScript;
 	float underworld;
 	float safeX, safeY, safeZ, safeHeading;
 	int16 minimumLevel, maximumLevel, minimumVersion;
@@ -738,6 +740,10 @@ public:
 	static void Web_worldhandle_setguildeventfilter(const http::request<http::string_body>& req, http::response<http::string_body>& res);
 	static void Web_worldhandle_peerstatus(const http::request<http::string_body>& req, http::response<http::string_body>& res);
 	static void Web_worldhandle_activequery(const http::request<http::string_body>& req, http::response<http::string_body>& res);
+	static void Web_worldhandle_addseller(const http::request<http::string_body>& req, http::response<http::string_body>& res);
+	static void Web_worldhandle_removeseller(const http::request<http::string_body>& req, http::response<http::string_body>& res);
+	static void Web_worldhandle_additemsale(const http::request<http::string_body>& req, http::response<http::string_body>& res);
+	static void Web_worldhandle_removeitemsale(const http::request<http::string_body>& req, http::response<http::string_body>& res);
 	
 	static void Web_populate_status(boost::property_tree::ptree& pt);
 	

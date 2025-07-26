@@ -1,6 +1,6 @@
 /*  
     EQ2Emulator:  Everquest II Server Emulator
-    Copyright (C) 2007  EQ2EMulator Development Team (http://www.eq2emulator.net)
+    Copyright (C) 2005 - 2026  EQ2EMulator Development Team (http://www.eq2emu.com formerly http://www.eq2emulator.net)
 
     This file is part of EQ2Emulator.
 
@@ -271,13 +271,13 @@ void Brain::AddHate(Entity* entity, sint32 hate) {
 	}
 }
 
-void Brain::ClearHate() {
+void Brain::ClearHate(bool lockSpawnList) {
 	// Lock the hate list, we are altering the list so use a write lock
 	MHateList.writelock(__FUNCTION__, __LINE__);
 
 	map<int32, sint32>::iterator itr;
 	for (itr = m_hatelist.begin(); itr != m_hatelist.end(); itr++) {
-		Spawn* spawn = m_body->GetZone()->GetSpawnByID(itr->first);
+		Spawn* spawn = m_body->GetZone()->GetSpawnByID(itr->first, lockSpawnList);
 		if (spawn && spawn->IsEntity())
 		{
 			((Entity*)spawn)->MHatedBy.lock();

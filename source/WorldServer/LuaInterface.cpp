@@ -1,6 +1,6 @@
 /*  
     EQ2Emulator:  Everquest II Server Emulator
-    Copyright (C) 2005 - 2025  EQ2EMulator Development Team (http://www.eq2emu.com formerly http://www.eq2emulator.net)
+    Copyright (C) 2005 - 2026  EQ2EMulator Development Team (http://www.eq2emu.com formerly http://www.eq2emulator.net)
 
     This file is part of EQ2Emulator.
 
@@ -1824,6 +1824,14 @@ void LuaInterface::RegisterFunctions(lua_State* state) {
 	
 	lua_register(state,"GetSpellRequiredLevel", EQ2Emu_lua_GetSpellRequiredLevel);
 	lua_register(state,"GetExpRequiredByLevel", EQ2Emu_lua_GetExpRequiredByLevel);
+	
+	lua_register(state,"ShowShopWindow", EQ2Emu_lua_ShowShopWindow);
+	lua_register(state,"SetSpawnHouseScript", EQ2Emu_lua_SetSpawnHouseScript);
+	lua_register(state,"SendBook", EQ2Emu_lua_SendBook);
+	lua_register(state,"GetPickupItemID", EQ2Emu_lua_GetPickupItemID);
+	lua_register(state,"SetHouseCharacterID", EQ2Emu_lua_SetHouseCharacterID);
+	lua_register(state,"GetHouseCharacterID", EQ2Emu_lua_GetHouseCharacterID);
+	lua_register(state,"ShowHouseShopMerchant", EQ2Emu_lua_ShowHouseShopMerchant);
 }
 
 void LuaInterface::LogError(const char* error, ...)  {

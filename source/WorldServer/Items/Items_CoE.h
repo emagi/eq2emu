@@ -1,6 +1,6 @@
 /*  
     EQ2Emulator:  Everquest II Server Emulator
-    Copyright (C) 2007  EQ2EMulator Development Team (http://www.eq2emulator.net)
+    Copyright (C) 2005 - 2026  EQ2EMulator Development Team (http://www.eq2emu.com formerly http://www.eq2emulator.net)
 
     This file is part of EQ2Emulator.
 
@@ -17,6 +17,7 @@
     You should have received a copy of the GNU General Public License
     along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 */
+
 #ifndef __EQ2_ITEMS__
 #define __EQ2_ITEMS__
 #include <map>
@@ -730,9 +731,7 @@ public:
 	void AddItem(Item* item);
 	bool IsBag(int32 item_id);
 	void RemoveAll();
-	static int32 NextUniqueID();
-	static void ResetUniqueID(int32 new_id);
-	static int32 next_unique_id;
+	static int64 NextUniqueID();
 };
 class PlayerItemList {
 public:

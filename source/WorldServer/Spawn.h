@@ -1,6 +1,6 @@
 /*  
     EQ2Emulator:  Everquest II Server Emulator
-    Copyright (C) 2007  EQ2EMulator Development Team (http://www.eq2emulator.net)
+    Copyright (C) 2005 - 2026  EQ2EMulator Development Team (http://www.eq2emu.com formerly http://www.eq2emulator.net)
 
     This file is part of EQ2Emulator.
 
@@ -17,6 +17,7 @@
     You should have received a copy of the GNU General Public License
     along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 */
+
 #ifndef __EQ2_SPAWN__
 #define __EQ2_SPAWN__
 
@@ -1089,8 +1090,9 @@ public:
 	bool			HasProvidedQuests(){
 		return (quest_ids.size() > 0);
 	}
-	void	SetSpawnScript(string name);
+	void	SetSpawnScript(string name, bool db_set = false);
 	const char*	GetSpawnScript();
+	bool GetSpawnScriptSetDB() { return spawn_script_setdb; }
 
 	vector<Spawn*>* GetSpawnGroup();
 	bool	HasSpawnGroup();
@@ -1321,9 +1323,15 @@ public:
 	{
 		pickup_unique_item_id = uniqueid;
 	}
+	
+	void	SetHouseCharacterID(int32 charid)
+	{
+		house_character_id = charid;
+	}
 
 	int32	GetPickupItemID() { return pickup_item_id; }
 	int32	GetPickupUniqueItemID() { return pickup_unique_item_id; }
+	int32	GetHouseCharacterID() { return house_character_id; }
 
 	bool	IsSoundsDisabled() { return disable_sounds; }
 	void	SetSoundsDisabled(bool val) { disable_sounds = val; }
@@ -1468,6 +1476,7 @@ protected:
 	int32			transporter_id;
 	int32			pickup_item_id;
 	int32			pickup_unique_item_id;
+	int32			house_character_id;
 	map<int32, vector<int16>* > required_quests;
 	map<int32, LUAHistory*> required_history;
 
@@ -1506,6 +1515,7 @@ private:
 	int				tmp_action_state;
 	int32			running_to;
 	string			spawn_script;
+	bool			spawn_script_setdb;
 	static int32	next_id;
 	ZoneServer*		zone;
 	int32			spawn_location_id;

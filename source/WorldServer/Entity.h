@@ -1,6 +1,6 @@
 /*  
     EQ2Emulator:  Everquest II Server Emulator
-    Copyright (C) 2005 - 2025  EQ2EMulator Development Team (http://www.eq2emu.com formerly http://www.eq2emulator.net)
+    Copyright (C) 2005 - 2026  EQ2EMulator Development Team (http://www.eq2emu.com formerly http://www.eq2emulator.net)
 
     This file is part of EQ2Emulator.
 
@@ -1496,8 +1496,8 @@ public:
 	SpellEffects* GetFreeSpellEffectSlot();
 	SpellEffects* GetSpellEffect(int32 id, Entity* caster = 0, bool on_char_load = false);
 	SpellEffects* GetSpellEffectBySpellType(int8 spell_type);
-	SpellEffects* GetSpellEffectWithLinkedTimer(int32 id, int32 linked_timer = 0, sint32 type_group_spell_id = 0, Entity* caster = 0);
-	LuaSpell* HasLinkedTimerID(LuaSpell* spell, Spawn* target = nullptr,  bool stackWithOtherPlayers = true);
+	SpellEffects* GetSpellEffectWithLinkedTimer(int32 id, int32 linked_timer = 0, sint32 type_group_spell_id = 0, Entity* caster = 0, bool notCaster = false);
+	LuaSpell* HasLinkedTimerID(LuaSpell* spell, Spawn* target = nullptr,  bool stackWithOtherPlayers = true, bool checkNotCaster = false);
 
 	//flags
 	int32 GetFlags() { return info_struct.get_flags(); }

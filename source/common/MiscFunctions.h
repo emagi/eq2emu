@@ -27,6 +27,9 @@
 #include <vector>
 #include <map>
 #include <tuple>
+#include <string>
+#include <sstream>
+#include <cstdint>
 
 #ifndef ERRBUF_SIZE
 #define ERRBUF_SIZE		1024
@@ -121,6 +124,44 @@ static bool IsPrivateAddress(uint32_t ip)
 
     return false;
 }
+
+static std::string FormatCoinReceiveMessage(int64 total_copper, const std::string& reason) {
+	// breakdown into denominations
+	int64 platinum = total_copper / 1'000'000;
+	int64 rem = total_copper % 1'000'000;
+	int64 gold = rem / 10'000;
+	rem %= 10'000;
+	int64 silver = rem / 100;
+	int64 copper = rem % 100;
+
+	std::ostringstream oss;
+	oss << "You received ";
+
+	bool first = true;
+	if (platinum > 0) {
+		oss << platinum << " platinum";
+		first = false;
+	}
+	if (gold > 0) {
+		if (!first) oss << ", ";
+		oss << gold << " gold";
+		first = false;
+	}
+	if (silver > 0) {
+		if (!first) oss << ", ";
+		oss << silver << " silver";
+		first = false;
+	}
+	// if nothing else or there's copper, show copper
+	if (copper > 0 || first) {
+		if (!first) oss << ", ";
+		oss << copper << " copper";
+	}
+
+	oss << " earned through " << reason;
+	return oss.str();
+}
+	
 
 template<class Type> void AddData(Type input, string* datastring){
 	if(datastring)

@@ -1,6 +1,6 @@
-/* 
+/*  
     EQ2Emulator:  Everquest II Server Emulator
-    Copyright (C) 2007  EQ2EMulator Development Team (http://www.eq2emulator.net)
+    Copyright (C) 2005 - 2026  EQ2EMulator Development Team (http://www.eq2emu.com formerly http://www.eq2emulator.net)
 
     This file is part of EQ2Emulator.
 
@@ -17,6 +17,7 @@
     You should have received a copy of the GNU General Public License
     along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 */
+
 #ifndef ZONESERVER_H
 #define ZONESERVER_H
 
@@ -170,7 +171,7 @@ struct TrackedSpawn {
 struct HouseItem {
 	int32 spawn_id;
 	int32 item_id;
-	int32 unique_id;
+	int64 unique_id;
 	Item* item;
 };
 
@@ -700,8 +701,6 @@ public:
 	vector<HouseItem> GetHouseItems(Client* client);
 	Spawn* GetSpawnFromUniqueItemID(int32 unique_id);
 	void SendHouseItems(Client* client);
-
-	MutexMap<int32, int32>							house_object_database_lookup;						// 1st int32 = model type, 2nd int32 = spawn id
 
 	int32 GetWatchdogTime() { return watchdogTimestamp; }
 	void SetWatchdogTime(int32 time) { watchdogTimestamp = time; }

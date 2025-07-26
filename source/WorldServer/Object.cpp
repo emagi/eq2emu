@@ -1,6 +1,6 @@
 /*  
     EQ2Emulator:  Everquest II Server Emulator
-    Copyright (C) 2007  EQ2EMulator Development Team (http://www.eq2emulator.net)
+    Copyright (C) 2005 - 2026  EQ2EMulator Development Team (http://www.eq2emu.com formerly http://www.eq2emulator.net)
 
     This file is part of EQ2Emulator.
 
@@ -17,6 +17,7 @@
     You should have received a copy of the GNU General Public License
     along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 */
+
 #include "World.h"
 #include "Object.h"
 #include "Spells.h"
@@ -95,5 +96,7 @@ Object*	Object::Copy(){
 	new_spawn->SetOmittedByDBFlag(IsOmittedByDBFlag());
 	new_spawn->SetLootTier(GetLootTier());
 	new_spawn->SetLootDropType(GetLootDropType());
+	if(GetSpawnScriptSetDB() && GetSpawnScript())
+		new_spawn->SetSpawnScript(std::string(GetSpawnScript()));
 	return new_spawn;
 }

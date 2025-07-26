@@ -1,6 +1,6 @@
-/*
+/*  
     EQ2Emulator:  Everquest II Server Emulator
-    Copyright (C) 2007  EQ2EMulator Development Team (http://www.eq2emulator.net)
+    Copyright (C) 2005 - 2026  EQ2EMulator Development Team (http://www.eq2emu.com formerly http://www.eq2emulator.net)
 
     This file is part of EQ2Emulator.
 
@@ -17,6 +17,7 @@
     You should have received a copy of the GNU General Public License
     along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 */
+
 #include <assert.h>
 #include "../../common/debug.h"
 #include "../../common/Log.h"
@@ -734,7 +735,12 @@ bool Recipe::PlayerHasComponentByItemID(Client* client, vector<Item*>* player_co
 				cur_qty = track_req_qty;
 			
 			track_req_qty -= cur_qty;
-			itemss[i]->details.item_locked = true;
+			if(!itemss[i]->TryLockItem(LockReason::LockReason_Crafting)) {
+				for (int8 s = 0; s < i; s++) {
+					itemss[i]->TryUnlockItem(LockReason::LockReason_Crafting);
+				}
+				return false;
+			}
 			player_component_pair_qty->push_back({itemss[i]->details.unique_id, cur_qty});
 			player_components->push_back(itemss[i]);
 			if(have_qty >= required_qty)

@@ -31,6 +31,7 @@ using namespace std;
 #include "Commands/Commands.h"
 #include "Zone/pathfinder_interface.h"
 #include "NPC_AI.h"
+#include "Broker/BrokerManager.h"
 
 #ifdef WIN32
 #include <WinSock2.h>
@@ -116,7 +117,7 @@ extern Chat chat;
 extern MasterRaceTypeList race_types_list;
 extern MasterSpellList master_spell_list;		// temp - remove later
 extern MasterSkillList master_skill_list;
-
+extern BrokerManager broker;
 
 int32 MinInstanceID = 1000;
 
@@ -1641,9 +1642,30 @@ bool ZoneServer::Process()
 				LogWrite(WIDGET__INFO, 0, "Widget", "-Loading Widget data...");
 				database.LoadWidgets(this);
 				LogWrite(WIDGET__INFO, 0, "Widget", "-Load Widget data complete!");
-
+				
 				LogWrite(GROUNDSPAWN__INFO, 0, "GSpawn", "-Loading Groundspawn data...");
 				database.LoadGroundSpawns(this);
+				LogWrite(GROUNDSPAWN__INFO, 0, "GSpawn", "-Load Groundspawn data complete!");
+				
+				if(GetInstanceType() == Instance_Type::PERSONAL_HOUSE_INSTANCE) {
+					LogWrite(NPC__INFO, 0, "NPC", "-Loading House NPC data...");
+					database.LoadNPCs(this, true);
+					LogWrite(NPC__INFO, 0, "NPC", "-Load House NPC data complete!");
+
+					LogWrite(OBJECT__INFO, 0, "Object", "-Loading House Object data...");
+					database.LoadObjects(this, true);
+					LogWrite(OBJECT__INFO, 0, "Object", "-Load House Object data complete!");
+
+					LogWrite(SIGN__INFO, 0, "Sign", "-Loading House Sign data...");
+					database.LoadSigns(this, true);
+					LogWrite(SIGN__INFO, 0, "Sign", "-Load House Sign data complete!");
+
+					LogWrite(GROUNDSPAWN__INFO, 0, "GSpawn", "-Loading House Groundspawn data...");
+					database.LoadGroundSpawns(this, true);
+					LogWrite(GROUNDSPAWN__INFO, 0, "GSpawn", "-Load House Groundspawn data complete!");
+				}
+
+				LogWrite(GROUNDSPAWN__INFO, 0, "GSpawn", "-Load Groundspawn entries...");
 				database.LoadGroundSpawnEntries(this);
 				LogWrite(GROUNDSPAWN__INFO, 0, "GSpawn", "-Load Groundspawn data complete!");
 
@@ -2542,23 +2564,25 @@ Spawn* ZoneServer::ProcessSpawnLocation(SpawnLocation* spawnlocation, map<int32,
 		
 		int32 spawnTime = 1;
 		
-		if(spawnlocation->entities[i]->spawn_type == SPAWN_ENTRY_TYPE_NPC)
-			spawnTime = database.CheckSpawnRemoveInfo(instNPCs,spawnlocation->entities[i]->spawn_location_id);
-		else if(spawnlocation->entities[i]->spawn_type == SPAWN_ENTRY_TYPE_OBJECT)
-			spawnTime = database.CheckSpawnRemoveInfo(instObjSpawns,spawnlocation->entities[i]->spawn_location_id);
-		else if(spawnlocation->entities[i]->spawn_type == SPAWN_ENTRY_TYPE_WIDGET)
-			spawnTime = database.CheckSpawnRemoveInfo(instWidgetSpawns,spawnlocation->entities[i]->spawn_location_id);
-		else if(spawnlocation->entities[i]->spawn_type == SPAWN_ENTRY_TYPE_SIGN)
-			spawnTime = database.CheckSpawnRemoveInfo(instSignSpawns,spawnlocation->entities[i]->spawn_location_id);
-		else if(spawnlocation->entities[i]->spawn_type == SPAWN_ENTRY_TYPE_GROUNDSPAWN)
-			spawnTime = database.CheckSpawnRemoveInfo(instGroundSpawns,spawnlocation->entities[i]->spawn_location_id);
-		
-		if(spawnTime == 0) { // don't respawn
-			return nullptr;
-		}
-		else if(spawnTime > 1) { // if not 1, respawn after time
-			AddRespawn(spawnlocation->entities[i]->spawn_location_id, spawnTime);
-			return nullptr;
+		if(GetInstanceType() != PERSONAL_HOUSE_INSTANCE) {
+			if(spawnlocation->entities[i]->spawn_type == SPAWN_ENTRY_TYPE_NPC)
+				spawnTime = database.CheckSpawnRemoveInfo(instNPCs,spawnlocation->entities[i]->spawn_location_id);
+			else if(spawnlocation->entities[i]->spawn_type == SPAWN_ENTRY_TYPE_OBJECT)
+				spawnTime = database.CheckSpawnRemoveInfo(instObjSpawns,spawnlocation->entities[i]->spawn_location_id);
+			else if(spawnlocation->entities[i]->spawn_type == SPAWN_ENTRY_TYPE_WIDGET)
+				spawnTime = database.CheckSpawnRemoveInfo(instWidgetSpawns,spawnlocation->entities[i]->spawn_location_id);
+			else if(spawnlocation->entities[i]->spawn_type == SPAWN_ENTRY_TYPE_SIGN)
+				spawnTime = database.CheckSpawnRemoveInfo(instSignSpawns,spawnlocation->entities[i]->spawn_location_id);
+			else if(spawnlocation->entities[i]->spawn_type == SPAWN_ENTRY_TYPE_GROUNDSPAWN)
+				spawnTime = database.CheckSpawnRemoveInfo(instGroundSpawns,spawnlocation->entities[i]->spawn_location_id);
+			
+			if(spawnTime == 0) { // don't respawn
+				return nullptr;
+			}
+			else if(spawnTime > 1) { // if not 1, respawn after time
+				AddRespawn(spawnlocation->entities[i]->spawn_location_id, spawnTime);
+				return nullptr;
+			}
 		}
 		
 		if (spawnlocation->conditional > 0) {
@@ -2642,19 +2666,19 @@ Spawn* ZoneServer::ProcessInstanceSpawnLocation(SpawnLocation* spawnlocation, ma
 		if(spawnlocation->entities[i]->spawn_percentage >= rand_number)
 		{
 			if(spawnlocation->entities[i]->spawn_type == SPAWN_ENTRY_TYPE_NPC && 
-				(spawnTime = database.CheckSpawnRemoveInfo(instNPCs,spawnlocation->entities[i]->spawn_location_id)) > 0)
+				(GetInstanceType() == PERSONAL_HOUSE_INSTANCE || (spawnTime = database.CheckSpawnRemoveInfo(instNPCs,spawnlocation->entities[i]->spawn_location_id)) > 0))
 				spawn = AddNPCSpawn(spawnlocation, spawnlocation->entities[i]);
 			else if(spawnlocation->entities[i]->spawn_type == SPAWN_ENTRY_TYPE_GROUNDSPAWN && 
-				(spawnTime = database.CheckSpawnRemoveInfo(instGroundSpawns,spawnlocation->entities[i]->spawn_location_id)) > 0)
+				(GetInstanceType() == PERSONAL_HOUSE_INSTANCE || (spawnTime = database.CheckSpawnRemoveInfo(instGroundSpawns,spawnlocation->entities[i]->spawn_location_id)) > 0))
 				spawn = AddGroundSpawn(spawnlocation, spawnlocation->entities[i]);
 			else if(spawnlocation->entities[i]->spawn_type == SPAWN_ENTRY_TYPE_OBJECT && 
-				(spawnTime = database.CheckSpawnRemoveInfo(instObjSpawns,spawnlocation->entities[i]->spawn_location_id)) > 0)
+				(GetInstanceType() == PERSONAL_HOUSE_INSTANCE || (spawnTime = database.CheckSpawnRemoveInfo(instObjSpawns,spawnlocation->entities[i]->spawn_location_id)) > 0))
 				spawn = AddObjectSpawn(spawnlocation, spawnlocation->entities[i]);
 			else if(spawnlocation->entities[i]->spawn_type == SPAWN_ENTRY_TYPE_WIDGET && 
-				(spawnTime = database.CheckSpawnRemoveInfo(instWidgetSpawns,spawnlocation->entities[i]->spawn_location_id)) > 0)
+				(GetInstanceType() == PERSONAL_HOUSE_INSTANCE || (spawnTime = database.CheckSpawnRemoveInfo(instWidgetSpawns,spawnlocation->entities[i]->spawn_location_id)) > 0))
 				spawn = AddWidgetSpawn(spawnlocation, spawnlocation->entities[i]);
 			else if(spawnlocation->entities[i]->spawn_type == SPAWN_ENTRY_TYPE_SIGN && 
-				(spawnTime = database.CheckSpawnRemoveInfo(instSignSpawns,spawnlocation->entities[i]->spawn_location_id)) > 0)
+				(GetInstanceType() == PERSONAL_HOUSE_INSTANCE || (spawnTime = database.CheckSpawnRemoveInfo(instSignSpawns,spawnlocation->entities[i]->spawn_location_id)) > 0))
 				spawn = AddSignSpawn(spawnlocation, spawnlocation->entities[i]);
 
 			if(spawn && spawn->IsOmittedByDBFlag())
@@ -2669,26 +2693,28 @@ Spawn* ZoneServer::ProcessInstanceSpawnLocation(SpawnLocation* spawnlocation, ma
 				database.GetHouseSpawnInstanceData(this, spawn);
 
 			const char* script = 0;
-
-			for(int x=0;x<3;x++)
-			{
-				switch(x)
+			
+			if(spawn && !spawn->GetSpawnScript()) {
+				for(int x=0;x<3;x++)
 				{
-					case 0:
-						script = world.GetSpawnEntryScript(spawnlocation->entities[i]->spawn_entry_id);
-						break;
-					case 1:
-						script = world.GetSpawnLocationScript(spawnlocation->entities[i]->spawn_location_id);
-						break;
-					case 2:
-						script = world.GetSpawnScript(spawnlocation->entities[i]->spawn_id);
-						break;
-				}
+					switch(x)
+					{
+						case 0:
+							script = world.GetSpawnEntryScript(spawnlocation->entities[i]->spawn_entry_id);
+							break;
+						case 1:
+							script = world.GetSpawnLocationScript(spawnlocation->entities[i]->spawn_location_id);
+							break;
+						case 2:
+							script = world.GetSpawnScript(spawnlocation->entities[i]->spawn_id);
+							break;
+					}
 
-				if(spawn && script && lua_interface->GetSpawnScript(script) != 0)
-				{
-					spawn->SetSpawnScript(string(script));
-					break;
+					if(script && lua_interface->GetSpawnScript(script) != 0)
+					{
+						spawn->SetSpawnScript(string(script));
+						break;
+					}
 				}
 			}
 
@@ -3610,7 +3636,10 @@ void ZoneServer::RemoveClient(Client* client)
 
 	bool dismissPets = false;
 	if(client)
-	{			
+	{
+		if(client->GetPlayer() && client->GetPlayer()->GetCharacterID())
+			broker.AddSeller(client->GetPlayer()->GetCharacterID(), std::string(client->GetPlayer()->GetName()), client->GetPlayer()->GetPlayerInfo()->GetHouseZoneID(), true, false);
+
 		if (client->GetPlayer()) 
 			client_list.RemovePlayerFromInvisHistory(client->GetPlayer()->GetID());
 
@@ -3705,6 +3734,8 @@ void ZoneServer::RemoveClientImmediately(Client* client) {
 
 	if(client) 
 	{
+		if(client->GetPlayer() && client->GetPlayer()->GetCharacterID())
+			broker.AddSeller(client->GetPlayer()->GetCharacterID(), std::string(client->GetPlayer()->GetName()), client->GetPlayer()->GetPlayerInfo()->GetHouseZoneID(), true, false);
 		if(client->GetPlayer()) {
 			if((client->GetPlayer()->GetActivityStatus() & ACTIVITY_STATUS_LINKDEAD) > 0) {
 				client->GetPlayer()->SetActivityStatus(client->GetPlayer()->GetActivityStatus() - ACTIVITY_STATUS_LINKDEAD);
@@ -5421,7 +5452,7 @@ void ZoneServer::KillSpawn(bool spawnListLocked, Spawn* dead, Spawn* killer, boo
 		spellProcess->RemoveSpellFromQueue((Player*)dead, true);
 
 	if (dead->IsNPC())
-		((NPC*)dead)->Brain()->ClearHate();
+		((NPC*)dead)->Brain()->ClearHate(!spawnListLocked);
 
 	safe_delete(encounter);
 	
@@ -5729,9 +5760,13 @@ void ZoneServer::SendInterruptPacket(Spawn* interrupted, LuaSpell* spell, bool f
 		packet = configReader.getStruct(fizzle ? "WS_SpellFizzle" : "WS_Interrupt", client->GetVersion());
 		if(packet){
 			packet->setDataByName("spawn_id", client->GetPlayer()->GetIDWithPlayerSpawn(interrupted));
-			packet->setArrayLengthByName("num_targets", spell->targets.size());
-			for (int32 i = 0; i < spell->targets.size(); i++)
-				packet->setArrayDataByName("target_id", client->GetPlayer()->GetIDWithPlayerSpawn(client->GetPlayer()->GetZone()->GetSpawnByID(spell->targets[i])), i);
+			std::vector<int32> targets = spell->GetTargets(); // snapshot under lock
+			int i = 0;
+			packet->setArrayLengthByName("num_targets", targets.size());
+			for (int32 id : targets) {
+				packet->setArrayDataByName("target_id", client->GetPlayer()->GetIDWithPlayerSpawn(client->GetPlayer()->GetZone()->GetSpawnByID(id)), i);
+				i++;
+			}
 			packet->setDataByName("spell_id", spell->spell->GetSpellID());
 			outapp = packet->serialize();
 			client->QueuePacket(outapp);
@@ -5772,15 +5807,18 @@ void ZoneServer::SendCastSpellPacket(LuaSpell* spell, Entity* caster, int32 spel
 			}
 			
 			packet->setDataByName("spawn_id", caster_id);
-			packet->setArrayLengthByName("num_targets", spell->targets.size());
-			for (int32 i = 0; i < spell->targets.size(); i++) {
-				int32 target_id = client->GetPlayer()->GetIDWithPlayerSpawn(spell->caster->GetZone()->GetSpawnByID(spell->targets[i]));
+			std::vector<int32> targets = spell->GetTargets(); // snapshot under lock
+			int i = 0;
+			packet->setArrayLengthByName("num_targets", targets.size());
+			for (int32 id : targets) {
+				int32 target_id = client->GetPlayer()->GetIDWithPlayerSpawn(spell->caster->GetZone()->GetSpawnByID(id));
 				if(target_id) {
 					packet->setArrayDataByName("target", target_id, i);
 				}
 				else {
 					packet->setArrayDataByName("target", 0xFFFFFFFF, i);
 				}
+				i++;
 			}
 			
 			int32 visual_to_use = spell_visual_override > 0 ? spell_visual_override : spell->spell->GetSpellData()->spell_visual;
@@ -8989,25 +9027,27 @@ void ZoneServer::SetSpawnScript(SpawnEntry* entry, Spawn* spawn)
 
 	const char* script = 0;
 
-	for (int x = 0; x < 3; x++)
-	{
-		switch (x)
+	if(spawn && !spawn->GetSpawnScript()) {
+		for (int x = 0; x < 3; x++)
 		{
-		case 0:
-			script = world.GetSpawnEntryScript(entry->spawn_entry_id);
-			break;
-		case 1:
-			script = world.GetSpawnLocationScript(entry->spawn_location_id);
-			break;
-		case 2:
-			script = world.GetSpawnScript(entry->spawn_id);
-			break;
-		}
+			switch (x)
+			{
+			case 0:
+				script = world.GetSpawnEntryScript(entry->spawn_entry_id);
+				break;
+			case 1:
+				script = world.GetSpawnLocationScript(entry->spawn_location_id);
+				break;
+			case 2:
+				script = world.GetSpawnScript(entry->spawn_id);
+				break;
+			}
 
-		if (script && lua_interface && lua_interface->GetSpawnScript(script) != 0)
-		{
-			spawn->SetSpawnScript(string(script));
-			break;
+			if (script && lua_interface && lua_interface->GetSpawnScript(script) != 0)
+			{
+				spawn->SetSpawnScript(string(script));
+				break;
+			}
 		}
 	}
 }
@@ -9252,6 +9292,8 @@ void ZoneServer::RemoveClientsFromZone(ZoneServer* zone) {
 	MClientList.readlock(__FUNCTION__, __LINE__);
 	for (itr = clients.begin(); itr != clients.end(); itr++) {
 		Client* client = *itr;
+		if(client->GetPlayer() && client->GetPlayer()->GetCharacterID())
+			broker.AddSeller(client->GetPlayer()->GetCharacterID(), std::string(client->GetPlayer()->GetName()), client->GetPlayer()->GetPlayerInfo()->GetHouseZoneID(), true, false);
 		if(client->GetCurrentZone() == zone) {
 			client->SetCurrentZone(nullptr);
 		}
@@ -9265,7 +9307,7 @@ void ZoneServer::RemoveClientsFromZone(ZoneServer* zone) {
 void ZoneServer::SendSubSpawnUpdates(SUBSPAWN_TYPES subtype) {
 	std::map<int32, Spawn*>::iterator subitr;
 	MSpawnList.readlock(__FUNCTION__, __LINE__);
-	for(subitr = subspawn_list[subtype].begin(); subitr !=  subspawn_list[subtype].end(); subitr++) {
+	for(subitr = subspawn_list[subtype].begin(); subitr != subspawn_list[subtype].end(); subitr++) {
 		subitr->second->changed = true;
 		subitr->second->info_changed = true;
 		AddChangedSpawn(subitr->second);

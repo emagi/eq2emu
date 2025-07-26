@@ -1,6 +1,6 @@
 /*  
     EQ2Emulator:  Everquest II Server Emulator
-    Copyright (C) 2005 - 2025  EQ2EMulator Development Team (http://www.eq2emu.com formerly http://www.eq2emulator.net)
+    Copyright (C) 2005 - 2026  EQ2EMulator Development Team (http://www.eq2emu.com formerly http://www.eq2emulator.net)
 
     This file is part of EQ2Emulator.
 
@@ -137,6 +137,7 @@ Player::Player(){
 	active_drink_unique_id = 0;
 	raidsheet_changed = false;
 	hassent_raid = false;
+	house_vault_slots = 0;
 }
 Player::~Player(){
 	SetSaveSpellEffects(true);
@@ -953,7 +954,7 @@ EQ2Packet* PlayerInfo::serialize(int16 version, int16 modifyPos, int32 modifyVal
 		packet->setDataByName("rain2", info_struct->get_wind()); //-102.24);
 		packet->setDataByName("status_points", info_struct->get_status_points());
 		packet->setDataByName("guild_status", 888888);
-
+		packet->setDataByName("vault_slots", player->GetHouseVaultSlots());
 		if (house_zone_id > 0){
 			string house_name = database.GetZoneName(house_zone_id);
 			if(house_name.length() > 0)
@@ -1484,7 +1485,7 @@ vector<EQ2Packet*>	Player::UnequipItem(int16 index, sint32 bag_id, int8 slot, in
 			SetCharSheetChanged(true);
 			SetEquipment(0, equip_slot_id ? equip_slot_id : old_slot);
 		}
-		else if (item_list.AssignItemToFreeSlot(item)) {
+		else if (item_list.AssignItemToFreeSlot(item, true)) {
 			if(appearance_type)
 				database.DeleteItem(GetCharacterID(), item, "APPEARANCE");
 			else
@@ -1645,8 +1646,8 @@ vector<EQ2Packet*>	Player::UnequipItem(int16 index, sint32 bag_id, int8 slot, in
 			}
 		}
 		else {
-			if ((bag_id == 0 && slot < NUM_INV_SLOTS) || (bag_id == -3 && slot < NUM_BANK_SLOTS) || (bag_id == -4 && slot < NUM_SHARED_BANK_SLOTS)) {
-				if (bag_id == -4 && item->CheckFlag(NO_TRADE)) {
+			if ((bag_id == 0 && slot < NUM_INV_SLOTS) || (bag_id == InventorySlotType::BANK && slot < NUM_BANK_SLOTS) || (bag_id == InventorySlotType::SHARED_BANK && slot < NUM_SHARED_BANK_SLOTS) || (bag_id == InventorySlotType::HOUSE_VAULT && slot < GetHouseVaultSlots())) {
+				if ((bag_id == InventorySlotType::SHARED_BANK || bag_id == InventorySlotType::HOUSE_VAULT) && !item_list.SharedBankAddAllowed(item)) {
 					PacketStruct* packet = configReader.getStruct("WS_DisplayText", version);
 					if (packet) {
 						packet->setDataByName("color", CHANNEL_COLOR_YELLOW);
@@ -2018,7 +2019,7 @@ vector<EQ2Packet*> Player::EquipItem(int16 index, int16 version, int8 appearance
 			const char* zone_script = world.GetZoneScript(GetZone()->GetZoneID());
 			if (zone_script && lua_interface)
 				lua_interface->RunZoneScript(zone_script, "item_equipped", GetZone(), this, item->details.item_id, item->name.c_str(), 0, item->details.unique_id);
-			int32 bag_id = item->details.inv_slot_id;
+			sint32 bag_id = item->details.inv_slot_id;
 			if (item->generic_info.condition == 0) {
 				Client* client = GetClient();
 				if (client) {
@@ -2108,7 +2109,7 @@ bool Player::AddItem(Item* item, AddItemType type) {
 			safe_delete(item);
 			return false;
 		}
-		else if (item_list.AssignItemToFreeSlot(item)) {
+		else if (item_list.AssignItemToFreeSlot(item, true)) {
 			item->save_needed = true;
 			CalculateApplyWeight();
 			return true;
@@ -2160,7 +2161,7 @@ void Player::UpdateInventory(int32 bag_id) {
 EQ2Packet* Player::MoveInventoryItem(sint32 to_bag_id, int16 from_index, int8 new_slot, int8 charges, int8 appearance_type, bool* item_deleted, int16 version) {
 
 	Item* item = item_list.GetItemFromIndex(from_index);
-	bool isOverflow = ((item != nullptr) && (item->details.inv_slot_id == -2));
+	bool isOverflow = ((item != nullptr) && (item->details.inv_slot_id == InventorySlotType::OVERFLOW));
 	int8 result = item_list.MoveItem(to_bag_id, from_index, new_slot, appearance_type, charges);
 	if (result == 1) {
 		if(isOverflow && item->details.inv_slot_id != -2) {
@@ -3433,6 +3434,11 @@ void Player::SetResurrecting(bool val){
 void Player::AddMaintainedSpell(LuaSpell* luaspell){
 	if(!luaspell)
 		return;
+
+	if(luaspell->spell->GetSpellData()->not_maintained || luaspell->spell->GetSpellData()->duration1 == 0) {
+		LogWrite(PLAYER__INFO, 0, "NPC", "AddMaintainedSpell Spell ID: %u, Concentration: %u disallowed, not_maintained true (%u) or duration is 0 (%u).", luaspell->spell->GetSpellData()->id, luaspell->spell->GetSpellData()->req_concentration, luaspell->spell->GetSpellData()->not_maintained, luaspell->spell->GetSpellData()->duration1);
+		return;
+	}
 
 	Spell* spell = luaspell->spell;
 	MaintainedEffects* effect = GetFreeMaintainedSpellSlot();
@@ -7458,8 +7464,8 @@ void Player::SaveSpellEffects()
 	savedEffects.AddQueryAsync(GetCharacterID(), &database, Q_DELETE, "delete from character_custom_spell_display where charid=%u", GetCharacterID());
 	savedEffects.AddQueryAsync(GetCharacterID(), &database, Q_DELETE, "delete from character_custom_spell_data where charid=%u", GetCharacterID());
 	InfoStruct* info = GetInfoStruct();
-	MSpellEffects.readlock(__FUNCTION__, __LINE__);
 	MMaintainedSpells.readlock(__FUNCTION__, __LINE__);
+	MSpellEffects.readlock(__FUNCTION__, __LINE__);
 	for(int i = 0; i < 45; i++) {
 		if(info->spell_effects[i].spell_id != 0xFFFFFFFF)
 		{
@@ -7492,7 +7498,8 @@ void Player::SaveSpellEffects()
 			SaveCustomSpellDataIndex(info->spell_effects[i].spell);
 			SaveCustomSpellEffectsDisplay(info->spell_effects[i].spell);
 		}
-		if (i < NUM_MAINTAINED_EFFECTS && info->maintained_effects[i].spell_id != 0xFFFFFFFF){
+		if (i < NUM_MAINTAINED_EFFECTS && info->maintained_effects[i].spell && info->maintained_effects[i].spell_id != 0xFFFFFFFF){
+			LogWrite(PLAYER__INFO, 0, "Player", "Saving slot %u maintained effect %u", i, info->maintained_effects[i].spell_id);
 			Spawn* spawn = GetZone()->GetSpawnByID(info->maintained_effects[i].spell->initial_target);
 
 			int32 target_char_id = 0;
@@ -7582,8 +7589,8 @@ void Player::SaveSpellEffects()
 			}
 		}
 	}
-	MMaintainedSpells.releasereadlock(__FUNCTION__, __LINE__);
 	MSpellEffects.releasereadlock(__FUNCTION__, __LINE__);
+	MMaintainedSpells.releasereadlock(__FUNCTION__, __LINE__);
 }
 
 void Player::MentorTarget()

@@ -1,6 +1,6 @@
 /*  
     EQ2Emulator:  Everquest II Server Emulator
-    Copyright (C) 2005 - 2025  EQ2EMulator Development Team (http://www.eq2emu.com formerly http://www.eq2emulator.net)
+    Copyright (C) 2005 - 2026  EQ2EMulator Development Team (http://www.eq2emu.com formerly http://www.eq2emulator.net)
 
     This file is part of EQ2Emulator.
 
@@ -17,11 +17,13 @@
     You should have received a copy of the GNU General Public License
     along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 */
+
 #ifndef __EQ2_ITEMS__
 #define __EQ2_ITEMS__
 #include <map>
 #include <vector>
 #include <ctime>
+#include <shared_mutex>
 #include "../../common/types.h"
 #include "../../common/DataBuffer.h"
 #include "../Commands/Commands.h"
@@ -647,6 +649,47 @@ enum ItemEffectType {
 	EFFECT_CURE_TYPE_MAGIC=6,
 	EFFECT_CURE_TYPE_ALL=7
 };
+
+enum InventorySlotType {
+	HOUSE_VAULT=-5,
+	SHARED_BANK=-4,
+	BANK=-3,
+	OVERFLOW=-2,
+	UNKNOWN_INV_SLOT_TYPE=-1,
+	BASE_INVENTORY=0
+};
+
+enum class LockReason : int32 {
+    LockReason_None      = 0,
+    LockReason_House     = 1u << 0,
+    LockReason_Crafting  = 1u << 1,
+    LockReason_Shop      = 1u << 2,
+};
+
+inline LockReason operator|(LockReason a, LockReason b) {
+    return static_cast<LockReason>(
+        static_cast<uint32_t>(a) | static_cast<uint32_t>(b)
+    );
+}
+inline LockReason operator&(LockReason a, LockReason b) {
+    return static_cast<LockReason>(
+        static_cast<uint32_t>(a) & static_cast<uint32_t>(b)
+    );
+}
+inline LockReason operator~(LockReason a) {
+    return static_cast<LockReason>(~static_cast<uint32_t>(a));
+}
+
+enum HouseStoreItemFlags {
+	HOUSE_STORE_ITEM_TEXT_RED=1,
+	HOUSE_STORE_UNKNOWN_BIT2=2,
+	HOUSE_STORE_UNKNOWN_BIT4=4,
+	HOUSE_STORE_FOR_SALE=8,
+	HOUSE_STORE_UNKNOWN_BIT16=16,
+	HOUSE_STORE_VAULT_TAB=32
+	// rest are also unknown
+};
+
 #pragma pack(1)
 struct ItemStatsValues{
 	sint16			str;
@@ -710,10 +753,11 @@ struct ItemCore{
 	int16	count;
 	int8	tier;
 	int8	num_slots;
-	int32	unique_id;
+	int64	unique_id;
 	int8	num_free_slots;
 	int16	recommended_level;
 	bool	item_locked;
+	int32 	lock_flags;
 	bool	new_item;
 	int16	new_index;
 };
@@ -934,6 +978,8 @@ public:
 	#pragma pack()
 	Item();
 	Item(Item* in_item);
+	Item(Item* in_item, int64 unique_id, std::string in_creator, std::string in_seller_name, int32 in_seller_char_id, int64 in_broker_price, int16 count, int64 in_seller_house_id);
+	
 	~Item();
 	string					lowername;
 	string					name;
@@ -942,10 +988,15 @@ public:
 	int32					sell_price;
 	int32					sell_status;
 	int32					max_sell_value;
+	int64					broker_price;
+	bool					is_search_store_item;
 	bool					save_needed;
 	int8					weapon_type;
 	string					adornment;
 	string					creator;
+	string					seller_name;
+	int32					seller_char_id;
+	int64					seller_house_id;
 	int32					adorn0;
 	int32					adorn1;
 	int32					adorn2;
@@ -986,6 +1037,7 @@ public:
 	bool 					crafted;
 	bool					tinkered;
 	int8					book_language;
+	mutable std::shared_mutex item_lock_mtx_;
 	
 	void AddEffect(string effect, int8 percentage, int8 subbulletflag);
 	void AddBookPage(int8 page, string page_text,int8 valign, int8 halign);
@@ -1067,6 +1119,10 @@ public:
 	void AddSlot(int8 slot_id);
 	void SetSlots(int32 slots);
 	int16 GetIcon(int16 version);
+	bool TryLockItem(LockReason reason);
+	bool TryUnlockItem(LockReason reason);
+	bool IsItemLocked();
+	bool IsItemLockedFor(LockReason reason);
 };
 class MasterItemList{
 public:
@@ -1079,14 +1135,16 @@ public:
 	Item* GetAllItemsByClassification(const char* name);
 	ItemStatsValues* CalculateItemBonuses(int32 item_id, Entity* entity = 0);
 	ItemStatsValues* CalculateItemBonuses(Item* desc, Entity* entity = 0, ItemStatsValues* values = 0);
+	
+	bool ShouldAddItemBrokerType(Item* item, int64 itype);
+	bool ShouldAddItemBrokerSlot(Item* item, int64 ltype);
+	bool ShouldAddItemBrokerStat(Item* item, int64 btype);
 	vector<Item*>* GetItems(string name, int64 itype, int64 ltype, int64 btype, int64 minprice, int64 maxprice, int8 minskill, int8 maxskill, string seller, string adornment, int8 mintier, int8 maxtier, int16 minlevel, int16 maxlevel, sint8 itemclass);
 	vector<Item*>* GetItems(map<string, string> criteria, Client* client_to_map);
 	void AddItem(Item* item);
 	bool IsBag(int32 item_id);
 	void RemoveAll();
-	static int32 NextUniqueID();
-	static void ResetUniqueID(int32 new_id);
-	static int32 next_unique_id;
+	static int64 NextUniqueID();
 	int32 GetItemStatIDByName(std::string name);
 	std::string GetItemStatNameByID(int32 id);
 	void AddMappedItemStat(int32 id, std::string lower_case_name);
@@ -1120,10 +1178,18 @@ public:
 	void  MoveItem(Item* item, sint32 inv_slot, int16 slot, int8 appearance_type, bool erase_old); // erase old was true
 	bool  MoveItem(sint32 to_bag_id, int16 from_index, sint8 to, int8 appearance_type, int8 charges);
 	void  EraseItem(Item* item);
+	
 	Item* GetItemFromUniqueID(int32 item_id, bool include_bank = false, bool lock = true);
+	void SetVaultItemLockUniqueID(Client* client, int64 id, bool state, bool lock);
+	bool CanStoreSellItem(int64 unique_id, bool lock);
+	bool IsItemInSlotType(Item* item, InventorySlotType type, bool lockItems=true);
+	
+	void SetVaultItemUniqueIDCount(Client* client, int64 unique_id, int16 count, bool lock = true);
+	void RemoveVaultItemFromUniqueID(Client* client, int64 item_id, bool lock = true);
+	Item* GetVaultItemFromUniqueID(int64 item_id, bool lock = true);
 	Item* GetItemFromID(int32 item_id, int8 count = 0, bool include_bank = false, bool lock = true);
 	sint32 GetAllStackCountItemFromID(int32 item_id, int8 count = 0, bool include_bank = false, bool lock = true);
-	bool  AssignItemToFreeSlot(Item* item);
+	bool  AssignItemToFreeSlot(Item* item, bool inventory_only = true);
 	int16 GetNumberOfFreeSlots();
 	int16 GetNumberOfItems();
 	int32 GetWeight();
@@ -1132,7 +1198,7 @@ public:
 	void DestroyItem(int16 index);
 	Item* CanStack(Item* item, bool include_bank = false);
 	vector<Item*> GetAllItemsFromID(int32 item, bool include_bank = false, bool lock = false);
-	void RemoveItem(Item* item, bool delete_item = false);
+	void RemoveItem(Item* item, bool delete_item = false, bool lock = true);
 	bool AddItem(Item* item);
 
 	Item* GetItem(sint32 bag_slot, int16 slot, int8 appearance_type = 0);
@@ -1143,7 +1209,10 @@ public:
 	map<int32, Item*>* GetAllItems();
 	bool HasFreeBankSlot();
 	int8 FindFreeBankSlot();
-
+	
+	void GetVaultItems(Client* client, int32 spawn_id, int8 maxSlots, bool isSelling = false);
+	void PopulateHouseStoragePacket(Client* client, PacketStruct* packet, Item* item, int16 itemIdx, int8 storage_flags);
+	
 	///<summary>Get the first free slot and store them in the provided variables</summary>
 	///<param name='bag_id'>Will contain the bag id of the first free spot</param>
 	///<param name='slot'>Will contain the slot id of the first free slot</param>

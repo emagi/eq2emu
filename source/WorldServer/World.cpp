@@ -283,6 +283,11 @@ void World::init(std::string web_ipaddr, int16 web_port, std::string cert_file, 
 			
 			world_webserver->register_route("/peerstatus", World::Web_worldhandle_peerstatus);
 			world_webserver->register_route("/activequery", World::Web_worldhandle_activequery);
+			
+			world_webserver->register_route("/addseller", World::Web_worldhandle_addseller);
+			world_webserver->register_route("/removeseller", World::Web_worldhandle_removeseller);
+			world_webserver->register_route("/additemsale", World::Web_worldhandle_additemsale);
+			world_webserver->register_route("/removeitemsale", World::Web_worldhandle_removeitemsale);
 			world_webserver->run();
 			LogWrite(INIT__INFO, 0, "Init", "World Web Server is listening on %s:%u..", web_ipaddr.c_str(), web_port);
 			web_success = true;
@@ -2641,6 +2646,7 @@ void World::AddPlayerHouse(int32 char_id, int32 house_id, int64 unique_id, int32
 		ph->escrow_status = escrow_status;
 		ph->upkeep_due = upkeep_due;
 		ph->player_name = player_name;
+		ph->character_id = char_id;
 		ReloadHouseData(ph);
 		m_playerHouses[house_id][char_id] = ph;
 	}
@@ -3709,4 +3715,5 @@ void ZoneInfoMemory::LoadFromDatabaseRow(MYSQL_ROW row) {
 	canGate = atoul(row[24]);
 	cityZone = atoul(row[25]);
 	canEvac = atoul(row[26]);
+	zoneLuaScript = (row[27] != nullptr) ? row[27] : "";
 }

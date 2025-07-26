@@ -1,6 +1,6 @@
 /*  
     EQ2Emulator:  Everquest II Server Emulator
-    Copyright (C) 2007  EQ2EMulator Development Team (http://www.eq2emulator.net)
+    Copyright (C) 2005 - 2026  EQ2EMulator Development Team (http://www.eq2emu.com formerly http://www.eq2emulator.net)
 
     This file is part of EQ2Emulator.
 
@@ -167,6 +167,8 @@ Widget*	Widget::Copy(){
 	new_spawn->SetOpenZ(GetOpenZ());
 	new_spawn->SetMultiFloorLift(multi_floor_lift);
 	new_spawn->SetSoundsDisabled(IsSoundsDisabled());
+	if(GetSpawnScriptSetDB() && GetSpawnScript())
+		new_spawn->SetSpawnScript(std::string(GetSpawnScript()));
 	return new_spawn;
 }
 
@@ -417,6 +419,7 @@ void Widget::HandleUse(Client* client, string command, int8 overrideWidgetType){
 				ClientPacketFunctions::SendHouseVisitWindow(client, world.GetAllPlayerHousesByHouseID(hz->id));
 
 				ClientPacketFunctions::SendBaseHouseWindow(client, hz, ph, id);
+				client->GetPlayer()->SetTarget(this);
 			}
 		}
 	}
@@ -445,6 +448,7 @@ void Widget::HandleUse(Client* client, string command, int8 overrideWidgetType){
 
 			ClientPacketFunctions::SendBaseHouseWindow(client, hz, ph, id);
 			client->GetCurrentZone()->SendHouseItems(client);
+			client->GetPlayer()->SetTarget(this);
 		}
 		else {
 			if (hz)

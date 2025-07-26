@@ -1,21 +1,21 @@
 /*  
-EQ2Emulator:  Everquest II Server Emulator
-Copyright (C) 2007  EQ2EMulator Development Team (http://www.eq2emulator.net)
+    EQ2Emulator:  Everquest II Server Emulator
+    Copyright (C) 2005 - 2026  EQ2EMulator Development Team (http://www.eq2emu.com formerly http://www.eq2emulator.net)
 
-This file is part of EQ2Emulator.
+    This file is part of EQ2Emulator.
 
-EQ2Emulator is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+    EQ2Emulator is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-EQ2Emulator is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+    EQ2Emulator is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License
-along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
+    You should have received a copy of the GNU General Public License
+    along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include <math.h>
@@ -53,6 +53,7 @@ along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 #include "SpellProcess.h"
 #include "races.h"
 #include "Web/PeerManager.h"
+#include "Broker/BrokerManager.h"
 
 extern Classes classes;
 extern Commands commands;
@@ -75,6 +76,7 @@ extern RuleManager rule_manager;
 extern MasterLanguagesList master_languages_list;
 extern ChestTrapList chest_trap_list;
 extern PeerManager peer_manager;
+BrokerManager broker;
 
 //devn00b: Fix for linux builds since we dont use stricmp we use strcasecmp
 #if defined(__GNUC__)
@@ -953,23 +955,29 @@ int32 WorldDatabase::LoadAppearances(ZoneServer* zone, Client* client){
 	return count;
 }
 
-void WorldDatabase::LoadNPCs(ZoneServer* zone){
+void WorldDatabase::LoadNPCs(ZoneServer* zone, bool isInstanceType){
 	Query query;
 	MYSQL_ROW row;
 	NPC* npc = 0;
 	int32 id = 0;
 	int32 total = 0;
-	MYSQL_RES* result = query.RunQuery2(Q_SELECT,"SELECT npc.spawn_id, s.name, npc.min_level, npc.max_level, npc.enc_level, s.race, s.model_type, npc.class_, npc.gender, s.command_primary, s.command_secondary, s.show_name, npc.min_group_size, npc.max_group_size, npc.hair_type_id, npc.facial_hair_type_id, npc.wing_type_id, npc.chest_type_id, npc.legs_type_id, npc.soga_hair_type_id, npc.soga_facial_hair_type_id, s.attackable, s.show_level, s.targetable, s.show_command_icon, s.display_hand_icon, s.hp, s.power, s.size, s.collision_radius, npc.action_state, s.visual_state, npc.mood_state, npc.initial_state, npc.activity_status, s.faction_id, s.sub_title, s.merchant_id, s.merchant_type, s.size_offset, npc.attack_type, npc.ai_strategy+0, npc.spell_list_id, npc.secondary_spell_list_id, npc.skill_list_id, npc.secondary_skill_list_id, npc.equipment_list_id, npc.str, npc.sta, npc.wis, npc.intel, npc.agi, npc.heat, npc.cold, npc.magic, npc.mental, npc.divine, npc.disease, npc.poison, npc.aggro_radius, npc.cast_percentage, npc.randomize, npc.soga_model_type, npc.heroic_flag, npc.alignment, npc.elemental, npc.arcane, npc.noxious, s.savagery, s.dissonance, npc.hide_hood, npc.emote_state, s.prefix, s.suffix, s.last_name, s.expansion_flag, s.holiday_flag, s.disable_sounds, s.merchant_min_level, s.merchant_max_level, s.aaxp_rewards, npc.water_type, npc.flying_type, s.loot_tier, s.loot_drop_type, npc.scared_by_strong_players, npc.action_state_str\n"
-													"FROM spawn s\n"
-													"INNER JOIN spawn_npcs npc\n"
+	
+	std::string houseTable("");
+	if(isInstanceType) {
+		houseTable.append("_houses");
+	}
+	
+	MYSQL_RES* result = query.RunQuery2(Q_SELECT,"SELECT npc.spawn_id, s.name, npc.min_level, npc.max_level, npc.enc_level, s.race, s.model_type, npc.class_, npc.gender, s.command_primary, s.command_secondary, s.show_name, npc.min_group_size, npc.max_group_size, npc.hair_type_id, npc.facial_hair_type_id, npc.wing_type_id, npc.chest_type_id, npc.legs_type_id, npc.soga_hair_type_id, npc.soga_facial_hair_type_id, s.attackable, s.show_level, s.targetable, s.show_command_icon, s.display_hand_icon, s.hp, s.power, s.size, s.collision_radius, npc.action_state, s.visual_state, npc.mood_state, npc.initial_state, npc.activity_status, s.faction_id, s.sub_title, s.merchant_id, s.merchant_type, s.size_offset, npc.attack_type, npc.ai_strategy+0, npc.spell_list_id, npc.secondary_spell_list_id, npc.skill_list_id, npc.secondary_skill_list_id, npc.equipment_list_id, npc.str, npc.sta, npc.wis, npc.intel, npc.agi, npc.heat, npc.cold, npc.magic, npc.mental, npc.divine, npc.disease, npc.poison, npc.aggro_radius, npc.cast_percentage, npc.randomize, npc.soga_model_type, npc.heroic_flag, npc.alignment, npc.elemental, npc.arcane, npc.noxious, s.savagery, s.dissonance, npc.hide_hood, npc.emote_state, s.prefix, s.suffix, s.last_name, s.expansion_flag, s.holiday_flag, s.disable_sounds, s.merchant_min_level, s.merchant_max_level, s.aaxp_rewards, npc.water_type, npc.flying_type, s.loot_tier, s.loot_drop_type, npc.scared_by_strong_players, npc.action_state_str, s.lua_script\n"
+													"FROM spawn%s s\n"
+													"INNER JOIN spawn_npcs%s npc\n"
 													"ON s.id = npc.spawn_id\n"
-													"INNER JOIN spawn_location_entry le\n"
+													"INNER JOIN spawn_location_entry%s le\n"
 													"ON npc.spawn_id = le.spawn_id\n"
-													"INNER JOIN spawn_location_placement lp\n"
+													"INNER JOIN spawn_location_placement%s lp\n"
 													"ON le.spawn_location_id = lp.spawn_location_id\n"
 													"WHERE lp.zone_id = %u and (lp.instance_id = 0 or lp.instance_id = %u)\n"
 													"GROUP BY s.id",
-													zone->GetZoneID(), zone->GetInstanceID());
+													houseTable.c_str(), houseTable.c_str(), houseTable.c_str(), houseTable.c_str(), zone->GetZoneID(), zone->GetInstanceID());
 	while(result && (row = mysql_fetch_row(result))){
 		/*npc->SetAppearanceID(atoi(row[12]));
 		AppearanceData* appearance = world.GetNPCAppearance(npc->GetAppearanceID());
@@ -1128,6 +1136,11 @@ void WorldDatabase::LoadNPCs(ZoneServer* zone){
 			npc->GetInfoStruct()->set_action_state(action_state_str);
 		}
 		
+		if(row[87]){
+			std::string lua_script = std::string(row[87]);
+			npc->SetSpawnScript(lua_script, true);
+		}
+		
 		zone->AddNPC(id, npc);
 		total++;
 		LogWrite(NPC__DEBUG, 5, "NPC", "---Loading NPC: '%s' (%u)", npc->appearance.name, id);
@@ -1243,23 +1256,27 @@ void WorldDatabase::LoadSpiritShards(ZoneServer* zone){
 	LogWrite(NPC__INFO, 0, "NPC", "--Loaded %i Spirit Shard(s).", total);
 }
 
-void WorldDatabase::LoadSigns(ZoneServer* zone){
+void WorldDatabase::LoadSigns(ZoneServer* zone, bool isInstanceType){
 	Query query;
 	MYSQL_ROW row;
 	Sign* sign = 0;
 	int32 id = 0;
 	int32 total = 0;
-	MYSQL_RES* result = query.RunQuery2(Q_SELECT, "SELECT ss.spawn_id, s.name, s.model_type, s.size, s.show_command_icon, ss.widget_id, ss.widget_x, ss.widget_y, ss.widget_z, s.command_primary, s.command_secondary, s.collision_radius, ss.icon, ss.type, ss.title, ss.description, ss.sign_distance, ss.zone_id, ss.zone_x, ss.zone_y, ss.zone_z, ss.zone_heading, ss.include_heading, ss.include_location, s.transport_id, s.size_offset, s.display_hand_icon, s.visual_state, s.expansion_flag, s.holiday_flag, s.disable_sounds, s.merchant_min_level, s.merchant_max_level, s.aaxp_rewards, s.loot_tier, s.loot_drop_type, ss.language\n"
-												  "FROM spawn s\n"
-												  "INNER JOIN spawn_signs ss\n"
+	std::string houseTable("");
+	if(isInstanceType) {
+		houseTable.append("_houses");
+	}
+	MYSQL_RES* result = query.RunQuery2(Q_SELECT, "SELECT ss.spawn_id, s.name, s.model_type, s.size, s.show_command_icon, ss.widget_id, ss.widget_x, ss.widget_y, ss.widget_z, s.command_primary, s.command_secondary, s.collision_radius, ss.icon, ss.type, ss.title, ss.description, ss.sign_distance, ss.zone_id, ss.zone_x, ss.zone_y, ss.zone_z, ss.zone_heading, ss.include_heading, ss.include_location, s.transport_id, s.size_offset, s.display_hand_icon, s.visual_state, s.expansion_flag, s.holiday_flag, s.disable_sounds, s.merchant_min_level, s.merchant_max_level, s.aaxp_rewards, s.loot_tier, s.loot_drop_type, ss.language, s.lua_script\n"
+												  "FROM spawn%s s\n"
+												  "INNER JOIN spawn_signs%s ss\n"
 												  "ON s.id = ss.spawn_id\n"
-												  "INNER JOIN spawn_location_entry le\n"
+												  "INNER JOIN spawn_location_entry%s le\n"
 												  "ON ss.spawn_id = le.spawn_id\n"
-												  "INNER JOIN spawn_location_placement lp\n"
+												  "INNER JOIN spawn_location_placement%s lp\n"
 												  "ON le.spawn_location_id = lp.spawn_location_id\n"
 												  "WHERE lp.zone_id = %u and (lp.instance_id = 0 or lp.instance_id = %u)\n"
 												  "GROUP BY s.id",
-												  zone->GetZoneID(), zone->GetInstanceID());
+													houseTable.c_str(), houseTable.c_str(), houseTable.c_str(), houseTable.c_str(), zone->GetZoneID(), zone->GetInstanceID());
 
 	while(result && (row = mysql_fetch_row(result))){
 		int32 signXpackFlag = atoul(row[28]);
@@ -1330,6 +1347,11 @@ void WorldDatabase::LoadSigns(ZoneServer* zone){
 
 		sign->SetLanguage(atoul(row[36]));
 		
+		if(row[37]){
+			std::string lua_script = std::string(row[37]);
+			sign->SetSpawnScript(lua_script, true);
+		}
+		
 		zone->AddSign(id, sign);
 		total++;
 
@@ -1339,23 +1361,28 @@ void WorldDatabase::LoadSigns(ZoneServer* zone){
 	LogWrite(SIGN__DEBUG, 0, "Sign", "--Loaded %i Sign(s)", total);
 }
 
-void WorldDatabase::LoadWidgets(ZoneServer* zone){
+void WorldDatabase::LoadWidgets(ZoneServer* zone, bool isInstanceType){
 	Query query;
 	MYSQL_ROW row;
 	Widget* widget = 0;
 	int32 id = 0;
 	int32 total = 0;
-	MYSQL_RES* result = query.RunQuery2(Q_SELECT, "SELECT sw.spawn_id, s.name, s.model_type, s.size, s.show_command_icon, sw.widget_id, sw.widget_x, sw.widget_y, sw.widget_z, s.command_primary, s.command_secondary, s.collision_radius, sw.include_heading, sw.include_location, sw.icon, sw.type, sw.open_heading, sw.open_y, sw.action_spawn_id, sw.open_sound_file, sw.close_sound_file, sw.open_duration, sw.closed_heading, sw.linked_spawn_id, sw.close_y, s.transport_id, s.size_offset, sw.house_id, sw.open_x, sw.open_z, sw.close_x, sw.close_z, s.display_hand_icon, s.expansion_flag, s.holiday_flag, s.disable_sounds, s.merchant_min_level, s.merchant_max_level, s.aaxp_rewards, s.loot_tier, s.loot_drop_type\n"
-												  "FROM spawn s\n"
-												  "INNER JOIN spawn_widgets sw\n"
+	
+	std::string houseTable("");
+	if(isInstanceType) {
+		houseTable.append("_houses");
+	}
+	MYSQL_RES* result = query.RunQuery2(Q_SELECT, "SELECT sw.spawn_id, s.name, s.model_type, s.size, s.show_command_icon, sw.widget_id, sw.widget_x, sw.widget_y, sw.widget_z, s.command_primary, s.command_secondary, s.collision_radius, sw.include_heading, sw.include_location, sw.icon, sw.type, sw.open_heading, sw.open_y, sw.action_spawn_id, sw.open_sound_file, sw.close_sound_file, sw.open_duration, sw.closed_heading, sw.linked_spawn_id, sw.close_y, s.transport_id, s.size_offset, sw.house_id, sw.open_x, sw.open_z, sw.close_x, sw.close_z, s.display_hand_icon, s.expansion_flag, s.holiday_flag, s.disable_sounds, s.merchant_min_level, s.merchant_max_level, s.aaxp_rewards, s.loot_tier, s.loot_drop_type, s.lua_script\n"
+												  "FROM spawn%s s\n"
+												  "INNER JOIN spawn_widgets%s sw\n"
 												  "ON s.id = sw.spawn_id\n"
-												  "INNER JOIN spawn_location_entry le\n"
+												  "INNER JOIN spawn_location_entry%s le\n"
 												  "ON sw.spawn_id = le.spawn_id\n"
-												  "INNER JOIN spawn_location_placement lp\n"
+												  "INNER JOIN spawn_location_placement%s lp\n"
 												  "ON le.spawn_location_id = lp.spawn_location_id\n"
 												  "WHERE lp.zone_id = %u and (lp.instance_id = 0 or lp.instance_id = %u)\n"
 												  "GROUP BY s.id",
-												  zone->GetZoneID(), zone->GetInstanceID());
+												houseTable.c_str(), houseTable.c_str(), houseTable.c_str(), houseTable.c_str(), zone->GetZoneID(), zone->GetInstanceID());
 	while(result && (row = mysql_fetch_row(result))){
 		int32 widgetXpackFlag = atoul(row[33]);
 		int32 widgetHolidayFlag = atoul(row[34]);
@@ -1437,7 +1464,12 @@ void WorldDatabase::LoadWidgets(ZoneServer* zone){
 		widget->SetLootTier(atoul(row[39]));
 		
 		widget->SetLootDropType(atoul(row[40]));
-
+		
+		if(row[41]){
+			std::string lua_script = std::string(row[41]);
+			widget->SetSpawnScript(lua_script, true);
+		}
+		
 		zone->AddWidget(id, widget);
 		total++;
 
@@ -1447,23 +1479,28 @@ void WorldDatabase::LoadWidgets(ZoneServer* zone){
 	LogWrite(WIDGET__DEBUG, 0, "Widget", "--Loaded %i Widget(s)", total);
 }
 
-void WorldDatabase::LoadObjects(ZoneServer* zone){
+void WorldDatabase::LoadObjects(ZoneServer* zone, bool isInstanceType){
 	Query query;
 	MYSQL_ROW row;
 	Object* object = 0;
 	int32 id = 0;
 	int32 total = 0;
-	MYSQL_RES* result = query.RunQuery2(Q_SELECT, "SELECT so.spawn_id, s.name, s.race, s.model_type, s.command_primary, s.command_secondary, s.targetable, s.size, s.show_name, s.visual_state, s.attackable, s.show_level, s.show_command_icon, s.display_hand_icon, s.faction_id, s.collision_radius, s.transport_id, s.size_offset, so.device_id, s.expansion_flag, s.holiday_flag, s.disable_sounds, s.merchant_min_level, s.merchant_max_level, s.aaxp_rewards, s.loot_tier, s.loot_drop_type\n"
-												  "FROM spawn s\n"
-												  "INNER JOIN spawn_objects so\n"
+	
+	std::string houseTable("");
+	if(isInstanceType) {
+		houseTable.append("_houses");
+	}
+	MYSQL_RES* result = query.RunQuery2(Q_SELECT, "SELECT so.spawn_id, s.name, s.race, s.model_type, s.command_primary, s.command_secondary, s.targetable, s.size, s.show_name, s.visual_state, s.attackable, s.show_level, s.show_command_icon, s.display_hand_icon, s.faction_id, s.collision_radius, s.transport_id, s.size_offset, so.device_id, s.expansion_flag, s.holiday_flag, s.disable_sounds, s.merchant_min_level, s.merchant_max_level, s.aaxp_rewards, s.loot_tier, s.loot_drop_type, s.lua_script\n"
+												  "FROM spawn%s s\n"
+												  "INNER JOIN spawn_objects%s so\n"
 												  "ON s.id = so.spawn_id\n"
-												  "INNER JOIN spawn_location_entry le\n"
+												  "INNER JOIN spawn_location_entry%s le\n"
 												  "ON so.spawn_id = le.spawn_id\n"
-												  "INNER JOIN spawn_location_placement lp\n"
+												  "INNER JOIN spawn_location_placement%s lp\n"
 												  "ON le.spawn_location_id = lp.spawn_location_id\n"
 												  "WHERE lp.zone_id = %u and (lp.instance_id = 0 or lp.instance_id = %u)\n"
-												  "GROUP BY s.id",
-												  zone->GetZoneID(), zone->GetInstanceID());
+												  "GROUP BY s.id",												  
+												houseTable.c_str(), houseTable.c_str(), houseTable.c_str(), houseTable.c_str(), zone->GetZoneID(), zone->GetInstanceID());
 
 	while(result && (row = mysql_fetch_row(result))){
 
@@ -1519,6 +1556,11 @@ void WorldDatabase::LoadObjects(ZoneServer* zone){
 		
 		object->SetLootDropType(atoul(row[26]));
 
+		if(row[27]){
+			std::string lua_script = std::string(row[27]);
+			object->SetSpawnScript(lua_script, true);
+		}
+		
 		zone->AddObject(id, object);
 		total++;
 
@@ -1528,23 +1570,28 @@ void WorldDatabase::LoadObjects(ZoneServer* zone){
 	LogWrite(OBJECT__DEBUG, 0, "Object", "--Loaded %i Object(s)", total);
 }
 
-void WorldDatabase::LoadGroundSpawns(ZoneServer* zone){
+void WorldDatabase::LoadGroundSpawns(ZoneServer* zone, bool isInstanceType){
 	Query query;
 	MYSQL_ROW row;
 	GroundSpawn* spawn = 0;
 	int32 id = 0;
 	int32 total = 0;
-	MYSQL_RES* result = query.RunQuery2(Q_SELECT, "SELECT sg.spawn_id, s.name, s.race, s.model_type, s.command_primary, s.command_secondary, s.targetable, s.size, s.show_name, s.visual_state, s.attackable, s.show_level, s.show_command_icon, s.display_hand_icon, s.faction_id, s.collision_radius, sg.number_harvests, sg.num_attempts_per_harvest, sg.groundspawn_id, sg.collection_skill, s.size_offset, s.expansion_flag, s.holiday_flag, s.disable_sounds, s.aaxp_rewards, s.loot_tier, s.loot_drop_type\n"
-												  "FROM spawn s\n"
-												  "INNER JOIN spawn_ground sg\n"
+	
+	std::string houseTable("");
+	if(isInstanceType) {
+		houseTable.append("_houses");
+	}
+	MYSQL_RES* result = query.RunQuery2(Q_SELECT, "SELECT sg.spawn_id, s.name, s.race, s.model_type, s.command_primary, s.command_secondary, s.targetable, s.size, s.show_name, s.visual_state, s.attackable, s.show_level, s.show_command_icon, s.display_hand_icon, s.faction_id, s.collision_radius, sg.number_harvests, sg.num_attempts_per_harvest, sg.groundspawn_id, sg.collection_skill, s.size_offset, s.expansion_flag, s.holiday_flag, s.disable_sounds, s.aaxp_rewards, s.loot_tier, s.loot_drop_type, s.lua_script\n"
+												  "FROM spawn%s s\n"
+												  "INNER JOIN spawn_ground%s sg\n"
 												  "ON s.id = sg.spawn_id\n"
-												  "INNER JOIN spawn_location_entry le\n"
+												  "INNER JOIN spawn_location_entry%s le\n"
 												  "ON sg.spawn_id = le.spawn_id\n"
-												  "INNER JOIN spawn_location_placement lp\n"
+												  "INNER JOIN spawn_location_placement%s lp\n"
 												  "ON le.spawn_location_id = lp.spawn_location_id\n"
 												  "WHERE lp.zone_id = %u and (lp.instance_id = 0 or lp.instance_id = %u)\n"
 												  "GROUP BY s.id",
-												  zone->GetZoneID(), zone->GetInstanceID());
+												houseTable.c_str(), houseTable.c_str(), houseTable.c_str(), houseTable.c_str(), zone->GetZoneID(), zone->GetInstanceID());
 	while(result && (row = mysql_fetch_row(result))){
 
 		int32 gsXpackFlag = atoul(row[21]);
@@ -1600,6 +1647,11 @@ void WorldDatabase::LoadGroundSpawns(ZoneServer* zone){
 		spawn->SetLootTier(atoul(row[25]));
 
 		spawn->SetLootDropType(atoul(row[26]));
+		
+		if(row[27]){
+			std::string lua_script = std::string(row[27]);
+			spawn->SetSpawnScript(lua_script, true);
+		}
 		
 		zone->AddGroundSpawn(id, spawn);
 		total++;
@@ -3551,6 +3603,8 @@ void WorldDatabase::LoadSpawns(ZoneServer* zone)
 
 	LogWrite(SPAWN__TRACE, 0, "Spawn", "Enter LoadSpawns");
 
+	int8 isInstanceType = (zone->GetInstanceType() == Instance_Type::PERSONAL_HOUSE_INSTANCE);
+	
 	if(zone->GetInstanceID() == 0) {
 		npcs = ProcessSpawnLocations(zone, "SELECT sln.id, sle.id, slp.x, slp.y, slp.z, slp.x_offset, slp.y_offset, slp.z_offset, slp.heading, sle.spawn_id, sle.spawnpercentage, slp.respawn, slp.respawn_offset_low, slp.respawn_offset_high, slp.duplicated_spawn, slp.grid_id, slp.id, slp.expire_timer, slp.expire_offset, slp.pitch, slp.roll, sle.condition, slp.lvl_override, slp.hp_override, slp.mp_override, slp.str_override, slp.sta_override, slp.wis_override, slp.int_override, slp.agi_override, slp.heat_override, slp.cold_override, slp.magic_override, slp.mental_override, slp.divine_override, slp.disease_override, slp.poison_override, difficulty_override FROM spawn_location_placement slp, spawn_location_name sln, spawn_location_entry sle, spawn_npcs sn where sn.spawn_id = sle.spawn_id and sln.id = sle.spawn_location_id and sln.id = slp.spawn_location_id and slp.zone_id=%u and slp.instance_id=%u ORDER BY sln.id, sle.id", SPAWN_ENTRY_TYPE_NPC);
 		objects = ProcessSpawnLocations(zone, "SELECT sln.id, sle.id, slp.x, slp.y, slp.z, slp.x_offset, slp.y_offset, slp.z_offset, slp.heading, sle.spawn_id, sle.spawnpercentage, slp.respawn, slp.respawn_offset_low, slp.respawn_offset_high, slp.duplicated_spawn, slp.grid_id, slp.id, slp.expire_timer, slp.expire_offset, slp.pitch, slp.roll, sle.condition, slp.lvl_override, slp.hp_override, slp.mp_override, slp.str_override, slp.sta_override, slp.wis_override, slp.int_override, slp.agi_override, slp.heat_override, slp.cold_override, slp.magic_override, slp.mental_override, slp.divine_override, slp.disease_override, slp.poison_override, difficulty_override FROM spawn_location_placement slp, spawn_location_name sln, spawn_location_entry sle, spawn_objects so where so.spawn_id = sle.spawn_id and sln.id = sle.spawn_location_id and sln.id = slp.spawn_location_id and slp.zone_id=%u and slp.instance_id=%u ORDER BY sln.id, sle.id", SPAWN_ENTRY_TYPE_OBJECT);
@@ -3561,6 +3615,19 @@ void WorldDatabase::LoadSpawns(ZoneServer* zone)
 		spawn_group_associations = LoadSpawnLocationGroupAssociations(zone);
 		spawn_group_chances = LoadSpawnGroupChances(zone);
 	}
+	else if(isInstanceType) {
+		npcs = ProcessSpawnLocations(zone, "SELECT sln.id, sle.id, slp.x, slp.y, slp.z, slp.x_offset, slp.y_offset, slp.z_offset, slp.heading, sle.spawn_id, sle.spawnpercentage, slp.respawn, slp.respawn_offset_low, slp.respawn_offset_high, slp.duplicated_spawn, slp.grid_id, slp.id, slp.expire_timer, slp.expire_offset, slp.pitch, slp.roll, sle.condition, slp.lvl_override, slp.hp_override, slp.mp_override, slp.str_override, slp.sta_override, slp.wis_override, slp.int_override, slp.agi_override, slp.heat_override, slp.cold_override, slp.magic_override, slp.mental_override, slp.divine_override, slp.disease_override, slp.poison_override, difficulty_override FROM spawn_location_placement_houses slp, spawn_location_name_houses sln, spawn_location_entry_houses sle, spawn_npcs_houses sn where sn.spawn_id = sle.spawn_id and sln.id = sle.spawn_location_id and sln.id = slp.spawn_location_id and slp.zone_id=%i and (slp.instance_id = 0 or slp.instance_id=%u) ORDER BY sln.id, sle.id", SPAWN_ENTRY_TYPE_NPC);
+		objects = ProcessSpawnLocations(zone, "SELECT sln.id, sle.id, slp.x, slp.y, slp.z, slp.x_offset, slp.y_offset, slp.z_offset, slp.heading, sle.spawn_id, sle.spawnpercentage, slp.respawn, slp.respawn_offset_low, slp.respawn_offset_high, slp.duplicated_spawn, slp.grid_id, slp.id, slp.expire_timer, slp.expire_offset, slp.pitch, slp.roll, sle.condition, slp.lvl_override, slp.hp_override, slp.mp_override, slp.str_override, slp.sta_override, slp.wis_override, slp.int_override, slp.agi_override, slp.heat_override, slp.cold_override, slp.magic_override, slp.mental_override, slp.divine_override, slp.disease_override, slp.poison_override, difficulty_override FROM spawn_location_placement_houses slp, spawn_location_name_houses sln, spawn_location_entry_houses sle, spawn_objects_houses so where so.spawn_id = sle.spawn_id and sln.id = sle.spawn_location_id and sln.id = slp.spawn_location_id and slp.zone_id=%i and (slp.instance_id = 0 or slp.instance_id=%u) ORDER BY sln.id, sle.id", SPAWN_ENTRY_TYPE_OBJECT);
+		widgets = ProcessSpawnLocations(zone, "SELECT sln.id, sle.id, slp.x, slp.y, slp.z, slp.x_offset, slp.y_offset, slp.z_offset, slp.heading, sle.spawn_id, sle.spawnpercentage, slp.respawn, slp.respawn_offset_low, slp.respawn_offset_high, slp.duplicated_spawn, slp.grid_id, slp.id, slp.expire_timer, slp.expire_offset, slp.pitch, slp.roll, sle.condition, slp.lvl_override, slp.hp_override, slp.mp_override, slp.str_override, slp.sta_override, slp.wis_override, slp.int_override, slp.agi_override, slp.heat_override, slp.cold_override, slp.magic_override, slp.mental_override, slp.divine_override, slp.disease_override, slp.poison_override, difficulty_override FROM spawn_location_placement_houses slp, spawn_location_name_houses sln, spawn_location_entry_houses sle, spawn_widgets_houses sw where sw.spawn_id = sle.spawn_id and sln.id = sle.spawn_location_id and sln.id = slp.spawn_location_id and slp.zone_id=%i and (slp.instance_id = 0 or slp.instance_id=%u) ORDER BY sln.id, sle.id", SPAWN_ENTRY_TYPE_WIDGET);
+		signs = ProcessSpawnLocations(zone, "SELECT sln.id, sle.id, slp.x, slp.y, slp.z, slp.x_offset, slp.y_offset, slp.z_offset, slp.heading, sle.spawn_id, sle.spawnpercentage, slp.respawn, slp.respawn_offset_low, slp.respawn_offset_high, slp.duplicated_spawn, slp.grid_id, slp.id, slp.expire_timer, slp.expire_offset, slp.pitch, slp.roll, sle.condition, slp.lvl_override, slp.hp_override, slp.mp_override, slp.str_override, slp.sta_override, slp.wis_override, slp.int_override, slp.agi_override, slp.heat_override, slp.cold_override, slp.magic_override, slp.mental_override, slp.divine_override, slp.disease_override, slp.poison_override, difficulty_override FROM spawn_location_placement_houses slp, spawn_location_name_houses sln, spawn_location_entry_houses sle, spawn_signs_houses ss where ss.spawn_id = sle.spawn_id and sln.id = sle.spawn_location_id and sln.id = slp.spawn_location_id and slp.zone_id=%i and (slp.instance_id = 0 or slp.instance_id=%u) ORDER BY sln.id, sle.id", SPAWN_ENTRY_TYPE_SIGN);
+		ground_spawns = ProcessSpawnLocations(zone, "SELECT sln.id, sle.id, slp.x, slp.y, slp.z, slp.x_offset, slp.y_offset, slp.z_offset, slp.heading, sle.spawn_id, sle.spawnpercentage, slp.respawn, slp.respawn_offset_low, slp.respawn_offset_high, slp.duplicated_spawn, slp.grid_id, slp.id, slp.expire_timer, slp.expire_offset, slp.pitch, slp.roll, sle.condition, slp.lvl_override, slp.hp_override, slp.mp_override, slp.str_override, slp.sta_override, slp.wis_override, slp.int_override, slp.agi_override, slp.heat_override, slp.cold_override, slp.magic_override, slp.mental_override, slp.divine_override, slp.disease_override, slp.poison_override, difficulty_override FROM spawn_location_placement_houses slp, spawn_location_name_houses sln, spawn_location_entry_houses sle, spawn_ground_houses sg where sg.spawn_id = sle.spawn_id and sln.id = sle.spawn_location_id and sln.id = slp.spawn_location_id and slp.zone_id=%i and (slp.instance_id = 0 or slp.instance_id=%u) ORDER BY sln.id, sle.id", SPAWN_ENTRY_TYPE_GROUNDSPAWN);
+
+		npcs += ProcessSpawnLocations(zone, "SELECT sln.id, sle.id, slp.x, slp.y, slp.z, slp.x_offset, slp.y_offset, slp.z_offset, slp.heading, sle.spawn_id, sle.spawnpercentage, slp.respawn, slp.respawn_offset_low, slp.respawn_offset_high, slp.duplicated_spawn, slp.grid_id, slp.id, slp.expire_timer, slp.expire_offset, slp.pitch, slp.roll, sle.condition, slp.lvl_override, slp.hp_override, slp.mp_override, slp.str_override, slp.sta_override, slp.wis_override, slp.int_override, slp.agi_override, slp.heat_override, slp.cold_override, slp.magic_override, slp.mental_override, slp.divine_override, slp.disease_override, slp.poison_override, difficulty_override FROM spawn_location_placement slp, spawn_location_name sln, spawn_location_entry sle, spawn_npcs sn where sn.spawn_id = sle.spawn_id and sln.id = sle.spawn_location_id and sln.id = slp.spawn_location_id and slp.zone_id=%i and (slp.instance_id = 0 or slp.instance_id=%u) ORDER BY sln.id, sle.id", SPAWN_ENTRY_TYPE_NPC);
+		objects += ProcessSpawnLocations(zone, "SELECT sln.id, sle.id, slp.x, slp.y, slp.z, slp.x_offset, slp.y_offset, slp.z_offset, slp.heading, sle.spawn_id, sle.spawnpercentage, slp.respawn, slp.respawn_offset_low, slp.respawn_offset_high, slp.duplicated_spawn, slp.grid_id, slp.id, slp.expire_timer, slp.expire_offset, slp.pitch, slp.roll, sle.condition, slp.lvl_override, slp.hp_override, slp.mp_override, slp.str_override, slp.sta_override, slp.wis_override, slp.int_override, slp.agi_override, slp.heat_override, slp.cold_override, slp.magic_override, slp.mental_override, slp.divine_override, slp.disease_override, slp.poison_override, difficulty_override FROM spawn_location_placement slp, spawn_location_name sln, spawn_location_entry sle, spawn_objects so where so.spawn_id = sle.spawn_id and sln.id = sle.spawn_location_id and sln.id = slp.spawn_location_id and slp.zone_id=%i and (slp.instance_id = 0 or slp.instance_id=%u) ORDER BY sln.id, sle.id", SPAWN_ENTRY_TYPE_OBJECT);
+		widgets += ProcessSpawnLocations(zone, "SELECT sln.id, sle.id, slp.x, slp.y, slp.z, slp.x_offset, slp.y_offset, slp.z_offset, slp.heading, sle.spawn_id, sle.spawnpercentage, slp.respawn, slp.respawn_offset_low, slp.respawn_offset_high, slp.duplicated_spawn, slp.grid_id, slp.id, slp.expire_timer, slp.expire_offset, slp.pitch, slp.roll, sle.condition, slp.lvl_override, slp.hp_override, slp.mp_override, slp.str_override, slp.sta_override, slp.wis_override, slp.int_override, slp.agi_override, slp.heat_override, slp.cold_override, slp.magic_override, slp.mental_override, slp.divine_override, slp.disease_override, slp.poison_override, difficulty_override FROM spawn_location_placement slp, spawn_location_name sln, spawn_location_entry sle, spawn_widgets sw where sw.spawn_id = sle.spawn_id and sln.id = sle.spawn_location_id and sln.id = slp.spawn_location_id and slp.zone_id=%i and (slp.instance_id = 0 or slp.instance_id=%u) ORDER BY sln.id, sle.id", SPAWN_ENTRY_TYPE_WIDGET);
+		signs += ProcessSpawnLocations(zone, "SELECT sln.id, sle.id, slp.x, slp.y, slp.z, slp.x_offset, slp.y_offset, slp.z_offset, slp.heading, sle.spawn_id, sle.spawnpercentage, slp.respawn, slp.respawn_offset_low, slp.respawn_offset_high, slp.duplicated_spawn, slp.grid_id, slp.id, slp.expire_timer, slp.expire_offset, slp.pitch, slp.roll, sle.condition, slp.lvl_override, slp.hp_override, slp.mp_override, slp.str_override, slp.sta_override, slp.wis_override, slp.int_override, slp.agi_override, slp.heat_override, slp.cold_override, slp.magic_override, slp.mental_override, slp.divine_override, slp.disease_override, slp.poison_override, difficulty_override FROM spawn_location_placement slp, spawn_location_name sln, spawn_location_entry sle, spawn_signs ss where ss.spawn_id = sle.spawn_id and sln.id = sle.spawn_location_id and sln.id = slp.spawn_location_id and slp.zone_id=%i and (slp.instance_id = 0 or slp.instance_id=%u) ORDER BY sln.id, sle.id", SPAWN_ENTRY_TYPE_SIGN);
+		ground_spawns += ProcessSpawnLocations(zone, "SELECT sln.id, sle.id, slp.x, slp.y, slp.z, slp.x_offset, slp.y_offset, slp.z_offset, slp.heading, sle.spawn_id, sle.spawnpercentage, slp.respawn, slp.respawn_offset_low, slp.respawn_offset_high, slp.duplicated_spawn, slp.grid_id, slp.id, slp.expire_timer, slp.expire_offset, slp.pitch, slp.roll, sle.condition, slp.lvl_override, slp.hp_override, slp.mp_override, slp.str_override, slp.sta_override, slp.wis_override, slp.int_override, slp.agi_override, slp.heat_override, slp.cold_override, slp.magic_override, slp.mental_override, slp.divine_override, slp.disease_override, slp.poison_override, difficulty_override FROM spawn_location_placement slp, spawn_location_name sln, spawn_location_entry sle, spawn_ground sg where sg.spawn_id = sle.spawn_id and sln.id = sle.spawn_location_id and sln.id = slp.spawn_location_id and slp.zone_id=%i and (slp.instance_id = 0 or slp.instance_id=%u) ORDER BY sln.id, sle.id", SPAWN_ENTRY_TYPE_GROUNDSPAWN);
+	}
 	else {
 		npcs = ProcessSpawnLocations(zone, "SELECT sln.id, sle.id, slp.x, slp.y, slp.z, slp.x_offset, slp.y_offset, slp.z_offset, slp.heading, sle.spawn_id, sle.spawnpercentage, slp.respawn, slp.respawn_offset_low, slp.respawn_offset_high, slp.duplicated_spawn, slp.grid_id, slp.id, slp.expire_timer, slp.expire_offset, slp.pitch, slp.roll, sle.condition, slp.lvl_override, slp.hp_override, slp.mp_override, slp.str_override, slp.sta_override, slp.wis_override, slp.int_override, slp.agi_override, slp.heat_override, slp.cold_override, slp.magic_override, slp.mental_override, slp.divine_override, slp.disease_override, slp.poison_override, difficulty_override FROM spawn_location_placement slp, spawn_location_name sln, spawn_location_entry sle, spawn_npcs sn where sn.spawn_id = sle.spawn_id and sln.id = sle.spawn_location_id and sln.id = slp.spawn_location_id and slp.zone_id=%i and (slp.instance_id = 0 or slp.instance_id=%u) ORDER BY sln.id, sle.id", SPAWN_ENTRY_TYPE_NPC);
 		objects = ProcessSpawnLocations(zone, "SELECT sln.id, sle.id, slp.x, slp.y, slp.z, slp.x_offset, slp.y_offset, slp.z_offset, slp.heading, sle.spawn_id, sle.spawnpercentage, slp.respawn, slp.respawn_offset_low, slp.respawn_offset_high, slp.duplicated_spawn, slp.grid_id, slp.id, slp.expire_timer, slp.expire_offset, slp.pitch, slp.roll, sle.condition, slp.lvl_override, slp.hp_override, slp.mp_override, slp.str_override, slp.sta_override, slp.wis_override, slp.int_override, slp.agi_override, slp.heat_override, slp.cold_override, slp.magic_override, slp.mental_override, slp.divine_override, slp.disease_override, slp.poison_override, difficulty_override FROM spawn_location_placement slp, spawn_location_name sln, spawn_location_entry sle, spawn_objects so where so.spawn_id = sle.spawn_id and sln.id = sle.spawn_location_id and sln.id = slp.spawn_location_id and slp.zone_id=%i and (slp.instance_id = 0 or slp.instance_id=%u) ORDER BY sln.id, sle.id", SPAWN_ENTRY_TYPE_OBJECT);
@@ -3570,17 +3637,22 @@ void WorldDatabase::LoadSpawns(ZoneServer* zone)
 		spawn_groups = LoadSpawnLocationGroups(zone);
 		spawn_group_associations = LoadSpawnLocationGroupAssociations(zone);
 		spawn_group_chances = LoadSpawnGroupChances(zone);
-
 	}
-	LogWrite(SPAWN__INFO, 0, "Spawn", "Loaded for zone '%s' (%u):\n\t%u NPC(s), %u Object(s), %u Widget(s)\n\t%u Sign(s), %u Ground Spawn(s), %u Spawn Group(s)\n\t%u Spawn Group Association(s), %u Spawn Group Chance(s)", zone->GetZoneName(), zone->GetZoneID(), npcs, objects, widgets, signs, ground_spawns, spawn_groups, spawn_group_associations, spawn_group_chances);
+	LogWrite(SPAWN__INFO, 0, "Spawn", "Loaded for zone '%s' (%u):\n\t%u NPC(s), %u Object(s), %u Widget(s)\n\t%u Sign(s), %u Ground Spawn(s), %u Spawn Group(s)\n\t%u Spawn Group Association(s), %u Spawn Group Chance(s), %u InstanceHouse", zone->GetZoneName(), zone->GetZoneID(), npcs, objects, widgets, signs, ground_spawns, spawn_groups, spawn_group_associations, spawn_group_chances, isInstanceType);
 	LogWrite(SPAWN__TRACE, 0, "Spawn", "Exit LoadSpawns");
 
 }
 
 bool WorldDatabase::UpdateSpawnLocationSpawns(Spawn* spawn) {
 	Query query;
-	query.RunQuery2(Q_UPDATE, "update spawn_location_placement set x=%f, y=%f, z=%f, heading=%f, x_offset=%f, y_offset=%f, z_offset=%f, respawn=%u, expire_timer=%u, expire_offset=%u, grid_id=%u, pitch=%f, roll=%f where id = %u",
-		spawn->GetX(), spawn->GetY(), spawn->GetZ(), spawn->GetHeading(), spawn->GetXOffset(), spawn->GetYOffset(), spawn->GetZOffset(), spawn->GetRespawnTime(), spawn->GetExpireTime(), spawn->GetExpireOffsetTime(), spawn->GetLocation(), spawn->GetPitch(), spawn->GetRoll(), spawn->GetSpawnLocationPlacementID());
+	int8 isInstanceType = (spawn && spawn->GetZone() && spawn->GetZone()->GetInstanceType() == Instance_Type::PERSONAL_HOUSE_INSTANCE);
+	std::string houseTable("");
+	if(isInstanceType) {
+		houseTable.append("_houses");
+	}
+	
+	query.RunQuery2(Q_UPDATE, "update spawn_location_placement%s set x=%f, y=%f, z=%f, heading=%f, x_offset=%f, y_offset=%f, z_offset=%f, respawn=%u, expire_timer=%u, expire_offset=%u, grid_id=%u, pitch=%f, roll=%f where id = %u",
+		houseTable.c_str(), spawn->GetX(), spawn->GetY(), spawn->GetZ(), spawn->GetHeading(), spawn->GetXOffset(), spawn->GetYOffset(), spawn->GetZOffset(), spawn->GetRespawnTime(), spawn->GetExpireTime(), spawn->GetExpireOffsetTime(), spawn->GetLocation(), spawn->GetPitch(), spawn->GetRoll(), spawn->GetSpawnLocationPlacementID());
 	if (query.GetErrorNumber() && query.GetError() && query.GetErrorNumber() < 0xFFFFFFFF) {
 		LogWrite(WORLD__ERROR, 0, "World", "Error in UpdateSpawnLocationSpawns query '%s': %s", query.GetQuery(), query.GetError());
 		return false;
@@ -3588,10 +3660,10 @@ bool WorldDatabase::UpdateSpawnLocationSpawns(Spawn* spawn) {
 	return true;
 }
 
-bool WorldDatabase::UpdateSpawnWidget(int32 widget_id, char* queryString) {
+bool WorldDatabase::UpdateSpawnWidget(int32 widget_id, char* queryString,bool is_house) {
 	Query query;
-	query.RunQuery2(Q_UPDATE, "update spawn_widgets set %s where widget_id = %u",
-		queryString, widget_id);
+	query.RunQuery2(Q_UPDATE, "update spawn_widgets%s set %s where widget_id = %u",
+		is_house ? "_houses" : "", queryString, widget_id);
 	if (query.GetErrorNumber() && query.GetError() && query.GetErrorNumber() < 0xFFFFFFFF) {
 		LogWrite(WORLD__ERROR, 0, "World", "Error in UpdateSpawnWidget query '%s': %s", query.GetQuery(), query.GetError());
 		return false;
@@ -3666,11 +3738,11 @@ void WorldDatabase::LoadRevivePoints(vector<RevivePoint*>* revive_points, int32 
 	}
 }
 
-int32 WorldDatabase::GetNextSpawnIDInZone(int32 zone_id)
+int32 WorldDatabase::GetNextSpawnIDInZone(int32 zone_id, bool isInstanceType)
 {
 	Query query;
 	int32 ret = 0;
-	MYSQL_RES* result = query.RunQuery2(Q_SELECT, "SELECT MAX(id) FROM spawn where id LIKE '%i____'", zone_id);
+	MYSQL_RES* result = query.RunQuery2(Q_SELECT, "SELECT MAX(id) FROM spawn%s where id LIKE '%i____'", isInstanceType ? "_houses" : "", zone_id);
 	if(result && mysql_num_rows(result) > 0) {
 		MYSQL_ROW row;
 		row = mysql_fetch_row(result);
@@ -3692,14 +3764,18 @@ bool WorldDatabase::SaveSpawnInfo(Spawn* spawn){
 	string suffix = getSafeEscapeString(spawn->GetSuffixTitle());
 	string prefix = getSafeEscapeString(spawn->GetPrefixTitle());
 	string last_name = getSafeEscapeString(spawn->GetLastName());
+	
+	int8 isInstanceType = (spawn->GetZone()->GetInstanceType() == Instance_Type::PERSONAL_HOUSE_INSTANCE);
+	std::string houseTable("");
+	if(isInstanceType) {
+		houseTable.append("_houses");
+	}
 	if(spawn->GetDatabaseID() == 0){
+	
+		int32 new_spawn_id = GetNextSpawnIDInZone(spawn->GetZone()->GetZoneID(), isInstanceType);
 
-		int8 isInstanceType = (spawn->GetZone()->GetInstanceType() == Instance_Type::PERSONAL_HOUSE_INSTANCE);
-
-		int32 new_spawn_id = GetNextSpawnIDInZone(spawn->GetZone()->GetZoneID());
-
-		query.RunQuery2(Q_INSERT, "insert into spawn (id, name, race, model_type, size, targetable, show_name, command_primary, command_secondary, visual_state, attackable, show_level, show_command_icon, display_hand_icon, faction_id, collision_radius, hp, power, prefix, suffix, last_name, is_instanced_spawn, merchant_min_level, merchant_max_level) values(%u, '%s', %i, %i, %i, %i, %i, %u, %u, %i, %i, %i, %i, %i, %u, %i, %u, %u, '%s', '%s', '%s', %u, %u, %u)",
-			new_spawn_id, name.c_str(), spawn->GetRace(), spawn->GetModelType(), spawn->GetSize(), spawn->appearance.targetable, spawn->appearance.display_name, spawn->GetPrimaryCommandListID(), spawn->GetSecondaryCommandListID(), spawn->GetVisualState(), spawn->appearance.attackable, spawn->appearance.show_level, spawn->appearance.show_command_icon, spawn->appearance.display_hand_icon, 0, spawn->appearance.pos.collision_radius, spawn->GetTotalHP(), spawn->GetTotalPower(), prefix.c_str(), suffix.c_str(), last_name.c_str(), isInstanceType, spawn->GetMerchantMinLevel(), spawn->GetMerchantMaxLevel());
+		query.RunQuery2(Q_INSERT, "insert into spawn%s (id, name, race, model_type, size, targetable, show_name, command_primary, command_secondary, visual_state, attackable, show_level, show_command_icon, display_hand_icon, faction_id, collision_radius, hp, power, prefix, suffix, last_name, is_instanced_spawn, merchant_min_level, merchant_max_level) values(%u, '%s', %i, %i, %i, %i, %i, %u, %u, %i, %i, %i, %i, %i, %u, %i, %u, %u, '%s', '%s', '%s', %u, %u, %u)",
+			houseTable.c_str(), new_spawn_id, name.c_str(), spawn->GetRace(), spawn->GetModelType(), spawn->GetSize(), spawn->appearance.targetable, spawn->appearance.display_name, spawn->GetPrimaryCommandListID(), spawn->GetSecondaryCommandListID(), spawn->GetVisualState(), spawn->appearance.attackable, spawn->appearance.show_level, spawn->appearance.show_command_icon, spawn->appearance.display_hand_icon, 0, spawn->appearance.pos.collision_radius, spawn->GetTotalHP(), spawn->GetTotalPower(), prefix.c_str(), suffix.c_str(), last_name.c_str(), isInstanceType, spawn->GetMerchantMinLevel(), spawn->GetMerchantMaxLevel());
 
 		if( new_spawn_id > 0 )
 			spawn->SetDatabaseID(new_spawn_id); // use the new zone_id range
@@ -3709,40 +3785,40 @@ bool WorldDatabase::SaveSpawnInfo(Spawn* spawn){
 			return false; // else, hang your head in shame as you are an utter failure
 
 		if(spawn->IsNPC()){
-			query.RunQuery2(Q_INSERT, "insert into spawn_npcs (spawn_id, min_level, max_level, enc_level, class_, gender, min_group_size, max_group_size, hair_type_id, facial_hair_type_id, wing_type_id, chest_type_id, legs_type_id, soga_hair_type_id, soga_facial_hair_type_id, soga_model_type, heroic_flag, action_state, mood_state, initial_state, activity_status, hide_hood, emote_state) values(%u, %i, %i, %i, %i, %i, %i, %i, %i, %i, %i, %i, %i, %i, %i, %i, %i, %i, %i, %i, %i, %i, %i)",
-				spawn->GetDatabaseID(), spawn->GetLevel(), spawn->GetLevel(), spawn->GetDifficulty(), spawn->GetAdventureClass(), spawn->GetGender(), 0, 0, ((NPC*)spawn)->features.hair_type, ((NPC*)spawn)->features.hair_face_type, 
+			query.RunQuery2(Q_INSERT, "insert into spawn_npcs%s (spawn_id, min_level, max_level, enc_level, class_, gender, min_group_size, max_group_size, hair_type_id, facial_hair_type_id, wing_type_id, chest_type_id, legs_type_id, soga_hair_type_id, soga_facial_hair_type_id, soga_model_type, heroic_flag, action_state, mood_state, initial_state, activity_status, hide_hood, emote_state) values(%u, %i, %i, %i, %i, %i, %i, %i, %i, %i, %i, %i, %i, %i, %i, %i, %i, %i, %i, %i, %i, %i, %i)",
+				houseTable.c_str(), spawn->GetDatabaseID(), spawn->GetLevel(), spawn->GetLevel(), spawn->GetDifficulty(), spawn->GetAdventureClass(), spawn->GetGender(), 0, 0, ((NPC*)spawn)->features.hair_type, ((NPC*)spawn)->features.hair_face_type, 
 				((NPC*)spawn)->features.wing_type, ((NPC*)spawn)->features.chest_type, ((NPC*)spawn)->features.legs_type, ((NPC*)spawn)->features.soga_hair_type, ((NPC*)spawn)->features.soga_hair_face_type, spawn->appearance.soga_model_type, spawn->appearance.heroic_flag, spawn->GetActionState(), spawn->GetMoodState(), spawn->GetInitialState(), spawn->GetActivityStatus(), spawn->appearance.hide_hood, spawn->appearance.emote_state);
 		}
 		else if(spawn->IsObject()){
-			query.RunQuery2(Q_INSERT, "insert into spawn_objects (spawn_id) values(%u)", spawn->GetDatabaseID());
+			query.RunQuery2(Q_INSERT, "insert into spawn_objects%s (spawn_id) values(%u)", houseTable.c_str(), spawn->GetDatabaseID());
 		}
 		else if(spawn->IsWidget()){
 			Widget* widget = (Widget*)spawn;
-			query.RunQuery2(Q_INSERT, "insert into spawn_widgets (spawn_id, widget_id) values(%u, %u)", spawn->GetDatabaseID(), widget->GetWidgetID());
+			query.RunQuery2(Q_INSERT, "insert into spawn_widgets%s (spawn_id, widget_id) values(%u, %u)", houseTable.c_str(), spawn->GetDatabaseID(), widget->GetWidgetID());
 		}
 		else if(spawn->IsSign()){
-			query.RunQuery2(Q_INSERT, "insert into spawn_signs (spawn_id, description) values(%u, 'change me')", spawn->GetDatabaseID());
+			query.RunQuery2(Q_INSERT, "insert into spawn_signs%s (spawn_id, description) values(%u, 'change me')", houseTable.c_str(), spawn->GetDatabaseID());
 
 		}
 		else if (spawn->IsGroundSpawn()) {
-			query.RunQuery2(Q_INSERT, "insert into spawn_ground (spawn_id) values(%u)", spawn->GetDatabaseID());
+			query.RunQuery2(Q_INSERT, "insert into spawn_ground%s (spawn_id) values(%u)", houseTable.c_str(), spawn->GetDatabaseID());
 		}
 	}
 	else{
 		if(spawn->IsNPC()){
-			query.RunQuery2(Q_UPDATE, "update spawn_npcs, spawn set name='%s', min_level=%i, max_level=%i, enc_level=%i, race=%i, model_type=%i, class_=%i, gender=%i, show_name=%i, attackable=%i, show_level=%i, targetable=%i, show_command_icon=%i, display_hand_icon=%i, hair_type_id=%i, facial_hair_type_id=%i, wing_type_id=%i, chest_type_id=%i, legs_type_id=%i, soga_hair_type_id=%i, soga_facial_hair_type_id=%i, soga_model_type=%i, size=%i, hp=%u, heroic_flag=%i, power=%u, collision_radius=%i, command_primary=%u, command_secondary=%u, visual_state=%i, action_state=%i, mood_state=%i, initial_state=%i, activity_status=%i, alignment=%i, faction_id=%u, hide_hood=%i, emote_state=%i, suffix ='%s', prefix='%s', last_name='%s', merchant_min_level = %u, merchant_max_level = %u where spawn_npcs.spawn_id = spawn.id and spawn.id = %u",
-				name.c_str(), spawn->GetLevel(), spawn->GetLevel(), spawn->GetDifficulty(), spawn->GetRace(), spawn->GetModelType(),
+			query.RunQuery2(Q_UPDATE, "update spawn_npcs%s, spawn set name='%s', min_level=%i, max_level=%i, enc_level=%i, race=%i, model_type=%i, class_=%i, gender=%i, show_name=%i, attackable=%i, show_level=%i, targetable=%i, show_command_icon=%i, display_hand_icon=%i, hair_type_id=%i, facial_hair_type_id=%i, wing_type_id=%i, chest_type_id=%i, legs_type_id=%i, soga_hair_type_id=%i, soga_facial_hair_type_id=%i, soga_model_type=%i, size=%i, hp=%u, heroic_flag=%i, power=%u, collision_radius=%i, command_primary=%u, command_secondary=%u, visual_state=%i, action_state=%i, mood_state=%i, initial_state=%i, activity_status=%i, alignment=%i, faction_id=%u, hide_hood=%i, emote_state=%i, suffix ='%s', prefix='%s', last_name='%s', merchant_min_level = %u, merchant_max_level = %u where spawn_npcs%s.spawn_id = spawn.id and spawn.id = %u",
+				houseTable.c_str(), name.c_str(), spawn->GetLevel(), spawn->GetLevel(), spawn->GetDifficulty(), spawn->GetRace(), spawn->GetModelType(),
 				spawn->GetAdventureClass(), spawn->GetGender(), spawn->appearance.display_name, spawn->appearance.attackable, spawn->appearance.show_level, spawn->appearance.targetable, spawn->appearance.show_command_icon, spawn->appearance.display_hand_icon, ((NPC*)spawn)->features.hair_type, 
 				((NPC*)spawn)->features.hair_face_type, ((NPC*)spawn)->features.wing_type, ((NPC*)spawn)->features.chest_type, ((NPC*)spawn)->features.legs_type, ((NPC*)spawn)->features.soga_hair_type, ((NPC*)spawn)->features.soga_hair_face_type, spawn->appearance.soga_model_type, spawn->GetSize(), 
 				spawn->GetTotalHPBase(), spawn->appearance.heroic_flag, spawn->GetTotalPowerBase(), spawn->GetCollisionRadius(), spawn->GetPrimaryCommandListID(), 
 				spawn->GetSecondaryCommandListID(), spawn->GetVisualState(), spawn->GetActionState(), spawn->GetMoodState(), spawn->GetInitialState(), 
 				spawn->GetActivityStatus(), ((NPC*)spawn)->GetAlignment(), spawn->GetFactionID(), spawn->appearance.hide_hood, spawn->appearance.emote_state, 
-				suffix.c_str(), prefix.c_str(), last_name.c_str(), spawn->GetMerchantMinLevel(), spawn->GetMerchantMaxLevel(), spawn->GetDatabaseID());
+				suffix.c_str(), prefix.c_str(), last_name.c_str(), spawn->GetMerchantMinLevel(), spawn->GetMerchantMaxLevel(), houseTable.c_str(), spawn->GetDatabaseID());
 		}
 		else if(spawn->IsObject()){
-			query.RunQuery2(Q_UPDATE, "update spawn_objects, spawn set name='%s', model_type=%i, show_name=%i, targetable=%i, size=%i, command_primary=%u, command_secondary=%u, visual_state=%i, attackable=%i, show_level=%i, show_command_icon=%i, display_hand_icon=%i, collision_radius=%i, hp = %u, power = %u, device_id = %i, merchant_min_level = %u, merchant_max_level = %u where spawn_objects.spawn_id = spawn.id and spawn.id = %u",
-				name.c_str(), spawn->GetModelType(), spawn->appearance.display_name, spawn->appearance.targetable, spawn->GetSize(), spawn->GetPrimaryCommandListID(), spawn->GetSecondaryCommandListID(), spawn->GetVisualState(), spawn->appearance.attackable, spawn->appearance.show_level, spawn->appearance.show_command_icon, spawn->appearance.display_hand_icon,
-				spawn->GetCollisionRadius(), spawn->GetTotalHP(), spawn->GetTotalPower(), ((Object*)spawn)->GetDeviceID(), spawn->GetMerchantMinLevel(), spawn->GetMerchantMaxLevel(), spawn->GetDatabaseID());
+			query.RunQuery2(Q_UPDATE, "update spawn_objects%s, spawn set name='%s', model_type=%i, show_name=%i, targetable=%i, size=%i, command_primary=%u, command_secondary=%u, visual_state=%i, attackable=%i, show_level=%i, show_command_icon=%i, display_hand_icon=%i, collision_radius=%i, hp = %u, power = %u, device_id = %i, merchant_min_level = %u, merchant_max_level = %u where spawn_objects%s.spawn_id = spawn.id and spawn.id = %u",
+				houseTable.c_str(), name.c_str(), spawn->GetModelType(), spawn->appearance.display_name, spawn->appearance.targetable, spawn->GetSize(), spawn->GetPrimaryCommandListID(), spawn->GetSecondaryCommandListID(), spawn->GetVisualState(), spawn->appearance.attackable, spawn->appearance.show_level, spawn->appearance.show_command_icon, spawn->appearance.display_hand_icon,
+				spawn->GetCollisionRadius(), spawn->GetTotalHP(), spawn->GetTotalPower(), ((Object*)spawn)->GetDeviceID(), spawn->GetMerchantMinLevel(), spawn->GetMerchantMaxLevel(), houseTable.c_str(), spawn->GetDatabaseID());
 		}
 		else if(spawn->IsWidget()){
 			Widget* widget = (Widget*)spawn;
@@ -3750,25 +3826,25 @@ bool WorldDatabase::SaveSpawnInfo(Spawn* spawn){
 			char* closeSound = 0;
 			if (widget->GetOpenSound() != NULL) openSound = (char*)widget->GetOpenSound(); else openSound = (char*)string("0").c_str();
 			if (widget->GetCloseSound() != NULL) closeSound = (char*)widget->GetCloseSound(); else closeSound = (char*)string("0").c_str();
-			query.RunQuery2(Q_UPDATE, "update spawn_widgets, spawn set name='%s', race=%i, model_type=%i, show_name=%i, attackable=%i, show_level=%i, show_command_icon=%i, display_hand_icon=%i, size=%i, hp=%u, power=%u, collision_radius=%i, command_primary=%u, command_secondary=%u, visual_state=%i, faction_id=%u, suffix ='%s', prefix='%s', last_name='%s',widget_id = %u,widget_x = %f,widget_y = %f,widget_z = %f,include_heading = %u,include_location = %u,icon = %u,type='%s',open_heading = %f,closed_heading = %f,open_x = %f,open_y = %f,open_z = %f,action_spawn_id = %u,open_sound_file='%s',close_sound_file='%s',open_duration = %u,close_x = %f,close_y=%f,close_z=%f,linked_spawn_id = %u,house_id = %u, merchant_min_level = %u, merchant_max_level = %u where spawn_widgets.spawn_id = spawn.id and spawn.id = %u",
-				name.c_str(), spawn->GetRace(), spawn->GetModelType(), spawn->appearance.display_name, spawn->appearance.attackable, spawn->appearance.show_level, spawn->appearance.show_command_icon, spawn->appearance.display_hand_icon, spawn->GetSize(),
+			query.RunQuery2(Q_UPDATE, "update spawn_widgets%s, spawn set name='%s', race=%i, model_type=%i, show_name=%i, attackable=%i, show_level=%i, show_command_icon=%i, display_hand_icon=%i, size=%i, hp=%u, power=%u, collision_radius=%i, command_primary=%u, command_secondary=%u, visual_state=%i, faction_id=%u, suffix ='%s', prefix='%s', last_name='%s',widget_id = %u,widget_x = %f,widget_y = %f,widget_z = %f,include_heading = %u,include_location = %u,icon = %u,type='%s',open_heading = %f,closed_heading = %f,open_x = %f,open_y = %f,open_z = %f,action_spawn_id = %u,open_sound_file='%s',close_sound_file='%s',open_duration = %u,close_x = %f,close_y=%f,close_z=%f,linked_spawn_id = %u,house_id = %u, merchant_min_level = %u, merchant_max_level = %u where spawn_widgets%s.spawn_id = spawn.id and spawn.id = %u",
+				houseTable.c_str(), name.c_str(), spawn->GetRace(), spawn->GetModelType(), spawn->appearance.display_name, spawn->appearance.attackable, spawn->appearance.show_level, spawn->appearance.show_command_icon, spawn->appearance.display_hand_icon, spawn->GetSize(),
 				spawn->GetTotalHP(), spawn->GetTotalPower(), spawn->GetCollisionRadius(), spawn->GetPrimaryCommandListID(), spawn->GetSecondaryCommandListID(), spawn->GetVisualState(), spawn->GetFactionID(), 
 				suffix.c_str(), prefix.c_str(), last_name.c_str(), widget->GetWidgetID(), widget->GetX(), widget->GetY(), widget->GetZ(), widget->GetIncludeHeading(), widget->GetIncludeLocation(), widget->GetIconValue(), Widget::GetWidgetTypeNameByTypeID(widget->GetWidgetType()).c_str(),
 				widget->GetOpenHeading(), widget->GetClosedHeading(), widget->GetOpenX(), widget->GetOpenY(), widget->GetOpenZ(), 
 				widget->GetActionSpawnID(), openSound, closeSound,widget->GetOpenDuration(),
 				widget->GetCloseX(),widget->GetCloseY(),widget->GetCloseZ(),widget->GetLinkedSpawnID(),widget->GetHouseID(),
-				spawn->GetMerchantMinLevel(), spawn->GetMerchantMaxLevel(), spawn->GetDatabaseID());
+				spawn->GetMerchantMinLevel(), spawn->GetMerchantMaxLevel(), houseTable.c_str(), spawn->GetDatabaseID());
 		}
 		else if(spawn->IsSign()){
 			Sign* sign = (Sign*)spawn;
-			query.RunQuery2(Q_UPDATE, "update spawn_signs, spawn set name='%s', race=%i, model_type=%i, show_name=%i, attackable=%i, show_level=%i, show_command_icon=%i, display_hand_icon=%i, size=%i, hp=%u, power=%u, collision_radius=%i, command_primary=%u, command_secondary=%u, visual_state=%i, faction_id=%u, suffix ='%s', prefix='%s', last_name='%s', `type`='%s', zone_id = %u, widget_id = %u, title='%s', widget_x = %f, widget_y = %f, widget_z = %f, icon = %u, description='%s', sign_distance = %f, zone_x = %f, zone_y = %f, zone_z = %f, zone_heading = %f, include_heading = %u, include_location = %u, merchant_min_level = %u, merchant_max_level = %u, language = %u where spawn_signs.spawn_id = spawn.id and spawn.id = %u",
-				name.c_str(), spawn->GetRace(), spawn->GetModelType(), spawn->appearance.display_name, spawn->appearance.attackable, spawn->appearance.show_level, spawn->appearance.show_command_icon, spawn->appearance.display_hand_icon, spawn->GetSize(),
+			query.RunQuery2(Q_UPDATE, "update spawn_signs%s, spawn set name='%s', race=%i, model_type=%i, show_name=%i, attackable=%i, show_level=%i, show_command_icon=%i, display_hand_icon=%i, size=%i, hp=%u, power=%u, collision_radius=%i, command_primary=%u, command_secondary=%u, visual_state=%i, faction_id=%u, suffix ='%s', prefix='%s', last_name='%s', `type`='%s', zone_id = %u, widget_id = %u, title='%s', widget_x = %f, widget_y = %f, widget_z = %f, icon = %u, description='%s', sign_distance = %f, zone_x = %f, zone_y = %f, zone_z = %f, zone_heading = %f, include_heading = %u, include_location = %u, merchant_min_level = %u, merchant_max_level = %u, language = %u where spawn_signs%s.spawn_id = spawn.id and spawn.id = %u",
+				houseTable.c_str(), name.c_str(), spawn->GetRace(), spawn->GetModelType(), spawn->appearance.display_name, spawn->appearance.attackable, spawn->appearance.show_level, spawn->appearance.show_command_icon, spawn->appearance.display_hand_icon, spawn->GetSize(),
 				spawn->GetTotalHP(), spawn->GetTotalPower(), spawn->GetCollisionRadius(), spawn->GetPrimaryCommandListID(), spawn->GetSecondaryCommandListID(), spawn->GetVisualState(), spawn->GetFactionID(),
 				suffix.c_str(), prefix.c_str(), last_name.c_str(), sign->GetSignType() == SIGN_TYPE_GENERIC ? "Generic" : "Zone", sign->GetSignZoneID(), 
 				sign->GetWidgetID(), sign->GetSignTitle(), sign->GetWidgetX(), sign->GetWidgetY(), sign->GetWidgetZ(), 
 				sign->GetIconValue(), sign->GetSignDescription(), sign->GetSignDistance(), sign->GetSignZoneX(), 
 				sign->GetSignZoneY(), sign->GetSignZoneZ(), sign->GetSignZoneHeading(), sign->GetIncludeHeading(), 
-				sign->GetIncludeLocation(), spawn->GetMerchantMinLevel(), spawn->GetMerchantMaxLevel(), sign->GetLanguage(), spawn->GetDatabaseID());
+				sign->GetIncludeLocation(), spawn->GetMerchantMinLevel(), spawn->GetMerchantMaxLevel(), sign->GetLanguage(), houseTable.c_str(), spawn->GetDatabaseID());
 		}
 	}
 	if(query.GetErrorNumber() && query.GetError() && query.GetErrorNumber() < 0xFFFFFFFF){
@@ -3794,7 +3870,7 @@ int32 WorldDatabase::SaveCombinedSpawnLocation(ZoneServer* zone, Spawn* in_spawn
 		spawnLocationID = spawn_location_id;
 		if(!name)
 			name = "Combine SpawnGroup Generated";
-		if(!CreateNewSpawnLocation(spawn_location_id, name)){
+		if(!CreateNewSpawnLocation(spawn_location_id, name, (zone->GetInstanceType() == Instance_Type::PERSONAL_HOUSE_INSTANCE))){
 			safe_delete(spawns);
 			return 0;
 		}
@@ -3841,21 +3917,28 @@ bool WorldDatabase::SaveSpawnEntry(Spawn* spawn, const char* spawn_location_name
 	Query query;
 	Query query2;
 	int32 count = 0;
+	
+	int8 isInstanceType = (spawn->GetZone()->GetInstanceType() == Instance_Type::PERSONAL_HOUSE_INSTANCE);
+	std::string houseTable("");
+	if(isInstanceType) {
+		houseTable.append("_houses");
+	}
+	
 	if(create_spawnlocation){
-		count = GetSpawnLocationCount(spawn->GetSpawnLocationID());
+		count = GetSpawnLocationCount(spawn->GetSpawnLocationID(), spawn);
 		if(count == 0){
-			if(!CreateNewSpawnLocation(spawn->GetSpawnLocationID(), spawn_location_name))
+			if(!CreateNewSpawnLocation(spawn->GetSpawnLocationID(), spawn_location_name, isInstanceType))
 				return false;
 		}
 	}
-	query.RunQuery2(Q_INSERT, "insert into spawn_location_entry (spawn_id, spawn_location_id, spawnpercentage) values(%u, %u, %i)", spawn->GetDatabaseID(), spawn->GetSpawnLocationID(), percent);
+	query.RunQuery2(Q_INSERT, "insert into spawn_location_entry%s (spawn_id, spawn_location_id, spawnpercentage) values(%u, %u, %i)", houseTable.c_str(), spawn->GetDatabaseID(), spawn->GetSpawnLocationID(), percent);
 
 	if(query.GetErrorNumber() && query.GetError() && query.GetErrorNumber() < 0xFFFFFFFF){
 		LogWrite(SPAWN__ERROR, 0, "Spawn", "Error in SaveSpawnEntry query '%s': %s", query.GetQuery(), query.GetError());
 		return false;
 	}
 	if(save_zonespawn){
-		query2.RunQuery2(Q_INSERT, "insert into spawn_location_placement (zone_id, instance_id, spawn_location_id, x, y, z, x_offset, y_offset, z_offset, heading, grid_id) values(%u, %u, %u, %f, %f, %f, %f, %f, %f, %f, %u)", spawn->GetZone()->GetZoneID(), spawn->GetZone()->GetInstanceID(), spawn->GetSpawnLocationID(), spawn->GetX(), spawn->GetY(), spawn->GetZ(),x_offset, y_offset, z_offset, spawn->GetHeading(), spawn->GetLocation());
+		query2.RunQuery2(Q_INSERT, "insert into spawn_location_placement%s (zone_id, instance_id, spawn_location_id, x, y, z, x_offset, y_offset, z_offset, heading, grid_id) values(%u, %u, %u, %f, %f, %f, %f, %f, %f, %f, %u)", houseTable.c_str(), spawn->GetZone()->GetZoneID(), spawn->GetZone()->GetInstanceID(), spawn->GetSpawnLocationID(), spawn->GetX(), spawn->GetY(), spawn->GetZ(),x_offset, y_offset, z_offset, spawn->GetHeading(), spawn->GetLocation());
 		if(query2.GetErrorNumber() && query2.GetError() && query2.GetErrorNumber() < 0xFFFFFFFF){
 			LogWrite(SPAWN__ERROR, 0, "Spawn", "Error in SaveSpawnEntry query '%s': %s", query2.GetQuery(), query2.GetError());
 			return false;
@@ -3901,12 +3984,12 @@ float WorldDatabase::GetSpawnLocationPlacementOffsetZ(int32 location_id) {
 	return ret;
 }
 
-bool WorldDatabase::CreateNewSpawnLocation(int32 id, const char* name){
+bool WorldDatabase::CreateNewSpawnLocation(int32 id, const char* name, bool isHouseType){
 	Query query;
 	if(!name)
 		name = "Unknown Spawn Location Name";
 	string str_name = getSafeEscapeString(name);
-	query.RunQuery2(Q_INSERT, "insert into spawn_location_name (id, name) values(%u, '%s')", id, str_name.c_str());
+	query.RunQuery2(Q_INSERT, "insert into spawn_location_name%s (id, name) values(%u, '%s')", isHouseType ? "_houses" : "", id, str_name.c_str());
 	if(query.GetErrorNumber() && query.GetError() && query.GetErrorNumber() < 0xFFFFFFFF){
 		LogWrite(SPAWN__ERROR, 0, "Spawn", "Error in CreateNewSpawnLocation query '%s': %s", query.GetQuery(), query.GetError());
 		return false;
@@ -3918,10 +4001,16 @@ int32 WorldDatabase::GetSpawnLocationCount(int32 location, Spawn* spawn){
 	Query query;
 	int32 ret = 0;
 	MYSQL_RES* result = 0;
+	
+	int8 isInstanceType = (spawn && spawn->GetZone() && spawn->GetZone()->GetInstanceType() == Instance_Type::PERSONAL_HOUSE_INSTANCE);
+	std::string houseTable("");
+	if(isInstanceType) {
+		houseTable.append("_houses");
+	}
 	if(spawn)
-		result = query.RunQuery2(Q_SELECT, "SELECT count(id) FROM spawn_location_entry where spawn_location_id=%u and spawn_id=%u", location, spawn->GetDatabaseID());
+		result = query.RunQuery2(Q_SELECT, "SELECT count(id) FROM spawn_location_entry%s where spawn_location_id=%u and spawn_id=%u", houseTable.c_str(), location, spawn->GetDatabaseID());
 	else
-		result = query.RunQuery2(Q_SELECT, "SELECT count(id) FROM spawn_location_entry where spawn_location_id=%u", location);
+		result = query.RunQuery2(Q_SELECT, "SELECT count(id) FROM spawn_location_entry%s where spawn_location_id=%u", houseTable.c_str(), location);
 	if(result && mysql_num_rows(result) > 0){
 		MYSQL_ROW row;
 		while(result && (row = mysql_fetch_row(result)) && row[0]){
@@ -3931,10 +4020,10 @@ int32 WorldDatabase::GetSpawnLocationCount(int32 location, Spawn* spawn){
 	return ret;
 }
 
-int32 WorldDatabase::GetNextSpawnLocation(){
+int32 WorldDatabase::GetNextSpawnLocation(bool isInstanceType){
 	Query query;
 	int32 ret = 0;
-	MYSQL_RES* result = query.RunQuery2(Q_SELECT, "SELECT max(id) FROM spawn_location_name");
+	MYSQL_RES* result = query.RunQuery2(Q_SELECT, "SELECT max(id) FROM spawn_location_name%s", isInstanceType ? "_houses" : "");
 	if(result && mysql_num_rows(result) > 0){
 		MYSQL_ROW row;
 		while(result && (row = mysql_fetch_row(result)) && row[0]){
@@ -3950,11 +4039,17 @@ bool WorldDatabase::RemoveSpawnFromSpawnLocation(Spawn* spawn){
 	Query query2;
 	int32 count = GetSpawnLocationCount(spawn->GetSpawnLocationID(), spawn);
 
-	query.RunQuery2(Q_DELETE, "delete FROM spawn_location_placement where spawn_location_id=%u", spawn->GetSpawnLocationID());
+	int8 isInstanceType = (spawn && spawn->GetZone() && spawn->GetZone()->GetInstanceType() == Instance_Type::PERSONAL_HOUSE_INSTANCE);
+	std::string houseTable("");
+	if(isInstanceType) {
+		houseTable.append("_houses");
+	}
+	
+	query.RunQuery2(Q_DELETE, "delete FROM spawn_location_placement%s where spawn_location_id=%u", houseTable.c_str(), spawn->GetSpawnLocationID());
 	if(count == 1)
-		query.RunQuery2(Q_DELETE, "delete FROM spawn_location_name where id=%u", spawn->GetSpawnLocationID());
+		query.RunQuery2(Q_DELETE, "delete FROM spawn_location_name%s where id=%u", houseTable.c_str(), spawn->GetSpawnLocationID());
 
-	query2.RunQuery2(Q_DELETE, "delete FROM spawn_location_entry where spawn_id=%u and spawn_location_id = %u", spawn->GetDatabaseID(), spawn->GetSpawnLocationID());
+	query2.RunQuery2(Q_DELETE, "delete FROM spawn_location_entry%s where spawn_id=%u and spawn_location_id = %u", houseTable.c_str(), spawn->GetDatabaseID(), spawn->GetSpawnLocationID());
 	if(query.GetErrorNumber() && query.GetError() && query.GetErrorNumber() < 0xFFFFFFFF){
 		LogWrite(WORLD__ERROR, 0, "World", "Error in RemoveSpawnFromSpawnLocation query '%s': %s", query.GetQuery(), query.GetError());
 		return false;
@@ -5288,7 +5383,8 @@ bool WorldDatabase::DeleteCharacter(int32 account_id, int32 character_id){
 	query.AddQueryAsync(character_id, this, Q_DELETE, "delete from character_custom_spell_dataindex where charid=%u", character_id);
 	query.AddQueryAsync(character_id, this, Q_DELETE, "delete from character_custom_spell_display where charid=%u", character_id);
 	query.AddQueryAsync(character_id, this, Q_DELETE, "delete from character_custom_spell_data where charid=%u", character_id);
-		
+	broker.RemoveSeller(character_id);
+	
 	return true;
 }
 
@@ -7129,13 +7225,17 @@ bool WorldDatabase::LoadNPC(ZoneServer* zone, int32 spawn_id) {
 	NPC* npc = nullptr;
 	int32 id = 0;
 	DatabaseResult result;
-										
-	database_new.Select(&result, "SELECT npc.spawn_id, s.name, npc.min_level, npc.max_level, npc.enc_level, s.race, s.model_type, npc.class_, npc.gender, s.command_primary, s.command_secondary, s.show_name, npc.min_group_size, npc.max_group_size, npc.hair_type_id, npc.facial_hair_type_id, npc.wing_type_id, npc.chest_type_id, npc.legs_type_id, npc.soga_hair_type_id, npc.soga_facial_hair_type_id, s.attackable, s.show_level, s.targetable, s.show_command_icon, s.display_hand_icon, s.hp, s.power, s.size, s.collision_radius, npc.action_state, s.visual_state, npc.mood_state, npc.initial_state, npc.activity_status, s.faction_id, s.sub_title, s.merchant_id, s.merchant_type, s.size_offset, npc.attack_type, npc.ai_strategy+0, npc.spell_list_id, npc.secondary_spell_list_id, npc.skill_list_id, npc.secondary_skill_list_id, npc.equipment_list_id, npc.str, npc.sta, npc.wis, npc.intel, npc.agi, npc.heat, npc.cold, npc.magic, npc.mental, npc.divine, npc.disease, npc.poison, npc.aggro_radius, npc.cast_percentage, npc.randomize, npc.soga_model_type, npc.heroic_flag, npc.alignment, npc.elemental, npc.arcane, npc.noxious, s.savagery, s.dissonance, npc.hide_hood, npc.emote_state, s.prefix, s.suffix, s.last_name, s.disable_sounds, s.merchant_min_level, s.merchant_max_level, s.aaxp_rewards, s.loot_tier, s.loot_drop_type, npc.scared_by_strong_players, npc.action_state_str\n"
-								 "FROM spawn s\n"
-								 "INNER JOIN spawn_npcs npc\n"
+	int8 isInstanceType = (zone->GetInstanceType() == Instance_Type::PERSONAL_HOUSE_INSTANCE);
+	std::string houseTable("");
+	if(isInstanceType) {
+		houseTable.append("_houses");
+	}
+	database_new.Select(&result, "SELECT npc.spawn_id, s.name, npc.min_level, npc.max_level, npc.enc_level, s.race, s.model_type, npc.class_, npc.gender, s.command_primary, s.command_secondary, s.show_name, npc.min_group_size, npc.max_group_size, npc.hair_type_id, npc.facial_hair_type_id, npc.wing_type_id, npc.chest_type_id, npc.legs_type_id, npc.soga_hair_type_id, npc.soga_facial_hair_type_id, s.attackable, s.show_level, s.targetable, s.show_command_icon, s.display_hand_icon, s.hp, s.power, s.size, s.collision_radius, npc.action_state, s.visual_state, npc.mood_state, npc.initial_state, npc.activity_status, s.faction_id, s.sub_title, s.merchant_id, s.merchant_type, s.size_offset, npc.attack_type, npc.ai_strategy+0, npc.spell_list_id, npc.secondary_spell_list_id, npc.skill_list_id, npc.secondary_skill_list_id, npc.equipment_list_id, npc.str, npc.sta, npc.wis, npc.intel, npc.agi, npc.heat, npc.cold, npc.magic, npc.mental, npc.divine, npc.disease, npc.poison, npc.aggro_radius, npc.cast_percentage, npc.randomize, npc.soga_model_type, npc.heroic_flag, npc.alignment, npc.elemental, npc.arcane, npc.noxious, s.savagery, s.dissonance, npc.hide_hood, npc.emote_state, s.prefix, s.suffix, s.last_name, s.disable_sounds, s.merchant_min_level, s.merchant_max_level, s.aaxp_rewards, s.loot_tier, s.loot_drop_type, npc.scared_by_strong_players, npc.action_state_str, s.lua_script\n"
+								 "FROM spawn%s s\n"
+								 "INNER JOIN spawn_npcs%s npc\n"
 								 "ON npc.spawn_id = s.id\n"
 								 "WHERE s.id = %u",
-								 spawn_id);
+								 houseTable.c_str(), houseTable.c_str(), spawn_id);
 
 	if (result.GetNumRows() > 0 && result.Next()) {
 		id = result.GetInt32(0);
@@ -7271,6 +7371,11 @@ bool WorldDatabase::LoadNPC(ZoneServer* zone, int32 spawn_id) {
 		if(!result.IsNull(82)){
 			std::string action_state_str = std::string(result.GetString(82));
 			npc->GetInfoStruct()->set_action_state(action_state_str);
+		}
+		
+		if(!result.IsNull(83)){
+			std::string lua_script = std::string(result.GetString(83));
+			npc->SetSpawnScript(lua_script, true);
 		}
 		
 		zone->AddNPC(id, npc);
@@ -7760,9 +7865,6 @@ void WorldDatabase::GetHouseSpawnInstanceData(ZoneServer* zone, Spawn* spawn)
 {
 	if (!spawn)
 		return;
-
-	if (zone->house_object_database_lookup.count(spawn->GetModelType()) < 1)
-		zone->house_object_database_lookup.Put(spawn->GetModelType(), spawn->GetDatabaseID());
 
 	DatabaseResult result;
 
@@ -8851,7 +8953,6 @@ void WorldDatabase::SaveSignMark(int32 char_id, int32 sign_id, char* char_name, 
 		LogWrite(SIGN__DEBUG, 0, "Sign", "ERROR in WorldDatabase::SaveSignMark");
 		return;
 	}
-
 }
 
 string WorldDatabase::GetSignMark(int32 char_id, int32 sign_id, char* char_name) {
@@ -8884,4 +8985,121 @@ int32 WorldDatabase::GetMysqlExpCurve(int level) {
     }
 	//return 1 so we dont break shit later divide by 0 and all that.
     return 1;
+}
+
+bool WorldDatabase::RemoveBrokerItem(int32 cid, int64 uid, int32 quantity) {
+	if (quantity <= 0)
+		return false;
+
+	string update = string("UPDATE broker_items SET count = count - %u WHERE character_id = %u AND unique_id = %llu AND count >= %u");
+	Query q;
+	q.RunQuery2(
+	  Q_UPDATE,
+	  update.c_str(), quantity, cid, uid, quantity
+	);
+
+	if (q.GetErrorNumber() && q.GetError() && q.GetErrorNumber() < 0xFFFFFFFF) {
+		LogWrite(WORLD__ERROR, 0, "Broker",
+			 "DB error removing %u from item %llu for char %u: %s",
+			 quantity, uid, cid, q.GetError());
+		return false;
+	}
+
+	// exactly one row updated ⇒ we had enough stock (and trigger will
+	// delete it if count hit zero)
+	return (q.GetAffectedRows() == 1);
+}
+
+int32 WorldDatabase::LoadBrokerSellers(BrokerManager &broker) {
+  Query       query;
+  MYSQL_ROW   row;
+  int32       count = 0;
+
+  MYSQL_RES * result = query.RunQuery2(
+	Q_SELECT,
+	"SELECT character_id, seller_name, house_id, sale_enabled, sell_from_inventory, coin_session, coin_total FROM broker_sellers"
+  );
+
+  while (result && (row = mysql_fetch_row(result))) {
+	int32   cid     = atoul(row[0]);
+	std::string name = row[1] ? row[1] : "";
+	int32   hid     = strtoull(row[2], NULL, 0);
+	bool    en      = atoi(row[3]) != 0;
+	bool    inv     = atoi(row[4]) != 0;
+	int64 coin_session = strtoull(row[5], NULL, 0);
+	int64 coin_total = strtoull(row[6], NULL, 0);
+
+	broker.LoadSeller(cid, name, hid, true, inv, coin_session, coin_total);
+	++count;
+
+	LogWrite(PLAYER__ERROR, 5, "Broker",
+	  "--Loaded broker player: %u (%s), house=%u, sale=%u, inv=%u",
+	  cid, name.c_str(), hid, en, inv
+	);
+  }
+
+  return count;
+}
+
+int32 WorldDatabase::LoadBrokerItems(BrokerManager &broker) {
+  Query       query;
+  MYSQL_ROW   row;
+  int32       count = 0;
+
+  MYSQL_RES * result = query.RunQuery2(
+	Q_SELECT,
+	"SELECT unique_id, character_id, house_id, item_id,"
+	" cost_copper, for_sale, inv_slot_id, slot_id, count, from_inventory, creator "
+	" FROM broker_items"
+  );
+
+  while (result && (row = mysql_fetch_row(result))) {
+	SaleItem it{};
+	it.unique_id      = strtoull(row[0], NULL, 0);
+	it.character_id   = atoi(row[1]);
+	it.house_id       = atoi(row[2]);
+	it.item_id        = strtoull(row[3], NULL, 0);
+	it.cost_copper    = atoi(row[4]);
+	it.for_sale       = atoi(row[5]) != 0;
+	it.inv_slot_id    = atoi(row[6]);
+	it.slot_id        = atoi(row[7]);
+	it.count          = atoi(row[8]);
+	it.from_inventory = atoul(row[9]);
+	if(row[10])
+		it.creator = std::string(row[10]);
+
+	broker.LoadItem(it);
+	++count;
+
+	LogWrite(PLAYER__ERROR, 5, "Broker",
+	  "--Loaded broker item: uid=%llu, char=%u, item=%llu,"
+	  " price=%u, count=%u",
+	  it.unique_id, it.character_id,
+	  it.item_id,   it.cost_copper,
+	  it.count
+	);
+  }
+
+  return count;
+}
+
+int32 WorldDatabase::LoadBrokerData(BrokerManager &broker) {
+  int32 p = LoadBrokerSellers(broker);
+  int32 i = LoadBrokerItems(broker);
+  return p + i;
+}
+
+bool WorldDatabase::UpdateHouseSpawnScript(int32 dbid, std::string scriptName) {	
+	string update = string("UPDATE spawn_houses SET lua_script='%s' where id=%u");
+	Query q;
+	q.RunQuery2(
+	  Q_UPDATE,
+	  update.c_str(), getSafeEscapeString(scriptName.c_str()).c_str(), dbid
+	);
+
+	if (q.GetErrorNumber() && q.GetError() && q.GetErrorNumber() < 0xFFFFFFFF) {
+		return false;
+	}
+
+	return (q.GetAffectedRows() == 1);
 }

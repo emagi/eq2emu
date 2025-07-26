@@ -1,6 +1,6 @@
 /*  
     EQ2Emulator:  Everquest II Server Emulator
-    Copyright (C) 2005 - 2025  EQ2EMulator Development Team (http://www.eq2emu.com formerly http://www.eq2emulator.net)
+    Copyright (C) 2005 - 2026  EQ2EMulator Development Team (http://www.eq2emu.com formerly http://www.eq2emulator.net)
 
     This file is part of EQ2Emulator.
 
@@ -467,7 +467,16 @@ public:
 	void Command_RaidSay(Client* client, Seperator* sep);
 	
 	void Command_ReloadZoneInfo(Client* client, Seperator* sep);
-
+	void Command_SetLocationEntry(Client* client, Seperator* sep);
+	void Command_StoreListItem(Client* client, Seperator* sep);
+	void Command_StoreSetPrice(Client* client, Seperator* sep);
+	void Command_StoreSetPriceLocal(Client* client, Seperator* sep);
+	void Command_StoreStartSelling(Client* client, Seperator* sep);
+	void Command_StoreStopSelling(Client* client, Seperator* sep);
+	void Command_StoreUnlistItem(Client* client, Seperator* sep);
+	void Command_CloseStoreKeepSelling(Client* client, Seperator* sep);
+	void Command_CancelStore(Client* client, Seperator* sep);
+	
 	// AA Commands
 	void Get_AA_Xml(Client* client, Seperator* sep);
 	void Add_AA(Client* client, Seperator* sep);
@@ -984,7 +993,16 @@ private:
 
 #define COMMAND_MOOD					800
 #define COMMAND_RELOAD_PLAYERSCRIPTS	801
-
+#define COMMAND_SLE						802
+#define COMMAND_STORE_LIST_ITEM			803
+#define COMMAND_STORE_SET_PRICE			804
+#define COMMAND_STORE_SET_PRICE_LOCAL	805
+#define COMMAND_STORE_START_SELLING		806
+#define COMMAND_STORE_STOP_SELLING		807
+#define COMMAND_STORE_UNLIST_ITEM		808
+#define COMMAND_CLOSE_STORE_KEEP_SELLING 809
+#define COMMAND_CANCEL_STORE			810
+	
 #define COMMAND_MODIFY				1000 // INSERT INTO `commands`(`id`,`type`,`command`,`subcommand`,`handler`,`required_status`) VALUES ( NULL,'1','modify','','1000','200'); 
 #define COMMAND_MODIFY_CHARACTER	1001
 #define COMMAND_MODIFY_FACTION		1002

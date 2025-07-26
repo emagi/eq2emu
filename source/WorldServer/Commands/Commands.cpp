@@ -1,6 +1,6 @@
 /*  
     EQ2Emulator:  Everquest II Server Emulator
-    Copyright (C) 2005 - 2025  EQ2EMulator Development Team (http://www.eq2emu.com formerly http://www.eq2emulator.net)
+    Copyright (C) 2005 - 2026  EQ2EMulator Development Team (http://www.eq2emu.com formerly http://www.eq2emulator.net)
 
     This file is part of EQ2Emulator.
 
@@ -52,6 +52,7 @@
 #include "../Bots/Bot.h"
 #include "../Web/PeerManager.h"
 #include "../../common/GlobalHeaders.h"
+#include "../Broker/BrokerManager.h"
 
 extern WorldDatabase database;
 extern MasterSpellList master_spell_list;
@@ -76,6 +77,7 @@ extern MasterAAList master_aa_list;
 extern MasterRaceTypeList race_types_list;
 extern Classes classes;
 extern PeerManager peer_manager;
+extern BrokerManager broker;
 
 //devn00b: Fix for linux builds since we dont use stricmp we use strcasecmp
 #if defined(__GNUC__)
@@ -2193,14 +2195,35 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 						LogWrite(COMMAND__ERROR, 0, "Command", "/info appearance: Unknown Index: %u", item_index);
 				}
 				else if(strcmp(sep->arg[0], "item") == 0 || strcmp(sep->arg[0], "merchant") == 0 || strcmp(sep->arg[0], "store") == 0 || strcmp(sep->arg[0], "buyback") == 0 || strcmp(sep->arg[0], "consignment") == 0){
-					int32 item_id = atoul(sep->arg[1]);
-					Item* item = master_item_list.GetItem(item_id);
-					if(item){
+					int64 item_id = strtoull(sep->arg[1], NULL, 0);
+					Item* item = nullptr;
+					
+					if (strcmp(sep->arg[0], "store") == 0)
+						item = client->GetPlayer()->item_list.GetVaultItemFromUniqueID(item_id, true);
+					else
+						item = master_item_list.GetItem(item_id);
+					
+					if(!item && client->GetMerchantTransactionID() && strcmp(sep->arg[0], "merchant") == 0) {
+						Spawn* merchant = client->GetPlayer()->GetZone()->GetSpawnByID(client->GetMerchantTransactionID());
+						if(merchant && merchant->GetHouseCharacterID() && merchant->GetPickupUniqueItemID()) {
+							if(auto itemInfo = broker.GetActiveItem(merchant->GetHouseCharacterID(), item_id)) {
+								item = master_item_list.GetItem(itemInfo->item_id);
+								if(item) {
+									EQ2Packet* app = item->serialize(client->GetVersion(), true, client->GetPlayer());
+									client->QueuePacket(app);
+								}
+							}
+						}
+					}
+					else if(!item && strcmp(sep->arg[0], "consignment") == 0) {
+						client->SendSellerItemByItemUniqueId(item_id);
+					}
+					else if(item){
 						EQ2Packet* app = item->serialize(client->GetVersion(), true, client->GetPlayer());
 						client->QueuePacket(app);
 					}
 					else
-						LogWrite(COMMAND__ERROR, 0, "Command", "/info item|merchant|store|buyback|consignment: Unknown Item ID: %u", item_id);
+						LogWrite(COMMAND__ERROR, 0, "Command", "/info item|merchant|store|buyback|consignment: Unknown Item ID: %u (full arguments %s)", item_id, sep->argplus[0]);
 				}
 				else if (strcmp(sep->arg[0], "spell") == 0) {
 					sint32 spell_id = atol(sep->arg[1]);
@@ -3900,8 +3923,12 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 
 			if (!spawn || !client->HasOwnerOrEditAccess() || !spawn->GetPickupItemID())
 				break;
-
-			if(client->AddItem(spawn->GetPickupItemID(), 1)) {
+			Item* tmpItem = client->GetPlayer()->item_list.GetVaultItemFromUniqueID(spawn->GetPickupUniqueItemID());
+			if((tmpItem && tmpItem->generic_info.item_type == ITEM_TYPE_HOUSE_CONTAINER) || client->AddItem(spawn->GetPickupItemID(), 1)) {
+				if ( tmpItem && tmpItem->generic_info.item_type == ITEM_TYPE_HOUSE_CONTAINER ) {
+					tmpItem->TryUnlockItem(LockReason::LockReason_House);
+					client->QueuePacket(client->GetPlayer()->SendInventoryUpdate(client->GetVersion()));
+				}
 				Query query;
 				query.RunQuery2(Q_INSERT, "delete from spawn_instance_data where spawn_id = %u and spawn_location_id = %u and pickup_item_id = %u", spawn->GetDatabaseID(), spawn->GetSpawnLocationID(), spawn->GetPickupItemID());
 
@@ -4030,12 +4057,16 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 		case COMMAND_PLACE_HOUSE_ITEM: {
 			if (sep && sep->IsNumber(0))
 			{
-				int32 uniqueid = atoi(sep->arg[0]);
+				int64 uniqueid = strtoull(sep->arg[0], NULL, 0);
 
-				Item* item = client->GetPlayer()->item_list.GetItemFromUniqueID(uniqueid);
-				//Item* item = player->GetEquipmentList()->GetItem(slot);
+				Item* item = client->GetPlayer()->item_list.GetVaultItemFromUniqueID(uniqueid);
+	
 				if (item && (item->IsHouseItem() || item->IsHouseContainer()))
 				{
+					if(item->IsHouseContainer() && item->details.inv_slot_id != InventorySlotType::HOUSE_VAULT) { // must be in base slot of vault in house for house containers
+						client->SimpleMessage(CHANNEL_COLOR_RED, "Must be in vault to place this item.");
+						break;
+					}
 					if (!client->HasOwnerOrEditAccess())
 					{
 						client->SimpleMessage(CHANNEL_COLOR_RED, "This is not your home!");
@@ -4062,7 +4093,7 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 					Object* obj = new Object();
 					Spawn* spawn = (Spawn*)obj;
 					memset(&spawn->appearance, 0, sizeof(spawn->appearance));
-					strcpy(spawn->appearance.name, "temp");
+					strcpy(spawn->appearance.name, item->name.c_str());
 					spawn->SetX(client->GetPlayer()->GetX());
 					spawn->SetY(client->GetPlayer()->GetY());
 					spawn->SetZ(client->GetPlayer()->GetZ());
@@ -4403,19 +4434,48 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 		}
 		case COMMAND_BUY_FROM_BROKER:{
 			if(sep && sep->arg[1][0] && sep->IsNumber(0) && sep->IsNumber(1)){
-				int32 item_id = atoul(sep->arg[0]);
+				int64 item_id = strtoull(sep->arg[0], NULL, 0);
 				int16 quantity = atoul(sep->arg[1]);
-				Item* item = master_item_list.GetItem(item_id);
-				if(item && item->generic_info.max_charges > 1)
-					quantity = item->generic_info.max_charges;
-				client->AddItem(item_id, quantity, AddItemType::BUY_FROM_BROKER);
+				if(client->IsGMStoreSearch()) {
+					Item* item = master_item_list.GetItem(item_id);
+					if(item && item->generic_info.max_charges > 1)
+						quantity = item->generic_info.max_charges;
+					client->AddItem(item_id, quantity, AddItemType::BUY_FROM_BROKER);
+				}
+				else {
+					client->BuySellerItemByItemUniqueId(item_id, quantity);
+					LogWrite(COMMAND__ERROR, 0, "Command", "BUY_FROM_BROKER. Item ID %u, Quantity %u, full args %s.", item_id, quantity, sep->argplus[0]);
+				}
 			}
 			break;
 		}
 		case COMMAND_SEARCH_STORES_PAGE:{
+			LogWrite(COMMAND__ERROR, 0, "Command", "SearchStores: %s", sep && sep->arg[0] ? sep->argplus[0] : "");
 			if(sep && sep->arg[0][0] && sep->IsNumber(0)){
 				int32 page = atoul(sep->arg[0]);
 				client->SearchStore(page);
+			}
+			else {
+				client->SetGMStoreSearch(false);
+				PacketStruct* packet = configReader.getStruct("WS_StartBroker", client->GetVersion());
+				if (packet) {
+					packet->setDataByName("spawn_id", client->GetPlayer()->GetIDWithPlayerSpawn(client->GetPlayer()));
+					//packet->setDataByName("unknown", 1);
+					packet->setDataByName("unknown2", 5, 0);
+					packet->setDataByName("unknown2", 20, 1);
+					packet->setDataByName("unknown2", 58, 3);
+					packet->setDataByName("unknown2", 40, 4);
+					client->QueuePacket(packet->serialize());
+					if(client->GetVersion() > 561) {
+						PacketStruct* packet2 = configReader.getStruct("WS_BrokerBags", client->GetVersion());
+						if (packet2) {
+							packet2->setDataByName("char_id", client->GetCharacterID());
+							client->QueuePacket(packet2->serialize()); //send this for now, needed to properly clear data
+							safe_delete(packet2);
+						}
+						safe_delete(packet);
+					}
+				}
 			}
 			break;
 		}
@@ -4424,11 +4484,11 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 				const char* values = sep->argplus[0];
 				if(values){
 					LogWrite(ITEM__WARNING, 0, "Item", "SearchStores: %s", values);
-
 					map<string, string> str_values = TranslateBrokerRequest(values);
 					vector<Item*>* items = master_item_list.GetItems(str_values, client);
 					if(items){
-						client->SetItemSearch(items);
+						client->SetItemSearch(items, str_values);
+						client->SetSearchPage(0);
 						client->SearchStore(0);
 					}
 				}
@@ -5424,6 +5484,13 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 										}
 		case COMMAND_ITEMSEARCH:
 		case COMMAND_FROMBROKER:{
+			
+				if(command->handler == COMMAND_ITEMSEARCH) {
+					client->SetGMStoreSearch(true);
+				}
+				else {
+					client->SetGMStoreSearch(false);
+				}
 				PacketStruct* packet = configReader.getStruct("WS_StartBroker", client->GetVersion());
 				if (packet) {
 					packet->setDataByName("spawn_id", client->GetPlayer()->GetIDWithPlayerSpawn(client->GetPlayer()));
@@ -5433,13 +5500,15 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 					packet->setDataByName("unknown2", 58, 3);
 					packet->setDataByName("unknown2", 40, 4);
 					client->QueuePacket(packet->serialize());
-					PacketStruct* packet2 = configReader.getStruct("WS_BrokerBags", client->GetVersion());
-					if (packet2) {
-						packet2->setDataByName("char_id", client->GetCharacterID());
-						client->QueuePacket(packet2->serialize()); //send this for now, needed to properly clear data
-						safe_delete(packet2);
+					if(client->GetVersion() > 561) {
+						PacketStruct* packet2 = configReader.getStruct("WS_BrokerBags", client->GetVersion());
+						if (packet2) {
+							packet2->setDataByName("char_id", client->GetCharacterID());
+							client->QueuePacket(packet2->serialize()); //send this for now, needed to properly clear data
+							safe_delete(packet2);
+						}
+						safe_delete(packet);
 					}
-					safe_delete(packet);
 				}
 			break;
 		}
@@ -5838,6 +5907,15 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 		case COMMAND_SPLIT: { Command_Split(client, sep); break; }
 		case COMMAND_RAIDSAY: { Command_RaidSay(client, sep); break; }
 		case COMMAND_RELOAD_ZONEINFO: { Command_ReloadZoneInfo(client, sep); break; }
+		case COMMAND_SLE: { Command_SetLocationEntry(client, sep); break; }
+		case COMMAND_STORE_LIST_ITEM: { Command_StoreListItem(client, sep); break; }
+		case COMMAND_STORE_SET_PRICE: { Command_StoreSetPrice(client, sep); break; }
+		case COMMAND_STORE_SET_PRICE_LOCAL: { Command_StoreSetPriceLocal(client, sep); break; }
+		case COMMAND_STORE_START_SELLING: { Command_StoreStartSelling(client, sep); break; }
+		case COMMAND_STORE_STOP_SELLING: { Command_StoreStopSelling(client, sep); break; }
+		case COMMAND_STORE_UNLIST_ITEM: { Command_StoreUnlistItem(client, sep); break; }
+		case COMMAND_CLOSE_STORE_KEEP_SELLING: { Command_CloseStoreKeepSelling(client, sep); break; }
+		case COMMAND_CANCEL_STORE: { Command_CancelStore(client, sep); break; }
 		default: 
 		{
 			LogWrite(COMMAND__WARNING, 0, "Command", "Unhandled command: %s", command->command.data.c_str());
@@ -7024,7 +7102,7 @@ void Commands::Command_Inventory(Client* client, Seperator* sep, EQ2_RemoteComma
 
 			if(item)
 			{
-				if(item->details.item_locked) {
+				if(item->IsItemLocked()) {
 					client->SimpleMessage(CHANNEL_COLOR_RED, "You cannot destroy the item in use.");
 					return;
 				}
@@ -7036,11 +7114,15 @@ void Commands::Command_Inventory(Client* client, Seperator* sep, EQ2_RemoteComma
 					client->SimpleMessage(CHANNEL_COLOR_RED, "You can't destroy this item.");
 					return;
 				}
+				if(client->GetPlayer()->item_list.IsItemInSlotType(item, InventorySlotType::HOUSE_VAULT) || client->GetPlayer()->item_list.IsItemInSlotType(item, InventorySlotType::BASE_INVENTORY)) {
+					broker.RemoveItem(client->GetPlayer()->GetCharacterID(), item->details.unique_id, item->details.count);
+				}
 				if(item->GetItemScript() && lua_interface)
 					lua_interface->RunItemScript(item->GetItemScript(), "destroyed", item, client->GetPlayer());
 			
 				//reobtain item make sure it wasn't removed
 				item = player->item_list.GetItemFromIndex(index);
+				
 				int32 bag_id = 0;
 				if(item){
 					bag_id = item->details.inv_slot_id;
@@ -7049,6 +7131,8 @@ void Commands::Command_Inventory(Client* client, Seperator* sep, EQ2_RemoteComma
 				client->GetPlayer()->item_list.DestroyItem(index);
 				client->GetPlayer()->UpdateInventory(bag_id);
 				client->GetPlayer()->CalculateApplyWeight();
+				
+				client->OpenShopWindow(nullptr); // update the window if it is open
 			}
 		}
 		else if(sep->arg[4][0] && strncasecmp("move", sep->arg[0], 4) == 0 && sep->IsNumber(1) && sep->IsNumber(2) && sep->IsNumber(3) && sep->IsNumber(4))
@@ -7058,33 +7142,34 @@ void Commands::Command_Inventory(Client* client, Seperator* sep, EQ2_RemoteComma
 			sint32 bag_id = atol(sep->arg[3]);
 			int8 charges = atoi(sep->arg[4]);
 			Item* item = client->GetPlayer()->item_list.GetItemFromIndex(from_index);
-			
+			int64 unique_id = 0;
+			int16 count = 0;
 			if(!item) {
 				client->SimpleMessage(CHANNEL_COLOR_RED, "You have no item.");
 				return;
 			}
-			
-			if(to_slot == item->details.slot_id && (bag_id < 0 || bag_id == item->details.inv_slot_id)) {
+			unique_id = item->details.unique_id;
+			count = item->details.count;
+			if(to_slot == item->details.slot_id && (bag_id == item->details.inv_slot_id)) {
 				return;
 			}
-			if(item->details.item_locked)
+			if(item->IsItemLocked())
 			{
 				client->SimpleMessage(CHANNEL_COLOR_RED, "You cannot move the item in use.");
 				return;
 			}
-			if(bag_id == -4 && !client->GetPlayer()->item_list.SharedBankAddAllowed(item))
+			if(bag_id == InventorySlotType::SHARED_BANK && !client->GetPlayer()->item_list.SharedBankAddAllowed(item))
 			{
 				client->SimpleMessage(CHANNEL_COLOR_RED, "That item (or an item inside) cannot be shared.");
 				return;
 			}
-
 			sint32 old_inventory_id = 0;
 
 			if(item)
 				old_inventory_id = item->details.inv_slot_id;
 
 			//autobank
-			if (bag_id == -3 && to_slot == -1) 
+			if (bag_id == InventorySlotType::BANK && to_slot == -1) 
 			{ 
 				if (player->HasFreeBankSlot())
 					to_slot = player->FindFreeBankSlot();
@@ -7129,6 +7214,16 @@ void Commands::Command_Inventory(Client* client, Seperator* sep, EQ2_RemoteComma
 			}
 			
 			client->GetPlayer()->CalculateApplyWeight();
+			if(item) {
+					if(!client->GetPlayer()->item_list.IsItemInSlotType(item, InventorySlotType::HOUSE_VAULT) && 
+					!client->GetPlayer()->item_list.IsItemInSlotType(item, InventorySlotType::BASE_INVENTORY)) {
+							broker.RemoveItem(client->GetPlayer()->GetCharacterID(), unique_id, charges);
+					}
+			}
+			else {
+				broker.RemoveItem(client->GetPlayer()->GetCharacterID(), unique_id, count);
+			}
+			client->OpenShopWindow(nullptr); // update the window if it is open
 		}
 		else if(sep->arg[1][0] && strncasecmp("equip", sep->arg[0], 5) == 0 && sep->IsNumber(1))
 		{
@@ -7159,6 +7254,7 @@ void Commands::Command_Inventory(Client* client, Seperator* sep, EQ2_RemoteComma
 				client->QueuePacket(characterSheetPackets);
 				
 				client->GetPlayer()->CalculateBonuses();
+				client->OpenShopWindow(nullptr); // update the window if it is open
 		}
 		else if (sep->arg[1][0] && strncasecmp("unpack", sep->arg[0], 6) == 0 && sep->IsNumber(1))
 		{
@@ -7168,7 +7264,7 @@ void Commands::Command_Inventory(Client* client, Seperator* sep, EQ2_RemoteComma
 				int16 index = atoi(sep->arg[1]);
 				Item* item = client->GetPlayer()->item_list.GetItemFromIndex(index);
 				if (item) {
-					if(item->details.item_locked)
+					if(item->IsItemLocked())
 					{
 						client->SimpleMessage(CHANNEL_COLOR_RED, "You cannot unpack the item in use.");
 						return;
@@ -7186,6 +7282,7 @@ void Commands::Command_Inventory(Client* client, Seperator* sep, EQ2_RemoteComma
 				}
 				client->RemoveItem(item, 1);
 
+				client->OpenShopWindow(nullptr); // update the window if it is open
 			}
 
 		}
@@ -7224,6 +7321,7 @@ void Commands::Command_Inventory(Client* client, Seperator* sep, EQ2_RemoteComma
 
 			client->UnequipItem(index, bag_id, to_slot, appearance_equip);
 			client->GetPlayer()->CalculateBonuses();
+			client->OpenShopWindow(nullptr); // update the window if it is open
 		}
 		else if(sep->arg[2][0] && strncasecmp("swap_equip", sep->arg[0], 10) == 0 && sep->IsNumber(1) && sep->IsNumber(2))
 		{
@@ -7276,9 +7374,10 @@ void Commands::Command_Inventory(Client* client, Seperator* sep, EQ2_RemoteComma
 
 					// Send the inventory update packet
 					client->QueuePacket(player->item_list.serialize(player, client->GetVersion()));
+					client->OpenShopWindow(nullptr); // update the window if it is open
 					return;
 				}
-				else if (bag_id == -3 && to_slot == -1) {
+				else if (bag_id == InventorySlotType::BANK && to_slot == -1) {
 					// Auto Bank
 					if (!player->item_list.GetFirstFreeBankSlot(&bag_id, &to_slot)) {
 						client->SimpleMessage(CHANNEL_STATUS, "You do not have any free bank slots.");
@@ -7291,14 +7390,15 @@ void Commands::Command_Inventory(Client* client, Seperator* sep, EQ2_RemoteComma
 						player->item_list.RemoveOverflowItem(item);
 					}
 					client->QueuePacket(player->item_list.serialize(player, client->GetVersion()));
+					client->OpenShopWindow(nullptr); // update the window if it is open
 				}
-				else if (bag_id == -4) {
+				else if (bag_id == InventorySlotType::SHARED_BANK) {
 					// Shared Bank
 					if (!player->item_list.SharedBankAddAllowed(item)) {
 						client->SimpleMessage(CHANNEL_STATUS, "That item (or an item inside) cannot be shared.");
 						return;
 					}
-					Item* tmp_item = player->item_list.GetItem(-4, to_slot);
+					Item* tmp_item = player->item_list.GetItem(bag_id, to_slot);
 					if (tmp_item) {
 						client->SimpleMessage(CHANNEL_STATUS, "You can not place an overflow item into an occupied slot");
 						return;
@@ -7311,6 +7411,7 @@ void Commands::Command_Inventory(Client* client, Seperator* sep, EQ2_RemoteComma
 						player->item_list.RemoveOverflowItem(item);
 						}
 						client->QueuePacket(player->item_list.serialize(player, client->GetVersion()));
+						client->OpenShopWindow(nullptr); // update the window if it is open
 						return;
 					}
 				}
@@ -7330,6 +7431,7 @@ void Commands::Command_Inventory(Client* client, Seperator* sep, EQ2_RemoteComma
 						player->item_list.RemoveOverflowItem(item);
 						}
 						client->QueuePacket(player->item_list.serialize(player, client->GetVersion()));
+						client->OpenShopWindow(nullptr); // update the window if it is open
 						return;
 					}
 				}
@@ -9976,12 +10078,16 @@ void Commands::Command_TradeAddItem(Client* client, Seperator* sep)
 		int32 index = atoi(sep->arg[0]);
 		item = client->GetPlayer()->GetPlayerItemList()->GetItemFromIndex(index);
 		if (item) {
-			if(item->details.item_locked || item->details.equip_slot_id) {
+			if(item->IsItemLocked() || item->details.equip_slot_id) {
 				client->SimpleMessage(CHANNEL_COLOR_RED, "You cannot trade an item currently in use.");
 				return;
 			}
-			else if(item->details.inv_slot_id == -3 || item->details.inv_slot_id == -4) {
+			else if(item->details.inv_slot_id == InventorySlotType::BANK || item->details.inv_slot_id == InventorySlotType::SHARED_BANK) {
 				client->SimpleMessage(CHANNEL_COLOR_RED, "You cannot trade an item in the bank.");
+				return;
+			}
+			else if(client->GetPlayer()->item_list.IsItemInSlotType(item, InventorySlotType::HOUSE_VAULT)) {
+				client->SimpleMessage(CHANNEL_COLOR_RED, "You cannot trade an item in the house vault.");
 				return;
 			}
 			
@@ -11041,6 +11147,23 @@ void Commands::Command_Test(Client* client, EQ2_16BitString* command_parms) {
 		else if(atoi(sep->arg[0]) == 38) {
 			client->GetPlayer()->GetZone()->SendFlightPathsPackets(client);
 		}
+		else if(atoi(sep->arg[0]) == 39) {
+			client->OpenShopWindow(nullptr, true);
+		}
+		else if(atoi(sep->arg[0]) == 40) {
+			
+			PacketStruct* packet2 = configReader.getStruct("WS_HouseStoreLog", client->GetVersion());
+			if (packet2) {
+				packet2->setDataByName("data", sep->arg[1]);
+				packet2->setDataByName("coin_gain_session", atoul(sep->arg[2]));
+				packet2->setDataByName("coin_gain_alltime", atoul(sep->arg[3]));
+				packet2->setDataByName("sales_log_open", atoi(sep->arg[4]));
+				EQ2Packet* outapp = packet2->serialize();
+				DumpPacket(outapp);
+				client->QueuePacket(outapp);
+				safe_delete(packet2);
+			}
+		}
 	}
 	else {
 			PacketStruct* packet2 = configReader.getStruct("WS_ExaminePartialSpellInfo", client->GetVersion());
@@ -11503,37 +11626,8 @@ void Commands::Command_Wind(Client* client, Seperator* sep) {
 
 void Commands::Command_SendMerchantWindow(Client* client, Seperator* sep, bool sell) {
 	Spawn* spawn = client->GetPlayer()->GetTarget();
-	if(client->GetVersion() < 561) {
-		sell = false; // doesn't support in the same way as AoM just open the normal buy/sell window
-	}
-	if(spawn) {
-		client->SetMerchantTransaction(spawn);
-		if (spawn->GetMerchantID() > 0 && spawn->IsClientInMerchantLevelRange(client)){
-			client->SendHailCommand(spawn);
-			//MerchantFactionMultiplier* multiplier = world.GetMerchantMultiplier(spawn->GetMerchantID());
-			//if(!multiplier || (multiplier && client->GetPlayer()->GetFactions()->GetFactionValue(multiplier->faction_id) >= multiplier->faction_min)){
-			client->SendBuyMerchantList(sell);
-			if(!(spawn->GetMerchantType() & MERCHANT_TYPE_NO_BUY))
-				client->SendSellMerchantList(sell);
-			if(!(spawn->GetMerchantType() & MERCHANT_TYPE_NO_BUY_BACK))
-				client->SendBuyBackList(sell);
-
-			if(client->GetVersion() > 561) {
-				PacketStruct* packet = configReader.getStruct("WS_UpdateMerchant", client->GetVersion());
-				if (packet) {
-					packet->setDataByName("spawn_id", 0xFFFFFFFF);
-					packet->setDataByName("type", 16);
-					EQ2Packet* outapp = packet->serialize();
-					if (outapp)
-						client->QueuePacket(outapp);
-					safe_delete(packet);
-				}
-			}
-		}
-		if (spawn->GetMerchantType() & MERCHANT_TYPE_REPAIR)
-			client->SendRepairList();
-	}
-	//	client->SimpleMessage(CHANNEL_COLOR_RED, "Your faction is too low to use this merchant.");
+	if(spawn)
+		client->SendMerchantWindow(spawn, sell);
 }
 
 
@@ -12946,4 +13040,301 @@ void Commands::Command_RaidSay(Client* client, Seperator* sep) {
 */ 
 void Commands::Command_ReloadZoneInfo(Client* client, Seperator* sep) {
 	world.ClearZoneInfoCache();
+}
+
+// somewhere in your command‐handler:
+void Commands::Command_SetLocationEntry(Client* client, Seperator* sep) {
+	if(client->GetCurrentZone()->GetInstanceType() == PERSONAL_HOUSE_INSTANCE) {
+		client->Message(CHANNEL_COLOR_YELLOW, "Use in a non house zone.");
+		return;
+	}
+	
+	if (!sep->IsSet(1) || (sep->IsNumber(0))) {
+		client->Message(CHANNEL_COLOR_YELLOW, "Usage: /sle <column_name> <new_value>");
+		return;
+	}
+	
+	Spawn* target = client->GetPlayer()->GetTarget();
+	
+	if(!target) {
+		client->Message(CHANNEL_COLOR_RED, "Target missing for set location entry, /sle <column_name> <new_value>");
+		return;
+	}
+
+	// GetSpawnEntryID for spawn_location_entry to set the spawnpercentage
+	int32 spawnEntryID = target->GetSpawnEntryID();
+	int32 spawnPlacementID = target->GetSpawnLocationPlacementID();
+	int32 spawnLocationID = target->GetSpawnLocationID();
+	int32 dbID = target->GetDatabaseID();
+	if (spawnPlacementID == 0 || spawnLocationID == 0 || spawnEntryID == 0 || dbID == 0) {
+		client->Message(CHANNEL_COLOR_RED, "Error: no valid spawn entry selected.");
+		return;
+	}
+
+	// 2) Whitelist the allowed columns
+	static const std::unordered_set<std::string> allowed = {
+		"x",
+		"y",
+		"z",
+		"x_offset",
+		"y_offset",
+		"z_offset",
+		"heading",
+		"pitch",
+		"roll",
+		"respawn",
+		"respawn_offset_low",
+		"respawn_offset_high",
+		"duplicated_spawn",
+		"expire_timer",
+		"expire_offset",
+		"grid_id",
+		"processed",
+		"instance_id",
+		"lvl_override",
+		"hp_override",
+		"mp_override",
+		"str_override",
+		"sta_override",
+		"wis_override",
+		"int_override",
+		"agi_override",
+		"heat_override",
+		"cold_override",
+		"magic_override",
+		"mental_override",
+		"divine_override",
+		"disease_override",
+		"poison_override",
+		"difficulty_override",
+		"spawnpercentage",
+		"condition"
+	};
+
+
+	const std::string& field = std::string(sep->arg[0]);
+	if (!allowed.count(field)) {
+		client->Message(CHANNEL_COLOR_RED, "Error: column '%s' is not modifiable.", field.c_str());
+		return;
+	}
+	
+	const std::string& val = std::string(sep->arg[1]);
+
+	Query query;	
+	if(field == "spawnpercentage" || field == "condition") {
+				query.AddQueryAsync(0, 
+							&database,
+							Q_UPDATE,
+							// we embed the whitelisted field name directly in the format
+							"UPDATE spawn_location_entry "
+							"SET %s=%s "
+							"WHERE id=%u and spawn_location_id=%u and spawn_id=%u ",
+							field.c_str(),
+							val.c_str(),
+							spawnEntryID,
+							spawnLocationID,
+							dbID
+		);
+	}
+	else {
+		query.AddQueryAsync(0, 
+							&database,
+							Q_UPDATE,
+							// we embed the whitelisted field name directly in the format
+							"UPDATE spawn_location_placement "
+							"SET %s=%s "
+							"WHERE id=%u and spawn_location_id=%u ",
+							field.c_str(),
+							val.c_str(),
+							spawnPlacementID,
+							spawnLocationID
+		);
+	}
+
+	client->Message(CHANNEL_COLOR_YELLOW, "Modified %s to %s for row entry id %u, spawn placement id %u, related to location id %u and spawn database id %u.", 
+					field.c_str(), val.c_str(), spawnEntryID, spawnPlacementID, spawnLocationID, dbID);
+}
+
+
+
+void Commands::Command_StoreListItem(Client* client, Seperator* sep) {
+	if(!client->GetShopWindowStatus()) {
+		client->Message(CHANNEL_COLOR_RED, "Shop not available.");
+		return;
+	}
+	
+	if(sep && sep->arg[0]) {
+		auto info = broker.GetSellerInfo(client->GetPlayer()->GetCharacterID());
+		if(!info) {
+			client->Message(CHANNEL_COLOR_RED, "Player %u is not in the broker database.", client->GetPlayer()->GetCharacterID());
+		}
+		else if(sep->IsNumber(0)) {
+			int64 unique_id = atoll(sep->arg[0]);
+			if(client->GetPlayer()->item_list.CanStoreSellItem(unique_id, true)) {
+				Item* item = client->GetPlayer()->item_list.GetVaultItemFromUniqueID(unique_id, true);
+				if(item) {
+					bool isInv = !client->GetPlayer()->item_list.IsItemInSlotType(item, InventorySlotType::HOUSE_VAULT);
+					int64 cost = broker.GetSalePrice(client->GetPlayer()->GetCharacterID(), item->details.unique_id);
+					client->AddItemSale(item->details.unique_id, item->details.item_id, cost, item->details.inv_slot_id, item->details.slot_id, item->details.count, isInv, true, item->creator);
+				}
+				else
+					client->Message(CHANNEL_COLOR_RED, "Broker issue, cannot find item %u.", unique_id);
+
+				client->SetItemSaleStatus(unique_id, true);				
+				client->GetPlayer()->item_list.SetVaultItemLockUniqueID(client, unique_id, true, false);
+				client->SetSellerStatus();
+			}
+		}
+		else {
+			client->Message(CHANNEL_COLOR_RED, "Invalid arguments for /store_list_item unique_id.");
+
+		}
+	}
+}
+void Commands::Command_StoreSetPrice(Client* client, Seperator* sep) {
+	if(!client->GetShopWindowStatus()) {
+		client->Message(CHANNEL_COLOR_RED, "Shop not available.");
+		return;
+	}
+	
+	if(sep && sep->arg[0]) {
+		auto info = broker.GetSellerInfo(client->GetPlayer()->GetCharacterID());
+		int64 unique_id = atoll(sep->arg[0]);
+		if(!info) {
+			client->Message(CHANNEL_COLOR_RED, "Player %u is not in the broker database.", client->GetPlayer()->GetCharacterID());
+		}
+		else if(info->sell_from_inventory && broker.IsItemFromInventory(client->GetPlayer()->GetCharacterID(), unique_id)) {
+			client->Message(CHANNEL_COLOR_RED, "You cannot change the price while selling.");
+		}
+		else if(info->sell_from_inventory && !broker.IsItemFromInventory(client->GetPlayer()->GetCharacterID(), unique_id) && broker.IsItemForSale(client->GetPlayer()->GetCharacterID(), unique_id)) {
+			client->Message(CHANNEL_COLOR_RED, "You cannot change the price while selling.");
+		}
+		else if(sep->IsNumber(1) && sep->IsNumber(2) && sep->IsNumber(3) && sep->IsNumber(4)) {
+			int32 plat = atoul(sep->arg[1]);
+			int32 gold = atoul(sep->arg[2]);
+			int32 silver = atoul(sep->arg[3]);
+			int32 copper = atoul(sep->arg[4]);
+			int64 price = plat * 1000000 + gold * 10000 + silver * 100 + copper;
+			
+			LogWrite(PLAYER__INFO, 5, "Broker",
+			  "--StoreSetPrice: %u (%u), cost=%u",
+			  client->GetPlayer()->GetCharacterID(), unique_id, price
+			);
+			client->SetItemSaleCost(unique_id, plat, gold, silver, copper);
+		}
+		else {
+			client->Message(CHANNEL_COLOR_RED, "Invalid arguments for /store_set_price unique_id platinum gold silver copper.");
+		}
+	}
+}
+void Commands::Command_StoreSetPriceLocal(Client* client, Seperator* sep) {
+	if(!client->GetShopWindowStatus()) {
+		client->Message(CHANNEL_COLOR_RED, "Shop not available.");
+		return;
+	}
+	
+	if(sep && sep->arg[0]) {
+		auto info = broker.GetSellerInfo(client->GetPlayer()->GetCharacterID());
+		if(!info) {
+			client->Message(CHANNEL_COLOR_RED, "Player %u is not in the broker database.", client->GetPlayer()->GetCharacterID());
+		}
+		else if(info->sell_from_inventory) {
+			client->Message(CHANNEL_COLOR_RED, "You cannot change the price while selling.");
+		}
+		else if(sep->IsNumber(0) && sep->IsNumber(1) && sep->IsNumber(2) && sep->IsNumber(3) && sep->IsNumber(4)) {
+			int64 unique_id = atoll(sep->arg[0]);
+			int32 plat = atoul(sep->arg[1]);
+			int32 gold = atoul(sep->arg[2]);
+			int32 silver = atoul(sep->arg[3]);
+			int32 copper = atoul(sep->arg[4]);
+			int64 price = plat * 1000000 + gold * 10000 + silver * 100 + copper;
+			LogWrite(PLAYER__INFO, 5, "Broker",
+			  "--StoreSetLocalPrice: %u (%u), cost=%u",
+			  client->GetPlayer()->GetCharacterID(), unique_id, price
+			);
+			client->SetItemSaleCost(unique_id, plat, gold, silver, copper);
+		}
+		else {
+			client->Message(CHANNEL_COLOR_RED, "Invalid arguments for /store_set_price_local unique_id platinum gold silver copper.");
+		}
+	}
+	
+}
+void Commands::Command_StoreStartSelling(Client* client, Seperator* sep) {
+	if(!client->GetShopWindowStatus()) {
+		client->Message(CHANNEL_COLOR_RED, "Shop not available.");
+		return;
+	}
+	
+	broker.AddSeller(client->GetPlayer()->GetCharacterID(), std::string(client->GetPlayer()->GetName()), client->GetPlayer()->GetPlayerInfo()->GetHouseZoneID(), true, true);
+	client->OpenShopWindow(nullptr);
+	broker.LockActiveItemsForClient(client);
+}
+
+void Commands::Command_StoreStopSelling(Client* client, Seperator* sep) {
+	if(!client->GetShopWindowStatus()) {
+		client->Message(CHANNEL_COLOR_RED, "Shop not available.");
+		return;
+	}
+	
+	broker.AddSeller(client->GetPlayer()->GetCharacterID(), std::string(client->GetPlayer()->GetName()), client->GetPlayer()->GetPlayerInfo()->GetHouseZoneID(), true, false);
+	client->OpenShopWindow(nullptr);
+	broker.LockActiveItemsForClient(client);
+}
+
+void Commands::Command_StoreUnlistItem(Client* client, Seperator* sep) {
+	if(!client->GetShopWindowStatus()) {
+		client->Message(CHANNEL_COLOR_RED, "Shop not available.");
+		return;
+	}
+	if(sep && sep->arg[0]) {
+		auto info = broker.GetSellerInfo(client->GetPlayer()->GetCharacterID());
+		if(!info) {
+			client->Message(CHANNEL_COLOR_RED, "Player %u is not in the broker database.", client->GetPlayer()->GetCharacterID());
+		}
+		else if(sep->IsNumber(0)) {
+			int64 unique_id = atoll(sep->arg[0]);
+			client->SetItemSaleStatus(unique_id, false);
+			client->SetSellerStatus();
+			client->GetPlayer()->item_list.SetVaultItemLockUniqueID(client, unique_id, false, false);
+		}
+		else {
+			client->Message(CHANNEL_COLOR_RED, "Invalid arguments for /store_unlist_item unique_id.");
+
+		}
+	}
+}
+
+void Commands::Command_CloseStoreKeepSelling(Client* client, Seperator* sep) {
+	if(!client->GetShopWindowStatus()) {
+		client->Message(CHANNEL_COLOR_RED, "Shop not available.");
+		return;
+	}
+	auto info = broker.GetSellerInfo(client->GetPlayer()->GetCharacterID());
+	client->SetShopWindowStatus(false);
+	if(!info) {
+		client->Message(CHANNEL_COLOR_RED, "Player %u is not in the broker database.", client->GetPlayer()->GetCharacterID());
+	}
+	else {
+		bool itemsSelling = broker.IsSellingItems(client->GetPlayer()->GetCharacterID());
+		broker.AddSeller(client->GetPlayer()->GetCharacterID(), std::string(client->GetPlayer()->GetName()), client->GetPlayer()->GetPlayerInfo()->GetHouseZoneID(), itemsSelling, true);
+	}
+	broker.LockActiveItemsForClient(client);
+}
+
+void Commands::Command_CancelStore(Client* client, Seperator* sep) {
+	if(!client->GetShopWindowStatus()) {
+		client->Message(CHANNEL_COLOR_RED, "Shop not available.");
+		return;
+	}
+	auto info = broker.GetSellerInfo(client->GetPlayer()->GetCharacterID());
+	client->SetShopWindowStatus(false);
+	if(!info) {
+		client->Message(CHANNEL_COLOR_RED, "Player %u is not in the broker database.", client->GetPlayer()->GetCharacterID());
+	}
+	else {
+		bool itemsSelling = broker.IsSellingItems(client->GetPlayer()->GetCharacterID(), true);
+		broker.AddSeller(client->GetPlayer()->GetCharacterID(), std::string(client->GetPlayer()->GetName()), client->GetPlayer()->GetPlayerInfo()->GetHouseZoneID(), itemsSelling, false);
+	}
+	broker.LockActiveItemsForClient(client);
 }

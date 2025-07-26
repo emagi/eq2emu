@@ -1,6 +1,6 @@
 /*  
     EQ2Emulator:  Everquest II Server Emulator
-    Copyright (C) 2007  EQ2EMulator Development Team (http://www.eq2emulator.net)
+    Copyright (C) 2005 - 2026  EQ2EMulator Development Team (http://www.eq2emu.com formerly http://www.eq2emulator.net)
 
     This file is part of EQ2Emulator.
 
@@ -17,6 +17,7 @@
     You should have received a copy of the GNU General Public License
     along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 */
+
 #include "Items.h"
 #include "../Spells.h"
 #include "../Quests.h"
@@ -32,6 +33,8 @@
 #include <sstream>
 #include <boost/algorithm/string.hpp>
 #include "../Rules/Rules.h"
+#include "../WorldDatabase.h"
+#include "../Broker/BrokerManager.h"
 
 extern World world;
 extern MasterSpellList master_spell_list;
@@ -41,6 +44,9 @@ extern ConfigReader configReader;
 extern LuaInterface* lua_interface;
 extern RuleManager rule_manager;
 extern Classes classes;
+extern MasterItemList master_item_list;
+extern WorldDatabase database;
+extern BrokerManager broker;
 
 MasterItemList::MasterItemList(){
 	AddMappedItemStat(ITEM_STAT_ADORNING, std::string("adorning"));
@@ -151,10 +157,519 @@ map<VersionRange*, map<int64,int64>>::iterator MasterItemList::FindBrokerItemMap
 	return enditr;
 }
 
+bool MasterItemList::ShouldAddItemBrokerType(Item* item, int64 itype) {
+	bool should_add = false;
+	switch(itype){
+		case ITEM_BROKER_TYPE_ADORNMENT:{
+			if(item->IsAdornment())
+				should_add = true;
+			break;
+		}
+		case ITEM_BROKER_TYPE_AMMO:{
+			if(item->IsAmmo())
+				should_add = true;
+			break;
+		}
+		case ITEM_BROKER_TYPE_ATTUNEABLE:{
+			if(item->CheckFlag(ATTUNEABLE))
+				should_add = true;
+			break;
+		}
+		case ITEM_BROKER_TYPE_BAG:{
+			if(item->IsBag())
+				should_add = true;
+			break;
+		}
+		case ITEM_BROKER_TYPE_BAUBLE:{
+			if(item->IsBauble())
+				should_add = true;
+			break;
+		}
+		case ITEM_BROKER_TYPE_BOOK:{
+			if(item->IsBook())
+				should_add = true;
+			break;
+		}
+		case ITEM_BROKER_TYPE_CHAINARMOR:{
+			if(item->IsChainArmor())
+				should_add = true;
+			break;
+		}
+		case ITEM_BROKER_TYPE_CLOAK:{
+			if(item->IsCloak())
+				should_add = true;
+			break;
+		}
+		case ITEM_BROKER_TYPE_CLOTHARMOR:{
+			if(item->IsClothArmor())
+				should_add = true;
+			break;
+		}
+		case ITEM_BROKER_TYPE_COLLECTABLE:{
+			if(item->IsCollectable())
+				should_add = true;
+			break;
+		}
+		case ITEM_BROKER_TYPE_CRUSHWEAPON:{
+			if(item->IsCrushWeapon() && (item->weapon_info->wield_type == ITEM_WIELD_TYPE_DUAL || item->weapon_info->wield_type == ITEM_WIELD_TYPE_SINGLE))
+				should_add = true;
+			break;
+		}
+		case ITEM_BROKER_TYPE_DRINK:{
+			if(item->IsFoodDrink())
+				should_add = true;
+			break;
+		}
+		case ITEM_BROKER_TYPE_FOOD:{
+			if(item->IsFoodFood())
+				should_add = true;
+			break;
+		}
+		case ITEM_BROKER_TYPE_HOUSEITEM:{
+			if(item->IsHouseItem() || item->IsHouseContainer())
+				should_add = true;
+			break;
+		}
+		case ITEM_BROKER_TYPE_JEWELRY:{
+			if(item->IsJewelry())
+				should_add = true;
+			break;
+		}
+		case ITEM_BROKER_TYPE_LEATHERARMOR:{
+			if(item->IsLeatherArmor())
+				should_add = true;
+			break;
+		}
+		case ITEM_BROKER_TYPE_LORE:{
+			if(item->CheckFlag(LORE))
+				should_add = true;
+			break;
+		}
+		case ITEM_BROKER_TYPE_MISC:{
+			if(item->IsMisc())
+				should_add = true;
+			break;
+		}
+		case ITEM_BROKER_TYPE_PIERCEWEAPON:{
+			if(item->IsPierceWeapon() && (item->weapon_info->wield_type == ITEM_WIELD_TYPE_DUAL || item->weapon_info->wield_type == ITEM_WIELD_TYPE_SINGLE))
+				should_add = true;
+			break;
+		}
+		case ITEM_BROKER_TYPE_PLATEARMOR:{
+			if(item->IsPlateArmor())
+				should_add = true;
+			break;
+		}
+		case ITEM_BROKER_TYPE_POISON:{
+			if(item->IsPoison())
+				should_add = true;
+			break;
+		}
+		case ITEM_BROKER_TYPE_POTION:{
+			if(item->IsPotion())
+				should_add = true;
+			break;
+		}
+		case ITEM_BROKER_TYPE_RECIPEBOOK:{
+			if(item->IsRecipeBook())
+				should_add = true;
+			break;
+		}
+		case ITEM_BROKER_TYPE_SALESDISPLAY:{
+			if(item->IsSalesDisplay())
+				should_add = true;
+			break;
+		}
+		case ITEM_BROKER_TYPE_SHIELD:{
+			if(item->IsShield())
+				should_add = true;
+			break;
+		}
+		case ITEM_BROKER_TYPE_SLASHWEAPON:{
+			if(item->IsSlashWeapon() && (item->weapon_info->wield_type == ITEM_WIELD_TYPE_DUAL || item->weapon_info->wield_type == ITEM_WIELD_TYPE_SINGLE))
+				should_add = true;
+			break;
+		}
+		case ITEM_BROKER_TYPE_SPELLSCROLL:{
+			if(item->IsSpellScroll())
+				should_add = true;
+			break;
+		}
+		case ITEM_BROKER_TYPE_TINKERED:{
+			if(item->tinkered == 1)
+				should_add = true;
+			break;
+		}
+		case ITEM_BROKER_TYPE_TRADESKILL:{
+			if(item->crafted == 1)
+				should_add = true;
+			break;
+		}
+		case ITEM_BROKER_TYPE_2H_CRUSH:{
+			should_add = item->IsWeapon() && item->weapon_info->wield_type == ITEM_WIELD_TYPE_TWO_HAND && item->generic_info.skill_req1 == SKILL_ID_STAFF;
+			break;
+		}
+		case ITEM_BROKER_TYPE_2H_PIERCE:{
+			should_add = item->IsWeapon() && item->weapon_info->wield_type == ITEM_WIELD_TYPE_TWO_HAND && item->generic_info.skill_req1 == SKILL_ID_GREATSPEAR;
+			break;
+		}
+		case ITEM_BROKER_TYPE_2H_SLASH:{
+			should_add = item->IsWeapon() && item->weapon_info->wield_type == ITEM_WIELD_TYPE_TWO_HAND && item->generic_info.skill_req1 == SKILL_ID_GREATSWORD;
+			break;
+		}
+	}
+	return should_add;
+}
+bool MasterItemList::ShouldAddItemBrokerSlot(Item* item, int64 ltype) {
+	bool should_add = false;
+
+	switch(ltype){
+		case ITEM_BROKER_SLOT_AMMO:{
+			should_add = item->HasSlot(EQ2_AMMO_SLOT);
+			break;
+		}
+		case ITEM_BROKER_SLOT_CHARM:{
+			should_add = item->HasSlot(EQ2_CHARM_SLOT_1, EQ2_CHARM_SLOT_2);
+			break;
+		}
+		case ITEM_BROKER_SLOT_CHEST:{
+			should_add = item->HasSlot(EQ2_CHEST_SLOT);
+			break;
+		}
+		case ITEM_BROKER_SLOT_CLOAK:{
+			should_add = item->HasSlot(EQ2_CLOAK_SLOT);
+			break;
+		}
+		case ITEM_BROKER_SLOT_DRINK:{
+			should_add = item->HasSlot(EQ2_DRINK_SLOT);
+			break;
+		}
+		case ITEM_BROKER_SLOT_EARS:{
+			should_add = item->HasSlot(EQ2_EARS_SLOT_1, EQ2_EARS_SLOT_2);
+			break;
+		}
+		case ITEM_BROKER_SLOT_FEET:{
+			should_add = item->HasSlot(EQ2_FEET_SLOT);
+			break;
+		}
+		case ITEM_BROKER_SLOT_FOOD:{
+			should_add = item->HasSlot(EQ2_FOOD_SLOT);
+			break;
+		}
+		case ITEM_BROKER_SLOT_FOREARMS:{
+			should_add = item->HasSlot(EQ2_FOREARMS_SLOT);
+			break;
+		}
+		case ITEM_BROKER_SLOT_HANDS:{
+			should_add = item->HasSlot(EQ2_HANDS_SLOT);
+			break;
+		}
+		case ITEM_BROKER_SLOT_HEAD:{
+			should_add = item->HasSlot(EQ2_HEAD_SLOT);
+			break;
+		}
+		case ITEM_BROKER_SLOT_LEGS:{
+			should_add = item->HasSlot(EQ2_LEGS_SLOT);
+			break;
+		}
+		case ITEM_BROKER_SLOT_NECK:{
+			should_add = item->HasSlot(EQ2_NECK_SLOT);
+			break;
+		}
+		case ITEM_BROKER_SLOT_PRIMARY:{
+			should_add = item->HasSlot(EQ2_PRIMARY_SLOT);
+			break;
+		}
+		case ITEM_BROKER_SLOT_PRIMARY_2H:{
+			should_add = item->HasSlot(EQ2_PRIMARY_SLOT) && item->IsWeapon() && item->weapon_info->wield_type == ITEM_WIELD_TYPE_TWO_HAND;
+			break;
+		}
+		case ITEM_BROKER_SLOT_RANGE_WEAPON:{
+			should_add = item->HasSlot(EQ2_RANGE_SLOT);
+			break;
+		}
+		case ITEM_BROKER_SLOT_RING:{
+			should_add = item->HasSlot(EQ2_LRING_SLOT, EQ2_RRING_SLOT);
+			break;
+		}
+		case ITEM_BROKER_SLOT_SECONDARY:{
+			should_add = item->HasSlot(EQ2_SECONDARY_SLOT);
+			break;
+		}
+		case ITEM_BROKER_SLOT_SHOULDERS:{
+			should_add = item->HasSlot(EQ2_SHOULDERS_SLOT);
+			break;
+		}
+		case ITEM_BROKER_SLOT_WAIST:{
+			should_add = item->HasSlot(EQ2_WAIST_SLOT);
+			break;
+		}
+		case ITEM_BROKER_SLOT_WRIST:{
+			should_add = item->HasSlot(EQ2_LWRIST_SLOT, EQ2_RWRIST_SLOT);
+			break;
+		}
+	}
+	
+	return should_add;
+}
+
+bool MasterItemList::ShouldAddItemBrokerStat(Item* item, int64 btype) {
+	bool should_add = false;
+	bool stat_found = false;
+	switch(btype){
+		case ITEM_BROKER_STAT_TYPE_NONE:{
+			if (item->item_stats.size() == 0)
+				should_add = true;
+			break;
+		}
+		case ITEM_BROKER_STAT_TYPE_DEF:{
+			stat_found = item->HasStat(ITEM_STAT_DEFENSE, GetItemStatNameByID(ITEM_STAT_DEFENSE));
+			if (stat_found)
+				should_add = true;
+			break;
+		}
+		case ITEM_BROKER_STAT_TYPE_STR:{
+			stat_found = item->HasStat(ITEM_STAT_STR);
+			if (stat_found)
+				should_add = true;
+			break;
+		}
+		case ITEM_BROKER_STAT_TYPE_STA:{
+			stat_found = item->HasStat(ITEM_STAT_STA);
+			if (stat_found)
+				should_add = true;
+			break;
+		}
+		case ITEM_BROKER_STAT_TYPE_AGI:{
+			stat_found = item->HasStat(ITEM_STAT_AGI);
+			if (stat_found)
+				should_add = true;
+			break;
+		}
+		case ITEM_BROKER_STAT_TYPE_WIS:{
+			stat_found = item->HasStat(ITEM_STAT_WIS);
+			if (stat_found)
+				should_add = true;
+			break;
+		}
+		case ITEM_BROKER_STAT_TYPE_INT:{
+			stat_found = item->HasStat(ITEM_STAT_INT);
+			if (stat_found)
+				should_add = true;
+			break;
+		}
+		case ITEM_BROKER_STAT_TYPE_HEALTH:{
+			stat_found = item->HasStat(ITEM_STAT_HEALTH);
+			if (stat_found)
+				should_add = true;
+			break;
+		}
+		case ITEM_BROKER_STAT_TYPE_POWER:{
+			stat_found = item->HasStat(ITEM_STAT_POWER);
+			if (stat_found)
+				should_add = true;
+			break;
+		}
+		case ITEM_BROKER_STAT_TYPE_HEAT:{
+			stat_found = item->HasStat(ITEM_STAT_VS_HEAT);
+			if (stat_found)
+				should_add = true;
+			break;
+		}
+		case ITEM_BROKER_STAT_TYPE_COLD:{
+			stat_found = item->HasStat(ITEM_STAT_VS_COLD);
+			if (stat_found)
+				should_add = true;
+			break;
+		}
+		case ITEM_BROKER_STAT_TYPE_MAGIC:{
+			stat_found = item->HasStat(ITEM_STAT_VS_MAGIC);
+			if (stat_found)
+				should_add = true;
+			break;
+		}
+		case ITEM_BROKER_STAT_TYPE_MENTAL:{
+			stat_found = item->HasStat(ITEM_STAT_VS_MENTAL);
+			if (stat_found)
+				should_add = true;
+			break;
+		}
+		case ITEM_BROKER_STAT_TYPE_DIVINE:{
+			stat_found = item->HasStat(ITEM_STAT_VS_DIVINE);
+			if (stat_found)
+				should_add = true;
+			break;
+		}
+		case ITEM_BROKER_STAT_TYPE_POISON:{
+			stat_found = item->HasStat(ITEM_STAT_VS_POISON);
+			if (stat_found)
+				should_add = true;
+			break;
+		}
+		case ITEM_BROKER_STAT_TYPE_DISEASE:{
+			stat_found = item->HasStat(ITEM_STAT_VS_DISEASE);
+			if (stat_found)
+				should_add = true;
+			break;
+		}
+		case ITEM_BROKER_STAT_TYPE_CRUSH:{
+			stat_found = item->HasStat(ITEM_STAT_DMG_CRUSH);
+			if (stat_found)
+				should_add = true;
+			break;
+		}
+		case ITEM_BROKER_STAT_TYPE_SLASH:{
+			stat_found = item->HasStat(ITEM_STAT_DMG_SLASH);
+			if (stat_found)
+				should_add = true;
+			break;
+		}
+		case ITEM_BROKER_STAT_TYPE_PIERCE:{
+			stat_found = item->HasStat(ITEM_STAT_DMG_PIERCE);
+			if (stat_found)
+				should_add = true;
+			break;
+		}
+		case ITEM_BROKER_STAT_TYPE_CRITICAL: {
+			stat_found = item->HasStat(ITEM_STAT_CRITICALMITIGATION);
+			if (stat_found)
+				should_add = true;
+			break;
+		}
+		case ITEM_BROKER_STAT_TYPE_DBL_ATTACK:{
+			stat_found = item->HasStat(ITEM_STAT_MULTIATTACKCHANCE);
+			if (stat_found)
+				should_add = true;
+			break;
+		}
+		case ITEM_BROKER_STAT_TYPE_ABILITY_MOD:{
+			stat_found = item->HasStat(ITEM_STAT_ABILITY_MODIFIER);
+			if (stat_found)
+				should_add = true;
+			break;
+		}
+		case ITEM_BROKER_STAT_TYPE_POTENCY:{
+			stat_found = item->HasStat(ITEM_STAT_POTENCY);
+			if (stat_found)
+				should_add = true;
+			break;
+		}
+		case ITEM_BROKER_STAT_TYPE_AEAUTOATTACK:{
+			stat_found = item->HasStat(ITEM_STAT_AEAUTOATTACKCHANCE);
+			if (stat_found)
+				should_add = true;
+			break;
+		}
+		case ITEM_BROKER_STAT_TYPE_ATTACKSPEED:{
+			stat_found = item->HasStat(ITEM_STAT_ATTACKSPEED);
+			if (stat_found)
+				should_add = true;
+			break;
+		}
+		case ITEM_BROKER_STAT_TYPE_BLOCKCHANCE:{
+			stat_found = item->HasStat(ITEM_STAT_EXTRASHIELDBLOCKCHANCE);
+			if (stat_found)
+				should_add = true;
+			break;
+		}
+		case ITEM_BROKER_STAT_TYPE_CASTINGSPEED:{
+			stat_found = item->HasStat(ITEM_STAT_ABILITYCASTINGSPEED);
+			if (stat_found)
+				should_add = true;
+			break;
+		}
+		case ITEM_BROKER_STAT_TYPE_CRITBONUS:{
+			stat_found = item->HasStat(ITEM_STAT_CRITBONUS);
+			if (stat_found)
+				should_add = true;
+			break;
+		}
+		case ITEM_BROKER_STAT_TYPE_CRITCHANCE:{
+			stat_found = item->HasStat(ITEM_STAT_MELEECRITCHANCE);
+			if (stat_found)
+				should_add = true;
+			break;
+		}
+		case ITEM_BROKER_STAT_TYPE_DPS:{
+			stat_found = item->HasStat(ITEM_STAT_DPS);
+			if (stat_found)
+				should_add = true;
+			break;
+		}
+		case ITEM_BROKER_STAT_TYPE_FLURRYCHANCE:{
+			stat_found = item->HasStat(ITEM_STAT_FLURRY);
+			if (stat_found)
+				should_add = true;
+			break;
+		}
+		case ITEM_BROKER_STAT_TYPE_HATEGAIN:{
+			stat_found = item->HasStat(ITEM_STAT_HATEGAINMOD);
+			if (stat_found)
+				should_add = true;
+			break;
+		}
+		case ITEM_BROKER_STAT_TYPE_MITIGATION:{
+			stat_found = item->HasStat(ITEM_STAT_ARMORMITIGATIONINCREASE);
+			if (stat_found)
+				should_add = true;
+			break;
+		}
+		case ITEM_BROKER_STAT_TYPE_MULTI_ATTACK:{
+			stat_found = item->HasStat(ITEM_STAT_MULTIATTACKCHANCE);
+			if (stat_found)
+				should_add = true;
+			break;
+		}
+		case ITEM_BROKER_STAT_TYPE_RECOVERY:{
+			stat_found = item->HasStat(ITEM_STAT_ABILITYRECOVERYSPEED);
+			if (stat_found)
+				should_add = true;
+			break;
+		}
+		case ITEM_BROKER_STAT_TYPE_REUSE_SPEED:{
+			stat_found = item->HasStat(ITEM_STAT_ABILITYREUSESPEED);
+			if (stat_found)
+				should_add = true;
+			break;
+		}
+		case ITEM_BROKER_STAT_TYPE_SPELL_WPNDMG:{
+			stat_found = item->HasStat(ITEM_STAT_SPELLWEAPONDAMAGEBONUS);
+			if (stat_found)
+				should_add = true;
+			break;
+		}
+		case ITEM_BROKER_STAT_TYPE_STRIKETHROUGH:{
+			stat_found = item->HasStat(ITEM_STAT_STRIKETHROUGH);
+			if (stat_found)
+				should_add = true;
+			break;
+		}
+		case ITEM_BROKER_STAT_TYPE_TOUGHNESS:{
+			stat_found = item->HasStat(ITEM_STAT_PVPTOUGHNESS);
+			if (stat_found)
+				should_add = true;
+			break;
+		}
+		case ITEM_BROKER_STAT_TYPE_WEAPONDMG:{
+			stat_found = item->HasStat(ITEM_STAT_WEAPONDAMAGEBONUS);
+			if (stat_found)
+				should_add = true;
+			break;
+		}
+		default: {
+			LogWrite(ITEM__DEBUG, 0, "Item", "Unknown item broker stat type %u", btype);
+			LogWrite(ITEM__DEBUG, 0, "Item", "If you have a client before the new expansion this may be the reason.  Please be patient while we update items to support the new client.", btype);
+			break;
+		}
+	}
+	
+	return should_add;
+}
+
 vector<Item*>* MasterItemList::GetItems(string name, int64 itype, int64 ltype, int64 btype, int64 minprice, int64 maxprice, int8 minskill, int8 maxskill, string seller, string adornment, int8 mintier, int8 maxtier, int16 minlevel, int16 maxlevel, sint8 itemclass){
 	vector<Item*>* ret = new vector<Item*>;
 	map<int32,Item*>::iterator iter;
-    Item* item = 0;
+	Item* item = 0;
 	const char* chkname = 0;
 	//const char* chkseller = 0;
 	//const char* chkadornment = 0;
@@ -170,511 +685,19 @@ vector<Item*>* MasterItemList::GetItems(string name, int64 itype, int64 ltype, i
 		item = iter->second;
 		if(item){
 			if(itype != ITEM_BROKER_TYPE_ANY && itype != ITEM_BROKER_TYPE_ANY64BIT){
-				should_add = false;
-				switch(itype){
-					case ITEM_BROKER_TYPE_ADORNMENT:{
-						if(item->IsAdornment())
-							should_add = true;
-						break;
-					}
-					case ITEM_BROKER_TYPE_AMMO:{
-						if(item->IsAmmo())
-							should_add = true;
-						break;
-					}
-					case ITEM_BROKER_TYPE_ATTUNEABLE:{
-						if(item->CheckFlag(ATTUNEABLE))
-							should_add = true;
-						break;
-					}
-					case ITEM_BROKER_TYPE_BAG:{
-						if(item->IsBag())
-							should_add = true;
-						break;
-					}
-					case ITEM_BROKER_TYPE_BAUBLE:{
-						if(item->IsBauble())
-							should_add = true;
-						break;
-					}
-					case ITEM_BROKER_TYPE_BOOK:{
-						if(item->IsBook())
-							should_add = true;
-						break;
-					}
-					case ITEM_BROKER_TYPE_CHAINARMOR:{
-						if(item->IsChainArmor())
-							should_add = true;
-						break;
-					}
-					case ITEM_BROKER_TYPE_CLOAK:{
-						if(item->IsCloak())
-							should_add = true;
-						break;
-					}
-					case ITEM_BROKER_TYPE_CLOTHARMOR:{
-						if(item->IsClothArmor())
-							should_add = true;
-						break;
-					}
-					case ITEM_BROKER_TYPE_COLLECTABLE:{
-						if(item->IsCollectable())
-							should_add = true;
-						break;
-					}
-					case ITEM_BROKER_TYPE_CRUSHWEAPON:{
-						if(item->IsCrushWeapon() && (item->weapon_info->wield_type == ITEM_WIELD_TYPE_DUAL || item->weapon_info->wield_type == ITEM_WIELD_TYPE_SINGLE))
-							should_add = true;
-						break;
-					}
-					case ITEM_BROKER_TYPE_DRINK:{
-						if(item->IsFoodDrink())
-							should_add = true;
-						break;
-					}
-					case ITEM_BROKER_TYPE_FOOD:{
-						if(item->IsFoodFood())
-							should_add = true;
-						break;
-					}
-					case ITEM_BROKER_TYPE_HOUSEITEM:{
-						if(item->IsHouseItem() || item->IsHouseContainer())
-							should_add = true;
-						break;
-					}
-					case ITEM_BROKER_TYPE_JEWELRY:{
-						if(item->IsJewelry())
-							should_add = true;
-						break;
-					}
-					case ITEM_BROKER_TYPE_LEATHERARMOR:{
-						if(item->IsLeatherArmor())
-							should_add = true;
-						break;
-					}
-					case ITEM_BROKER_TYPE_LORE:{
-						if(item->CheckFlag(LORE))
-							should_add = true;
-						break;
-					}
-					case ITEM_BROKER_TYPE_MISC:{
-						if(item->IsMisc())
-							should_add = true;
-						break;
-					}
-					case ITEM_BROKER_TYPE_PIERCEWEAPON:{
-						if(item->IsPierceWeapon() && (item->weapon_info->wield_type == ITEM_WIELD_TYPE_DUAL || item->weapon_info->wield_type == ITEM_WIELD_TYPE_SINGLE))
-							should_add = true;
-						break;
-					}
-					case ITEM_BROKER_TYPE_PLATEARMOR:{
-						if(item->IsPlateArmor())
-							should_add = true;
-						break;
-					}
-					case ITEM_BROKER_TYPE_POISON:{
-						if(item->IsPoison())
-							should_add = true;
-						break;
-					}
-					case ITEM_BROKER_TYPE_POTION:{
-						if(item->IsPotion())
-							should_add = true;
-						break;
-					}
-					case ITEM_BROKER_TYPE_RECIPEBOOK:{
-						if(item->IsRecipeBook())
-							should_add = true;
-						break;
-					}
-					case ITEM_BROKER_TYPE_SALESDISPLAY:{
-						if(item->IsSalesDisplay())
-							should_add = true;
-						break;
-					}
-					case ITEM_BROKER_TYPE_SHIELD:{
-						if(item->IsShield())
-							should_add = true;
-						break;
-					}
-					case ITEM_BROKER_TYPE_SLASHWEAPON:{
-						if(item->IsSlashWeapon() && (item->weapon_info->wield_type == ITEM_WIELD_TYPE_DUAL || item->weapon_info->wield_type == ITEM_WIELD_TYPE_SINGLE))
-							should_add = true;
-						break;
-					}
-					case ITEM_BROKER_TYPE_SPELLSCROLL:{
-						if(item->IsSpellScroll())
-							should_add = true;
-						break;
-					}
-					case ITEM_BROKER_TYPE_TINKERED:{
-						if(item->tinkered == 1)
-							should_add = true;
-						break;
-					}
-					case ITEM_BROKER_TYPE_TRADESKILL:{
-						if(item->crafted == 1)
-							should_add = true;
-						break;
-					}
-					case ITEM_BROKER_TYPE_2H_CRUSH:{
-						should_add = item->IsWeapon() && item->weapon_info->wield_type == ITEM_WIELD_TYPE_TWO_HAND && item->generic_info.skill_req1 == SKILL_ID_STAFF;
-						break;
-					}
-					case ITEM_BROKER_TYPE_2H_PIERCE:{
-						should_add = item->IsWeapon() && item->weapon_info->wield_type == ITEM_WIELD_TYPE_TWO_HAND && item->generic_info.skill_req1 == SKILL_ID_GREATSPEAR;
-						break;
-					}
-					case ITEM_BROKER_TYPE_2H_SLASH:{
-						should_add = item->IsWeapon() && item->weapon_info->wield_type == ITEM_WIELD_TYPE_TWO_HAND && item->generic_info.skill_req1 == SKILL_ID_GREATSWORD;
-						break;
-					}
-				}
+				should_add = ShouldAddItemBrokerType(item, itype);
 				if(!should_add)
 					continue;
 			}
 			if(ltype != ITEM_BROKER_SLOT_ANY){
-				should_add = false;
-				switch(ltype){
-					case ITEM_BROKER_SLOT_AMMO:{
-						should_add = item->HasSlot(EQ2_AMMO_SLOT);
-						break;
-					}
-					case ITEM_BROKER_SLOT_CHARM:{
-						should_add = item->HasSlot(EQ2_CHARM_SLOT_1, EQ2_CHARM_SLOT_2);
-						break;
-					}
-					case ITEM_BROKER_SLOT_CHEST:{
-						should_add = item->HasSlot(EQ2_CHEST_SLOT);
-						break;
-					}
-					case ITEM_BROKER_SLOT_CLOAK:{
-						should_add = item->HasSlot(EQ2_CLOAK_SLOT);
-						break;
-					}
-					case ITEM_BROKER_SLOT_DRINK:{
-						should_add = item->HasSlot(EQ2_DRINK_SLOT);
-						break;
-					}
-					case ITEM_BROKER_SLOT_EARS:{
-						should_add = item->HasSlot(EQ2_EARS_SLOT_1, EQ2_EARS_SLOT_2);
-						break;
-					}
-					case ITEM_BROKER_SLOT_FEET:{
-						should_add = item->HasSlot(EQ2_FEET_SLOT);
-						break;
-					}
-					case ITEM_BROKER_SLOT_FOOD:{
-						should_add = item->HasSlot(EQ2_FOOD_SLOT);
-						break;
-					}
-					case ITEM_BROKER_SLOT_FOREARMS:{
-						should_add = item->HasSlot(EQ2_FOREARMS_SLOT);
-						break;
-					}
-					case ITEM_BROKER_SLOT_HANDS:{
-						should_add = item->HasSlot(EQ2_HANDS_SLOT);
-						break;
-					}
-					case ITEM_BROKER_SLOT_HEAD:{
-						should_add = item->HasSlot(EQ2_HEAD_SLOT);
-						break;
-					}
-					case ITEM_BROKER_SLOT_LEGS:{
-						should_add = item->HasSlot(EQ2_LEGS_SLOT);
-						break;
-					}
-					case ITEM_BROKER_SLOT_NECK:{
-						should_add = item->HasSlot(EQ2_NECK_SLOT);
-						break;
-					}
-					case ITEM_BROKER_SLOT_PRIMARY:{
-						should_add = item->HasSlot(EQ2_PRIMARY_SLOT);
-						break;
-					}
-					case ITEM_BROKER_SLOT_PRIMARY_2H:{
-						should_add = item->HasSlot(EQ2_PRIMARY_SLOT) && item->IsWeapon() && item->weapon_info->wield_type == ITEM_WIELD_TYPE_TWO_HAND;
-						break;
-					}
-					case ITEM_BROKER_SLOT_RANGE_WEAPON:{
-						should_add = item->HasSlot(EQ2_RANGE_SLOT);
-						break;
-					}
-					case ITEM_BROKER_SLOT_RING:{
-						should_add = item->HasSlot(EQ2_LRING_SLOT, EQ2_RRING_SLOT);
-						break;
-					}
-					case ITEM_BROKER_SLOT_SECONDARY:{
-						should_add = item->HasSlot(EQ2_SECONDARY_SLOT);
-						break;
-					}
-					case ITEM_BROKER_SLOT_SHOULDERS:{
-						should_add = item->HasSlot(EQ2_SHOULDERS_SLOT);
-						break;
-					}
-					case ITEM_BROKER_SLOT_WAIST:{
-						should_add = item->HasSlot(EQ2_WAIST_SLOT);
-						break;
-					}
-					case ITEM_BROKER_SLOT_WRIST:{
-						should_add = item->HasSlot(EQ2_LWRIST_SLOT, EQ2_RWRIST_SLOT);
-						break;
-					}
-				}
+				should_add = ShouldAddItemBrokerSlot(item, ltype);
 				if(!should_add)
 					continue;
 			}
 
 			if(btype != 0xFFFFFFFF){
 				vector<ItemStat*>::iterator itr;
-				bool stat_found = false;
-				should_add = false;
-				switch(btype){
-					case ITEM_BROKER_STAT_TYPE_NONE:{
-						if (item->item_stats.size() == 0)
-							should_add = true;
-						break;
-					}
-					case ITEM_BROKER_STAT_TYPE_DEF:{
-						stat_found = item->HasStat(ITEM_STAT_DEFENSE, GetItemStatNameByID(ITEM_STAT_DEFENSE));
-						if (stat_found)
-							should_add = true;
-						break;
-					}
-					case ITEM_BROKER_STAT_TYPE_STR:{
-						stat_found = item->HasStat(ITEM_STAT_STR);
-						if (stat_found)
-							should_add = true;
-						break;
-					}
-					case ITEM_BROKER_STAT_TYPE_STA:{
-						stat_found = item->HasStat(ITEM_STAT_STA);
-						if (stat_found)
-							should_add = true;
-						break;
-					}
-					case ITEM_BROKER_STAT_TYPE_AGI:{
-						stat_found = item->HasStat(ITEM_STAT_AGI);
-						if (stat_found)
-							should_add = true;
-						break;
-					}
-					case ITEM_BROKER_STAT_TYPE_WIS:{
-						stat_found = item->HasStat(ITEM_STAT_WIS);
-						if (stat_found)
-							should_add = true;
-						break;
-					}
-					case ITEM_BROKER_STAT_TYPE_INT:{
-						stat_found = item->HasStat(ITEM_STAT_INT);
-						if (stat_found)
-							should_add = true;
-						break;
-					}
-					case ITEM_BROKER_STAT_TYPE_HEALTH:{
-						stat_found = item->HasStat(ITEM_STAT_HEALTH);
-						if (stat_found)
-							should_add = true;
-						break;
-					}
-					case ITEM_BROKER_STAT_TYPE_POWER:{
-						stat_found = item->HasStat(ITEM_STAT_POWER);
-						if (stat_found)
-							should_add = true;
-						break;
-					}
-					case ITEM_BROKER_STAT_TYPE_HEAT:{
-						stat_found = item->HasStat(ITEM_STAT_VS_HEAT);
-						if (stat_found)
-							should_add = true;
-						break;
-					}
-					case ITEM_BROKER_STAT_TYPE_COLD:{
-						stat_found = item->HasStat(ITEM_STAT_VS_COLD);
-						if (stat_found)
-							should_add = true;
-						break;
-					}
-					case ITEM_BROKER_STAT_TYPE_MAGIC:{
-						stat_found = item->HasStat(ITEM_STAT_VS_MAGIC);
-						if (stat_found)
-							should_add = true;
-						break;
-					}
-					case ITEM_BROKER_STAT_TYPE_MENTAL:{
-						stat_found = item->HasStat(ITEM_STAT_VS_MENTAL);
-						if (stat_found)
-							should_add = true;
-						break;
-					}
-					case ITEM_BROKER_STAT_TYPE_DIVINE:{
-						stat_found = item->HasStat(ITEM_STAT_VS_DIVINE);
-						if (stat_found)
-							should_add = true;
-						break;
-					}
-					case ITEM_BROKER_STAT_TYPE_POISON:{
-						stat_found = item->HasStat(ITEM_STAT_VS_POISON);
-						if (stat_found)
-							should_add = true;
-						break;
-					}
-					case ITEM_BROKER_STAT_TYPE_DISEASE:{
-						stat_found = item->HasStat(ITEM_STAT_VS_DISEASE);
-						if (stat_found)
-							should_add = true;
-						break;
-					}
-					case ITEM_BROKER_STAT_TYPE_CRUSH:{
-						stat_found = item->HasStat(ITEM_STAT_DMG_CRUSH);
-						if (stat_found)
-							should_add = true;
-						break;
-					}
-					case ITEM_BROKER_STAT_TYPE_SLASH:{
-						stat_found = item->HasStat(ITEM_STAT_DMG_SLASH);
-						if (stat_found)
-							should_add = true;
-						break;
-					}
-					case ITEM_BROKER_STAT_TYPE_PIERCE:{
-						stat_found = item->HasStat(ITEM_STAT_DMG_PIERCE);
-						if (stat_found)
-							should_add = true;
-						break;
-					}
-					case ITEM_BROKER_STAT_TYPE_CRITICAL: {
-						stat_found = item->HasStat(ITEM_STAT_CRITICALMITIGATION);
-						if (stat_found)
-							should_add = true;
-						break;
-					}
-					case ITEM_BROKER_STAT_TYPE_DBL_ATTACK:{
-						stat_found = item->HasStat(ITEM_STAT_MULTIATTACKCHANCE);
-						if (stat_found)
-							should_add = true;
-						break;
-					}
-					case ITEM_BROKER_STAT_TYPE_ABILITY_MOD:{
-						stat_found = item->HasStat(ITEM_STAT_ABILITY_MODIFIER);
-						if (stat_found)
-							should_add = true;
-						break;
-					}
-					case ITEM_BROKER_STAT_TYPE_POTENCY:{
-						stat_found = item->HasStat(ITEM_STAT_POTENCY);
-						if (stat_found)
-							should_add = true;
-						break;
-					}
-					case ITEM_BROKER_STAT_TYPE_AEAUTOATTACK:{
-						stat_found = item->HasStat(ITEM_STAT_AEAUTOATTACKCHANCE);
-						if (stat_found)
-							should_add = true;
-						break;
-					}
-					case ITEM_BROKER_STAT_TYPE_ATTACKSPEED:{
-						stat_found = item->HasStat(ITEM_STAT_ATTACKSPEED);
-						if (stat_found)
-							should_add = true;
-						break;
-					}
-					case ITEM_BROKER_STAT_TYPE_BLOCKCHANCE:{
-						stat_found = item->HasStat(ITEM_STAT_EXTRASHIELDBLOCKCHANCE);
-						if (stat_found)
-							should_add = true;
-						break;
-					}
-					case ITEM_BROKER_STAT_TYPE_CASTINGSPEED:{
-						stat_found = item->HasStat(ITEM_STAT_ABILITYCASTINGSPEED);
-						if (stat_found)
-							should_add = true;
-						break;
-					}
-					case ITEM_BROKER_STAT_TYPE_CRITBONUS:{
-						stat_found = item->HasStat(ITEM_STAT_CRITBONUS);
-						if (stat_found)
-							should_add = true;
-						break;
-					}
-					case ITEM_BROKER_STAT_TYPE_CRITCHANCE:{
-						stat_found = item->HasStat(ITEM_STAT_MELEECRITCHANCE);
-						if (stat_found)
-							should_add = true;
-						break;
-					}
-					case ITEM_BROKER_STAT_TYPE_DPS:{
-						stat_found = item->HasStat(ITEM_STAT_DPS);
-						if (stat_found)
-							should_add = true;
-						break;
-					}
-					case ITEM_BROKER_STAT_TYPE_FLURRYCHANCE:{
-						stat_found = item->HasStat(ITEM_STAT_FLURRY);
-						if (stat_found)
-							should_add = true;
-						break;
-					}
-					case ITEM_BROKER_STAT_TYPE_HATEGAIN:{
-						stat_found = item->HasStat(ITEM_STAT_HATEGAINMOD);
-						if (stat_found)
-							should_add = true;
-						break;
-					}
-					case ITEM_BROKER_STAT_TYPE_MITIGATION:{
-						stat_found = item->HasStat(ITEM_STAT_ARMORMITIGATIONINCREASE);
-						if (stat_found)
-							should_add = true;
-						break;
-					}
-					case ITEM_BROKER_STAT_TYPE_MULTI_ATTACK:{
-						stat_found = item->HasStat(ITEM_STAT_MULTIATTACKCHANCE);
-						if (stat_found)
-							should_add = true;
-						break;
-					}
-					case ITEM_BROKER_STAT_TYPE_RECOVERY:{
-						stat_found = item->HasStat(ITEM_STAT_ABILITYRECOVERYSPEED);
-						if (stat_found)
-							should_add = true;
-						break;
-					}
-					case ITEM_BROKER_STAT_TYPE_REUSE_SPEED:{
-						stat_found = item->HasStat(ITEM_STAT_ABILITYREUSESPEED);
-						if (stat_found)
-							should_add = true;
-						break;
-					}
-					case ITEM_BROKER_STAT_TYPE_SPELL_WPNDMG:{
-						stat_found = item->HasStat(ITEM_STAT_SPELLWEAPONDAMAGEBONUS);
-						if (stat_found)
-							should_add = true;
-						break;
-					}
-					case ITEM_BROKER_STAT_TYPE_STRIKETHROUGH:{
-						stat_found = item->HasStat(ITEM_STAT_STRIKETHROUGH);
-						if (stat_found)
-							should_add = true;
-						break;
-					}
-					case ITEM_BROKER_STAT_TYPE_TOUGHNESS:{
-						stat_found = item->HasStat(ITEM_STAT_PVPTOUGHNESS);
-						if (stat_found)
-							should_add = true;
-						break;
-					}
-					case ITEM_BROKER_STAT_TYPE_WEAPONDMG:{
-						stat_found = item->HasStat(ITEM_STAT_WEAPONDAMAGEBONUS);
-						if (stat_found)
-							should_add = true;
-						break;
-					}
-					default: {
-						LogWrite(ITEM__DEBUG, 0, "Item", "Unknown item broker stat type %u", btype);
-						LogWrite(ITEM__DEBUG, 0, "Item", "If you have a client before the new expansion this may be the reason.  Please be patient while we update items to support the new client.", btype);
-						break;
-					}
-				}
+				should_add = ShouldAddItemBrokerStat(item, btype);
 				if (!should_add)
 					continue;
 			}
@@ -775,18 +798,16 @@ vector<Item*>* MasterItemList::GetItems(map<string, string> criteria, Client* cl
 			btype = itr->second[btype];
 		}
 	}
-	return GetItems(name, itype, ltype, btype, minprice, maxprice, minskill, maxskill, seller, adornment, mintier, maxtier, minlevel, maxlevel, itemclass);
+	if(client_to_map && client_to_map->IsGMStoreSearch()) {
+		return GetItems(name, itype, ltype, btype, minprice, maxprice, minskill, maxskill, seller, adornment, mintier, maxtier, minlevel, maxlevel, itemclass);
+	}
+	else {
+		return broker.GetItems(name, itype, ltype, btype, minprice, maxprice, minskill, maxskill, seller, adornment, mintier, maxtier, minlevel, maxlevel, itemclass);
+	}
 }
 
-void MasterItemList::ResetUniqueID(int32 new_id){
-	next_unique_id = new_id;
-}
-
-int32 MasterItemList::NextUniqueID(){ 
-	next_unique_id++;
-	if(next_unique_id >= 0xFFFFFFF0)
-		next_unique_id = 1;
-	return next_unique_id; 
+int64 MasterItemList::NextUniqueID(){ 
+	return database.LoadNextUniqueItemID(); 
 }
 
 bool MasterItemList::IsBag(int32 item_id){
@@ -888,7 +909,11 @@ void MasterItemList::AddItem(Item* item){
 }
 
 Item::Item(){
+	seller_char_id = 0;
+	seller_house_id = 0;
+	is_search_store_item = false;
 	item_script = "";
+	broker_price = 0;
 	sell_price = 0;
 	sell_status = 0;
 	max_sell_value = 0;
@@ -920,7 +945,11 @@ Item::Item(){
 }
 
 Item::Item(Item* in_item){
+	seller_char_id = 0;
+	seller_house_id = 0;
+	is_search_store_item = false;
 	needs_deletion = false;
+	broker_price = 0;
 	sell_price = in_item->sell_price;
 	sell_status = in_item->sell_status;
 	max_sell_value = in_item->max_sell_value;
@@ -938,6 +967,38 @@ Item::Item(Item* in_item){
 	grouped_char_ids.insert(in_item->grouped_char_ids.begin(), in_item->grouped_char_ids.end());
 	effect_type = in_item->effect_type;
 	book_language = in_item->book_language;
+	details.lock_flags = 0;
+	details.item_locked = false;
+}
+
+Item::Item(Item* in_item, int64 unique_id, std::string in_creator, std::string in_seller_name, int32 in_seller_char_id, int64 in_broker_price, int16 count, int64 in_seller_house_id){
+	is_search_store_item = true;
+	broker_price = in_broker_price;
+	needs_deletion = false;
+	sell_price = in_item->sell_price;
+	sell_status = in_item->sell_status;
+	max_sell_value = in_item->max_sell_value;
+	save_needed = false;
+	SetItem(in_item);
+	details.unique_id = unique_id;
+	if (IsBag())
+		details.bag_id = details.unique_id;
+	generic_info.condition = 100;
+	spell_id = in_item->spell_id;
+	spell_tier = in_item->spell_tier;
+	no_buy_back = in_item->no_buy_back;
+	no_sale = in_item->no_sale;
+	created = in_item->created;
+	grouped_char_ids.insert(in_item->grouped_char_ids.begin(), in_item->grouped_char_ids.end());
+	effect_type = in_item->effect_type;
+	book_language = in_item->book_language;
+	creator = in_creator;
+	seller_name = in_seller_name;
+	seller_char_id = in_seller_char_id;
+	details.count = count;
+	seller_house_id = in_seller_house_id;
+	details.lock_flags = 0;
+	details.item_locked = false;
 }
 
 Item::~Item(){
@@ -1029,7 +1090,7 @@ void Item::SetItem(Item* old_item){
 			memcpy(bauble_info, old_item->bauble_info, sizeof(Bauble_Info));
 			break;
 		}
-	    case ITEM_TYPE_SKILL:{
+		case ITEM_TYPE_SKILL:{
 			skill_info = new Skill_Info;
 			memcpy(skill_info, old_item->skill_info, sizeof(Skill_Info));
 			break;
@@ -1074,6 +1135,12 @@ void Item::SetItem(Item* old_item){
 		case ITEM_TYPE_HOUSE_CONTAINER:{
 			houseitem_info = new HouseItem_Info;
 			memset(houseitem_info, 0, sizeof(HouseItem_Info));
+			bag_info = new Bag_Info;
+			memset(bag_info, 0, sizeof(Bag_Info));
+			
+			if(old_item->bag_info)
+				memcpy(bag_info, old_item->bag_info, sizeof(Bag_Info));
+			
 			if(old_item->houseitem_info) {
 				memcpy(houseitem_info, old_item->houseitem_info, sizeof(HouseItem_Info));
 			}
@@ -1346,7 +1413,7 @@ bool Item::IsRanged(){
 }
 
 bool Item::IsBag(){ 
-	return generic_info.item_type == ITEM_TYPE_BAG; 
+	return generic_info.item_type == ITEM_TYPE_BAG || generic_info.item_type == ITEM_TYPE_HOUSE_CONTAINER; 
 }
 
 bool Item::IsFood(){ 
@@ -1547,7 +1614,7 @@ void Item::SetItemType(int8 in_type){
 		ranged_info = new Ranged_Info;
 		memset(ranged_info, 0, sizeof(Ranged_Info));
 	}
-	else if(IsBag() && !bag_info){
+	else if(IsBag() && !IsHouseContainer() && !bag_info){
 		bag_info = new Bag_Info;
 		memset(bag_info, 0, sizeof(Bag_Info));
 	}
@@ -1578,11 +1645,14 @@ void Item::SetItemType(int8 in_type){
 		book_info->author.size = 0;
 		book_info->title.size = 0;
 	}
-	else if(IsHouseItem() && !houseitem_info){
+	else if(IsHouseItem() && !IsHouseContainer() && !houseitem_info){
 		houseitem_info = new HouseItem_Info;
 		memset(houseitem_info, 0, sizeof(HouseItem_Info));
 	}
 	else if(IsHouseContainer() && !housecontainer_info){
+		bag_info = new Bag_Info;
+		memset(bag_info, 0, sizeof(Bag_Info));
+		
 		if(!houseitem_info) {
 			houseitem_info = new HouseItem_Info;
 			memset(houseitem_info, 0, sizeof(HouseItem_Info));
@@ -2515,7 +2585,58 @@ void Item::serialize(PacketStruct* packet, bool show_name, Player* player, int16
 					packet->setDataByName("broker_commission", housecontainer_info->broker_commission);
 					packet->setDataByName("fence_commission", housecontainer_info->fence_commission);
 				}
-		    }
+				if(bag_info){
+					int8 max_slots = player->GetMaxBagSlots(client->GetVersion());
+					if (bag_info->num_slots > max_slots)
+						bag_info->num_slots = max_slots;
+				
+						int16 free_slots = bag_info->num_slots;
+						if (player) {
+							Item* bag = player->GetPlayerItemList()->GetItemFromUniqueID(details.unique_id, true);
+							if (bag && bag->IsBag()) {
+								vector<Item*>* bag_items = player->GetPlayerItemList()->GetItemsInBag(bag);
+								if (bag_items->size() > bag->bag_info->num_slots) {
+									free_slots = 0;
+									packet->setArrayLengthByName("num_names", bag->bag_info->num_slots);
+								}
+								else {
+									free_slots = bag->bag_info->num_slots - bag_items->size();
+									packet->setArrayLengthByName("num_names", bag_items->size());
+								}
+								vector<Item*>::iterator itr;
+								int16 i = 0;
+								Item* tmp_bag_item = 0;
+								for (itr = bag_items->begin(); itr != bag_items->end(); itr++) {
+									tmp_bag_item = *itr;
+									if (tmp_bag_item && tmp_bag_item->details.slot_id < bag->bag_info->num_slots) {
+										packet->setArrayDataByName("item_name", tmp_bag_item->name.c_str(), i);
+										i++;
+									}
+								}
+								safe_delete(bag_items);
+							}
+						}
+						packet->setDataByName("num_slots", bag_info->num_slots);
+						packet->setDataByName("num_empty", free_slots);
+						packet->setDataByName("weight_reduction", bag_info->weight_reduction);
+						packet->setDataByName("item_score", 2);
+						//packet->setDataByName("unknown5", 0x1e50a86f);
+						//packet->setDataByName("unknown6", 0x2c17f61d);
+						//1 armorer
+						//2 weaponsmith
+						//4 tailor
+						//16 jeweler 
+						//32 sage
+						//64 alchemist
+						//120 all scholars
+						//250 all craftsman
+						//int8 blah[] = {0x00,0x00,0x01,0x01,0xb6,0x01,0x01};
+						//int8 blah[] = {0x01,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
+						int8 blah[] = { 0xd8,0x66,0x9b,0x6d,0xb6,0xfb,0x7f };
+						for (int8 i = 0; i < sizeof(blah); i++)
+							packet->setSubstructDataByName("footer", "footer_unknown_0", blah[i], 0, i);
+				}
+			}
 		}
 	}
 
@@ -3040,8 +3161,8 @@ Item* PlayerItemList::GetBankBag(int8 inventory_slot, bool lock){
 	Item* bag = 0;
 	if(lock)
 		MPlayerItems.readlock(__FUNCTION__, __LINE__);
-	if(items.count(-3) > 0 && items[-3][BASE_EQUIPMENT].count(inventory_slot) > 0 && items[-3][BASE_EQUIPMENT][inventory_slot]->IsBag())
-		bag = items[-3][BASE_EQUIPMENT][inventory_slot];
+	if(items.count(InventorySlotType::BANK) > 0 && items[InventorySlotType::BANK][BASE_EQUIPMENT].count(inventory_slot) > 0 && items[InventorySlotType::BANK][BASE_EQUIPMENT][inventory_slot]->IsBag())
+		bag = items[InventorySlotType::BANK][BASE_EQUIPMENT][inventory_slot];
 	if(lock)
 		MPlayerItems.releasereadlock(__FUNCTION__, __LINE__);
 	return bag;
@@ -3129,10 +3250,10 @@ bool PlayerItemList::HasFreeSlot(){
 bool PlayerItemList::GetFirstFreeBankSlot(sint32* bag_id, sint16* slot) {
 	bool ret = false;
 	MPlayerItems.readlock(__FUNCTION__, __LINE__);
-	if (items.count(-3) > 0) {
+	if (items.count(InventorySlotType::BANK) > 0) {
 		for (int8 i = 0; i < NUM_BANK_SLOTS; i++) {
-			if (items[-3][BASE_EQUIPMENT].count(i) == 0) {
-				*bag_id = -3;
+			if (items[InventorySlotType::BANK][BASE_EQUIPMENT].count(i) == 0) {
+				*bag_id = InventorySlotType::BANK;
 				*slot = i;
 				ret = true;
 				break;
@@ -3140,7 +3261,7 @@ bool PlayerItemList::GetFirstFreeBankSlot(sint32* bag_id, sint16* slot) {
 		}
 	}
 	else {
-		*bag_id = -3;
+		*bag_id = InventorySlotType::BANK;
 		*slot = 0;
 		ret = true;
 	}
@@ -3299,9 +3420,13 @@ void PlayerItemList::Stack(Item* orig_item, Item* item){
 	orig_item->save_needed = true;
 }
 
-bool PlayerItemList::AssignItemToFreeSlot(Item* item){
+bool PlayerItemList::AssignItemToFreeSlot(Item* item, bool inventory_only){
 	if(item){
-		Item* orig_item = CanStack(item);
+		Item* orig_item = CanStack(item, !inventory_only);
+		
+		if(inventory_only && !IsItemInSlotType(orig_item, InventorySlotType::BASE_INVENTORY)){
+			orig_item = nullptr;
+		}
 		if(orig_item){
 			Stack(orig_item, item);
 			return true;
@@ -3347,8 +3472,9 @@ bool PlayerItemList::AssignItemToFreeSlot(Item* item){
 }
 
 
-void PlayerItemList::RemoveItem(Item* item, bool delete_item){
-	MPlayerItems.writelock(__FUNCTION__, __LINE__);
+void PlayerItemList::RemoveItem(Item* item, bool delete_item, bool lock){
+	if(lock)
+		MPlayerItems.writelock(__FUNCTION__, __LINE__);
 	if(items.count(item->details.inv_slot_id) > 0 && items[item->details.inv_slot_id][item->details.appearance_type].count(item->details.slot_id) > 0){
 		items[item->details.inv_slot_id][item->details.appearance_type].erase(item->details.slot_id);
 		indexed_items[item->details.index] = 0;
@@ -3375,7 +3501,8 @@ void PlayerItemList::RemoveItem(Item* item, bool delete_item){
 		lua_interface->SetLuaUserDataStale(item);
 		safe_delete(item);
 	}
-	MPlayerItems.releasewritelock(__FUNCTION__, __LINE__);
+	if(lock)
+		MPlayerItems.releasewritelock(__FUNCTION__, __LINE__);
 }
 
 void PlayerItemList::DestroyItem(int16 index){
@@ -3446,7 +3573,9 @@ int32 PlayerItemList::GetWeight(){
 	for(int16 i = 0; i < indexed_items.size(); i++){
 		Item* item = indexed_items[i];
 		if (item) {
-			if(item->details.inv_slot_id != -3 && item->details.inv_slot_id != -4)
+			if(!IsItemInSlotType(item, InventorySlotType::BANK, false) &&
+			   !IsItemInSlotType(item, InventorySlotType::SHARED_BANK, false) &&
+			   !IsItemInSlotType(item, InventorySlotType::HOUSE_VAULT, false))
 				ret += item->generic_info.weight;
 		}
 	}
@@ -3454,15 +3583,27 @@ int32 PlayerItemList::GetWeight(){
 	return ret;
 }
 
+bool PlayerItemList::IsItemInSlotType(Item* item, InventorySlotType type, bool lockItems) {
+	if(!item)
+		return false;
+	
+	bool matchType = (item->details.inv_slot_id == type);
+	if(item->details.inv_slot_id > 0) {
+		Item* bagItem = GetItemFromUniqueID(item->details.inv_slot_id, true, lockItems);
+		if(bagItem && bagItem->details.inv_slot_id == type)
+			matchType = true;
+	}
+	return matchType;
+}
 
 bool PlayerItemList::MoveItem(sint32 to_bag_id, int16 from_index, sint8 to, int8 appearance_type, int8 charges){
 	MPlayerItems.writelock(__FUNCTION__, __LINE__);
 	Item* item_from = indexed_items[from_index];
 	Item* item_to = 0;
-	if(item_from){
+	if(item_from && !item_from->IsItemLocked()){
 		if(to_bag_id > 0){  //bag item
 			Item* bag = GetItemFromUniqueID(to_bag_id, true, false);
-			if(bag && bag->details.num_slots > to && (!item_from || !item_from->IsBag()))
+			if(bag && !bag->IsItemLocked() && bag->details.num_slots > to && (!item_from || !item_from->IsBag()))
 				item_to = items[to_bag_id][BASE_EQUIPMENT][to];
 			else{
 				MPlayerItems.releasewritelock(__FUNCTION__, __LINE__);
@@ -3475,6 +3616,14 @@ bool PlayerItemList::MoveItem(sint32 to_bag_id, int16 from_index, sint8 to, int8
 				MPlayerItems.releasewritelock(__FUNCTION__, __LINE__);
 				return false;
 			}
+		}
+		
+		LogWrite(PLAYER__ERROR, 0, "MoveItem",
+			"--Item: %u is locked %u", item_to ? item_to->details.unique_id : 0, item_to ? item_to->IsItemLocked() : 0
+		);
+		if(item_to && item_to->IsItemLocked()) {
+			MPlayerItems.releasewritelock(__FUNCTION__, __LINE__);
+			return false;
 		}
 		if(charges > 0) {
 			if (item_to && item_from->details.item_id == item_to->details.item_id){
@@ -3554,14 +3703,23 @@ bool PlayerItemList::MoveItem(sint32 to_bag_id, int16 from_index, sint8 to, int8
 				return true;
 			}
 		}
+		
+		bool canMove = true;
+		if(item_to && item_to->IsItemLocked())
+			canMove = false;
+		
 		MPlayerItems.releasewritelock(__FUNCTION__, __LINE__);
 		
-		if (item_to) 
+		LogWrite(PLAYER__ERROR, 0, "MoveItem",
+			"--Item#2: %u is locked %u", item_to ? item_to->details.unique_id : 0, item_to ? item_to->IsItemLocked() : 0
+		);
+		if (item_to && canMove) 
 			MoveItem(item_to, item_from->details.inv_slot_id, item_from->details.slot_id, BASE_EQUIPMENT, true);
 
-		MoveItem(item_from, to_bag_id, to, BASE_EQUIPMENT, item_to ? false:true);
+		if(canMove)
+			MoveItem(item_from, to_bag_id, to, BASE_EQUIPMENT, item_to ? false:true);
 		
-		return true;
+		return canMove;
 	}
 	MPlayerItems.releasewritelock(__FUNCTION__, __LINE__);
 	return false;
@@ -3751,7 +3909,7 @@ void PlayerItemList::AddItemToPacket(PacketStruct* packet, Player* player, Item*
 		//TODO: Add check to allow scribe
 		menu_data += ITEM_MENU_TYPE_SCRIBE;
 	}
-	if (item->generic_info.item_type == ITEM_TYPE_HOUSE || item->generic_info.item_type == ITEM_TYPE_HOUSE_CONTAINER){
+	if (item->generic_info.item_type == ITEM_TYPE_HOUSE || (item->generic_info.item_type == ITEM_TYPE_HOUSE_CONTAINER && item->details.inv_slot_id == InventorySlotType::HOUSE_VAULT)){ // containers must be in base house slot for placement
 		menu_data += ITEM_MENU_TYPE_TEST1;
 		menu_data += ITEM_MENU_TYPE_HOUSE;
 	}
@@ -3800,7 +3958,7 @@ void PlayerItemList::AddItemToPacket(PacketStruct* packet, Player* player, Item*
 				menu_data += ORIG_ITEM_MENU_TYPE_FOOD;
 		}
 	}
-	if(item->details.item_locked) {
+	if(item->IsItemLocked()) {
 		menu_data += ITEM_MENU_TYPE_BROKEN; // broken is also used to lock item during crafting
 	}
 	// Added the if (overflow) so mouseover examines work properly
@@ -3862,7 +4020,7 @@ bool PlayerItemList::AddOverflowItem(Item* item) {
 	MPlayerItems.writelock(__FUNCTION__, __LINE__);
 	if (item && item->details.item_id > 0 && overflowItems.size() < 255) {
 		item->details.slot_id = 6;
-		item->details.inv_slot_id = -2;
+		item->details.inv_slot_id = InventorySlotType::OVERFLOW;
 		overflowItems.push_back(item);
 		ret = true;
 	}
@@ -3897,11 +4055,18 @@ vector<Item*>* PlayerItemList::GetOverflowItemList() {
 }
 
 bool PlayerItemList::HasItem(int32 id, bool include_bank){
+	if(include_bank) {
+		Item* item = GetItemFromID(id, 1, true, true);
+		if(item)
+			return true;
+		else
+			return false;
+	}
 	map<sint32, map<int8, map<int16, Item*>> >::iterator itr;
 	map<int16, Item*>::iterator slot_itr;
 	MPlayerItems.readlock(__FUNCTION__, __LINE__);
 	for(itr = items.begin(); itr != items.end(); itr++){
-		if(include_bank || (!include_bank && itr->first >= 0)){
+		if(itr->first >= 0){
 			for(slot_itr=itr->second[BASE_EQUIPMENT].begin();slot_itr!=itr->second[BASE_EQUIPMENT].end(); slot_itr++){
 				if(slot_itr->second && slot_itr->second->details.item_id == id){
 					MPlayerItems.releasereadlock(__FUNCTION__, __LINE__);
@@ -4082,10 +4247,245 @@ Item* PlayerItemList::GetItemFromUniqueID(int32 id, bool include_bank, bool lock
 	return 0;
 }
 
+void PlayerItemList::SetVaultItemLockUniqueID(Client* client, int64 id, bool state, bool lock) {
+	if (lock) {
+		MPlayerItems.readlock(__FUNCTION__, __LINE__);
+	}
+	sint32 inv_slot_id = 0;
+	Item* item = client->GetPlayer()->item_list.GetVaultItemFromUniqueID(id, false);
+	if(item) {
+		bool bag_remains_locked = true;
+		if(state && !item->TryLockItem(LockReason::LockReason_Shop)) {
+			// this shouldn't happen, but if we have a conflict it might
+			client->Message(CHANNEL_COLOR_RED, "Failed to lock item %u for vault.", id);
+			return;
+		}
+		else if(!state && !item->TryUnlockItem(LockReason::LockReason_Shop)) {
+			// still in use for another reason, we don't need to report to the user it will spam them
+		}
+		if(item->details.inv_slot_id) {
+			Item* bagItem = client->GetPlayer()->item_list.GetVaultItemFromUniqueID(item->details.inv_slot_id, false);
+			if(bagItem) {
+				inv_slot_id = item->details.inv_slot_id;
+				if(!state) {
+					bag_remains_locked = false;
+					if (auto bagIt = items.find(item->details.inv_slot_id);
+						bagIt != items.end())
+					{
+						const auto& bagSlots = bagIt->second.at(BASE_EQUIPMENT);
+						for (auto& [bagSlot, bagItem] : bagSlots) {
+							if (bagItem && bagItem->IsItemLocked()) {
+								bag_remains_locked = true;
+								break;
+							}
+						}
+					}
+				}
+				if(!bag_remains_locked) {
+					bagItem->TryUnlockItem(LockReason::LockReason_Shop);
+				}
+				else {
+					bagItem->TryLockItem(LockReason::LockReason_Shop);
+				}
+			}
+		}
+	}
+	if (lock) {
+		MPlayerItems.releasereadlock(__FUNCTION__, __LINE__);
+	}
+	if(inv_slot_id) {
+		client->GetPlayer()->UpdateInventory(item->details.inv_slot_id);
+	}
+	else {
+		EQ2Packet* outapp = client->GetPlayer()->SendInventoryUpdate(client->GetVersion());
+		client->QueuePacket(outapp);
+	}
+}
+
+bool PlayerItemList::CanStoreSellItem(int64 unique_id, bool lock) {
+	if (lock) {
+		MPlayerItems.readlock(__FUNCTION__, __LINE__);
+	}
+	Item* item = GetVaultItemFromUniqueID(unique_id,  false);
+	if(!item || (item->CheckFlag(NO_TRADE) && (item->CheckFlag2(HEIRLOOM) == 0))) {
+		if(lock)
+			MPlayerItems.releasereadlock(__FUNCTION__, __LINE__);
+		return false;
+	}
+	if(item->CheckFlag(ATTUNED)) {
+		if(lock)
+			MPlayerItems.releasereadlock(__FUNCTION__, __LINE__);
+		return false;
+	}
+
+	if(item->IsBag() && items.count(item->details.bag_id) > 0){
+		map<int16, Item*>::iterator itr;
+		for(itr = items[item->details.bag_id][BASE_EQUIPMENT].begin(); itr != items[item->details.bag_id][BASE_EQUIPMENT].end(); itr++){
+			if(itr->second->CheckFlag(NO_TRADE) && itr->second->CheckFlag2(HEIRLOOM) == 0){
+				if(lock)
+					MPlayerItems.releasereadlock(__FUNCTION__, __LINE__);
+				return false;
+			}
+			if(item->CheckFlag(ATTUNED)) {
+				if(lock)
+					MPlayerItems.releasereadlock(__FUNCTION__, __LINE__);
+				return false;
+			}
+		}
+	}
+	if(lock) {
+	MPlayerItems.releasereadlock(__FUNCTION__, __LINE__);
+	}
+	return true;
+}
+
+void PlayerItemList::SetVaultItemUniqueIDCount(Client* client, int64 unique_id, int16 count, bool lock) {
+	if (lock) {
+		MPlayerItems.readlock(__FUNCTION__, __LINE__);
+	}
+	
+	sint32 inv_slot_id = 0;
+	bool countUpdated = false;
+	Item* item = GetVaultItemFromUniqueID(unique_id, false);
+	if(item) {
+		item->details.count = count;
+		item->save_needed = true;
+		inv_slot_id = item->details.inv_slot_id;
+		countUpdated = true;
+	}
+	if (lock) {
+		MPlayerItems.releasereadlock(__FUNCTION__, __LINE__);
+	}
+	
+	if(client && client->GetPlayer() && countUpdated) {
+		if(inv_slot_id) {
+			client->GetPlayer()->UpdateInventory(inv_slot_id);
+		}
+		else {
+			EQ2Packet* outapp = client->GetPlayer()->SendInventoryUpdate(client->GetVersion());
+			client->QueuePacket(outapp);
+		}
+	}
+}
+
+
+void PlayerItemList::RemoveVaultItemFromUniqueID(Client* client, int64 unique_id, bool lock) {
+	if (lock) {
+		MPlayerItems.writelock(__FUNCTION__, __LINE__);
+	}
+	
+	sint32 inv_slot_id = 0;
+	bool foundItem = false;
+	Item* item = GetVaultItemFromUniqueID(unique_id, false);
+	if(item) {
+		inv_slot_id = item->details.inv_slot_id;
+		RemoveItem(item, true, false);
+		foundItem = true;
+	}
+	if (lock) {
+		MPlayerItems.releasewritelock(__FUNCTION__, __LINE__);
+	}
+	
+	if(client && client->GetPlayer() && foundItem) {
+		if(inv_slot_id) {
+			client->GetPlayer()->UpdateInventory(inv_slot_id);
+		}
+		else {
+			EQ2Packet* outapp = client->GetPlayer()->SendInventoryUpdate(client->GetVersion());
+			client->QueuePacket(outapp);
+		}
+	}
+}
+
+Item* PlayerItemList::GetVaultItemFromUniqueID(int64 id, bool lock) {
+	if (lock) {
+		MPlayerItems.readlock(__FUNCTION__, __LINE__);
+	}
+
+	// 1) Check the house vault
+	if (auto vaultIt = items.find(InventorySlotType::HOUSE_VAULT);
+		vaultIt != items.end())
+	{
+		for (auto& [containerIdx, slotMap] : vaultIt->second) {
+			for (auto& [slotID, itemPtr] : slotMap) {
+				if(itemPtr) {
+				LogWrite(PLAYER__ERROR, 0, "Vault",
+				  "--GetVaultItem: %u (%s - %u) needs to match %u", slotID, itemPtr->name.c_str(), itemPtr->details.unique_id, id
+				);
+				}
+				else {
+					LogWrite(PLAYER__ERROR, 0, "Vault",
+				  "--GetVaultItem: %u (??) needs to match %u", slotID, id
+				);
+				}
+				if (itemPtr && itemPtr->details.unique_id == id) {
+					if (lock) MPlayerItems.releasereadlock(__FUNCTION__, __LINE__);
+					return itemPtr;
+				}
+				
+				// If it's a bag, search its contents
+				if (!itemPtr->IsBag()) 
+					continue;
+
+				if (auto bagIt = items.find(itemPtr->details.bag_id);
+					bagIt != items.end())
+				{
+					const auto& bagSlots = bagIt->second.at(BASE_EQUIPMENT);
+					for (auto& [bagSlot, bagItem] : bagSlots) {
+						if (bagItem && bagItem->details.unique_id == id) {
+							if (lock) MPlayerItems.releasereadlock(__FUNCTION__, __LINE__);
+							return bagItem;
+						}
+					}
+				}
+			}
+		}
+	}
+
+	// 2) Check base inventory slots and any bags inside them
+	const auto& baseEquip = items
+		.at(InventorySlotType::BASE_INVENTORY)
+		.at(BASE_EQUIPMENT);
+
+	for (int8 slotIdx = 0; slotIdx < NUM_INV_SLOTS; ++slotIdx) {
+		auto it = baseEquip.find(slotIdx);
+		if (it == baseEquip.end() || it->second == nullptr) 
+			continue;
+
+		Item* curr = it->second;
+		// Direct match in base slot
+		if (curr->details.unique_id == id) {
+			if (lock) MPlayerItems.releasereadlock(__FUNCTION__, __LINE__);
+			return curr;
+		}
+
+		// If it's a bag, search its contents
+		if (!curr->IsBag()) 
+			continue;
+
+		if (auto bagIt = items.find(curr->details.bag_id);
+			bagIt != items.end())
+		{
+			const auto& bagSlots = bagIt->second.at(BASE_EQUIPMENT);
+			for (auto& [bagSlot, bagItem] : bagSlots) {
+				if (bagItem && bagItem->details.unique_id == id) {
+					if (lock) MPlayerItems.releasereadlock(__FUNCTION__, __LINE__);
+					return bagItem;
+				}
+			}
+		}
+	}
+
+	if (lock) {
+		MPlayerItems.releasereadlock(__FUNCTION__, __LINE__);
+	}
+	return nullptr;
+}
+
 bool PlayerItemList::HasFreeBankSlot() {
 	bool ret = false;
 	MPlayerItems.readlock(__FUNCTION__, __LINE__);
-	if (items[-3][BASE_EQUIPMENT].size() < 12) //12 slots in the bank
+	if (items[InventorySlotType::BANK][BASE_EQUIPMENT].size() < 12) //12 slots in the bank
 		ret = true;
 	MPlayerItems.releasereadlock(__FUNCTION__, __LINE__);
 	return ret;
@@ -4095,13 +4495,161 @@ int8 PlayerItemList::FindFreeBankSlot() {
 	int8 ret = 0;
 	MPlayerItems.readlock(__FUNCTION__, __LINE__);
 	for (int8 i = 0; i < 12; i++) { //12 slots in the bank
-		if (items[-3][BASE_EQUIPMENT].count(i) == 0) {
+		if (items[InventorySlotType::BANK][BASE_EQUIPMENT].count(i) == 0) {
 			ret = i;
 			break;
 		}
 	}
 	MPlayerItems.releasereadlock(__FUNCTION__, __LINE__);
 	return ret;
+}
+
+void PlayerItemList::PopulateHouseStoragePacket(Client* client, PacketStruct* packet, Item* item, int16 itemIdx, int8 storage_flags) {
+	int64 cost = broker.GetSalePrice(client->GetPlayer()->GetCharacterID(), item->details.unique_id);
+	bool sale = broker.IsItemForSale(client->GetPlayer()->GetCharacterID(), item->details.unique_id);
+	bool isInv = !IsItemInSlotType(item, InventorySlotType::HOUSE_VAULT, false);
+	client->AddItemSale(item->details.unique_id, item->details.item_id, cost, item->details.inv_slot_id, item->details.slot_id, item->details.count, isInv, sale, item->creator);
+	
+	if(broker.IsItemForSale(client->GetPlayer()->GetCharacterID(), item->details.unique_id))
+		storage_flags += HouseStoreItemFlags::HOUSE_STORE_FOR_SALE;
+	
+	LogWrite(PLAYER__ERROR, 5, "Broker",
+	  "--Sell broker item: %u (%s - %u), cost=%u",
+	  client->GetPlayer()->GetCharacterID(), item->name.c_str(), item->details.unique_id, cost
+	);
+	
+	packet->setArrayDataByName("your_item_name", item->name.c_str(), itemIdx);
+	packet->setArrayDataByName("unique_id", item->details.item_id, itemIdx);
+	packet->setArrayDataByName("unique_id2", item->details.unique_id, itemIdx);
+	packet->setArrayDataByName("cost", cost, itemIdx);
+	packet->setArrayDataByName("your_item_quantity", item->details.count, itemIdx);
+	packet->setArrayDataByName("your_item_icon", item->GetIcon(packet->GetVersion()), itemIdx);
+	packet->setArrayDataByName("storage_flags", storage_flags, itemIdx);
+}
+
+void PlayerItemList::GetVaultItems(Client* client, int32 spawn_id, int8 maxSlots, bool isSelling) {
+	int8 ret = 0;
+	int8 numItems = 0;
+	MPlayerItems.readlock(__FUNCTION__, __LINE__);
+	for (int8 i = 0; i < maxSlots; i++) {
+		if (items[InventorySlotType::HOUSE_VAULT][BASE_EQUIPMENT].count(i) != 0) {
+			Item* item = items[InventorySlotType::HOUSE_VAULT][BASE_EQUIPMENT][i];
+			if(item) {
+				if(!item->IsBag()) {
+					numItems++;
+				}
+				else {
+					bool bagHasItem = false;
+					if(items.count(item->details.bag_id) > 0){
+						map<int16, Item*>::iterator itr;
+						for(itr = items[item->details.bag_id][BASE_EQUIPMENT].begin(); itr != items[item->details.bag_id][BASE_EQUIPMENT].end(); itr++){
+							if(itr->second) {
+								numItems++;
+								bagHasItem = true;
+							}
+						}
+					}
+					if(!bagHasItem) {
+						numItems++;
+					}
+				}
+			}
+		}
+	}
+	for (int8 i = 0; i < NUM_INV_SLOTS; i++) {
+		if (items[InventorySlotType::BASE_INVENTORY][BASE_EQUIPMENT].count(i) != 0) {
+			Item* item = items[InventorySlotType::BASE_INVENTORY][BASE_EQUIPMENT][i];
+			if(item) {
+				if(!item->IsBag()) {
+					numItems++;
+				}
+				else {
+					bool bagHasItem = false;
+					if(items.count(item->details.bag_id) > 0){
+						map<int16, Item*>::iterator itr;
+						for(itr = items[item->details.bag_id][BASE_EQUIPMENT].begin(); itr != items[item->details.bag_id][BASE_EQUIPMENT].end(); itr++){
+							if(itr->second) {
+								numItems++;
+								bagHasItem = true;
+							}
+						}
+					}
+					if(!bagHasItem) {
+						numItems++;
+					}
+				}
+			}
+		}
+	}
+
+	PacketStruct* packet = configReader.getStruct("WS_HouseStorage", client->GetVersion());
+	if (packet) {
+		packet->setDataByName("spawn_id", spawn_id);
+		packet->setDataByName("type", isSelling ? 6 : 4);
+		packet->setArrayLengthByName("your_item_count", numItems);
+		int16 itemIdx = 0;
+		for (int8 i = 0; i < maxSlots; i++) {
+			if (items[InventorySlotType::HOUSE_VAULT][BASE_EQUIPMENT].count(i) != 0) {
+				Item* item = items[InventorySlotType::HOUSE_VAULT][BASE_EQUIPMENT][i];
+				if(item) {
+					if(!item->IsBag()) {
+						PopulateHouseStoragePacket(client, packet, item, itemIdx, HouseStoreItemFlags::HOUSE_STORE_VAULT_TAB);
+						itemIdx++;
+					}
+					else {
+						bool bagHasItem = false;
+						if(items.count(item->details.bag_id) > 0){
+							map<int16, Item*>::iterator itr;
+							for(itr = items[item->details.bag_id][BASE_EQUIPMENT].begin(); itr != items[item->details.bag_id][BASE_EQUIPMENT].end(); itr++){
+								if(itr->second) {
+									PopulateHouseStoragePacket(client, packet, itr->second, itemIdx, HouseStoreItemFlags::HOUSE_STORE_VAULT_TAB);
+									bagHasItem = true;
+									itemIdx++;
+								}
+							}
+						}
+						if(!bagHasItem) {
+							PopulateHouseStoragePacket(client, packet, item, itemIdx, HouseStoreItemFlags::HOUSE_STORE_VAULT_TAB);
+							itemIdx++;
+						}
+					}
+				}
+			}
+		}
+		
+		for (int8 i = 0; i < NUM_INV_SLOTS; i++) {
+			if (items[InventorySlotType::BASE_INVENTORY][BASE_EQUIPMENT].count(i) != 0) {
+				Item* item = items[InventorySlotType::BASE_INVENTORY][BASE_EQUIPMENT][i];
+				if(item) {
+					if(!item->IsBag()) {
+						PopulateHouseStoragePacket(client, packet, item, itemIdx, 0);
+						itemIdx++;
+					}
+					else {
+						bool bagHasItem = false;
+						if(items.count(item->details.bag_id) > 0){
+							map<int16, Item*>::iterator itr;
+							for(itr = items[item->details.bag_id][BASE_EQUIPMENT].begin(); itr != items[item->details.bag_id][BASE_EQUIPMENT].end(); itr++){
+								if(itr->second) {
+									PopulateHouseStoragePacket(client, packet, itr->second, itemIdx, 0);
+									bagHasItem = true;
+									itemIdx++;
+								}
+							}
+						}
+						if(!bagHasItem) {
+							PopulateHouseStoragePacket(client, packet, item, itemIdx, 0);
+							itemIdx++;
+						}
+					}
+				}
+			}
+		}
+		EQ2Packet* outapp = packet->serialize();
+		client->QueuePacket(outapp);
+		safe_delete(packet);
+	}
+	MPlayerItems.releasereadlock(__FUNCTION__, __LINE__);
 }
 
 void PlayerItemList::ResetPackets() {
@@ -4237,7 +4785,7 @@ bool EquipmentItemList::AddItem(int8 slot, Item* item){
 		
 		SetItem(slot, item, true);
 		if (item->details.unique_id == 0) {
-			GetItem(slot)->details.unique_id = MasterItemList::NextUniqueID();
+			GetItem(slot)->details.unique_id = master_item_list.NextUniqueID();
 			if (item->IsBag())
 				item->details.bag_id = item->details.unique_id;
 		}
@@ -4637,6 +5185,57 @@ int16 Item::GetIcon(int16 version) {
 	}
 	
 	return details.icon;
+}
+
+bool Item::TryLockItem(LockReason reason) {
+	std::unique_lock lock(item_lock_mtx_);
+	// current flags
+	auto cur = static_cast<LockReason>(details.lock_flags);
+
+	// 0) If this reason is already applied, succeed immediately
+	if ((cur & reason) == reason) {
+		return true;
+	}
+
+	// 1) No lock held? allow any first‐lock
+	if (cur == LockReason::LockReason_None) {
+		details.lock_flags = static_cast<uint32_t>(reason);
+		details.item_locked = true;
+		return true;
+	}
+
+	// 2) Only House‐lock held, and we're adding Shop‐lock? allow
+	if ((cur == LockReason::LockReason_House && reason == LockReason::LockReason_Shop) ||
+		(cur == LockReason::LockReason_Shop && reason == LockReason::LockReason_House)) {
+		details.lock_flags = static_cast<uint32_t>(cur | reason);
+		// item_locked already true
+		return true;
+	}
+
+	// 3) Anything else: reject
+	return false;
+}
+
+bool Item::TryUnlockItem(LockReason reason) {
+	std::unique_lock lock(item_lock_mtx_);
+	LockReason cur = static_cast<LockReason>(details.lock_flags);
+	if ((cur & reason) == reason) {
+		details.lock_flags = int32(cur & ~reason);
+		if (details.lock_flags == 0)
+			details.item_locked = false;
+		return true;
+	}
+	return false;
+}
+
+bool Item::IsItemLocked() {
+	std::shared_lock lock(item_lock_mtx_);
+	return details.lock_flags != 0;
+}
+
+bool Item::IsItemLockedFor(LockReason reason) {
+	std::shared_lock lock(item_lock_mtx_);
+	return (static_cast<LockReason>(details.lock_flags) & reason) == reason;
 }
 
 int32 MasterItemList::GetItemStatIDByName(std::string name)

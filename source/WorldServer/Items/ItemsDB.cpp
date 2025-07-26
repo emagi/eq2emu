@@ -1,6 +1,6 @@
-/*
+/*  
     EQ2Emulator:  Everquest II Server Emulator
-    Copyright (C) 2007  EQ2EMulator Development Team (http://www.eq2emulator.net)
+    Copyright (C) 2005 - 2026  EQ2EMulator Development Team (http://www.eq2emu.com formerly http://www.eq2emulator.net)
 
     This file is part of EQ2Emulator.
 
@@ -17,6 +17,7 @@
     You should have received a copy of the GNU General Public License
     along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 */
+
 #ifdef WIN32
 	#include <WinSock2.h>
 	#include <windows.h>
@@ -172,6 +173,7 @@ void WorldDatabase::LoadDataFromRow(DatabaseResult* result, Item* item)
 	item->generic_info.part_of_quest_id			= result->GetInt32Str("part_of_quest_id");
 	item->details.recommended_level				= result->GetInt16Str("recommended_level");
 	item->details.item_locked					= false;
+	item->details.lock_flags					= 0;
 	item->generic_info.adventure_default_level	= result->GetInt16Str("adventure_default_level");
 	item->generic_info.max_charges				= result->GetInt16Str("max_charges");
 	item->generic_info.display_charges			= result->GetInt8Str("display_charges");
@@ -541,7 +543,7 @@ int32 WorldDatabase::LoadHouseContainers(int32 item_id){
 			if (item)
 			{
 				LogWrite(ITEM__DEBUG, 5, "Items", "\tHouse Container for item_id %u", id);
-				LogWrite(ITEM__DEBUG, 5, "Items", "\tType: %i, '%i', '%u', '%i', '%i'", ITEM_TYPE_RECIPE, result.GetInt8Str("num_slots"), result.GetInt64Str("allowed_types"), result.GetInt8Str("broker_commission"), result.GetInt8Str("fence_commission"));
+				LogWrite(ITEM__DEBUG, 5, "Items", "\tType: %i, '%i', '%u', '%i', '%i'", ITEM_TYPE_HOUSE_CONTAINER, result.GetInt8Str("num_slots"), result.GetInt64Str("allowed_types"), result.GetInt8Str("broker_commission"), result.GetInt8Str("fence_commission"));
 
 				item->SetItemType(ITEM_TYPE_HOUSE_CONTAINER);
 				item->housecontainer_info->num_slots = result.GetInt8Str("num_slots");
@@ -549,6 +551,11 @@ int32 WorldDatabase::LoadHouseContainers(int32 item_id){
 				item->housecontainer_info->broker_commission = result.GetInt8Str("broker_commission");
 				item->housecontainer_info->fence_commission = result.GetInt8Str("fence_commission");
 
+				item->details.num_slots = item->housecontainer_info->num_slots;
+				item->details.num_free_slots = item->housecontainer_info->num_slots;
+				item->bag_info->num_slots = item->housecontainer_info->num_slots;
+				item->bag_info->weight_reduction = 0;
+				
 				total++;
 			}
 			else
@@ -1097,18 +1104,19 @@ void WorldDatabase::LoadItemList(int32 item_id)
 	LogWrite(ITEM__INFO, 0, "Items", "Loaded %u Total Item%s (took %u seconds)", total, ( total == 1 ) ? "" : "s", Timer::GetUnixTimeStamp() - t_now);
 }
 
-int32 WorldDatabase::LoadNextUniqueItemID()
+int64 WorldDatabase::LoadNextUniqueItemID()
 {
 	Query query;
 	MYSQL_ROW row;
-	MYSQL_RES* result = query.RunQuery2(Q_SELECT, "SELECT max(id) FROM character_items");
+	MYSQL_RES* result = query.RunQuery2(Q_SELECT, "SELECT NEXT VALUE FOR seq_character_items AS next_id");
 
 	if(result && (row = mysql_fetch_row(result)))
 	{
 		if(row[0])
 		{
-			LogWrite(ITEM__DEBUG, 0, "Items", "%s: max(id): %u", __FUNCTION__, atoul(row[0]));
-			return strtoul(row[0], NULL, 0);
+			int64 max_ = strtoull(row[0], NULL, 0);
+			LogWrite(ITEM__DEBUG, 0, "Items", "%s: max(id): %u", __FUNCTION__, max_);
+			return max_;
 		}
 		else 
 			return 0;
@@ -1117,6 +1125,31 @@ int32 WorldDatabase::LoadNextUniqueItemID()
 		LogWrite(ITEM__ERROR, 0, "Items", "%s: Unable to load next unique item ID.", __FUNCTION__);
 
 	return 0;
+}
+
+void WorldDatabase::ResetNextUniqueItemID()
+{
+	Query query;
+	Query query2;
+	MYSQL_ROW row;
+	MYSQL_ROW row2;
+	MYSQL_RES* result = query.RunQuery2(Q_SELECT, "SELECT next_not_cached_value FROM seq_character_items");
+	MYSQL_RES* result2 = query2.RunQuery2(Q_SELECT, "SELECT COALESCE(MAX(id),0) + 1 FROM character_items");
+	if(result && (row = mysql_fetch_row(result)) && result2 && (row2 = mysql_fetch_row(result2)))
+	{
+		if(row[0] && row2[0])
+		{
+			int64 max_cur = strtoull(row[0], NULL, 0);
+			int64 max_expected = strtoull(row2[0], NULL, 0);
+			string update_item = string("ALTER SEQUENCE seq_character_items RESTART WITH %llu");
+			if(max_cur < max_expected)
+				query.AddQueryAsync(0, this, Q_UPDATE, update_item.c_str(), max_expected);
+			
+			LogWrite(ITEM__DEBUG, 0, "Items", "%s: max(current): %u max(expected): %u", __FUNCTION__, max_cur, max_expected);
+		}
+	}
+	else if(!result)
+		LogWrite(ITEM__ERROR, 0, "Items", "%s: Unable to reset next unique item ID.", __FUNCTION__);
 }
 
 void WorldDatabase::SaveItems(Client* client) 
@@ -1382,7 +1415,7 @@ void WorldDatabase::LoadCharacterItemList(int32 account_id, int32 char_id, Playe
 						int8 remainder = item->details.count % 255;
 						item->details.count = remainder;
 						
-						if (item->details.inv_slot_id == -2)
+						if (item->details.inv_slot_id == InventorySlotType::OVERFLOW)
 							player->item_list.AddOverflowItem(item);
 						else {
 								if(!player->item_list.AddItem(item))
@@ -1398,7 +1431,7 @@ void WorldDatabase::LoadCharacterItemList(int32 account_id, int32 char_id, Playe
 						}
 					}
 					else {
-						if (item->details.inv_slot_id == -2)
+						if (item->details.inv_slot_id == InventorySlotType::OVERFLOW)
 							player->item_list.AddOverflowItem(item);
 						else
 							player->item_list.AddItem(item);
