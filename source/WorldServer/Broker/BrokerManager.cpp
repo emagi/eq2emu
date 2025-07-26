@@ -273,7 +273,7 @@ bool BrokerManager::BuyItem(Client* buyer, int32 seller_cid, int64 uid, int32 qu
 {
 	Client* seller = zone_list.GetClientByCharID(seller_cid); // establish if seller is online
 	
-	if(buyer && buyer->GetCharacterID() == seller->GetCharacterID()) {
+	if(buyer && buyer->GetCharacterID() == seller_cid) {
 		buyer->Message(CHANNEL_COLOR_RED, "You cannot buy from yourself!");
 		return false;
 	}
