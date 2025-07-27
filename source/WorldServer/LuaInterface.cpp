@@ -1832,6 +1832,10 @@ void LuaInterface::RegisterFunctions(lua_State* state) {
 	lua_register(state,"SetHouseCharacterID", EQ2Emu_lua_SetHouseCharacterID);
 	lua_register(state,"GetHouseCharacterID", EQ2Emu_lua_GetHouseCharacterID);
 	lua_register(state,"ShowHouseShopMerchant", EQ2Emu_lua_ShowHouseShopMerchant);
+	lua_register(state,"AttackAllowed", EQ2Emu_lua_AttackAllowed);
+	lua_register(state,"IsInRaid", EQ2Emu_lua_IsInRaid);
+	lua_register(state,"InSameRaid", EQ2Emu_lua_InSameRaid);
+	lua_register(state,"GetRaid", EQ2Emu_lua_GetRaid);
 }
 
 void LuaInterface::LogError(const char* error, ...)  {

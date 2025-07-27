@@ -14762,3 +14762,102 @@ int EQ2Emu_lua_ShowHouseShopMerchant(lua_State* state) {
 	
 	return 0;
 }
+
+
+int EQ2Emu_lua_AttackAllowed(lua_State* state) {
+	Spawn* spawn = lua_interface->GetSpawn(state);
+	Spawn* target = lua_interface->GetSpawn(state, 2);
+	float distance = lua_interface->GetFloatValue(state, 3);
+	bool is_range_attack = lua_interface->GetBooleanValue(state, 4);
+
+	lua_interface->ResetFunctionStack(state);
+	if (spawn && target && spawn->IsEntity() & target->IsEntity()) {
+		lua_interface->SetBooleanValue(state, ((Entity*)spawn)->AttackAllowed((Entity*)target, distance, is_range_attack));
+	}
+	else {
+		lua_interface->SetBooleanValue(state, false);
+	}
+	return 1;
+}
+
+int EQ2Emu_lua_IsInRaid(lua_State* state) {
+	Spawn* spawn = lua_interface->GetSpawn(state);
+	bool is_leader_group = lua_interface->GetBooleanValue(state, 2);
+
+	lua_interface->ResetFunctionStack(state);
+	if (spawn->IsEntity() && ((Entity*)spawn)->GetGroupMemberInfo()) {
+		lua_interface->SetBooleanValue(state, world.GetGroupManager()->IsInRaidGroup(((Entity*)spawn)->GetGroupMemberInfo()->group_id, is_leader_group));
+	}
+	else {
+		lua_interface->SetBooleanValue(state, false);
+	}
+	return 1;
+}
+
+int EQ2Emu_lua_InSameRaid(lua_State* state) {
+	Spawn* spawn = lua_interface->GetSpawn(state);
+	Spawn* target = lua_interface->GetSpawn(state, 2);
+	bool is_leader_group = lua_interface->GetBooleanValue(state, 3);
+
+	lua_interface->ResetFunctionStack(state);
+	if (spawn && spawn->IsEntity() && ((Entity*)spawn)->GetGroupMemberInfo() && 
+		target && target->IsEntity() && ((Entity*)target)->GetGroupMemberInfo()) {
+		lua_interface->SetBooleanValue(state, world.GetGroupManager()->IsInRaidGroup(((Entity*)spawn)->GetGroupMemberInfo()->group_id, ((Entity*)target)->GetGroupMemberInfo()->group_id, is_leader_group));
+	}
+	else {
+		lua_interface->SetBooleanValue(state, false);
+	}
+	return 1;
+}
+
+int EQ2Emu_lua_GetRaid(lua_State* state) {
+	if (!lua_interface)
+		return 0;
+
+	Spawn* spawn = lua_interface->GetSpawn(state);
+	bool players_only = lua_interface->GetBooleanValue(state, 2);
+	lua_interface->ResetFunctionStack(state);
+	if (!spawn) {
+		lua_interface->LogError("%s: LUA GetRaid command error: spawn is not valid", lua_interface->GetScriptName(state));
+		return 0;
+	}
+
+	vector<Spawn*> groupMembers;
+	if (spawn->IsEntity() && ((Entity*)spawn)->GetGroupMemberInfo()) {
+		std::vector<int32> raidGroups;
+		world.GetGroupManager()->GetRaidGroups(((Entity*)spawn)->GetGroupMemberInfo()->group_id, &raidGroups);
+		world.GetGroupManager()->GroupLock(__FUNCTION__, __LINE__);
+		if(raidGroups.size() > 0) {
+			for (size_t i = 0; i < raidGroups.size(); i++) {
+				PlayerGroup* group = world.GetGroupManager()->GetGroup(raidGroups.at(i));
+				deque<GroupMemberInfo*>::iterator itr;
+				if (group)
+				{
+					group->MGroupMembers.readlock(__FUNCTION__, __LINE__);
+					deque<GroupMemberInfo*>* members = group->GetMembers();
+					GroupMemberInfo* info = 0;
+					for (itr = members->begin(); itr != members->end(); itr++) {
+						info = *itr;
+						if (info->client)
+							groupMembers.push_back(info->client->GetPlayer());
+						else if(!players_only && info->member)
+							groupMembers.push_back((Spawn*)info->member);
+					}
+					group->MGroupMembers.releasereadlock(__FUNCTION__, __LINE__);
+				}
+			}
+		}
+		world.GetGroupManager()->ReleaseGroupLock(__FUNCTION__, __LINE__);
+	}
+	else
+		return 0;
+
+	lua_createtable(state, groupMembers.size(), 0);
+	int newTable = lua_gettop(state);
+	for (int32 i = 0; i < groupMembers.size(); i++) {
+		lua_interface->SetSpawnValue(state, groupMembers.at(i));
+		lua_rawseti(state, newTable, i + 1);
+	}
+	return 1;
+
+}

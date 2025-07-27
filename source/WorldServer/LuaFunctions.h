@@ -693,4 +693,8 @@ int EQ2Emu_lua_GetPickupItemID(lua_State* state);
 int EQ2Emu_lua_SetHouseCharacterID(lua_State* state);
 int EQ2Emu_lua_GetHouseCharacterID(lua_State* state);
 int EQ2Emu_lua_ShowHouseShopMerchant(lua_State* state);
+int EQ2Emu_lua_AttackAllowed(lua_State* state);
+int EQ2Emu_lua_IsInRaid(lua_State* state);
+int EQ2Emu_lua_InSameRaid(lua_State* state);
+int EQ2Emu_lua_GetRaid(lua_State* state);
 #endif
