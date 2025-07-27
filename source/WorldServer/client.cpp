@@ -12577,7 +12577,6 @@ void Client::SetItemSaleStatus(int64 unique_id, bool status) {
 
 void Client::OpenShopWindow(Spawn* interaction, bool sendAlways, int8 saleLogOnly) {
 	 if (GetCurrentZone()->GetInstanceType() == PERSONAL_HOUSE_INSTANCE && !HasOwnerOrEditAccess()) {
-		SimpleMessage(CHANNEL_COLOR_RED, "This is not your home!");
 		return;
 	}
 	
