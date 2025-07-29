@@ -1518,6 +1518,7 @@ void ZoneServer::DeleteSpawns(bool delete_all) {
 	to_keep.reserve(to_process.size());
 	
 	int32 current_time = Timer::GetCurrentTime2();
+	MSpawnList.writelock(__FUNCTION__, __LINE__);
 	for (auto &entry : to_process) {
 		Spawn* spawn = entry.first;
 		int32  when  = entry.second;
@@ -1552,7 +1553,6 @@ void ZoneServer::DeleteSpawns(bool delete_all) {
 				tmpNPC->SetBrain(nullptr);
 		}
 		
-		MSpawnList.writelock(__FUNCTION__, __LINE__);
 		std::map<int32, Spawn*>::iterator sitr = spawn_list.find(spawn->GetID());
 		if(sitr != spawn_list.end()) {
 			spawn_list.erase(sitr);
@@ -1573,8 +1573,8 @@ void ZoneServer::DeleteSpawns(bool delete_all) {
 			housing_spawn_map.erase(spawn->GetID());
 		}
 		safe_delete(spawn);
-		MSpawnList.releasewritelock(__FUNCTION__, __LINE__);
 	}
+	MSpawnList.releasewritelock(__FUNCTION__, __LINE__);
 	
 	// Add all the kept entries
 	if (!to_keep.empty()) {
@@ -2010,7 +2010,7 @@ bool ZoneServer::SpawnProcess(){
 
 
 		// Delete unused spawns, do this last
-		if(!zoneShuttingDown && checkRemove)
+		if(!zoneShuttingDown)
 			DeleteSpawns(false);
 
 		// Nothing should come after this
