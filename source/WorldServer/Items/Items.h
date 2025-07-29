@@ -978,7 +978,7 @@ public:
 	#pragma pack()
 	Item();
 	Item(Item* in_item);
-	Item(Item* in_item, int64 unique_id, std::string in_creator, std::string in_seller_name, int32 in_seller_char_id, int64 in_broker_price, int16 count, int64 in_seller_house_id);
+	Item(Item* in_item, int64 unique_id, std::string in_creator, std::string in_seller_name, int32 in_seller_char_id, int64 in_broker_price, int16 count, int64 in_seller_house_id, bool search_in_inventory);
 	
 	~Item();
 	string					lowername;
@@ -990,6 +990,7 @@ public:
 	int32					max_sell_value;
 	int64					broker_price;
 	bool					is_search_store_item;
+	bool					is_search_in_inventory;
 	bool					save_needed;
 	int8					weapon_type;
 	string					adornment;

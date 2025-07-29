@@ -1022,6 +1022,7 @@ void LuaInterface::RemoveSpawnFromSpell(LuaSpell* spell, Spawn* spawn) {
 		((Entity*)spawn)->RemoveSpellBonus(spell);
 		((Entity*)spawn)->RemoveEffectsFromLuaSpell(spell);
 		((Entity*)spawn)->RemoveWard(spell);
+		((Entity*)spawn)->RemoveMaintainedSpell(spell);
 		
 		if(spell->spell && spell->spell->GetSpellData() && spell->spell->GetSpellData()->det_type > 0 && (spell->spell->GetSpellDuration() > 0 || spell->spell->GetSpellData()->duration_until_cancel))
 			((Entity*)spawn)->RemoveDetrimentalSpell(spell);

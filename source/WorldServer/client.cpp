@@ -10620,7 +10620,7 @@ void Client::SearchStore(int32 page) {
 						packet->setArrayDataByName("item_id2", item->details.unique_id, i);
 						packet->setArrayDataByName("sell_price", item->broker_price, i);
 						packet->setArrayDataByName("quantity", item->details.count, i);
-						if(item->seller_house_id) {
+						if(item->seller_house_id && !item->is_search_in_inventory) {
 							HouseZone* hz = world.GetHouseZone(item->seller_house_id);
 							if(hz && item->seller_name.size() > 0) {
 								string name;

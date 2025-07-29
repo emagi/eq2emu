@@ -912,6 +912,7 @@ Item::Item(){
 	seller_char_id = 0;
 	seller_house_id = 0;
 	is_search_store_item = false;
+	is_search_in_inventory = false;
 	item_script = "";
 	broker_price = 0;
 	sell_price = 0;
@@ -948,6 +949,7 @@ Item::Item(Item* in_item){
 	seller_char_id = 0;
 	seller_house_id = 0;
 	is_search_store_item = false;
+	is_search_in_inventory = false;
 	needs_deletion = false;
 	broker_price = 0;
 	sell_price = in_item->sell_price;
@@ -971,7 +973,7 @@ Item::Item(Item* in_item){
 	details.item_locked = false;
 }
 
-Item::Item(Item* in_item, int64 unique_id, std::string in_creator, std::string in_seller_name, int32 in_seller_char_id, int64 in_broker_price, int16 count, int64 in_seller_house_id){
+Item::Item(Item* in_item, int64 unique_id, std::string in_creator, std::string in_seller_name, int32 in_seller_char_id, int64 in_broker_price, int16 count, int64 in_seller_house_id, bool search_in_inventory){
 	is_search_store_item = true;
 	broker_price = in_broker_price;
 	needs_deletion = false;
@@ -999,6 +1001,7 @@ Item::Item(Item* in_item, int64 unique_id, std::string in_creator, std::string i
 	seller_house_id = in_seller_house_id;
 	details.lock_flags = 0;
 	details.item_locked = false;
+	is_search_in_inventory = search_in_inventory;
 }
 
 Item::~Item(){

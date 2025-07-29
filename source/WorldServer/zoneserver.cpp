@@ -1535,7 +1535,6 @@ void ZoneServer::DeleteSpawns(bool delete_all) {
 		}
 		MPendingSpawnRemoval.releasereadlock(__FUNCTION__, __LINE__);
 
-		MSpawnList.writelock(__FUNCTION__, __LINE__);
 		lua_interface->SetLuaUserDataStale(spawn);
 
 		if (spellProcess) {
@@ -1553,6 +1552,7 @@ void ZoneServer::DeleteSpawns(bool delete_all) {
 				tmpNPC->SetBrain(nullptr);
 		}
 		
+		MSpawnList.writelock(__FUNCTION__, __LINE__);
 		std::map<int32, Spawn*>::iterator sitr = spawn_list.find(spawn->GetID());
 		if(sitr != spawn_list.end()) {
 			spawn_list.erase(sitr);
@@ -2010,7 +2010,7 @@ bool ZoneServer::SpawnProcess(){
 
 
 		// Delete unused spawns, do this last
-		if(!zoneShuttingDown)
+		if(!zoneShuttingDown && checkRemove)
 			DeleteSpawns(false);
 
 		// Nothing should come after this

@@ -572,7 +572,7 @@ vector<Item*>* BrokerManager::GetItems(
 			  "--GetItemsPass: %u (selling: %u), allowinv: %u",
 			  itm.unique_id, itm.for_sale, allowInv
 			);
-			ret->push_back(new Item(def, itm.unique_id, itm.creator, pit_player->second.seller_name, cid, itm.cost_copper, itm.count, pit_player->second.house_id));
+			ret->push_back(new Item(def, itm.unique_id, itm.creator, pit_player->second.seller_name, cid, itm.cost_copper, itm.count, pit_player->second.house_id, itm.from_inventory));
 		}
 	}
 	return ret;
