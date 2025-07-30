@@ -271,7 +271,7 @@ void Query::AddQueryAsync(int32 queryID, Database* db, QUERY_TYPE type, const ch
 	va_end(args);
 	query = string(buffer);
 
-	Query* asyncQuery = new Query(this, queryID);
+	Query* asyncQuery = new Query(this, queryID, query);
 
 	safe_delete_array(buffer);
 

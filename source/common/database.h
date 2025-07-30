@@ -109,7 +109,7 @@ public:
 		memset(errbuf, 0, sizeof(errbuf));
 		queryID = 0;
 	}
-	Query(Query* queryPtr, int32 in_id) {
+	Query(Query* queryPtr, int32 in_id, std::string in_query) {
 		result = 0;
 		affected_rows = 0;
 		last_insert_id = 0;
@@ -121,7 +121,7 @@ public:
 		escaped_data1 = 0;
 		multiple_results = 0;
 		memset(errbuf, 0, sizeof(errbuf));
-		query = string(queryPtr->GetQuery());
+		query = std::move(in_query);
 		in_type = queryPtr->GetQueryType();
 		queryID = in_id;
 	}
