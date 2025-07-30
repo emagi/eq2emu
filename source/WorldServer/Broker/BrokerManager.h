@@ -100,7 +100,7 @@ public:
 	int64 GetSalePrice(int32 cid, int64 uid);
 	
 	//–– Remove quantity
-	void RemoveItem(int32 cid, int64 uid, int16 quantity = 1);
+	void RemoveItem(int32 cid, int64 uid, int16 quantity = 1, bool shouldDelete = false);
 
 	//–– Attempt to buy (atomic DB + in-memory + broadcast)
 	bool BuyItem(Client* buyer, int32 seller_cid, int64 uid, int32 quantity);

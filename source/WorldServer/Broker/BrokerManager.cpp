@@ -236,15 +236,18 @@ void BrokerManager::SetSalePrice(int32 cid, int64 uid, int64 price)
 	}
 }
 
-void BrokerManager::RemoveItem(int32 cid, int64 uid, int16 qty) 
+void BrokerManager::RemoveItem(int32 cid, int64 uid, int16 qty, bool shouldDelete) 
 {
 	bool didDelete = false;
-	SaleItem snapshot;
+	std::optional<SaleItem> snapshot;
 	{
 		std::unique_lock lock(mtx_);
 		if (auto ait = active_items_by_char_.find(cid); ait != active_items_by_char_.end()) {
 			auto& m = ait->second;
 			if (auto it = m.find(uid); it != m.end()) {
+				if(shouldDelete)
+					qty = it->second.count;
+				
 				it->second.count -= qty;
 				if (it->second.count <= 0) {
 					didDelete = true;
@@ -258,14 +261,14 @@ void BrokerManager::RemoveItem(int32 cid, int64 uid, int16 qty)
 			}
 		}
 	}
-	if (didDelete) {
+	if (didDelete || shouldDelete) {
 		DeleteItemFromDB(cid, uid);
 		peer_manager.sendPeersRemoveItemSale(cid, uid);
 	}
-	else if (snapshot.count > 0) {
-		SaveItemToDB(snapshot);
-		peer_manager.sendPeersAddItemSale(snapshot.character_id, snapshot.house_id, snapshot.item_id, snapshot.unique_id, snapshot.cost_copper, snapshot.inv_slot_id, 
-											snapshot.slot_id, snapshot.count, snapshot.from_inventory, snapshot.for_sale, snapshot.creator);
+	else if (snapshot) {
+		SaveItemToDB(*snapshot);
+		peer_manager.sendPeersAddItemSale(snapshot->character_id, snapshot->house_id, snapshot->item_id, snapshot->unique_id, snapshot->cost_copper, snapshot->inv_slot_id, 
+											snapshot->slot_id, snapshot->count, snapshot->from_inventory, snapshot->for_sale, snapshot->creator);
 	}
 }
 

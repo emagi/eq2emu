@@ -7115,7 +7115,7 @@ void Commands::Command_Inventory(Client* client, Seperator* sep, EQ2_RemoteComma
 					return;
 				}
 				if(client->GetPlayer()->item_list.IsItemInSlotType(item, InventorySlotType::HOUSE_VAULT) || client->GetPlayer()->item_list.IsItemInSlotType(item, InventorySlotType::BASE_INVENTORY)) {
-					broker.RemoveItem(client->GetPlayer()->GetCharacterID(), item->details.unique_id, item->details.count);
+					broker.RemoveItem(client->GetPlayer()->GetCharacterID(), item->details.unique_id, item->details.count, true);
 				}
 				if(item->GetItemScript() && lua_interface)
 					lua_interface->RunItemScript(item->GetItemScript(), "destroyed", item, client->GetPlayer());
