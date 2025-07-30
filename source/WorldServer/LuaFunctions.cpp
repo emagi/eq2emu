@@ -4707,7 +4707,7 @@ int EQ2Emu_lua_Harvest(lua_State* state) {
 			((GroundSpawn*)node)->ProcessHarvest(client);
 			if (((GroundSpawn*)node)->GetNumberHarvests() == 0) {
 				LuaSpell* spell = lua_interface->GetCurrentSpell(state);
-				player->GetZone()->RemoveSpawn(node, true, true, true, true, (spell != nullptr) ? false : true);
+				player->GetZone()->RemoveSpawn(node, true, true, true, false, (spell != nullptr) ? false : true);
 			}
 		}
 	}

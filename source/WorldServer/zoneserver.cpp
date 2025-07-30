@@ -1515,66 +1515,67 @@ void ZoneServer::DeleteSpawns(bool delete_all) {
 
 	// Prepare a list of entries we’ll need to keep around
 	std::vector<std::pair<Spawn*,int32>> to_keep;
-	to_keep.reserve(to_process.size());
-	
-	int32 current_time = Timer::GetCurrentTime2();
-	MSpawnList.writelock(__FUNCTION__, __LINE__);
-	for (auto &entry : to_process) {
-		Spawn* spawn = entry.first;
-		int32  when  = entry.second;
+	if(to_process.size() > 0) {
+		to_keep.reserve(to_process.size());
+		int32 current_time = Timer::GetCurrentTime2();
+		MSpawnList.writelock(__FUNCTION__, __LINE__);
+		for (auto &entry : to_process) {
+			Spawn* spawn = entry.first;
+			int32  when  = entry.second;
 
-		if (!delete_all && current_time < when) {
-			to_keep.emplace_back(entry);
-			continue;
-		}
-		
-		MPendingSpawnRemoval.readlock(__FUNCTION__, __LINE__);
-		if(!delete_all && m_pendingSpawnRemove.count(spawn->GetID())) {
-			to_keep.emplace_back(entry);
+			if (!delete_all && current_time < when) {
+				to_keep.emplace_back(entry);
+				continue;
+			}
+			
+			MPendingSpawnRemoval.readlock(__FUNCTION__, __LINE__);
+			if(!delete_all && m_pendingSpawnRemove.count(spawn->GetID())) {
+				to_keep.emplace_back(entry);
+				MPendingSpawnRemoval.releasereadlock(__FUNCTION__, __LINE__);
+				continue;
+			}
 			MPendingSpawnRemoval.releasereadlock(__FUNCTION__, __LINE__);
-			continue;
-		}
-		MPendingSpawnRemoval.releasereadlock(__FUNCTION__, __LINE__);
 
-		lua_interface->SetLuaUserDataStale(spawn);
+			lua_interface->SetLuaUserDataStale(spawn);
 
-		if (spellProcess) {
-			spellProcess->RemoveCaster(spawn, true);
-		}
-
-		if(movementMgr != nullptr) {
-			movementMgr->RemoveMob((Entity*)spawn);
-		}
-
-		// delete brain if it has one
-		if(spawn->IsNPC()) {
-			NPC* tmpNPC = (NPC*)spawn;
-			if(tmpNPC->Brain())
-				tmpNPC->SetBrain(nullptr);
-		}
-		
-		std::map<int32, Spawn*>::iterator sitr = spawn_list.find(spawn->GetID());
-		if(sitr != spawn_list.end()) {
-			spawn_list.erase(sitr);
-		}
-		
-		if(spawn->IsCollector()) {
-			std::map<int32, Spawn*>::iterator subitr = subspawn_list[SUBSPAWN_TYPES::COLLECTOR].find(spawn->GetID());
-			if(subitr != subspawn_list[SUBSPAWN_TYPES::COLLECTOR].end()) {
-				subspawn_list[SUBSPAWN_TYPES::COLLECTOR].erase(subitr);
+			if (spellProcess) {
+				spellProcess->RemoveCaster(spawn, true);
 			}
-		}
-		
-		if(spawn->GetPickupItemID()) {
-			std::map<int32, Spawn*>::iterator subitr = subspawn_list[SUBSPAWN_TYPES::HOUSE_ITEM_SPAWN].find(spawn->GetPickupItemID());
-			if(subitr != subspawn_list[SUBSPAWN_TYPES::HOUSE_ITEM_SPAWN].end() && subitr->second == spawn) {
-				subspawn_list[SUBSPAWN_TYPES::HOUSE_ITEM_SPAWN].erase(subitr);
+
+			if(movementMgr != nullptr) {
+				movementMgr->RemoveMob((Entity*)spawn);
 			}
-			housing_spawn_map.erase(spawn->GetID());
+
+			// delete brain if it has one
+			if(spawn->IsNPC()) {
+				NPC* tmpNPC = (NPC*)spawn;
+				if(tmpNPC->Brain())
+					tmpNPC->SetBrain(nullptr);
+			}
+			
+			std::map<int32, Spawn*>::iterator sitr = spawn_list.find(spawn->GetID());
+			if(sitr != spawn_list.end()) {
+				spawn_list.erase(sitr);
+			}
+			
+			if(spawn->IsCollector()) {
+				std::map<int32, Spawn*>::iterator subitr = subspawn_list[SUBSPAWN_TYPES::COLLECTOR].find(spawn->GetID());
+				if(subitr != subspawn_list[SUBSPAWN_TYPES::COLLECTOR].end()) {
+					subspawn_list[SUBSPAWN_TYPES::COLLECTOR].erase(subitr);
+				}
+			}
+			
+			if(spawn->GetPickupItemID()) {
+				std::map<int32, Spawn*>::iterator subitr = subspawn_list[SUBSPAWN_TYPES::HOUSE_ITEM_SPAWN].find(spawn->GetPickupItemID());
+				if(subitr != subspawn_list[SUBSPAWN_TYPES::HOUSE_ITEM_SPAWN].end() && subitr->second == spawn) {
+					subspawn_list[SUBSPAWN_TYPES::HOUSE_ITEM_SPAWN].erase(subitr);
+				}
+				housing_spawn_map.erase(spawn->GetID());
+			}
+			safe_delete(spawn);
 		}
-		safe_delete(spawn);
+		MSpawnList.releasewritelock(__FUNCTION__, __LINE__);
 	}
-	MSpawnList.releasewritelock(__FUNCTION__, __LINE__);
 	
 	// Add all the kept entries
 	if (!to_keep.empty()) {
