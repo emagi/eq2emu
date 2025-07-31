@@ -294,7 +294,7 @@ void Entity::MeleeAttack(Spawn* victim, float distance, bool primary, bool multi
 			DamageSpawn((Entity*)victim, DAMAGE_PACKET_TYPE_SIMPLE_CRIT_DMG, damage_type, min_damage, max_damage, 0);
 		}
 		else*/
-			DamageSpawn((Entity*)victim, DAMAGE_PACKET_TYPE_SIMPLE_DAMAGE, damage_type, min_damage, max_damage, 0);
+			DamageSpawn((Entity*)victim, DAMAGE_PACKET_TYPE_SIMPLE_DAMAGE, damage_type, min_damage, max_damage, 0, 0, false, false, false, false, nullptr, false, true);
 			if (!multi_attack) {
 				CheckProcs(PROC_TYPE_OFFENSIVE, victim);
 				CheckProcs(PROC_TYPE_PHYSICAL_OFFENSIVE, victim);
@@ -1057,7 +1057,7 @@ Skill* Entity::GetSkillByWeaponType(int8 type, int8 damage_type, bool update) {
 	return 0;
 }
 
-bool Entity::DamageSpawn(Entity* victim, int8 type, int8 damage_type, int32 low_damage, int32 high_damage, const char* spell_name, int8 crit_mod, bool is_tick, bool no_calcs, bool ignore_attacker, bool take_power, LuaSpell* spell, bool skip_check_wards) {
+bool Entity::DamageSpawn(Entity* victim, int8 type, int8 damage_type, int32 low_damage, int32 high_damage, const char* spell_name, int8 crit_mod, bool is_tick, bool no_calcs, bool ignore_attacker, bool take_power, LuaSpell* spell, bool skip_check_wards, bool is_melee_spawn) {
 	if(spell) {
 		spell->is_damage_spell = true;
 	}
@@ -1236,7 +1236,7 @@ bool Entity::DamageSpawn(Entity* victim, int8 type, int8 damage_type, int32 low_
 	}
 
 	if (victim->GetHP() <= 0)
-		KillSpawn(victim, type, damage_type, blow_type);
+		KillSpawn(victim, type, damage_type, blow_type, is_melee_spawn);
 	else {
 		victim->CheckProcs(PROC_TYPE_DEFENSIVE, this);
 		if (spell_name)
@@ -1439,7 +1439,7 @@ bool Entity::CheckInterruptSpell(Entity* attacker) {
 	return false;
 }
 
-void Entity::KillSpawn(Spawn* dead, int8 type, int8 damage_type, int16 kill_blow_type) {
+void Entity::KillSpawn(Spawn* dead, int8 type, int8 damage_type, int16 kill_blow_type, bool is_melee_spawn) {
 	if(!dead)
 		return;
 
@@ -1479,7 +1479,7 @@ void Entity::KillSpawn(Spawn* dead, int8 type, int8 damage_type, int16 kill_blow
 	dead->ClearRunningLocations();
 	dead->CalculateRunningLocation(true);
 
-	GetZone()->KillSpawn(true, dead, this, true, type, damage_type, kill_blow_type);
+	GetZone()->KillSpawn(is_melee_spawn, dead, this, true, type, damage_type, kill_blow_type);
 }
 
 void Entity::HandleDeathExperienceDebt(Spawn* killer)
@@ -1552,7 +1552,7 @@ void Player::ProcessCombat() {
 		return;
 
 	//If no target delete combat_target and return out
-	Spawn* Target = GetZone()->GetSpawnByID(target);
+	Spawn* Target = GetZone()->GetSpawnByID(target, true);
 	if (!Target) {
 		combat_target = 0;
 		if (target > 0) {

@@ -706,9 +706,6 @@ public:
 	void SetWatchdogTime(int32 time) { watchdogTimestamp = time; }
 	void CancelThreads();
 
-	void AddPendingSpawnRemove(int32 id);
-	void ProcessSpawnRemovals();
-
 	bool	SendRemoveSpawn(Client* client, Spawn* spawn, PacketStruct* packet = 0, bool delete_spawn = false);
 
 	void	AddSpawnToGroup(Spawn* spawn, int32 group_id);
@@ -924,6 +921,7 @@ private:
 	Timer	widget_timer;
 	Timer	queue_updates;
 	Timer	shutdownDelayTimer;
+	Timer	delete_timer;
 	
 	/* Enums */
 	Instance_Type InstanceType;
@@ -1028,9 +1026,6 @@ private:
 	map<int32, string> m_transportMaps;
 	
 	int32 watchdogTimestamp;
-
-	std::map<int32, bool> m_pendingSpawnRemove;
-	Mutex MPendingSpawnRemoval;
 
 	std::map<int32, int32> lua_queued_state_commands;
 	std::map<int32, std::map<std::string, float>> lua_spawn_update_command;

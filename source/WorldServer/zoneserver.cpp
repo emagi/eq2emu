@@ -175,8 +175,6 @@ ZoneServer::ZoneServer(const char* name) {
 	tradeskillMgr = nullptr;
 	watchdogTimestamp = Timer::GetCurrentTime2();
 
-	MPendingSpawnRemoval.SetName("ZoneServer::MPendingSpawnRemoval");
-
 	lifetime_client_count = 0;
 	
 	groupraidMinLevel = 0;
@@ -311,6 +309,7 @@ void ZoneServer::Init()
 	shutdownTimer.Disable();
 	spawn_range.Start(rule_manager.GetGlobalRule(R_Zone, CheckAttackPlayer)->GetInt32());
 	aggro_timer.Start(rule_manager.GetGlobalRule(R_Zone, CheckAttackNPC)->GetInt32());
+	delete_timer.Start(1000);
 	/* Weather stuff */
 	InitWeather();
 
@@ -1527,14 +1526,6 @@ void ZoneServer::DeleteSpawns(bool delete_all) {
 				to_keep.emplace_back(entry);
 				continue;
 			}
-			
-			MPendingSpawnRemoval.readlock(__FUNCTION__, __LINE__);
-			if(!delete_all && m_pendingSpawnRemove.count(spawn->GetID())) {
-				to_keep.emplace_back(entry);
-				MPendingSpawnRemoval.releasereadlock(__FUNCTION__, __LINE__);
-				continue;
-			}
-			MPendingSpawnRemoval.releasereadlock(__FUNCTION__, __LINE__);
 
 			lua_interface->SetLuaUserDataStale(spawn);
 
@@ -1542,7 +1533,7 @@ void ZoneServer::DeleteSpawns(bool delete_all) {
 				spellProcess->RemoveCaster(spawn, true);
 			}
 
-			if(movementMgr != nullptr) {
+			if(spawn->IsEntity() && movementMgr != nullptr) {
 				movementMgr->RemoveMob((Entity*)spawn);
 			}
 
@@ -1890,11 +1881,8 @@ bool ZoneServer::SpawnProcess(){
 		bool spawnRange = spawn_range.Check();
 		bool checkRemove = spawn_check_remove.Check();
 		bool aggroCheck = aggro_timer.Check();
-		vector<int32> pending_spawn_list_remove;
+		bool deleteTimer = delete_timer.Check();
 
-		// Check to see if there are any spawn id's that need to be removed from the spawn list, if so remove them all
-		ProcessSpawnRemovals();
-		
 		map<int32, Spawn*>::iterator itr;
 		if (spawnRange || checkRemove)
 		{
@@ -1960,40 +1948,16 @@ bool ZoneServer::SpawnProcess(){
 						CombatProcess(spawn);
 					}
 				}
-				else {
-					// unable to get a valid spawn, lets add the id to another list to remove from the spawn list after this loop is finished
-					pending_spawn_list_remove.push_back(itr->first);
-				}
 
 			}
 			MSpawnList.releasereadlock(__FUNCTION__, __LINE__);
 		}
 
-		// Check to see if there are any spawn id's that need to be removed from the spawn list, if so remove them all
-		if (pending_spawn_list_remove.size() > 0) {
-			MSpawnList.writelock(__FUNCTION__, __LINE__);
-			vector<int32>::iterator itr2;
-			for (itr2 = pending_spawn_list_remove.begin(); itr2 != pending_spawn_list_remove.end(); itr2++) {
-				spawn_list.erase(*itr2);
-				subspawn_list[SUBSPAWN_TYPES::COLLECTOR].erase(*itr2);
-				
-				std::map<int32,int32>::iterator hsmitr = housing_spawn_map.find(*itr2);
-				if(hsmitr != housing_spawn_map.end()) {
-					subspawn_list[SUBSPAWN_TYPES::HOUSE_ITEM_SPAWN].erase(hsmitr->second);
-					housing_spawn_map.erase(hsmitr);
-				}
-			}
-
-			pending_spawn_list_remove.clear();
-			MSpawnList.releasewritelock(__FUNCTION__, __LINE__);
-		}
-		
-		// Double Check to see if there are any spawn id's that need to be removed from the spawn list, if so remove them before we replace with pending spawns
-		// and also potentially further down when we delete the Spawn* in DeleteSpawns(false)
-		ProcessSpawnRemovals();
-
 		// Check to see if there are spawns waiting to be added to the spawn list, if so add them all
-		if (pending_spawn_list_add.size() > 0) {
+		MPendingSpawnListAdd.readlock(__FUNCTION__, __LINE__);
+		int32 pending_count = pending_spawn_list_add.size();
+		MPendingSpawnListAdd.releasereadlock(__FUNCTION__, __LINE__);
+		if (pending_count > 0) {
 			ProcessPendingSpawns();
 		}
 
@@ -2011,7 +1975,7 @@ bool ZoneServer::SpawnProcess(){
 
 
 		// Delete unused spawns, do this last
-		if(!zoneShuttingDown)
+		if(!zoneShuttingDown && deleteTimer)
 			DeleteSpawns(false);
 
 		// Nothing should come after this
@@ -4706,7 +4670,7 @@ void ZoneServer::KillSpawnByDistance(Spawn* spawn, float max_distance, bool incl
 				if(test_spawn && test_spawn->Alive() && test_spawn->GetID() > 0 && test_spawn->GetID() != spawn->GetID() && test_spawn->IsEntity() &&
 				  (!test_spawn->IsPlayer() || include_players)){
 					if(test_spawn->GetDistance(spawn) < max_distance)
-						KillSpawn(true, test_spawn, spawn, send_packet);
+						KillSpawn(false, test_spawn, spawn, send_packet);
 				}
 			}
 			grids->second->MSpawns.unlock_shared();
@@ -4831,10 +4795,6 @@ void ZoneServer::RemoveSpawn(Spawn* spawn, bool delete_spawn, bool respawn, bool
 		spawn_expire_timers.erase(spawn->GetID());
 	
 	spawn->SetDeletedSpawn(true);
-
-	// we will remove the spawn ptr and entry in the spawn_list later.. it is not safe right now (lua? client process? spawn process? etc? too many factors)
-	if(erase_from_spawn_list)
-		AddPendingSpawnRemove(spawn->GetID());
 
 	if(respawn && !spawn->IsPlayer() && spawn->GetSpawnLocationID() > 0) {
 		LogWrite(ZONE__DEBUG, 3, "Zone", "Handle NPC Respawn for '%s'.", spawn->GetName());
@@ -5131,7 +5091,7 @@ void ZoneServer::ProcessFaction(Spawn* spawn, Client* client)
 }
 
 void ZoneServer::Despawn(Spawn* spawn, int32 timer){
-	if (spawn && movementMgr != nullptr) {
+	if (spawn && spawn->IsEntity() && movementMgr != nullptr) {
 		movementMgr->RemoveMob((Entity*)spawn);
 	}
 	if(!spawn || spawn->IsPlayer())
@@ -5453,7 +5413,7 @@ void ZoneServer::KillSpawn(bool spawnListLocked, Spawn* dead, Spawn* killer, boo
 		spellProcess->RemoveSpellFromQueue((Player*)dead, true);
 
 	if (dead->IsNPC())
-		((NPC*)dead)->Brain()->ClearHate(!spawnListLocked);
+		((NPC*)dead)->Brain()->ClearHate(spawnListLocked);
 
 	safe_delete(encounter);
 	
@@ -9162,36 +9122,6 @@ Spawn* ZoneServer::GetSpawnFromUniqueItemID(int32 unique_id)
 	MSpawnList.releasereadlock();
 
 	return nullptr;
-}
-
-void ZoneServer::AddPendingSpawnRemove(int32 id)
-{
-		MPendingSpawnRemoval.writelock(__FUNCTION__, __LINE__);
-		m_pendingSpawnRemove.insert(make_pair(id,true));
-		MPendingSpawnRemoval.releasewritelock(__FUNCTION__, __LINE__);
-}
-
-void ZoneServer::ProcessSpawnRemovals()
-{
-	MSpawnList.writelock(__FUNCTION__, __LINE__);
-	MPendingSpawnRemoval.writelock(__FUNCTION__, __LINE__);
-	if (m_pendingSpawnRemove.size() > 0) {
-		map<int32,bool>::iterator itr2;
-		for (itr2 = m_pendingSpawnRemove.begin(); itr2 != m_pendingSpawnRemove.end(); itr2++) {
-			spawn_list.erase(itr2->first);
-			subspawn_list[SUBSPAWN_TYPES::COLLECTOR].erase(itr2->first);
-			
-			std::map<int32,int32>::iterator hsmitr = housing_spawn_map.find(itr2->first);
-			if(hsmitr != housing_spawn_map.end()) {
-				subspawn_list[SUBSPAWN_TYPES::HOUSE_ITEM_SPAWN].erase(hsmitr->second);
-				housing_spawn_map.erase(hsmitr);
-			}
-		}
-
-		m_pendingSpawnRemove.clear();
-	}
-	MPendingSpawnRemoval.releasewritelock(__FUNCTION__, __LINE__);
-	MSpawnList.releasewritelock(__FUNCTION__, __LINE__);
 }
 
 void ZoneServer::AddSpawnToGroup(Spawn* spawn, int32 group_id)
