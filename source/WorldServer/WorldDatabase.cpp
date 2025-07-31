@@ -4488,10 +4488,10 @@ void WorldDatabase::Save(Client* client){
 		zone_id = client->GetCurrentZone()->GetZoneID();
 	
 	char charName[64];
-	strncpy(charName, client->GetPlayer()->GetInfoStruct()->get_name().c_str(),64);
-	charName[63] = '\0';
-	query.AddQueryAsync(client->GetCharacterID(), this, Q_UPDATE, "update characters set name='%s',current_zone_id=%u, x=%f, y=%f, z=%f, heading=%f, level=%i,instance_id=%i,last_saved=%i, `class`=%i, `tradeskill_level`=%i, `tradeskill_class`=%i, `group_id`=%u, deity = %u, alignment = %u, zone_duplicating_id = %u where id = %u", charName, zone_id, player->GetX(), player->GetY(), player->GetZ(), player->GetHeading(), player->GetLevel(), instance_id, client->GetLastSavedTimeStamp(), client->GetPlayer()->GetAdventureClass(), client->GetPlayer()->GetTSLevel(), client->GetPlayer()->GetTradeskillClass(), client->GetPlayer()->GetGroupMemberInfo() ? client->GetPlayer()->GetGroupMemberInfo()->group_id : client->GetRejoinGroupID(), client->GetPlayer()->GetDeity(), client->GetPlayer()->GetInfoStruct()->get_alignment(), client->GetDuplicatingZoneID(), client->GetCharacterID());
-	query.AddQueryAsync(client->GetCharacterID(), this, Q_UPDATE, "update character_details set hp=%u, power=%u, str=%i, sta=%i, agi=%i, wis=%i, intel=%i, heat=%i, cold=%i, magic=%i, mental=%i, divine=%i, disease=%i, poison=%i, coin_copper=%u, coin_silver=%u, coin_gold=%u, coin_plat=%u, max_hp = %u, max_power=%u, xp = %u, xp_needed = %u, xp_debt = %f, xp_vitality = %f, tradeskill_xp = %u, tradeskill_xp_needed = %u, tradeskill_xp_vitality = %f, bank_copper = %u, bank_silver = %u, bank_gold = %u, bank_plat = %u, status_points = %u, bind_zone_id=%u, bind_x = %f, bind_y = %f, bind_z = %f, bind_heading = %f, house_zone_id=%u, combat_voice = %i, emote_voice = %i, biography='%s', flags=%u, flags2=%u, last_name='%s', assigned_aa = %i, unassigned_aa = %i, tradeskill_aa = %i, unassigned_tradeskill_aa = %i, prestige_aa = %i, unassigned_prestige_aa = %i, tradeskill_prestige_aa = %i, unassigned_tradeskill_prestige_aa = %i, pet_name = '%s' where char_id = %u",
+	strncpy(charName, client->GetPlayer()->GetName(),64);
+	query.AddQueryAsync(client->GetCharacterID(), this, Q_UPDATE, "update characters set name='%s',current_zone_id=%u, x=%f, y=%f, z=%f, heading=%f, level=%i,instance_id=%i,last_saved=%i, `class`=%i, `tradeskill_level`=%i, `tradeskill_class`=%i, `group_id`=%u, deity = %u, alignment = %u, zone_duplicating_id = %u where id = %u", getSafeEscapeString(charName).c_str(), zone_id, player->GetX(), player->GetY(), player->GetZ(), player->GetHeading(), player->GetLevel(), instance_id, client->GetLastSavedTimeStamp(), client->GetPlayer()->GetAdventureClass(), client->GetPlayer()->GetTSLevel(), client->GetPlayer()->GetTradeskillClass(), client->GetPlayer()->GetGroupMemberInfo() ? client->GetPlayer()->GetGroupMemberInfo()->group_id : client->GetRejoinGroupID(), client->GetPlayer()->GetDeity(), client->GetPlayer()->GetInfoStruct()->get_alignment(), client->GetDuplicatingZoneID(), client->GetCharacterID());
+	Query query2;
+	query2.AddQueryAsync(client->GetCharacterID(), this, Q_UPDATE, "update character_details set hp=%u, power=%u, str=%i, sta=%i, agi=%i, wis=%i, intel=%i, heat=%i, cold=%i, magic=%i, mental=%i, divine=%i, disease=%i, poison=%i, coin_copper=%u, coin_silver=%u, coin_gold=%u, coin_plat=%u, max_hp = %u, max_power=%u, xp = %u, xp_needed = %u, xp_debt = %f, xp_vitality = %f, tradeskill_xp = %u, tradeskill_xp_needed = %u, tradeskill_xp_vitality = %f, bank_copper = %u, bank_silver = %u, bank_gold = %u, bank_plat = %u, status_points = %u, bind_zone_id=%u, bind_x = %f, bind_y = %f, bind_z = %f, bind_heading = %f, house_zone_id=%u, combat_voice = %i, emote_voice = %i, biography='%s', flags=%u, flags2=%u, last_name='%s', assigned_aa = %i, unassigned_aa = %i, tradeskill_aa = %i, unassigned_tradeskill_aa = %i, prestige_aa = %i, unassigned_prestige_aa = %i, tradeskill_prestige_aa = %i, unassigned_tradeskill_prestige_aa = %i, pet_name = '%s' where char_id = %u",
 		player->GetHP(), player->GetPower(), player->GetStrBase(), player->GetStaBase(), player->GetAgiBase(), player->GetWisBase(), player->GetIntBase(), player->GetHeatResistanceBase(), player->GetColdResistanceBase(), player->GetMagicResistanceBase(),
 		player->GetMentalResistanceBase(), player->GetDivineResistanceBase(), player->GetDiseaseResistanceBase(), player->GetPoisonResistanceBase(), player->GetCoinsCopper(), player->GetCoinsSilver(), player->GetCoinsGold(), player->GetCoinsPlat(), player->GetTotalHPBase(), player->GetTotalPowerBase(), player->GetXP(), player->GetNeededXP(), player->GetXPDebt(), player->GetXPVitality(), player->GetTSXP(), player->GetNeededTSXP(), player->GetTSXPVitality(), player->GetBankCoinsCopper(),
 		player->GetBankCoinsSilver(), player->GetBankCoinsGold(), player->GetBankCoinsPlat(), player->GetStatusPoints(), client->GetPlayer()->GetPlayerInfo()->GetBindZoneID(), client->GetPlayer()->GetPlayerInfo()->GetBindZoneX(), client->GetPlayer()->GetPlayerInfo()->GetBindZoneY(), client->GetPlayer()->GetPlayerInfo()->GetBindZoneZ(), client->GetPlayer()->GetPlayerInfo()->GetBindZoneHeading(), client->GetPlayer()->GetPlayerInfo()->GetHouseZoneID(), 
@@ -4503,11 +4503,13 @@ void WorldDatabase::Save(Client* client){
 	if(friends && friends->size() > 0){
 		for(itr = friends->begin(); itr != friends->end(); itr++){
 			if(itr->second == 1){
-				query.AddQueryAsync(client->GetCharacterID(), this, Q_INSERT, "insert ignore into character_social (char_id, name, type) values(%u, '%s', 'FRIEND')", client->GetCharacterID(), getSafeEscapeString(itr->first.c_str()).c_str());
+				Query query3;
+				query3.AddQueryAsync(client->GetCharacterID(), this, Q_INSERT, "insert ignore into character_social (char_id, name, type) values(%u, '%s', 'FRIEND')", client->GetCharacterID(), getSafeEscapeString(itr->first.c_str()).c_str());
 				itr->second = 0;
 			}
 			else if(itr->second == 2){
-				query.AddQueryAsync(client->GetCharacterID(), this, Q_DELETE, "delete FROM character_social where char_id = %u and name = '%s'", client->GetCharacterID(), getSafeEscapeString(itr->first.c_str()).c_str());
+				Query query3;
+				query3.AddQueryAsync(client->GetCharacterID(), this, Q_DELETE, "delete FROM character_social where char_id = %u and name = '%s'", client->GetCharacterID(), getSafeEscapeString(itr->first.c_str()).c_str());
 				itr->second = 3;
 			}
 		}
@@ -4516,11 +4518,13 @@ void WorldDatabase::Save(Client* client){
 	if(ignored && ignored->size() > 0){
 		for(itr = ignored->begin(); itr != ignored->end(); itr++){
 			if(itr->second == 1){
-				query.AddQueryAsync(client->GetCharacterID(), this, Q_INSERT, "insert ignore into character_social (char_id, name, type) values(%u, '%s', 'IGNORE')", client->GetCharacterID(), getSafeEscapeString(itr->first.c_str()).c_str());
+				Query query3;
+				query3.AddQueryAsync(client->GetCharacterID(), this, Q_INSERT, "insert ignore into character_social (char_id, name, type) values(%u, '%s', 'IGNORE')", client->GetCharacterID(), getSafeEscapeString(itr->first.c_str()).c_str());
 				itr->second = 0;
 			}
 			else if(itr->second == 2){
-				query.AddQueryAsync(client->GetCharacterID(), this, Q_DELETE, "delete FROM character_social where char_id = %u and name = '%s'", client->GetCharacterID(), getSafeEscapeString(itr->first.c_str()).c_str());
+				Query query3;
+				query3.AddQueryAsync(client->GetCharacterID(), this, Q_DELETE, "delete FROM character_social where char_id = %u and name = '%s'", client->GetCharacterID(), getSafeEscapeString(itr->first.c_str()).c_str());
 				itr->second = 3;
 			}
 		}
