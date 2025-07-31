@@ -1517,7 +1517,6 @@ void ZoneServer::DeleteSpawns(bool delete_all) {
 	if(to_process.size() > 0) {
 		to_keep.reserve(to_process.size());
 		int32 current_time = Timer::GetCurrentTime2();
-		MSpawnList.writelock(__FUNCTION__, __LINE__);
 		for (auto &entry : to_process) {
 			Spawn* spawn = entry.first;
 			int32  when  = entry.second;
@@ -1533,6 +1532,7 @@ void ZoneServer::DeleteSpawns(bool delete_all) {
 				spellProcess->RemoveCaster(spawn, true);
 			}
 
+			MSpawnList.writelock(__FUNCTION__, __LINE__);
 			if(spawn->IsEntity() && movementMgr != nullptr) {
 				movementMgr->RemoveMob((Entity*)spawn);
 			}
@@ -1563,9 +1563,9 @@ void ZoneServer::DeleteSpawns(bool delete_all) {
 				}
 				housing_spawn_map.erase(spawn->GetID());
 			}
+			MSpawnList.releasewritelock(__FUNCTION__, __LINE__);
 			safe_delete(spawn);
 		}
-		MSpawnList.releasewritelock(__FUNCTION__, __LINE__);
 	}
 	
 	// Add all the kept entries
@@ -5403,10 +5403,6 @@ void ZoneServer::KillSpawn(bool spawnListLocked, Spawn* dead, Spawn* killer, boo
 			// the corpse has loot or not if the timer value (pop_timer) is 0xFFFFFFFF
 		}
 	}
-	
-	// If the dead spawns was not a player add it to the dead spawn list
-	if (!dead->IsPlayer() && !dead->IsBot())
-		AddDeadSpawn(dead, pop_timer);
 
 	// if dead was a player clear hostile spells from its spell queue
 	if (dead->IsPlayer())
@@ -5439,6 +5435,10 @@ void ZoneServer::KillSpawn(bool spawnListLocked, Spawn* dead, Spawn* killer, boo
 			}
 		}
 	}
+	
+	// If the dead spawns was not a player add it to the dead spawn list
+	if (!dead->IsPlayer() && !dead->IsBot())
+		AddDeadSpawn(dead, pop_timer);
 }
 
 void ZoneServer::SendDamagePacket(Spawn* attacker, Spawn* victim, int8 type1, int8 type2, int8 damage_type, int16 damage, const char* spell_name) {

@@ -5307,7 +5307,7 @@ void Client::DetermineCharacterUpdates() {
 }
 
 void Client::Save() {
-	if (GetCharacterID() == 0 || IsSaveDisabled())
+	if (GetCharacterID() == 0 || IsSaveDisabled() || !IsReadyForUpdates())
 		return;
 
 	if (current_zone) {

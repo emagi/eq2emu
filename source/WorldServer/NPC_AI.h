@@ -60,7 +60,7 @@ public:
 	/// <param name="hate">The amount of hate to add</param>
 	virtual void AddHate(Entity* entity, sint32 hate);
 	/// <summary>Completely clears the hate list for this npc</summary>
-	void ClearHate(bool lockSpawnList = true);
+	void ClearHate(bool lockSpawnList = false);
 	/// <summary>Removes the given entity from this NPC's hate list</summary>
 	/// <param name="entity">Entity to remove from this NPC's hate list</param>
 	void ClearHate(Entity* entity);
