@@ -14861,3 +14861,29 @@ int EQ2Emu_lua_GetRaid(lua_State* state) {
 	return 1;
 
 }
+
+
+int EQ2Emu_lua_AdjustHatePosition(lua_State* state) {
+	Spawn* entity = lua_interface->GetSpawn(state);
+	Spawn* npc = lua_interface->GetSpawn(state, 2);
+	bool increase = lua_interface->GetBooleanValue(state, 3);
+	
+	LuaSpell* luaspell = lua_interface->GetCurrentSpell(state);
+	if(luaspell && luaspell->resisted) {
+		return 0;
+	}
+	
+	if (luaspell) {
+		for (int32 id : luaspell->GetTargets()) {
+			Spawn* spawn = luaspell->zone->GetSpawnByID(id);
+			if (spawn && npc->IsNPC() && spawn->Alive()) {
+				((NPC*)npc)->Brain()->AdjustHatePosition(entity->GetID(), increase);
+			}
+		}
+	}
+	else if (npc && npc->IsNPC() && entity->Alive()) {
+			((NPC*)npc)->Brain()->AdjustHatePosition(entity->GetID(), increase);
+	}
+	lua_interface->ResetFunctionStack(state);
+	return 0;
+}

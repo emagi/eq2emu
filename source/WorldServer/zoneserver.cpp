@@ -5170,7 +5170,7 @@ void ZoneServer::KillSpawn(bool spawnListLocked, Spawn* dead, Spawn* killer, boo
 		//Check if caster is alive after death proc called, incase of deathsave
 		if (dead->Alive())
 			return;
-
+		
 		RemoveSpellTimersFromSpawn(dead, true, !dead->IsPlayer(), true, !isSpell);
 		((Entity*)dead)->IsCasting(false);
 		

@@ -271,6 +271,50 @@ void Brain::AddHate(Entity* entity, sint32 hate) {
 	}
 }
 
+bool Brain::AdjustHatePosition(int32 id, bool increase) {
+	// Lock the hate list, we are altering the list so use a write lock
+	MHateList.writelock(__FUNCTION__, __LINE__);
+
+	auto it = m_hatelist.find(id);
+	if (it == m_hatelist.end()) {
+		MHateList.releasewritelock(__FUNCTION__, __LINE__);
+		return false;
+	}
+
+	// Build a vector of (id, hate), sorted highest→lowest hate
+	std::vector<std::pair<int32,sint32>> sorted;
+	sorted.reserve(m_hatelist.size());
+	for (auto &kv : m_hatelist) 
+		sorted.emplace_back(kv.first, kv.second);
+	std::sort(sorted.begin(), sorted.end(),
+			  [](auto &a, auto &b){ return a.second > b.second; });
+
+	// Locate our position
+	auto posIt = std::find_if(sorted.begin(), sorted.end(),
+							  [&](auto &p){ return p.first == id; });
+	size_t idx = std::distance(sorted.begin(), posIt);
+
+	if (increase) {
+		if (idx == 0) {
+			MHateList.releasewritelock(__FUNCTION__, __LINE__);
+			return false; // no higher to go
+		}
+		sint32 aboveHate = sorted[idx - 1].second;
+		it->second = aboveHate + 1; // move up
+	}
+	else {
+		if (idx + 1 >= sorted.size()) {
+			MHateList.releasewritelock(__FUNCTION__, __LINE__);
+			return false; // already at bottom
+		}
+		sint32 belowHate = sorted[idx + 1].second;
+		it->second = belowHate - 1; // move lower
+	}
+	
+	MHateList.releasewritelock(__FUNCTION__, __LINE__);
+	return true;
+}
+
 void Brain::ClearHate(bool lockSpawnList) {
 	// Lock the hate list, we are altering the list so use a write lock
 	MHateList.writelock(__FUNCTION__, __LINE__);
