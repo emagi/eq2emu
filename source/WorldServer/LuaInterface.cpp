@@ -1867,7 +1867,7 @@ void LuaInterface::AddUserDataPtr(LUAUserData* data, void* data_ptr) {
 	user_data[data] = Timer::GetCurrentTime2() + 300000; //allow a function to use this pointer for 5 minutes
 }
 
-void LuaInterface::DeletePendingSpells(bool all) {
+void LuaInterface::DeletePendingSpells(bool all, ZoneServer* zone) {
 	MSpells.lock();
 	MSpellDelete.lock();
 	if (spells_pending_delete.size() > 0) {
@@ -1876,7 +1876,7 @@ void LuaInterface::DeletePendingSpells(bool all) {
 		vector<LuaSpell*> tmp_deletes;
 		vector<LuaSpell*>::iterator del_itr;
 		for (itr = spells_pending_delete.begin(); itr != spells_pending_delete.end(); itr++) {
-			if (all || time >= itr->second)
+			if ((!zone && (all || time >= itr->second)) || (zone && itr->first->zone == zone))
 				tmp_deletes.push_back(itr->first);
 		}
 		LuaSpell* spell = 0;

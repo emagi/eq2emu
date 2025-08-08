@@ -520,7 +520,7 @@ public:
 	map<Client*, int32> GetDebugClients(){ return debug_clients; }
 	void			AddUserDataPtr(LUAUserData* data, void* data_ptr = 0);
 	void			DeleteUserDataPtrs(bool all);
-	void			DeletePendingSpells(bool all);
+	void			DeletePendingSpells(bool all, ZoneServer* zone = nullptr);
 	void			DeletePendingSpell(LuaSpell* spell);
 	Mutex*			GetSpawnScriptMutex(const char* name);
 	Mutex*			GetItemScriptMutex(const char* name);

@@ -190,6 +190,7 @@ ZoneServer::ZoneServer(const char* name) {
 
 typedef map <int32, bool> ChangedSpawnMapType;
 ZoneServer::~ZoneServer() {
+	lua_interface->DeletePendingSpells(true, this);
 	zoneShuttingDown = true;  //ensure other threads shut down too
 	//allow other threads to properly shut down
 	if(is_initialized) {
