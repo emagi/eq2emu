@@ -8152,10 +8152,12 @@ bool Client::AddItem(Item* item, bool* item_deleted, AddItemType type) {
 			*/
 		}
 		CheckPlayerQuestsItemUpdate(item);
+		bool skipItemDeleted = true;
 		if (item->GetItemScript() && lua_interface)
-			lua_interface->RunItemScript(item->GetItemScript(), "obtained", item, player);
+			if(lua_interface->RunItemScript(item->GetItemScript(), "obtained", item, player))
+				skipItemDeleted = false; // we called "obtained" properly, check ptr to make sure it is valid
 		
-		if(!lua_interface->IsLuaUserDataValid(item) && item_deleted)
+		if(!skipItemDeleted && !lua_interface->IsLuaUserDataValid(item) && item_deleted)
 			*item_deleted = true;
 	}
 	else {
