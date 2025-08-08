@@ -3367,7 +3367,7 @@ void Spawn::ProcessMovement(bool isSpawnListLocked){
 	
 	if (!movementCase && IsRunning() && !IsPauseMovementTimerActive()) {
 		// 6/7/2025: Fixes glitchy movement when spawns are close together and keep warping forward and back to the original position
-		CalculateRunningLocation(true);
+		CalculateRunningLocation();
 		last_movement_update = Timer::GetCurrentTime2();
 	}
 	else if(movementCase)
