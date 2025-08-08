@@ -7908,7 +7908,7 @@ void Player::CalculatePlayerHPPower(int16 new_level) {
 
 bool Player::IsAllowedCombatEquip(int8 slot, bool send_message) {
 	bool rule_pass = true;
-	if(EngagedInCombat() && rule_manager.GetZoneRule(GetZoneID(), R_Player, AllowPlayerEquipCombat)->GetInt8() == 0) {
+	if(GetInfoStruct()->get_engaged_encounter() && rule_manager.GetZoneRule(GetZoneID(), R_Player, AllowPlayerEquipCombat)->GetInt8() == 0) {
 		switch(slot) {
 			case EQ2_PRIMARY_SLOT:
 			case EQ2_SECONDARY_SLOT:
