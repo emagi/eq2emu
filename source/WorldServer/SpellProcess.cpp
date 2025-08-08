@@ -436,13 +436,16 @@ bool SpellProcess::DeleteCasterSpell(LuaSpell* spell, string reason, bool removi
 	bool target_valid = false;
 
 	if(spell) {
+		std::string spellName;
+		if(spell->spell)
+			spellName = std::string(spell->spell->GetName());
 		LogWrite(SPELL__INFO, 0, "Spell", "SpellProcess::DeleteCasterSpell Spell: %s, Reason: %s, RemoveTarget: %s.", 
-										spell->spell->GetName(), reason.c_str(), remove_target ? "Yes" : "All");
+										spellName.c_str(), reason.c_str(), remove_target ? "Yes" : "All");
 		if(remove_target) {
 		for (int32 id : spell->GetTargets()) {
 				if(remove_target->GetID() == id) {
 					LogWrite(SPELL__INFO, 0, "Spell", "SpellProcess::DeleteCasterSpell RemoveTarget Spell: %s, Reason: %s, Target: %s.", 
-												spell->spell->GetName(), reason.c_str(), remove_target->GetName());
+												spellName.c_str(), reason.c_str(), remove_target->GetName());
 					if(remove_target->IsEntity()){
 						spell->RemoveTarget(remove_target->GetID());
 						lua_interface->RemoveSpawnFromSpell(spell, remove_target);
@@ -460,7 +463,7 @@ bool SpellProcess::DeleteCasterSpell(LuaSpell* spell, string reason, bool removi
 			if(spell->caster->GetThreatTransfer() && spell->caster->GetThreatTransfer()->Spell == spell) {
 				spell->caster->SetThreatTransfer(nullptr);
 			}
-			if (spell->spell->GetSpellData()->cast_type == SPELL_CAST_TYPE_TOGGLE){
+			if (spell->spell && spell->spell->GetSpellData()->cast_type == SPELL_CAST_TYPE_TOGGLE){
 				
 				int8 actual_concentration = spell->spell->GetSpellData()->req_concentration;
 
@@ -481,7 +484,7 @@ bool SpellProcess::DeleteCasterSpell(LuaSpell* spell, string reason, bool removi
 						SendSpellBookUpdate(((Player*)spell->caster)->GetClient());
 				}
 			}
-			if(IsReady(spell->spell, spell->caster) && spell->caster->IsPlayer()) {
+			if(spell->spell && IsReady(spell->spell, spell->caster) && spell->caster->IsPlayer()) {
 				((Player*)spell->caster)->UnlockSpell(spell->spell);
 				SendSpellBookUpdate(((Player*)spell->caster)->GetClient());
 			}
@@ -492,22 +495,22 @@ bool SpellProcess::DeleteCasterSpell(LuaSpell* spell, string reason, bool removi
 			ZoneServer* zone = spell->zone;
 			if(zone) {
 			LogWrite(SPELL__DEBUG, 0, "Spell", "SpellProcess::DeleteCasterSpell RemoveTargets Spell: %s.", 
-										spell->spell->GetName());
+										spellName.c_str());
             for (int32 id : spell->GetTargets()) {
 					target = zone->GetSpawnByID(id);
 					if(target && target->IsEntity()){
 						LogWrite(SPELL__INFO, 0, "Spell", "SpellProcess::DeleteCasterSpell RemoveTargets Spell: %s, Reason: %s, CurrentTarget: %s (%u).", 
-													spell->spell->GetName(), reason.c_str(), target->GetName(), id);
+													spellName.c_str(), reason.c_str(), target->GetName(), id);
 						spell->RemoveTarget(target->GetID());
 						lua_interface->RemoveSpawnFromSpell(spell, target);
 					}
 					else{
 						LogWrite(SPELL__INFO, 0, "Spell", "SpellProcess::DeleteCasterSpell RemoveTarget Spell: %s, Reason: %s, CurrentTarget: ??Unknown??.", 
-													spell->spell->GetName(), reason.c_str());
+													spellName.c_str(), reason.c_str());
 						spell->RemoveTarget(spell->caster->GetID());
 						lua_interface->RemoveSpawnFromSpell(spell, spell->caster);
 					}
-					if(target && target->IsPlayer() && spell->spell->GetSpellData()->fade_message.length() > 0){
+					if(target && target->IsPlayer() && spell->spell && spell->spell->GetSpellData()->fade_message.length() > 0){
 						Client* client = ((Player*)target)->GetClient();
 						if(client){
 							string fade_message = spell->spell->GetSpellData()->fade_message;
@@ -515,7 +518,7 @@ bool SpellProcess::DeleteCasterSpell(LuaSpell* spell, string reason, bool removi
 							client->Message(CHANNEL_SPELLS_OTHER, fade_message.c_str());
 						}
 					}
-					if (target && target->IsPlayer() && spell->spell->GetSpellData()->fade_message_others.length() > 0) {
+					if (target && target->IsPlayer() && spell->spell && spell->spell->GetSpellData()->fade_message_others.length() > 0) {
 						Client* client = ((Player*)target)->GetClient();
 						if (client) {
 							string fade_message_others = spell->spell->GetSpellData()->fade_message_others;
