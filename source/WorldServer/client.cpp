@@ -248,6 +248,7 @@ Client::Client(EQStream* ieqs) : underworld_cooldown_timer(5000), zone_enter_tim
 	SetShopWindowStatus(false);
 	search_page = 0;
 	firstlogin_transmit = false;
+	zone_enter_timer.Disable();
 }
 
 Client::~Client() {
