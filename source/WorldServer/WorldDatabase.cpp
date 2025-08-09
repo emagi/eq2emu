@@ -8392,7 +8392,7 @@ void WorldDatabase::LoadCharacterSpellEffects(int32 char_id, Client* client, int
 						}
 						else
 						{
-							lua_spell->AddCharIDTarget(player->GetCharacterID(), 0);
+							spellProcess->AddLuaSpellTarget(lua_spell, player->GetID());
 						}
 						player->MSpellEffects.releasewritelock();
 						continue;
@@ -8421,13 +8421,13 @@ void WorldDatabase::LoadCharacterSpellEffects(int32 char_id, Client* client, int
 			info->spell_effects[effect_slot].total_time = total_time;
 			info->spell_effects[effect_slot].spell = lua_spell;
 
-			lua_spell->AddCharIDTarget(player->GetCharacterID(), 0);
-
 			lua_spell->slot_pos = slot_pos;
 			if(!isExistingLuaSpell)
 				lua_spell->caster = player; // TODO: get actual player
 			
 			lua_spell->zone = player->GetZone();
+			
+			spellProcess->AddLuaSpellTarget(lua_spell, player->GetID());
 			
 			player->MSpellEffects.releasewritelock();
 

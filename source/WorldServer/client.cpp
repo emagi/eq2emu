@@ -135,7 +135,7 @@ extern BrokerManager broker;
 
 using namespace std;
 
-Client::Client(EQStream* ieqs) : underworld_cooldown_timer(5000), pos_update(125), quest_pos_timer(2000), lua_debug_timer(30000), delayTimer(500), transmuteID(0), temp_placement_timer(10), spawn_removal_timer(250) {
+Client::Client(EQStream* ieqs) : underworld_cooldown_timer(5000), zone_enter_timer(500), pos_update(125), quest_pos_timer(2000), lua_debug_timer(30000), delayTimer(500), transmuteID(0), temp_placement_timer(10), spawn_removal_timer(250) {
 	eqs = ieqs;
 	ip = eqs->GetrIP();
 	port = ntohs(eqs->GetrPort());
@@ -735,9 +735,23 @@ void Client::SendControlGhost(int32 send_id, int8 unknown2) {
 	}
 }
 
-void Client::SendCharInfo() {
-	EQ2Packet* app;
-
+void Client::BeginPreCharInfo() {
+	if (!IsReadyForSpawns()) {
+		if (GetPlayer()->GetMap()) {
+			auto loc = glm::vec3(GetPlayer()->GetX(), GetPlayer()->GetZ(), GetPlayer()->GetY());
+			uint32 GridID = 0;
+			float new_z = GetPlayer()->FindBestZ(loc, nullptr, &GridID);
+			GetPlayer()->SetLocation(GridID);
+		}
+		SetReadyForSpawns(true);
+	}
+	else {
+		LogWrite(PLAYER__ERROR, 0, "Player", "ERROR! Player %s is already past stage BeginPreCharInfo, zone enter timer running: %u..", GetPlayer()->GetName(), zone_enter_timer.Enabled());
+		return;
+	}
+		
+	player->CalculateApplyWeight();
+		
 	player->SetEquippedItemAppearances();
 
 	ClientPacketFunctions::SendCharacterData(this);
@@ -765,6 +779,13 @@ void Client::SendCharInfo() {
 	}
 
 	GetCurrentZone()->AddSpawn(player);
+	
+	zone_enter_timer.Start();
+}
+
+void Client::SendCharInfo() {
+	zone_enter_timer.Disable();
+	
 	if (IsReloadingZone() && (zoning_x || zoning_y || zoning_z)) {
 		GetPlayer()->SetX(zoning_x);
 		GetPlayer()->SetY(zoning_y);
@@ -779,7 +800,7 @@ void Client::SendCharInfo() {
 	if (guild)
 		guild->GuildMemberLogin(this, firstlogin);
 
-	app = player->GetPlayerItemList()->serialize(GetPlayer(), GetVersion());
+	EQ2Packet* app = player->GetPlayerItemList()->serialize(GetPlayer(), GetVersion());
 	if (app) {
 		LogWrite(CCLIENT__PACKET, 0, "Client", "Dump/Print Packet in func: %s, line: %i", __FUNCTION__, __LINE__);
 		//DumpPacket(app);
@@ -920,6 +941,10 @@ void Client::SendCharInfo() {
 	GetPlayer()->SetReturningFromLD(false);
 	
 	broker.LockActiveItemsForClient(this);
+	
+	GetPlayer()->GetZone()->GetSpellProcess()->SendSpellBookUpdate(this);
+	pos_update.Start();
+	quest_pos_timer.Start();
 }
 
 void Client::SendZoneSpawns() {
@@ -1607,20 +1632,7 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
 	}
 	case OP_DoneLoadingEntityResourcesMsg: {
 		LogWrite(OPCODE__DEBUG, 1, "Opcode", "Opcode 0x%X (%i): OP_DoneLoadingEntityResourcesMsg", opcode, opcode);
-		if (!IsReadyForSpawns()) {
-			if (GetPlayer()->GetMap()) {
-				auto loc = glm::vec3(GetPlayer()->GetX(), GetPlayer()->GetZ(), GetPlayer()->GetY());
-				uint32 GridID = 0;
-				float new_z = GetPlayer()->FindBestZ(loc, nullptr, &GridID);
-				GetPlayer()->SetLocation(GridID);
-			}
-			SetReadyForSpawns(true);
-		}
-		player->CalculateApplyWeight();
-		SendCharInfo();
-		GetPlayer()->GetZone()->GetSpellProcess()->SendSpellBookUpdate(this);
-		pos_update.Start();
-		quest_pos_timer.Start();
+		BeginPreCharInfo();
 		break;
 	}
 	case OP_LootItemsRequestMsg: {
@@ -3865,6 +3877,16 @@ bool Client::Process(bool zone_process) {
 			SendMoveObjectMode(GetTempPlacementSpawn(), placement);
 			hasSentTempPlacementSpawn = true;
 			temp_placement_timer.Disable();
+		}
+	}
+	if(zone_enter_timer.Check() && GetCurrentZone())  {
+		Spawn* spawn_ready = GetCurrentZone()->GetSpawnByID(GetPlayer()->GetID());
+		if(spawn_ready) {
+			SendCharInfo();
+			zone_enter_timer.Disable(); // no longer need to run this timer
+		}
+		else {
+			LogWrite(PLAYER__INFO, 0, "Player", "Player %s pending to zone..", GetPlayer()->GetName());
 		}
 	}
 	if (GetCurrentZone() && pos_update.Check())

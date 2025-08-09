@@ -272,6 +272,7 @@ public:
 	void	SendZoneSpawns();
 	void	HandleVerbRequest(EQApplicationPacket* app);
 	void	SendControlGhost(int32 send_id = 0xFFFFFFFF, int8 unknown2 = 0);
+	void	BeginPreCharInfo();
 	void	SendCharInfo();
 	void	SendLoginDeniedBadVersion();
 	void	SendCharPOVGhost();
@@ -838,6 +839,7 @@ private:
 	enum 	NewLoginState { LOGIN_NONE, LOGIN_DELAYED, LOGIN_ALLOWED, LOGIN_INITIAL_LOAD, LOGIN_SEND };
 	NewLoginState	new_client_login; // 1 = delayed state, 2 = let client in
 	Timer	underworld_cooldown_timer;
+	Timer	zone_enter_timer;
 	Timer	pos_update;
 	Timer	quest_pos_timer;
 	Timer	lua_debug_timer;
