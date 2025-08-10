@@ -279,6 +279,8 @@ void Entity::MeleeAttack(Spawn* victim, float distance, bool primary, bool multi
 		CheckEncounterState((Entity*)victim);
 	}
 	
+	CheckProcs(PROC_TYPE_PHYSICAL_ATTEMPT, victim);
+	
 	if(hit_result == DAMAGE_PACKET_RESULT_SUCCESSFUL){		
 		/*if(GetAdventureClass() == MONK){
 			max_damage*=3;
@@ -359,6 +361,8 @@ bool Entity::RangeAttack(Spawn* victim, float distance, Item* weapon, Item* ammo
 	if(!victim)
 		return false;
 
+	CheckProcs(PROC_TYPE_PHYSICAL_ATTEMPT, victim);
+	
 	bool item_deleted = false;
 	if(weapon && weapon->IsRanged() && ammo && ammo->IsAmmo() && ammo->IsThrown()) {
 		if(weapon->ranged_info->range_low <= distance && (weapon->ranged_info->range_high + ammo->thrown_info->range) >= distance) {
@@ -495,6 +499,9 @@ bool Entity::SpellAttack(Spawn* victim, float distance, LuaSpell* luaspell, int8
 	if(victim->IsEntity()) {
 		CheckEncounterState((Entity*)victim);
 	}
+	
+	CheckProcs(PROC_TYPE_MAGICAL_ATTEMPT, victim);
+	
 	bool successful_hit = true;
 	if(hit_result == DAMAGE_PACKET_RESULT_SUCCESSFUL) {
 		luaspell->last_spellattack_hit = true;

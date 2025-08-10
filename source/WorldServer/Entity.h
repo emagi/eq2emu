@@ -1367,6 +1367,8 @@ struct Proc {
 #define PROC_TYPE_DAMAGED_MAGIC         17
 #define PROC_TYPE_RANGED_ATTACK			18
 #define PROC_TYPE_RANGED_DEFENSE		19
+#define PROC_TYPE_PHYSICAL_ATTEMPT		20
+#define PROC_TYPE_MAGICAL_ATTEMPT		21
 
 struct ThreatTransfer {
 	int32		Target;

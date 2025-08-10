@@ -6602,6 +6602,8 @@ int EQ2Emu_lua_AddWard(lua_State* state) {
 
 			if (wardType == WARD_TYPE_MAGICAL)
 				ward->DamageType = damageTypes;
+			else
+				ward->DamageType = 0; // doesn't get used, but default set it anyway
 			
 			ward->DeleteWard = false;
 			// Add the ward to the entity
