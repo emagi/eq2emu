@@ -2183,7 +2183,7 @@ void Spawn::InitializePosPacketData(Player* player, PacketStruct* packet, bool b
 		packet->setDataByName("pos_grid_id", 0);
 	}
 	else {
-		packet->setDataByName("pos_grid_id", new_grid_id != 0 ? new_grid_id : GetLocation());
+		packet->setDataByName("pos_grid_id", (new_grid_id != 0 && player != this) ? new_grid_id : GetLocation());
 	}
 	
 	bool include_heading = true;
@@ -2244,7 +2244,7 @@ void Spawn::InitializePosPacketData(Player* player, PacketStruct* packet, bool b
 		else {
 			packet->setDataByName("pos_x", appearance.pos.X);
 			float result_y = appearance.pos.Y;
-			if(!IsWidget() && !IsSign() && !IsObject() && !(IsFlyingCreature() || IsWaterCreature() || InWater())) {
+			if(!IsWidget() && !IsSign() && !IsObject() && !(IsFlyingCreature() || IsWaterCreature() || InWater()) && player != this) {
 				result_y = new_y;
 			}
 			if(GetMap() != player->GetMap()) {

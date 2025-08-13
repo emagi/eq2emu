@@ -3393,7 +3393,7 @@ void ZoneServer::CheckTransporters(Client* client) {
 					bool foundZone = zone_list.GetZone(&zone_details, loc->destination_zone_id);
 					if(foundZone){
 						client->GetPlayer()->SetX(loc->destination_x);
-						client->GetPlayer()->SetY(loc->destination_y);
+						client->GetPlayer()->SetY(loc->destination_y, false, true);
 						client->GetPlayer()->SetZ(loc->destination_z);
 						client->GetPlayer()->SetHeading(loc->destination_heading);
 						client->Zone(&zone_details, (ZoneServer*)zone_details.zonePtr, false);

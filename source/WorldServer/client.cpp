@@ -739,10 +739,12 @@ void Client::SendControlGhost(int32 send_id, int8 unknown2) {
 void Client::BeginPreCharInfo() {
 	if (!IsReadyForSpawns()) {
 		if (GetPlayer()->GetMap()) {
-			auto loc = glm::vec3(GetPlayer()->GetX(), GetPlayer()->GetZ(), GetPlayer()->GetY());
-			uint32 GridID = 0;
-			float new_z = GetPlayer()->FindBestZ(loc, nullptr, &GridID);
-			GetPlayer()->SetLocation(GridID);
+			if(!GetPlayer()->GetLocation()) { // find the appropriate grid id
+				auto loc = glm::vec3(GetPlayer()->GetX(), GetPlayer()->GetZ(), GetPlayer()->GetY());
+				uint32 GridID = 0;
+				float new_z = GetPlayer()->FindBestZ(loc, nullptr, &GridID);
+				GetPlayer()->SetLocation(GridID);
+			}
 		}
 		SetReadyForSpawns(true);
 	}
@@ -4953,7 +4955,7 @@ bool Client::GotoSpawn(const char* search_name, bool forceTarget) {
 		}
 		if (target && target != GetPlayer()) {
 			GetPlayer()->SetX(target->GetX());
-			GetPlayer()->SetY(y);
+			GetPlayer()->SetY(y, false, true);
 			GetPlayer()->SetZ(target->GetZ());
 			GetPlayer()->SetHeading(target->GetHeading());
 			GetPlayer()->SetLocation(target->GetLocation());

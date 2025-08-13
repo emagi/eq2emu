@@ -1832,7 +1832,7 @@ bool WorldDatabase::loadCharacter(const char* ch_name, int32 account_id, Client*
 	MYSQL_ROW row, row4;
 	int32 id = 0;
 	query.escaped_name = getEscapeString(ch_name);
-	MYSQL_RES* result = query.RunQuery2(Q_SELECT, "SELECT id, current_zone_id, x, y, z, heading, admin_status, race, model_type, class, deity, level, gender, tradeskill_class, tradeskill_level, wing_type, hair_type, chest_type, legs_type, soga_wing_type, soga_hair_type, soga_chest_type, soga_legs_type, 0xFFFFFFFF - crc32(name), facial_hair_type, soga_facial_hair_type, instance_id, group_id, last_saved, DATEDIFF(curdate(), created_date) as accage, alignment, first_world_login, zone_duplicating_id FROM characters where name='%s' and account_id=%i AND deleted = 0", query.escaped_name, account_id);
+	MYSQL_RES* result = query.RunQuery2(Q_SELECT, "SELECT id, current_zone_id, x, y, z, heading, admin_status, race, model_type, class, deity, level, gender, tradeskill_class, tradeskill_level, wing_type, hair_type, chest_type, legs_type, soga_wing_type, soga_hair_type, soga_chest_type, soga_legs_type, 0xFFFFFFFF - crc32(name), facial_hair_type, soga_facial_hair_type, instance_id, group_id, last_saved, DATEDIFF(curdate(), created_date) as accage, alignment, first_world_login, zone_duplicating_id, grid_id FROM characters where name='%s' and account_id=%i AND deleted = 0", query.escaped_name, account_id);
 	// no character found
 	if ( result == NULL ) {
 		LogWrite(PLAYER__ERROR, 0, "Player", "Error loading character for '%s'", ch_name);
@@ -1850,7 +1850,7 @@ bool WorldDatabase::loadCharacter(const char* ch_name, int32 account_id, Client*
 		client->SetAccountID(account_id);
 		client->GetPlayer()->SetName(ch_name);
 		client->GetPlayer()->SetX(atof(row[2]));
-		client->GetPlayer()->SetY(atof(row[3]));
+		client->GetPlayer()->SetY(atof(row[3]), false, true);
 		client->GetPlayer()->SetZ(atof(row[4]));
 		client->GetPlayer()->SetHeading(atof(row[5]));
 		client->SetAdminStatus(atoi(row[6]));
@@ -1909,6 +1909,8 @@ SOGA chars looked ok in LoginServer screen tho... odd.
 		client->GetPlayer()->GetInfoStruct()->set_alignment(atoi(row[30]));
 		
 		client->GetPlayer()->GetInfoStruct()->set_first_world_login(atoi(row[31]));
+
+		client->GetPlayer()->SetLocation(atoul(row[33]));
 
 		LoadCharacterFriendsIgnoreList(client->GetPlayer());
 		MYSQL_RES* result4 = query4.RunQuery2(Q_SELECT, "SELECT `guild_id` FROM `guild_members` WHERE `char_id`=%u", id);
@@ -4489,7 +4491,7 @@ void WorldDatabase::Save(Client* client){
 	
 	char charName[64];
 	strncpy(charName, client->GetPlayer()->GetName(),64);
-	query.AddQueryAsync(client->GetCharacterID(), this, Q_UPDATE, "update characters set name='%s',current_zone_id=%u, x=%f, y=%f, z=%f, heading=%f, level=%i,instance_id=%i,last_saved=%i, `class`=%i, `tradeskill_level`=%i, `tradeskill_class`=%i, `group_id`=%u, deity = %u, alignment = %u, zone_duplicating_id = %u where id = %u", getSafeEscapeString(charName).c_str(), zone_id, player->GetX(), player->GetY(), player->GetZ(), player->GetHeading(), player->GetLevel(), instance_id, client->GetLastSavedTimeStamp(), client->GetPlayer()->GetAdventureClass(), client->GetPlayer()->GetTSLevel(), client->GetPlayer()->GetTradeskillClass(), client->GetPlayer()->GetGroupMemberInfo() ? client->GetPlayer()->GetGroupMemberInfo()->group_id : client->GetRejoinGroupID(), client->GetPlayer()->GetDeity(), client->GetPlayer()->GetInfoStruct()->get_alignment(), client->GetDuplicatingZoneID(), client->GetCharacterID());
+	query.AddQueryAsync(client->GetCharacterID(), this, Q_UPDATE, "update characters set name='%s',current_zone_id=%u, x=%f, y=%f, z=%f, heading=%f, level=%i,instance_id=%i,last_saved=%i, `class`=%i, `tradeskill_level`=%i, `tradeskill_class`=%i, `group_id`=%u, deity = %u, alignment = %u, zone_duplicating_id = %u, grid_id = %u where id = %u", getSafeEscapeString(charName).c_str(), zone_id, player->GetX(), player->GetY(), player->GetZ(), player->GetHeading(), player->GetLevel(), instance_id, client->GetLastSavedTimeStamp(), client->GetPlayer()->GetAdventureClass(), client->GetPlayer()->GetTSLevel(), client->GetPlayer()->GetTradeskillClass(), client->GetPlayer()->GetGroupMemberInfo() ? client->GetPlayer()->GetGroupMemberInfo()->group_id : client->GetRejoinGroupID(), client->GetPlayer()->GetDeity(), client->GetPlayer()->GetInfoStruct()->get_alignment(), client->GetDuplicatingZoneID(), client->GetPlayer()->GetLocation(), client->GetCharacterID());
 	Query query2;
 	query2.AddQueryAsync(client->GetCharacterID(), this, Q_UPDATE, "update character_details set hp=%u, power=%u, str=%i, sta=%i, agi=%i, wis=%i, intel=%i, heat=%i, cold=%i, magic=%i, mental=%i, divine=%i, disease=%i, poison=%i, coin_copper=%u, coin_silver=%u, coin_gold=%u, coin_plat=%u, max_hp = %u, max_power=%u, xp = %u, xp_needed = %u, xp_debt = %f, xp_vitality = %f, tradeskill_xp = %u, tradeskill_xp_needed = %u, tradeskill_xp_vitality = %f, bank_copper = %u, bank_silver = %u, bank_gold = %u, bank_plat = %u, status_points = %u, bind_zone_id=%u, bind_x = %f, bind_y = %f, bind_z = %f, bind_heading = %f, house_zone_id=%u, combat_voice = %i, emote_voice = %i, biography='%s', flags=%u, flags2=%u, last_name='%s', assigned_aa = %i, unassigned_aa = %i, tradeskill_aa = %i, unassigned_tradeskill_aa = %i, prestige_aa = %i, unassigned_prestige_aa = %i, tradeskill_prestige_aa = %i, unassigned_tradeskill_prestige_aa = %i, pet_name = '%s' where char_id = %u",
 		player->GetHP(), player->GetPower(), player->GetStrBase(), player->GetStaBase(), player->GetAgiBase(), player->GetWisBase(), player->GetIntBase(), player->GetHeatResistanceBase(), player->GetColdResistanceBase(), player->GetMagicResistanceBase(),
