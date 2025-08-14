@@ -1937,7 +1937,7 @@ sint32 Entity::CalculateHateAmount(Spawn* target, sint32 amt) {
 	float multiplier = 1.0f + (GetInfoStruct()->get_hate_mod() / 100.0f);
 	amt = static_cast<sint32>(amt * multiplier);
 	
-	return std::max(1, amt);
+	return amt;
 }
 
 sint32 Entity::CalculateHealAmount(Spawn* target, sint32 amt, int8 crit_mod, bool* crit, bool skip_crit_mod) {
