@@ -1085,6 +1085,9 @@ EQ2Packet* PlayerInfo::serialize(int16 version, int16 modifyPos, int32 modifyVal
 				packet->setDataByName("spell_state_fishvision", 1);
 			break;
 		}
+		packet->setDataByName("spell_prop_redlight", info_struct->get_redlight());
+		packet->setDataByName("spell_prop_greenlight", info_struct->get_greenlight());
+		packet->setDataByName("spell_prop_bluelight", info_struct->get_bluelight());
 		packet->setDataByName("breathe_underwater", info_struct->get_breathe_underwater());
 
 		int32 expireTimestamp = 0;

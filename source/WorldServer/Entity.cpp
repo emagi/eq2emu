@@ -320,6 +320,11 @@ void Entity::MapInfoStruct()
 	get_int8_funcs["pet_movement"] = l::bind(&InfoStruct::get_pet_movement, &info_struct);
 	get_int8_funcs["pet_behavior"] = l::bind(&InfoStruct::get_pet_behavior, &info_struct);
 	get_int32_funcs["vision"] = l::bind(&InfoStruct::get_vision, &info_struct);
+	
+	get_int32_funcs["redlight"] = l::bind(&InfoStruct::get_redlight, &info_struct);
+	get_int32_funcs["greenlight"] = l::bind(&InfoStruct::get_greenlight, &info_struct);
+	get_int32_funcs["bluelight"] = l::bind(&InfoStruct::get_bluelight, &info_struct);
+	
 	get_int8_funcs["breathe_underwater"] = l::bind(&InfoStruct::get_breathe_underwater, &info_struct);
 	get_string_funcs["biography"] = l::bind(&InfoStruct::get_biography, &info_struct);
 	get_float_funcs["drunk"] = l::bind(&InfoStruct::get_drunk, &info_struct);
@@ -530,6 +535,11 @@ void Entity::MapInfoStruct()
 	set_int8_funcs["pet_movement"] = l::bind(&InfoStruct::set_pet_movement, &info_struct, l::_1);
 	set_int8_funcs["pet_behavior"] = l::bind(&InfoStruct::set_pet_behavior, &info_struct, l::_1);
 	set_int32_funcs["vision"] = l::bind(&InfoStruct::set_vision, &info_struct, l::_1);
+	
+	set_int32_funcs["redlight"] = l::bind(&InfoStruct::set_redlight, &info_struct, l::_1);
+	set_int32_funcs["greenlight"] = l::bind(&InfoStruct::set_greenlight, &info_struct, l::_1);
+	set_int32_funcs["bluelight"] = l::bind(&InfoStruct::set_bluelight, &info_struct, l::_1);
+	
 	set_int8_funcs["breathe_underwater"] = l::bind(&InfoStruct::set_breathe_underwater, &info_struct, l::_1);
 	set_string_funcs["biography"] = l::bind(&InfoStruct::set_biography, &info_struct, l::_1);
 	set_float_funcs["drunk"] = l::bind(&InfoStruct::set_drunk, &info_struct, l::_1);
