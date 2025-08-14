@@ -1070,6 +1070,21 @@ EQ2Packet* PlayerInfo::serialize(int16 version, int16 modifyPos, int32 modifyVal
 		packet->setDataByName("increase_max_power2", 128);
 
 		packet->setDataByName("vision", info_struct->get_vision());
+		switch(info_struct->get_vision()) {
+			case 1: // ultravision
+			case 255:
+				packet->setDataByName("spell_state_ultravision", 1);
+			break;
+			case 2: // infravision
+				packet->setDataByName("spell_state_infravision", 1);
+			break;
+			case 3: //sonicvision
+				packet->setDataByName("spell_state_sonicvision", 1);
+			break;
+			case 4: // fishvision
+				packet->setDataByName("spell_state_fishvision", 1);
+			break;
+		}
 		packet->setDataByName("breathe_underwater", info_struct->get_breathe_underwater());
 
 		int32 expireTimestamp = 0;
