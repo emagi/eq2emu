@@ -1329,7 +1329,7 @@ float Entity::CalculateMitigation(int8 type, int8 damage_type, int16 effective_l
 void Entity::AddHate(Entity* attacker, sint32 hate, bool ignore_pet_behavior) {
 	if(!attacker || GetHP() <= 0 || attacker->GetHP() <= 0)
 		return;
-
+	
 	if(IsInSpawnGroup(attacker))
 		return; // can't aggro your own members
 	
@@ -1933,8 +1933,11 @@ sint32 Entity::CalculateHateAmount(Spawn* target, sint32 amt) {
 	amt = CalculateFormulaByStat(amt, ITEM_STAT_TAUNT_AND_COMBAT_ART_DAMAGE);
 
 	amt = CalculateFormulaByStat(amt, ITEM_STAT_ABILITY_MODIFIER);
-
-	return amt;
+	
+	float multiplier = 1.0f + (GetInfoStruct()->get_hate_mod() / 100.0f);
+	amt = static_cast<sint32>(amt * multiplier);
+	
+	return std::max(1, amt);
 }
 
 sint32 Entity::CalculateHealAmount(Spawn* target, sint32 amt, int8 crit_mod, bool* crit, bool skip_crit_mod) {
