@@ -1972,6 +1972,11 @@ bool PlayerGroupManager::IdentifyMemberInGroupOrRaid(ZoneChangeDetails* details,
 						succeed = true;
 						break;
 					}
+					else {
+						succeed = zone_list.GetZoneByInstance(details, (*itr)->instance_id, (*itr)->zone_id, true, false);
+						if(succeed)
+							break;
+					}
 				}
 			}
 			group->MGroupMembers.releasereadlock(__FUNCTION__, __LINE__);
