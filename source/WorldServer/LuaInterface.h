@@ -121,6 +121,7 @@ struct LuaSpell{
 	std::atomic<bool> has_proc;
 	ZoneServer*		zone;
 	int16			initial_caster_level;
+	bool			is_loaded_recast;
 	
 	std::unordered_set<std::string> modified_fields; 
 	mutable std::shared_mutex spell_modify_mutex;

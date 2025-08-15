@@ -2326,6 +2326,7 @@ LuaSpell* LuaInterface::LoadSpellScript(const char* name)  {
 		spell->initial_target_char_id = 0;
 		spell->zone = nullptr;
 		spell->initial_caster_level = 0;
+		spell->is_loaded_recast = false;
 		
 		MSpells.lock();
 		current_spells[spell->state] = spell;
@@ -2678,6 +2679,7 @@ LuaSpell* LuaInterface::CreateSpellScript(const char* name, lua_State* existStat
 	new_spell->initial_target_char_id = 0;
 	new_spell->zone = nullptr;
 	new_spell->initial_caster_level = 0;
+	new_spell->is_loaded_recast = false;
 	
 	current_spells[new_spell->state] = new_spell;
 	return new_spell;

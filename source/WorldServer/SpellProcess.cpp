@@ -651,6 +651,7 @@ bool SpellProcess::CastInstant(Spell* spell, Entity* caster, Entity* target, boo
 	lua_spell->spell = spell;
 	lua_spell->initial_target = target->GetID();
 	lua_spell->initial_target_char_id = (target && target->IsPlayer()) ? ((Player*)target)->GetCharacterID() : 0;
+	lua_spell->is_loaded_recast = false;
 	GetSpellTargets(lua_spell);
 	PrintTargets(lua_spell, "instant");
 
@@ -1095,6 +1096,7 @@ void SpellProcess::ProcessSpell(ZoneServer* zone, Spell* spell, Entity* caster, 
 		lua_spell->zone = caster->GetZone();
 		lua_spell->initial_caster_char_id = (caster && caster->IsPlayer()) ? ((Player*)caster)->GetCharacterID() : 0; 
 		lua_spell->spell = spell;
+		lua_spell->is_loaded_recast = false;
 
 		int32 target_id = target->GetID();
 		lua_spell->initial_target = target_id;

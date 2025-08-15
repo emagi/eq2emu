@@ -8347,6 +8347,8 @@ void WorldDatabase::LoadCharacterSpellEffects(int32 char_id, Client* client, int
 			lua_spell->is_damage_spell = has_damaged;
 			lua_spell->initial_caster_level = caster_level;
 		}
+		
+		lua_spell->is_loaded_recast = true;
 
 		if(lua_spell->initial_target == 0 && target_char_id == 0xFFFFFFFF && player->HasPet())
 		{

@@ -6565,6 +6565,9 @@ int EQ2Emu_lua_AddWard(lua_State* state) {
 		if (!target)
 			continue;
 		if (target->IsEntity()) {
+			if(spell->is_loaded_recast && ((Entity*)target)->GetWard(spell->spell->GetSpellID())) // recast of spell, skip readding ward if they have it
+				continue;
+				
 			// If the ward is already active remove it
 			if (((Entity*)target)->GetWard(spell->spell->GetSpellID()))
 				((Entity*)target)->RemoveWard(spell->spell->GetSpellID());
@@ -6646,8 +6649,9 @@ int EQ2Emu_lua_AddToWard(lua_State* state) {
 				ward->DamageLeft = ward->BaseDamage;
 
 			for (int32 id : spell->GetTargets()) {
-				if (Spawn* spawn = zone->GetSpawnByID(id))
+				if (Spawn* spawn = zone->GetSpawnByID(id)) {
 					zone->SendHealPacket(ward->Spell->caster, spawn, HEAL_PACKET_TYPE_REGEN_ABSORB, amount, ward->Spell->spell->GetName());
+				}
 			}
 		}
 	}
