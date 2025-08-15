@@ -1084,6 +1084,9 @@ EQ2Packet* PlayerInfo::serialize(int16 version, int16 modifyPos, int32 modifyVal
 			case 4: // fishvision
 				packet->setDataByName("spell_state_fishvision", 1);
 			break;
+			case 5: // auravision
+				packet->setDataByName("spell_state_auravision", 1);
+			break;
 		}
 		packet->setDataByName("spell_prop_redlight", info_struct->get_redlight());
 		packet->setDataByName("spell_prop_greenlight", info_struct->get_greenlight());
@@ -3314,7 +3317,7 @@ PlayerInfo::PlayerInfo(Player* in_player){
 		info_struct->spell_effects[i].tier = 0;
 		info_struct->spell_effects[i].total_time = 0.0f;
 		info_struct->spell_effects[i].expire_timestamp = 0;
-		info_struct->spell_effects[i].spell = nullptr;	
+		info_struct->spell_effects[i].spell = nullptr;
 	}
 	
 	house_zone_id = 0;
