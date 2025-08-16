@@ -20629,7 +20629,7 @@ to zero and treated like placeholders." />
 <Data ElementName="use_player_heading" Type="int8" />
 <Data ElementName="unknown2" Type="int8" Size="4" />
 </Struct>
-<Struct Name="WS_HearDispell" ClientVersion="1" OpcodeName="OP_ClientCmdMsg" OpcodeType="OP_EQHearDispellCmd">
+<Struct Name="WS_HearDispell" ClientVersion="562" OpcodeName="OP_ClientCmdMsg" OpcodeType="OP_EQHearDispellCmd">
 <Data ElementName="spell_name" Type="EQ2_8Bit_String" />
 <Data ElementName="dispell_name" Type="EQ2_8Bit_String" />
 <Data ElementName="caster" Type="int32" />
