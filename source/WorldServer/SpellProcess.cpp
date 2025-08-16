@@ -3105,11 +3105,11 @@ void SpellProcess::AddSelfAndPetToCharTargets(LuaSpell* spell, Spawn* caster, bo
 	int32 charID = player->GetCharacterID();
 	
 	if(player->HasPet() && player->GetPet())
-		spell->char_id_targets.insert(make_pair(charID, player->GetPet()->GetPetType()));
+		spell->AddCharIDTarget(charID, player->GetPet()->GetPetType());
 	if(player->HasPet() && player->GetCharmedPet())
-		spell->char_id_targets.insert(make_pair(charID, player->GetPet()->GetPetType()));
+		spell->AddCharIDTarget(charID, player->GetPet()->GetPetType());
 	if(!onlyPet)
-		spell->char_id_targets.insert(make_pair(charID, 0x00));
+		spell->AddCharIDTarget(charID, 0x00);
 }
 
 void SpellProcess::DeleteActiveSpell(LuaSpell* spell, bool skipRemoveCurrent) {	

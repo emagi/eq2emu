@@ -128,7 +128,9 @@ struct LuaSpell{
 	
 	void AddTarget(int32 target_id) {
 		std::unique_lock lock(targets_mutex);
-		targets.push_back(target_id);
+		bool hasTarget = std::find(targets.begin(), targets.end(), target_id) != targets.end();
+		if(!hasTarget)
+			targets.push_back(target_id);
 	}
 	
 	int32 GetPrimaryTargetID() const {
@@ -209,7 +211,18 @@ struct LuaSpell{
 	
 	void AddCharIDTarget(int32 char_id, int8 value) {
 		std::unique_lock lock(char_id_targets_mutex);
-		char_id_targets.insert({char_id, value});
+		
+		bool exists = false;
+		auto range = char_id_targets.equal_range(char_id);
+		for (auto it = range.first; it != range.second; ++it) {
+			if (it->second == value) {
+				exists = true;
+				break;
+			}
+		}
+		
+		if(!exists)
+			char_id_targets.insert({char_id, value});
 	}
 
 	bool HasNoCharIDTargets() const {
