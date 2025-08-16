@@ -604,7 +604,7 @@ public:
 
 	void SetRejoinGroupID(int32 id) { rejoin_group_id = id; }
 
-	void TempRemoveGroup();
+	void TempRemoveGroup(int32 zone_id = 0, int32 instance_id = 0);
 	void ReplaceGroupClient(Client* new_client);
 
 	void SendWaypoints();

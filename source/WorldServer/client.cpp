@@ -5146,7 +5146,7 @@ void Client::Zone(ZoneChangeDetails* new_zone, ZoneServer* opt_zone, bool set_co
 	}
 
 	// block out the member info for the group
-	TempRemoveGroup();
+	TempRemoveGroup(zoning_id, zoning_instance_id);
 
 	UpdateTimeStampFlag(ZONE_UPDATE_FLAG);
 
@@ -12666,7 +12666,7 @@ void Client::AddItemSale(int64 unique_id, int32 item_id, int64 price, int32 inv_
 }
 bool Client::HandleHouseEntityCommands(Spawn* spawn, int32 spawnid, string command)
 {
-	if (GetCurrentZone()->GetInstanceType() != PERSONAL_HOUSE_INSTANCE)
+	if (!GetCurrentZone() || GetCurrentZone()->GetInstanceType() != PERSONAL_HOUSE_INSTANCE)
 		return false;
 
 	if (command == "house_spawn_examine")
@@ -12995,7 +12995,7 @@ void Client::ReplaceGroupClient(Client* new_client)
 	}
 }
 
-void Client::TempRemoveGroup()
+void Client::TempRemoveGroup(int32 zone_id, int32 instance_id)
 {
 	if (this->GetPlayer()->GetGroupMemberInfo())
 	{
@@ -13007,6 +13007,10 @@ void Client::TempRemoveGroup()
 			rejoin_group_id = this->GetPlayer()->GetGroupMemberInfo()->group_id;
 			this->GetPlayer()->GetGroupMemberInfo()->client = 0;
 			this->GetPlayer()->GetGroupMemberInfo()->member = 0;
+			if(zone_id) {
+				this->GetPlayer()->GetGroupMemberInfo()->zone_id = zone_id;
+				this->GetPlayer()->GetGroupMemberInfo()->instance_id = instance_id;
+			}
 			this->GetPlayer()->SetGroupMemberInfo(0);
 			group->MGroupMembers.releasewritelock();
 			group->RemoveClientReference(this);
