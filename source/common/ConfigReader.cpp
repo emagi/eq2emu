@@ -78,6 +78,8 @@ PacketStruct* ConfigReader::getStruct(const char* name, int16 version){
 				latest_version = *iter;
 		}		
 		if (latest_version) {
+			// TODO: Need to revisit this, if we have a packet struct with a version of 1, but no opcodes, we still go to the else if statement
+			// which results in sending corrupt data to client
 			if (latest_version->GetOpcode() != OP_Unknown && (latest_version->GetOpcodeValue(version) == 0xFFFF || latest_version->GetOpcodeValue(version)==0xCDCD)) {
 				LogWrite(PACKET__ERROR, 0, "Packet", "Could not find valid opcode for Packet Struct '%s' and client version %d", latest_version->GetName(), version);
 			}
