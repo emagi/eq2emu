@@ -7955,7 +7955,9 @@ void ZoneServer::SendDispellPacket(Entity* caster, Spawn* target, string dispell
 			continue;
 		if(target && target->GetDistance(player) > 50)
 			continue;
-
+		if(client->GetVersion() <= 561)
+			continue; // does not support packet
+		
 		packet = configReader.getStruct("WS_HearDispell", client->GetVersion());
 		if(packet){
 			packet->setDataByName("spell_name", spell_name.c_str());
