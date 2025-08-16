@@ -5018,6 +5018,8 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 					details3 += "STA / STABase:	" + to_string(ent->GetInfoStruct()->get_sta()) + " / " + to_string(ent->GetInfoStruct()->get_sta_base()) + "\n";
 					details3 += "INT / INTBase:	" + to_string(ent->GetInfoStruct()->get_intel()) + " / " + to_string(ent->GetInfoStruct()->get_intel_base()) + "\n";
 					details3 += "WIS / WISBase:	" + to_string(ent->GetInfoStruct()->get_wis()) + " / " + to_string(ent->GetInfoStruct()->get_wis_base()) + "\n";
+					details3 += "HPRegen:	" + to_string(ent->GetInfoStruct()->get_hp_regen()) + "\n";
+					details3 += "PowerRegen:	" + to_string(ent->GetInfoStruct()->get_power_regen()) + "\n";
 				}
 
 				string details4;
