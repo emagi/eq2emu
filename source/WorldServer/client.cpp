@@ -1464,7 +1464,7 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
 	}
 	case OP_CancelMoveObjectModeMsg: {
 		SetSpawnPlacementMode(Client::ServerSpawnPlacementMode::DEFAULT);
-		if (GetTempPlacementSpawn())
+		if (GetTempPlacementSpawn() && GetCurrentZone())
 		{
 			Spawn* tmp = GetTempPlacementSpawn();
 			SetTempPlacementSpawn(nullptr);
@@ -1479,7 +1479,7 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
 	case OP_PositionMoveableObject: {
 		LogWrite(OPCODE__DEBUG, 1, "Opcode", "Opcode 0x%X (%i): OP_PositionMoveableObject", opcode, opcode);
 		PacketStruct* place_object = configReader.getStruct("WS_PlaceMoveableObject", GetVersion());
-		if (place_object && place_object->LoadPacketData(app->pBuffer, app->size)) {
+		if (place_object && place_object->LoadPacketData(app->pBuffer, app->size) && GetCurrentZone()) {
 			Spawn* spawn = 0;
 			bool was_temp_placement = false;
 			if (GetTempPlacementSpawn()) {
@@ -1940,7 +1940,7 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
 		if (packet) {
 			if (packet->LoadPacketData(app->pBuffer, app->size) && player->GetZone()) {
 				EQ2_16BitString str = packet->getType_EQ2_16BitString_ByName("signal");
-				if (strcmp(str.data.c_str(), "sys_client_avatar_ready") == 0) {
+				if (GetCurrentZone() && strcmp(str.data.c_str(), "sys_client_avatar_ready") == 0) {
 					LogWrite(CCLIENT__DEBUG, 0, "Client", "Client '%s' (%u) is ready for spawn updates.", GetPlayer()->GetName(), GetPlayer()->GetCharacterID());
 					SetReloadingZone(false);
 					if (GetPlayer()->IsDeletedSpawn()) {
@@ -2117,7 +2117,7 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
 				LogWrite(PLAYER__ERROR, 1, "Player", "Player %s tried to target %u index, but that index was not valid.", GetPlayer()->GetName(), index);
 			}
 		}
-		if (GetPlayer()->GetTarget())
+		if (GetPlayer()->GetTarget() && GetCurrentZone())
 			GetCurrentZone()->CallSpawnScript(GetPlayer()->GetTarget(), SPAWN_SCRIPT_TARGETED, GetPlayer());
 		//player->SetTarget((int16*)app->pBuffer);
 		break;
@@ -2318,7 +2318,8 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
 				string name = packet->getType_EQ2_16BitString_ByName("pet_name").data;
 				if (strlen(name.c_str()) != 0 && SetPetName(name.c_str())) {
 					target->SetName(name.c_str());
-					GetCurrentZone()->SendUpdateTitles(target);
+					if(GetCurrentZone())
+						GetCurrentZone()->SendUpdateTitles(target);
 					change = true;
 				}
 
@@ -2649,6 +2650,8 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
 	}
 	case OP_ExitHouseMsg: {
 		LogWrite(OPCODE__DEBUG, 1, "Opcode", "Opcode 0x%X (%i): OP_ExitHouseMsg", opcode, opcode);
+		if(!GetCurrentZone())
+			break;
 		int32 instance_id = GetCurrentZone()->GetInstanceID();
 		if (instance_id > 0) {
 			PlayerHouse* ph = world.GetPlayerHouseByInstanceID(instance_id);
@@ -3055,6 +3058,9 @@ void Client::HandleLootItemRequestPacket(EQApplicationPacket* app) {
 			bool loot_all = (packet->getType_int8_ByName("loot_all") == 1);
 			int32 target_id = packet->getType_int32_ByName("target_id");
 			int8 button_clicked = packet->getType_int8_ByName("button_clicked");
+			if(!GetCurrentZone())
+				return;
+			
 			Spawn* spawn = GetCurrentZone()->GetSpawnByID(loot_id);
 			if (!spawn) {
 				safe_delete(packet);
@@ -3419,7 +3425,10 @@ void Client::HandleExamineInfoRequest(EQApplicationPacket* app) {
 		Item* item = 0;
 
 		// translate from unique id to spawn id for houses
-		Spawn* spawn = this->GetCurrentZone()->GetSpawnFromUniqueItemID(id);
+		Spawn* spawn = nullptr;
+		
+		if(GetCurrentZone())
+			spawn = GetCurrentZone()->GetSpawnFromUniqueItemID(id);
 
 		bool wasSpawn = false;
 		if (spawn)
@@ -3790,10 +3799,10 @@ bool Client::Process(bool zone_process) {
 	}
 	case NewLoginState::LOGIN_DELAYED: {
 		if (!delay_msg_timer.Enabled() || delay_msg_timer.Check()) {
-			LogWrite(CCLIENT__INFO, 0, "Client", "Wait for zone %s to load for new client %s...", GetCurrentZone()->GetZoneName(), GetPlayer()->GetName());
+			LogWrite(CCLIENT__INFO, 0, "Client", "Wait for zone %s to load for new client %s...", GetCurrentZone() ? GetCurrentZone()->GetZoneName() : "Unknown", GetPlayer()->GetName());
 			delay_msg_timer.Start(1000, true);
 		}
-		if (!GetCurrentZone()->IsLoading()) {
+		if (GetCurrentZone() && !GetCurrentZone()->IsLoading()) {
 			new_client_login = NewLoginState::LOGIN_ALLOWED;
 		}
 
