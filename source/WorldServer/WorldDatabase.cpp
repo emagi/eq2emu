@@ -9040,7 +9040,7 @@ int32 WorldDatabase::LoadBrokerSellers(BrokerManager &broker) {
 	broker.LoadSeller(cid, name, hid, true, inv, coin_session, coin_total);
 	++count;
 
-	LogWrite(PLAYER__ERROR, 5, "Broker",
+	LogWrite(PLAYER__DEBUG, 5, "Broker",
 	  "--Loaded broker player: %u (%s), house=%u, sale=%u, inv=%u",
 	  cid, name.c_str(), hid, en, inv
 	);
@@ -9079,7 +9079,7 @@ int32 WorldDatabase::LoadBrokerItems(BrokerManager &broker) {
 	broker.LoadItem(it);
 	++count;
 
-	LogWrite(PLAYER__ERROR, 5, "Broker",
+	LogWrite(PLAYER__DEBUG, 5, "Broker",
 	  "--Loaded broker item: uid=%llu, char=%u, item=%llu,"
 	  " price=%u, count=%u",
 	  it.unique_id, it.character_id,
