@@ -2078,19 +2078,21 @@ vector<EQ2Packet*> Player::EquipItem(int16 index, int16 version, int8 appearance
 	if(slot < 255) {
 		if (slot == EQ2_FOOD_SLOT && item->IsFoodFood() && get_character_flag(CF_FOOD_AUTO_CONSUME)) {
 			Item* item = GetEquipmentList()->GetItem(EQ2_FOOD_SLOT);
-			if(item && GetClient() && GetClient()->CheckConsumptionAllowed(slot, false))
-				GetClient()->ConsumeFoodDrink(item, EQ2_FOOD_SLOT);
 			
 			if(item)
 				SetActiveFoodUniqueID(item->details.unique_id);
+			
+			if(item && GetClient() && GetClient()->CheckConsumptionAllowed(slot, false))
+				GetClient()->ConsumeFoodDrink(item, EQ2_FOOD_SLOT);
 		}
 		else if (slot == EQ2_DRINK_SLOT && item->IsFoodDrink() && get_character_flag(CF_DRINK_AUTO_CONSUME)) {
 			Item* item = GetEquipmentList()->GetItem(EQ2_DRINK_SLOT);
-			if(item && GetClient() && GetClient()->CheckConsumptionAllowed(slot, false))
-				GetClient()->ConsumeFoodDrink(item, EQ2_DRINK_SLOT);
 			
 			if(item)
 				SetActiveDrinkUniqueID(item->details.unique_id);
+			
+			if(item && GetClient() && GetClient()->CheckConsumptionAllowed(slot, false))
+				GetClient()->ConsumeFoodDrink(item, EQ2_DRINK_SLOT);
 		}
 	}
 	
