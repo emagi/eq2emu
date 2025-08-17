@@ -1992,15 +1992,8 @@ public:
 	set<int32> HatedBy;
 	std::mutex MHatedBy;
 
-	bool IsAggroed() { 
-			int32 size = 0;
-
-			MHatedBy.lock();
-			size = HatedBy.size();
-			MHatedBy.unlock();
-
-			return size > 0;
-		}
+	bool IsAggroed();
+	void SendHatedByList(Client* client);
 
 	Mutex	MCommandMutex;
 

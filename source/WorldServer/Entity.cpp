@@ -4139,3 +4139,19 @@ void Entity::CalculateMaxReduction() {
 
 	GetInfoStruct()->set_max_spell_reduction(maxReduction);
 }
+
+bool Entity::IsAggroed() {
+	return (bool)GetInfoStruct()->get_engaged_encounter();
+}
+
+void Entity::SendHatedByList(Client* client) {
+	set<int32>::iterator itr;
+	MHatedBy.lock();
+	set<int32> hatedByCopy(HatedBy);
+	MHatedBy.unlock();
+	client->Message(CHANNEL_COLOR_RED, "HatedBy List for %s, size: %u", GetName(), hatedByCopy.size());
+	for (itr = hatedByCopy.begin(); itr != hatedByCopy.end(); itr++) {
+		Spawn* spawn = GetZone()->GetSpawnByID(*itr);
+		client->Message(CHANNEL_COLOR_YELLOW, "ID: %u, Name: %s", *itr, spawn ? spawn->GetName() : "N/A");
+	}
+}

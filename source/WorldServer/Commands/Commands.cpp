@@ -4885,6 +4885,17 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 						client->Message(CHANNEL_COLOR_YELLOW, "Angle %f between player %s and target %s", spawnAngle, client->GetPlayer()->GetTarget() ? client->GetPlayer()->GetTarget()->GetName() : client->GetPlayer()->GetName(), client->GetPlayer()->GetName());
 						break;
 					}
+					else if (ToLower(string(sep->arg[0])) == "hated")
+					{
+						if(client->GetPlayer()->GetTarget() && client->GetPlayer()->GetTarget()->IsEntity()) {
+							Entity* target = (Entity*)client->GetPlayer()->GetTarget();
+							target->SendHatedByList(client);
+						}
+						else {
+							client->Message(CHANNEL_COLOR_YELLOW, "No target or target is not entity to display hated by list.");
+						}
+						break;
+					}
 				}
 				if (sep->IsNumber(0))
 				{
