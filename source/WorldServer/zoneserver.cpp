@@ -191,11 +191,15 @@ ZoneServer::ZoneServer(const char* name) {
 typedef map <int32, bool> ChangedSpawnMapType;
 ZoneServer::~ZoneServer() {
 	lua_interface->DeletePendingSpells(true, this);
+	
+	MMasterSpawnLock.writelock(__FUNCTION__, __LINE__);
 	zoneShuttingDown = true;  //ensure other threads shut down too
 	//allow other threads to properly shut down
+	
 	if(is_initialized) {
 		LogWrite(ZONE__INFO, 0, "Zone", "Initiating zone shutdown of '%s'", zone_name);
 	}
+	MMasterSpawnLock.releasewritelock(__FUNCTION__, __LINE__);
 	int32 disp_count = 0;
 	int32 next_disp_count = 100;
 	while (spawnthread_active || initial_spawn_threads_active > 0){
