@@ -10736,7 +10736,7 @@ void Client::SendChatRelationship(int8 type, const char* name) {
 		if (type == 0) {
 			Client* client = zone_list.GetClientByCharName(name);
 			if (client) {
-				packet->setArrayDataByName("location", client->GetCurrentZone()->GetZoneName());
+				packet->setArrayDataByName("location", client->GetCurrentZone() ? client->GetCurrentZone()->GetZoneName() : "");
 				packet->setArrayDataByName("class_name", classes.GetClassName(client->GetPlayer()->GetAdventureClass()));
 			}
 		}
@@ -10765,7 +10765,7 @@ void Client::SendFriendList() {
 				client = zone_list.GetClientByCharName(names[i]);
 				packet->setArrayDataByName("name", names[i].c_str(), i);
 				if (client) {
-					packet->setArrayDataByName("location", client->GetCurrentZone()->GetZoneName(), i);
+					packet->setArrayDataByName("location", client->GetCurrentZone() ? client->GetCurrentZone()->GetZoneName() : "", i);
 					packet->setArrayDataByName("class_name", classes.GetClassName(client->GetPlayer()->GetAdventureClass()), i);
 				}
 			}
