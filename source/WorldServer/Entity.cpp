@@ -1065,7 +1065,7 @@ void Entity::InCombat(bool val){
 	
 	bool update_regen = false;
 	if(GetInfoStruct()->get_engaged_encounter()) {
-		if(!IsAggroed() || !IsEngagedInEncounter()) {
+		if(!IsEngagedInEncounter()) {
 			GetInfoStruct()->set_engaged_encounter(0);
 			update_regen = true;
 		}
