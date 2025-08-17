@@ -417,7 +417,6 @@ void ClientPacketFunctions::SendCreateFromRecipe(Client* client, int32 recipeID)
 
 	packet->setDataByName("recipe_id", recipeID);
 	
-	packet->PrintPacket();
 	EQ2Packet* outapp = packet->serialize();
 	//DumpPacket(outapp);
 	// Send the packet
@@ -586,7 +585,6 @@ void ClientPacketFunctions::SendItemCreationUI(Client* client, Recipe* recipe) {
 	}
 
 
-	packet->PrintPacket();
 	EQ2Packet* outapp = packet->serialize();
 	//DumpPacket(outapp);
 	client->QueuePacket(outapp);

@@ -486,8 +486,6 @@ void Trade::SendTradePacket() {
 			packet->setDataByName("their_gold", gold);
 			packet->setDataByName("their_plat", plat);
 
-			LogWrite(PLAYER__ERROR, 0, "Trade", "packet sent");
-			packet->PrintPacket();
 			client->QueuePacket(packet->serialize());
 			safe_delete(packet);
 		}
@@ -557,8 +555,6 @@ void Trade::SendTradePacket() {
 			packet2->setDataByName("their_gold", gold);
 			packet2->setDataByName("their_plat", plat);
 			
-			LogWrite(PLAYER__ERROR, 0, "Trade", "packet sent #2");
-			packet2->PrintPacket();
 			client->QueuePacket(packet2->serialize());
 			safe_delete(packet2);
 		}

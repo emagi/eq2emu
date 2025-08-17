@@ -2514,8 +2514,6 @@ int32 WorldDatabase::SaveCharacter(PacketStruct* create, int32 loginID){
 		class_id = 0; //Classic Server Only
 	}
 	
-	create->PrintPacket();
-	
 	int8 gender_id = create->getType_int8_ByName("gender");
 	sint16 auto_admin_status = 0;
 
