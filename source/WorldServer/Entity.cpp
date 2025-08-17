@@ -2335,160 +2335,166 @@ void Entity::RemoveWard(LuaSpell* spell) {
 }
 
 int32 Entity::CheckWards(Entity* attacker, int32 damage, int8 damage_type) {
-	std::unique_lock lock(MWardList);
 	map<int32, WardInfo*>::iterator itr;
 	WardInfo* ward = 0;
 	LuaSpell* spell = 0;
 
-	while (m_wardList.size() > 0 && damage > 0) {
-		// Get the ward with the lowest base damage
-		for (itr = m_wardList.begin(); itr != m_wardList.end(); itr++) {
-			if(itr->second->RoundTriggered || itr->second->DeleteWard)
-				continue;
+	vector<LuaSpell*> tmp_deletes;
+	{
+		std::unique_lock lock(MWardList);
+		while (m_wardList.size() > 0 && damage > 0) {
+			// Get the ward with the lowest base damage
+			for (itr = m_wardList.begin(); itr != m_wardList.end(); itr++) {
+				if(itr->second->RoundTriggered || itr->second->DeleteWard)
+					continue;
+				
+				if (!ward || itr->second->BaseDamage < ward->BaseDamage) {
+					if ((itr->second->AbsorbAllDamage || itr->second->DamageLeft > 0) &&
+						(itr->second->WardType == WARD_TYPE_ALL ||
+						(itr->second->WardType == WARD_TYPE_PHYSICAL && damage_type >= DAMAGE_PACKET_DAMAGE_TYPE_SLASH && damage_type <= DAMAGE_PACKET_DAMAGE_TYPE_PIERCE) ||
+						(itr->second->WardType == WARD_TYPE_MAGICAL && ((itr->second->DamageType == 0 && damage_type >= DAMAGE_PACKET_DAMAGE_TYPE_PIERCE) || (damage_type >= DAMAGE_PACKET_DAMAGE_TYPE_PIERCE && itr->second->DamageType == damage_type)))))
+						ward = itr->second;
+				}
+			}
+
+			if (!ward)
+				break;
+
+			spell = ward->Spell;
+
+			// damage to redirect at the source (like intercept)
+			int32 redirectDamage = 0;
+			if (ward->RedirectDamagePercent)
+				redirectDamage = (int32)(double)damage * ((double)ward->RedirectDamagePercent / 100.0);
+
+			// percentage the spell absorbs of all possible damage
+			int32 damageToAbsorb = 0;
+			if (ward->DamageAbsorptionPercentage > 0)
+				damageToAbsorb = (int32)(double)damage * ((double)ward->DamageAbsorptionPercentage/100.0);
+			else
+				damageToAbsorb = damage;
+
+			int32 maxDamageAbsorptionAllowed = 0;
+
+			// spells like Divine Aura have caps on health, eg. anything more than 50% damage is not absorbed
+			if (ward->DamageAbsorptionMaxHealthPercent > 0)
+				maxDamageAbsorptionAllowed = (int32)(double)GetTotalHP() * ((double)ward->DamageAbsorptionMaxHealthPercent / 100.0);
+
+			if (maxDamageAbsorptionAllowed > 0 && damageToAbsorb >= maxDamageAbsorptionAllowed)
+				damageToAbsorb = 0; // its over or equal to 50% of the total hp allowed, thus this damage is not absorbed
+
+			int32 baseDamageRemaining = damage - damageToAbsorb;
+
+			bool hasSpellBeenRemoved = false;
+			if (ward->AbsorbAllDamage)
+			{
+				ward->LastAbsorbedDamage = ward->DamageLeft;
+
+				if (!redirectDamage)
+					GetZone()->SendHealPacket(ward->Spell->caster, this, HEAL_PACKET_TYPE_ABSORB, damage, spell->spell->GetName());
+
+				damage = 0;
+			}
+			else if (damageToAbsorb >= ward->DamageLeft) {
+				// Damage is greater than or equal to the amount left on the ward
+
+				ward->LastAbsorbedDamage = ward->DamageLeft;
+				// remove what damage we can absorb 
+				damageToAbsorb -= ward->DamageLeft;
+
+				// move back what couldn't be absorbed to the base dmg and apply to the overall damage
+				baseDamageRemaining += damageToAbsorb;
+				damage = baseDamageRemaining;
+				ward->DamageLeft = 0;
+				spell->damage_remaining = 0;
+
+				if(!redirectDamage)
+					GetZone()->SendHealPacket(spell->caster, this, HEAL_PACKET_TYPE_ABSORB, ward->DamageLeft, spell->spell->GetName());
+
+				if (!ward->keepWard) {
+					ward->DeleteWard = true;
+					hasSpellBeenRemoved = true;
+				}
+			}
+			else {
+				ward->LastAbsorbedDamage = damageToAbsorb;
+				// Damage is less then the amount left on the ward
+				ward->DamageLeft -= damageToAbsorb;
+
+				spell->damage_remaining = ward->DamageLeft;
+				if (spell->caster->IsPlayer())
+					ClientPacketFunctions::SendMaintainedExamineUpdate(((Player*)spell->caster)->GetClient(), spell->slot_pos, ward->DamageLeft, 1);
+
+				if (!redirectDamage)
+					GetZone()->SendHealPacket(ward->Spell->caster, this, HEAL_PACKET_TYPE_ABSORB, damage, spell->spell->GetName());
+
+				// remaining damage not absorbed by percentage must be set
+				damage = baseDamageRemaining;
+			}
+
+			if (redirectDamage)
+			{
+				ward->LastRedirectDamage = redirectDamage;
+				if (this->IsPlayer())
+				{
+					Client* client = this->GetClient();
+					if(client) {
+						client->Message(CHANNEL_COMBAT, "%s intercepted some of the damage intended for you!", spell->caster->GetName());
+					}
+				}
+				if (spell->caster && spell->caster->IsPlayer())
+				{
+					Client* client = ((Player*)spell->caster)->GetClient();
+					if(client) {
+						client->Message(CHANNEL_COMBAT, "YOU intercept some of the damage intended for %s!", this->GetName());
+					}
+				}
+
+				if (attacker && spell->caster)
+					attacker->DamageSpawn(spell->caster, DAMAGE_PACKET_TYPE_SPELL_DAMAGE, damage_type, redirectDamage, redirectDamage, 0, 0, false, false, false, false, spell, true);
+			}
+
+			bool shouldRemoveSpell = false;
+			ward->HitCount++; // increment hit count
+			ward->RoundTriggered = true;
 			
-			if (!ward || itr->second->BaseDamage < ward->BaseDamage) {
-				if ((itr->second->AbsorbAllDamage || itr->second->DamageLeft > 0) &&
-					(itr->second->WardType == WARD_TYPE_ALL ||
-					(itr->second->WardType == WARD_TYPE_PHYSICAL && damage_type >= DAMAGE_PACKET_DAMAGE_TYPE_SLASH && damage_type <= DAMAGE_PACKET_DAMAGE_TYPE_PIERCE) ||
-					(itr->second->WardType == WARD_TYPE_MAGICAL && ((itr->second->DamageType == 0 && damage_type >= DAMAGE_PACKET_DAMAGE_TYPE_PIERCE) || (damage_type >= DAMAGE_PACKET_DAMAGE_TYPE_PIERCE && itr->second->DamageType == damage_type)))))
-					ward = itr->second;
+			if (ward->MaxHitCount && spell->num_triggers && spell->caster->GetZone())
+			{
+				spell->num_triggers--;
+				if(spell->caster->IsPlayer()) {
+					ClientPacketFunctions::SendMaintainedExamineUpdate(((Player*)spell->caster)->GetClient(), spell->slot_pos, spell->num_triggers, 0);
+				}
 			}
-		}
+			
+			if (ward->MaxHitCount && ward->HitCount >= ward->MaxHitCount) // there isn't a max hit requirement with the hit count, so just go based on hit count
+				shouldRemoveSpell = true;
 
-		if (!ward)
-			break;
-
-		spell = ward->Spell;
-
-		// damage to redirect at the source (like intercept)
-		int32 redirectDamage = 0;
-		if (ward->RedirectDamagePercent)
-			redirectDamage = (int32)(double)damage * ((double)ward->RedirectDamagePercent / 100.0);
-
-		// percentage the spell absorbs of all possible damage
-		int32 damageToAbsorb = 0;
-		if (ward->DamageAbsorptionPercentage > 0)
-			damageToAbsorb = (int32)(double)damage * ((double)ward->DamageAbsorptionPercentage/100.0);
-		else
-			damageToAbsorb = damage;
-
-		int32 maxDamageAbsorptionAllowed = 0;
-
-		// spells like Divine Aura have caps on health, eg. anything more than 50% damage is not absorbed
-		if (ward->DamageAbsorptionMaxHealthPercent > 0)
-			maxDamageAbsorptionAllowed = (int32)(double)GetTotalHP() * ((double)ward->DamageAbsorptionMaxHealthPercent / 100.0);
-
-		if (maxDamageAbsorptionAllowed > 0 && damageToAbsorb >= maxDamageAbsorptionAllowed)
-			damageToAbsorb = 0; // its over or equal to 50% of the total hp allowed, thus this damage is not absorbed
-
-		int32 baseDamageRemaining = damage - damageToAbsorb;
-
-		bool hasSpellBeenRemoved = false;
-		if (ward->AbsorbAllDamage)
-		{
-			ward->LastAbsorbedDamage = ward->DamageLeft;
-
-			if (!redirectDamage)
-				GetZone()->SendHealPacket(ward->Spell->caster, this, HEAL_PACKET_TYPE_ABSORB, damage, spell->spell->GetName());
-
-			damage = 0;
-		}
-		else if (damageToAbsorb >= ward->DamageLeft) {
-			// Damage is greater than or equal to the amount left on the ward
-
-			ward->LastAbsorbedDamage = ward->DamageLeft;
-			// remove what damage we can absorb 
-			damageToAbsorb -= ward->DamageLeft;
-
-			// move back what couldn't be absorbed to the base dmg and apply to the overall damage
-			baseDamageRemaining += damageToAbsorb;
-			damage = baseDamageRemaining;
-			ward->DamageLeft = 0;
-			spell->damage_remaining = 0;
-
-			if(!redirectDamage)
-				GetZone()->SendHealPacket(spell->caster, this, HEAL_PACKET_TYPE_ABSORB, ward->DamageLeft, spell->spell->GetName());
-
-			if (!ward->keepWard) {
+			if (shouldRemoveSpell && !hasSpellBeenRemoved)
+			{
 				ward->DeleteWard = true;
-				hasSpellBeenRemoved = true;
-			}
-		}
-		else {
-			ward->LastAbsorbedDamage = damageToAbsorb;
-			// Damage is less then the amount left on the ward
-			ward->DamageLeft -= damageToAbsorb;
-
-			spell->damage_remaining = ward->DamageLeft;
-			if (spell->caster->IsPlayer())
-				ClientPacketFunctions::SendMaintainedExamineUpdate(((Player*)spell->caster)->GetClient(), spell->slot_pos, ward->DamageLeft, 1);
-
-			if (!redirectDamage)
-				GetZone()->SendHealPacket(ward->Spell->caster, this, HEAL_PACKET_TYPE_ABSORB, damage, spell->spell->GetName());
-
-			// remaining damage not absorbed by percentage must be set
-			damage = baseDamageRemaining;
-		}
-
-		if (redirectDamage)
-		{
-			ward->LastRedirectDamage = redirectDamage;
-			if (this->IsPlayer())
-			{
-				Client* client = this->GetClient();
-				if(client) {
-					client->Message(CHANNEL_COMBAT, "%s intercepted some of the damage intended for you!", spell->caster->GetName());
-				}
-			}
-			if (spell->caster && spell->caster->IsPlayer())
-			{
-				Client* client = ((Player*)spell->caster)->GetClient();
-				if(client) {
-					client->Message(CHANNEL_COMBAT, "YOU intercept some of the damage intended for %s!", this->GetName());
-				}
 			}
 
-			if (attacker && spell->caster)
-				attacker->DamageSpawn(spell->caster, DAMAGE_PACKET_TYPE_SPELL_DAMAGE, damage_type, redirectDamage, redirectDamage, 0, 0, false, false, false, false, spell, true);
+			// Reset ward pointer
+			ward = 0;
 		}
-
-		bool shouldRemoveSpell = false;
-		ward->HitCount++; // increment hit count
-		ward->RoundTriggered = true;
-		
-		if (ward->MaxHitCount && spell->num_triggers && spell->caster->GetZone())
-		{
-			spell->num_triggers--;
-			if(spell->caster->IsPlayer()) {
-				ClientPacketFunctions::SendMaintainedExamineUpdate(((Player*)spell->caster)->GetClient(), spell->slot_pos, spell->num_triggers, 0);
-			}
-		}
-		
-		if (ward->MaxHitCount && ward->HitCount >= ward->MaxHitCount) // there isn't a max hit requirement with the hit count, so just go based on hit count
-			shouldRemoveSpell = true;
-
-		if (shouldRemoveSpell && !hasSpellBeenRemoved)
-		{
-			ward->DeleteWard = true;
-		}
-
-		// Reset ward pointer
-		ward = 0;
-	}
 	
-	for (itr = m_wardList.begin(); itr != m_wardList.end();) {
-		if(itr->second->DeleteWard) {
-			WardInfo* info = itr->second;
-			itr = m_wardList.erase(itr);
-			GetZone()->GetSpellProcess()->DeleteCasterSpell(info->Spell, "purged");
-			safe_delete(info);
-		}
-		else {
-			itr->second->RoundTriggered = false;
-			itr++;
+		for (itr = m_wardList.begin(); itr != m_wardList.end();) {
+			if(itr->second->DeleteWard) {
+				WardInfo* info = itr->second;
+				itr = m_wardList.erase(itr);
+				tmp_deletes.push_back(info->Spell);
+				safe_delete(info);
+			}
+			else {
+				itr->second->RoundTriggered = false;
+				itr++;
+			}
 		}
 	}
 
+	for (auto it = tmp_deletes.begin(); it != tmp_deletes.end(); ++it) {
+		GetZone()->GetSpellProcess()->DeleteCasterSpell(*it, "purged");
+	}
 	return damage;
 }
 
