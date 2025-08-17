@@ -3621,9 +3621,6 @@ bool PlayerItemList::MoveItem(sint32 to_bag_id, int16 from_index, sint8 to, int8
 			}
 		}
 		
-		LogWrite(PLAYER__ERROR, 0, "MoveItem",
-			"--Item: %u is locked %u", item_to ? item_to->details.unique_id : 0, item_to ? item_to->IsItemLocked() : 0
-		);
 		if(item_to && item_to->IsItemLocked()) {
 			MPlayerItems.releasewritelock(__FUNCTION__, __LINE__);
 			return false;
@@ -3712,10 +3709,7 @@ bool PlayerItemList::MoveItem(sint32 to_bag_id, int16 from_index, sint8 to, int8
 			canMove = false;
 		
 		MPlayerItems.releasewritelock(__FUNCTION__, __LINE__);
-		
-		LogWrite(PLAYER__ERROR, 0, "MoveItem",
-			"--Item#2: %u is locked %u", item_to ? item_to->details.unique_id : 0, item_to ? item_to->IsItemLocked() : 0
-		);
+
 		if (item_to && canMove) 
 			MoveItem(item_to, item_from->details.inv_slot_id, item_from->details.slot_id, BASE_EQUIPMENT, true);
 
@@ -5202,7 +5196,7 @@ bool Item::TryLockItem(LockReason reason) {
 
 	// 1) No lock held? allow any first‐lock
 	if (cur == LockReason::LockReason_None) {
-		details.lock_flags = static_cast<uint32_t>(reason);
+		details.lock_flags = static_cast<uint32>(reason);
 		details.item_locked = true;
 		return true;
 	}
@@ -5210,7 +5204,7 @@ bool Item::TryLockItem(LockReason reason) {
 	// 2) Only House‐lock held, and we're adding Shop‐lock? allow
 	if ((cur == LockReason::LockReason_House && reason == LockReason::LockReason_Shop) ||
 		(cur == LockReason::LockReason_Shop && reason == LockReason::LockReason_House)) {
-		details.lock_flags = static_cast<uint32_t>(cur | reason);
+		details.lock_flags = static_cast<uint32>(cur | reason);
 		// item_locked already true
 		return true;
 	}

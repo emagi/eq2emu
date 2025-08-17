@@ -2175,7 +2175,7 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
 			EQ2_CommandString remote(app->pBuffer, app->size);
 
 			LogWrite(PACKET__DEBUG, 1, "Packet", "RemoteCmdMsg Packet dump:");
-			DumpPacket(app);
+			//DumpPacket(app);
 			commands.Process(remote.handler, &remote.command, this);
 		}
 		else //bad client, disconnect
@@ -3472,7 +3472,7 @@ void Client::HandleExamineInfoRequest(EQApplicationPacket* app) {
 		}
 		else {
 			LogWrite(WORLD__ERROR, 0, "World", "HandleExamineInfoRequest#0: Unknown Item ID = %u", id);
-			DumpPacket(app);
+			//DumpPacket(app);
 		}
 	}
 	else if (type == 1) {
@@ -3513,7 +3513,7 @@ void Client::HandleExamineInfoRequest(EQApplicationPacket* app) {
 		}
 		else {
 			LogWrite(WORLD__ERROR, 0, "World", "HandleExamineInfoRequest#1: Unknown Item ID = %u", id);
-			DumpPacket(app);
+			//DumpPacket(app);
 		}
 	}
 	else if (type == 2) {
@@ -3554,7 +3554,7 @@ void Client::HandleExamineInfoRequest(EQApplicationPacket* app) {
 		}
 		else {
 			LogWrite(WORLD__ERROR, 0, "World", "HandleExamineInfoRequest#2: Unknown Item ID = %u", id);
-			DumpPacket(app);
+			//DumpPacket(app);
 		}
 	}
 	else if (type == 4) { //spell effect
@@ -3680,7 +3680,7 @@ void Client::HandleExamineInfoRequest(EQApplicationPacket* app) {
 	}
 	else {
 		LogWrite(CCLIENT__ERROR, 0, "World", "Client::HandleExamineInfoRequest from %s: Unknown examine request: %i", GetPlayer()->GetName(), (int)type);
-		DumpPacket(app);
+		//DumpPacket(app);
 	}
 	safe_delete(request);
 
