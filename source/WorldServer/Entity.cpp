@@ -2539,7 +2539,18 @@ float Entity::GetSpeed() {
 			ret += stats[ITEM_STAT_OFFENSIVESPEED];
 		}
 	}
-
+	
+	if (stats.count(ITEM_STAT_SLOW)) {
+		float slowPct = stats[ITEM_STAT_SLOW];
+		if(slowPct > 99.9f) {
+			ret = 0.0f;
+		}
+		else {
+			float slow_multiplier = 1.0f - (slowPct / 100.0f);
+			ret = ret * slow_multiplier;
+		}
+	}
+	
 	MStats.unlock();
 	ret *= speed_multiplier;
 	return ret;
