@@ -12249,6 +12249,7 @@ bool Client::HandleNewLogin(int32 account_id, int32 access_code)
 					new_client_login = NewLoginState::LOGIN_ALLOWED;
 				}
 
+				database.loadCharacterProperties(this, true);
 				// vault slots
 				RefreshVaultSlotCount();
 				

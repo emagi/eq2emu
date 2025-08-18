@@ -333,7 +333,8 @@ public:
 	bool	InsertCharacterStats(int32 character_id, int8 class_id, int8 race_id);
 	bool	UpdateCharacterTimeStamp(int32 account_id, int32 character_id, int32 timestamp);
 	bool	insertCharacterProperty(Client* client, char* propName, char* propValue);
-	bool	loadCharacterProperties(Client* client);
+	bool	insertCharacterProperty(int32 charID, char* propName, char* propValue);
+	bool	loadCharacterProperties(Client* client, bool preload = false);
 	string	GetPlayerName(char* name);
 	int32	GetCharacterTimeStamp(int32 character_id, int32 account_id,bool* char_exists);
 	int32	GetCharacterTimeStamp(int32 character_id);

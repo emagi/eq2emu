@@ -2146,125 +2146,187 @@ bool WorldDatabase::insertCharacterProperty(Client* client, char* propName, char
 	return true;
 }
 
-bool WorldDatabase::loadCharacterProperties(Client* client) {
+bool WorldDatabase::insertCharacterProperty(int32 charID, char* propName, char* propValue) {
+	Query query, query2;
+
+	string update_status = string("update character_properties set propvalue='%s' where charid=%i and propname='%s'");
+	query.RunQuery2(Q_UPDATE, update_status.c_str(), propValue, charID, propName);
+	if (!query.GetAffectedRows())
+	{
+		query2.RunQuery2(Q_UPDATE, "insert into character_properties (charid, propname, propvalue) values(%i, '%s', '%s')", charID, propName, propValue);
+		if (query2.GetErrorNumber() && query2.GetError() && query2.GetErrorNumber() < 0xFFFFFFFF) {
+			LogWrite(WORLD__ERROR, 0, "World", "Error in insertCharacterProperty query '%s': %s", query.GetQuery(), query.GetError());
+			return false;
+		}
+	}
+	return true;
+}
+
+bool WorldDatabase::loadCharacterProperties(Client* client, bool preload) {
 	Query query;
 	MYSQL_ROW row;
 	int32 id = 0;
-	MYSQL_RES* result = query.RunQuery2(Q_SELECT, "SELECT propname, propvalue FROM character_properties where charid = %i", client->GetCharacterID());
+	MYSQL_RES* result = query.RunQuery2(Q_SELECT,
+		"SELECT propname, propvalue FROM character_properties WHERE charid = %i",
+		client->GetCharacterID());
+
 	// no character found
 	if (result == NULL) {
-		LogWrite(PLAYER__ERROR, 0, "Player", "Error loading character properties for '%s'", client->GetPlayer()->GetName());
+		LogWrite(PLAYER__ERROR, 0, "Player", "Error loading character properties for '%s'",
+		         client->GetPlayer()->GetName());
 		return false;
 	}
 
 	while (result && (row = mysql_fetch_row(result))) {
-		char* prop_name = row[0];
+		char* prop_name  = row[0];
 		char* prop_value = row[1];
 
 		if (!prop_name || !prop_value)
 			continue;
 
-		if (!stricmp(prop_name, CHAR_PROPERTY_SPEED))
-		{
-			float new_speed = atof(prop_value);
-			client->GetPlayer()->SetSpeed(new_speed, true);
-			client->GetPlayer()->SetCharSheetChanged(true);
-		}
-		else if (!stricmp(prop_name, CHAR_PROPERTY_FLYMODE))
-		{
-			int8 flymode = atoul(prop_value);
-			if (flymode) // avoid fly mode notification unless enabled
-				ClientPacketFunctions::SendFlyMode(client, flymode, false);
-		}
-		else if (!stricmp(prop_name, CHAR_PROPERTY_INVUL))
-		{
-			int8 invul = atoul(prop_value);
-			client->GetPlayer()->SetInvulnerable(invul == 1);
-			if (client->GetPlayer()->GetInvulnerable())
-				client->SimpleMessage(CHANNEL_COLOR_YELLOW, "You are now invulnerable!");
-		}
-		else if (!stricmp(prop_name, CHAR_PROPERTY_GMVISION))
-		{
-			int8 val = atoul(prop_value);
-			client->GetPlayer()->SetGMVision(val == 1);
-			client->GetCurrentZone()->SendAllSpawnsForVisChange(client, false);
-			if (val)
-				client->SimpleMessage(CHANNEL_COLOR_YELLOW, "GM Vision Enabled!");
-		}
-		else if (!stricmp(prop_name, CHAR_PROPERTY_REGIONDEBUG))
-		{
-			int8 val = atoul(prop_value);
+		bool matched = false;
 
-			client->SetRegionDebug(val == 1);
-			if (val)
-				client->SimpleMessage(CHANNEL_COLOR_YELLOW, "Region Debug Enabled!");
-		}
-		else if (!stricmp(prop_name, CHAR_PROPERTY_LUADEBUG))
-		{
-			int8 val = atoul(prop_value);
-			if (val)
-			{
-				client->SetLuaDebugClient(true);
-				if (lua_interface)
-					lua_interface->UpdateDebugClients(client);
-
-				client->SimpleMessage(CHANNEL_COLOR_YELLOW, "You will now receive LUA error messages.");
+		if (!stricmp(prop_name, CHAR_PROPERTY_SPEED)) {
+			matched = true;
+			if (!preload) {
+				float new_speed = (float)atof(prop_value);
+				client->GetPlayer()->SetSpeed(new_speed, true);
+				client->GetPlayer()->SetCharSheetChanged(true);
 			}
 		}
-		else if (!stricmp(prop_name, CHAR_PROPERTY_GROUPLOOTMETHOD))
-		{
-			int8 val = atoul(prop_value);
-			client->GetPlayer()->GetInfoStruct()->set_group_loot_method(val);
+		else if (!stricmp(prop_name, CHAR_PROPERTY_FLYMODE)) {
+			matched = true;
+			if (!preload) {
+				int8 flymode = (int8)atoul(prop_value);
+				if (flymode) // avoid fly mode notification unless enabled
+					ClientPacketFunctions::SendFlyMode(client, flymode, false);
+			}
 		}
-		else if (!stricmp(prop_name, CHAR_PROPERTY_GROUPLOOTITEMRARITY))
-		{
-			int8 val = atoul(prop_value);
-			client->GetPlayer()->GetInfoStruct()->set_group_loot_items_rarity(val);
+		else if (!stricmp(prop_name, CHAR_PROPERTY_INVUL)) {
+			matched = true;
+			if (!preload) {
+				int8 invul = (int8)atoul(prop_value);
+				client->GetPlayer()->SetInvulnerable(invul == 1);
+				if (client->GetPlayer()->GetInvulnerable())
+					client->SimpleMessage(CHANNEL_COLOR_YELLOW, "You are now invulnerable!");
+			}
 		}
-		else if (!stricmp(prop_name, CHAR_PROPERTY_GROUPAUTOSPLIT))
-		{
-			int8 val = atoul(prop_value);
-			client->GetPlayer()->GetInfoStruct()->set_group_auto_split(val);
+		else if (!stricmp(prop_name, CHAR_PROPERTY_GMVISION)) {
+			matched = true;
+			if (!preload) {
+				int8 val = (int8)atoul(prop_value);
+				client->GetPlayer()->SetGMVision(val == 1);
+				client->GetCurrentZone()->SendAllSpawnsForVisChange(client, false);
+				if (val)
+					client->SimpleMessage(CHANNEL_COLOR_YELLOW, "GM Vision Enabled!");
+			}
 		}
-		else if (!stricmp(prop_name, CHAR_PROPERTY_GROUPDEFAULTYELL))
-		{
-			int8 val = atoul(prop_value);
-			client->GetPlayer()->GetInfoStruct()->set_group_default_yell(val);
+		else if (!stricmp(prop_name, CHAR_PROPERTY_REGIONDEBUG)) {
+			matched = true;
+			if (!preload) {
+				int8 val = (int8)atoul(prop_value);
+				client->SetRegionDebug(val == 1);
+				if (val)
+					client->SimpleMessage(CHANNEL_COLOR_YELLOW, "Region Debug Enabled!");
+			}
 		}
-		else if (!stricmp(prop_name, CHAR_PROPERTY_GROUPAUTOLOCK))
-		{
-			int8 val = atoul(prop_value);
-			client->GetPlayer()->GetInfoStruct()->set_group_autolock(val);
+		else if (!stricmp(prop_name, CHAR_PROPERTY_LUADEBUG)) {
+			matched = true;
+			if (!preload) {
+				int8 val = (int8)atoul(prop_value);
+				if (val) {
+					client->SetLuaDebugClient(true);
+					if (lua_interface)
+						lua_interface->UpdateDebugClients(client);
+					client->SimpleMessage(CHANNEL_COLOR_YELLOW, "You will now receive LUA error messages.");
+				}
+			}
 		}
-		else if (!stricmp(prop_name, CHAR_PROPERTY_GROUPSOLOAUTOLOCK))
-		{
-			int8 val = atoul(prop_value);
-			client->GetPlayer()->GetInfoStruct()->set_group_solo_autolock(val);
+		else if (!stricmp(prop_name, CHAR_PROPERTY_GROUPLOOTMETHOD)) {
+			matched = true;
+			if (!preload) {
+				int8 val = (int8)atoul(prop_value);
+				client->GetPlayer()->GetInfoStruct()->set_group_loot_method(val);
+			}
 		}
-		else if (!stricmp(prop_name, CHAR_PROPERTY_AUTOLOOTMETHOD))
-		{
-			int8 val = atoul(prop_value);
-			client->GetPlayer()->GetInfoStruct()->set_group_auto_loot_method(val);
+		else if (!stricmp(prop_name, CHAR_PROPERTY_GROUPLOOTITEMRARITY)) {
+			matched = true;
+			if (!preload) {
+				int8 val = (int8)atoul(prop_value);
+				client->GetPlayer()->GetInfoStruct()->set_group_loot_items_rarity(val);
+			}
 		}
-		else if (!stricmp(prop_name, CHAR_PROPERTY_GROUPLOCKMETHOD))
-		{
-			int8 val = atoul(prop_value);
-			client->GetPlayer()->GetInfoStruct()->set_group_lock_method(val);
+		else if (!stricmp(prop_name, CHAR_PROPERTY_GROUPAUTOSPLIT)) {
+			matched = true;
+			if (!preload) {
+				int8 val = (int8)atoul(prop_value);
+				client->GetPlayer()->GetInfoStruct()->set_group_auto_split(val);
+			}
 		}
-		else if (!stricmp(prop_name, CHAR_PROPERTY_ASSISTAUTOATTACK))
-		{
-			int8 val = atoul(prop_value);
-			client->GetPlayer()->GetInfoStruct()->set_assist_auto_attack(val);
+		else if (!stricmp(prop_name, CHAR_PROPERTY_GROUPDEFAULTYELL)) {
+			matched = true;
+			if (!preload) {
+				int8 val = (int8)atoul(prop_value);
+				client->GetPlayer()->GetInfoStruct()->set_group_default_yell(val);
+			}
 		}
-		else if (!stricmp(prop_name, CHAR_PROPERTY_SETACTIVEFOOD))
-		{
-			int32 val = atoul(prop_value);
-			client->GetPlayer()->SetActiveFoodUniqueID(val, false);
+		else if (!stricmp(prop_name, CHAR_PROPERTY_GROUPAUTOLOCK)) {
+			matched = true;
+			if (!preload) {
+				int8 val = (int8)atoul(prop_value);
+				client->GetPlayer()->GetInfoStruct()->set_group_autolock(val);
+			}
 		}
-		else if (!stricmp(prop_name, CHAR_PROPERTY_SETACTIVEDRINK))
-		{
-			int32 val = atoul(prop_value);
-			client->GetPlayer()->SetActiveDrinkUniqueID(val, false);
+		else if (!stricmp(prop_name, CHAR_PROPERTY_GROUPSOLOAUTOLOCK)) {
+			matched = true;
+			if (!preload) {
+				int8 val = (int8)atoul(prop_value);
+				client->GetPlayer()->GetInfoStruct()->set_group_solo_autolock(val);
+			}
+		}
+		else if (!stricmp(prop_name, CHAR_PROPERTY_AUTOLOOTMETHOD)) {
+			matched = true;
+			if (!preload) {
+				int8 val = (int8)atoul(prop_value);
+				client->GetPlayer()->GetInfoStruct()->set_group_auto_loot_method(val);
+			}
+		}
+		else if (!stricmp(prop_name, CHAR_PROPERTY_GROUPLOCKMETHOD)) {
+			matched = true;
+			if (!preload) {
+				int8 val = (int8)atoul(prop_value);
+				client->GetPlayer()->GetInfoStruct()->set_group_lock_method(val);
+			}
+		}
+		else if (!stricmp(prop_name, CHAR_PROPERTY_ASSISTAUTOATTACK)) {
+			matched = true;
+			if (!preload) {
+				int8 val = (int8)atoul(prop_value);
+				client->GetPlayer()->GetInfoStruct()->set_assist_auto_attack(val);
+			}
+		}
+		else if (!stricmp(prop_name, CHAR_PROPERTY_SETACTIVEFOOD)) {
+			matched = true;
+			if (!preload) {
+				int32 val = (int32)atoul(prop_value);
+				client->GetPlayer()->SetActiveFoodUniqueID(val, false);
+			}
+		}
+		else if (!stricmp(prop_name, CHAR_PROPERTY_SETACTIVEDRINK)) {
+			matched = true;
+			if (!preload) {
+				int32 val = (int32)atoul(prop_value);
+				client->GetPlayer()->SetActiveDrinkUniqueID(val, false);
+			}
+		}
+		else {
+			// Unknown property: only act during preload AND only if no stricmp matched
+			// (we're in the 'else', so matched == false by definition)
+			if (preload) {
+				client->GetPlayer()->RegisterProperty(std::string(prop_name));
+				client->GetPlayer()->SetProperty(std::string(prop_name), std::string(prop_value));
+			}
+			// When preload == false, we intentionally ignore unknown properties.
 		}
 	}
 

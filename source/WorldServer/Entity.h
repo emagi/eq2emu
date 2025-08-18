@@ -28,6 +28,8 @@
 #include <set>
 #include <mutex>
 #include <vector>
+#include <unordered_map>
+#include <optional>
 #include <boost/function.hpp>
 #include <boost/lambda/bind.hpp>
 
@@ -1110,6 +1112,9 @@ struct InfoStruct{
 	// maintained via their own mutex
 	SpellEffects	spell_effects[45];
 	MaintainedEffects maintained_effects[30];
+	// when PacketStruct is fixed for C++17 this should become a shared_mutex and handle read/write lock
+	std::mutex		classMutex;
+	std::unordered_map<std::string, std::string> props;
 private:
 	std::string		name_;
 	int8			class1_;
@@ -1328,8 +1333,6 @@ private:
 	int8			max_spell_reduction_override_;
 	
 	float			max_chase_distance_;
-	// when PacketStruct is fixed for C++17 this should become a shared_mutex and handle read/write lock
-	std::mutex		classMutex;
 };
 
 struct WardInfo {
@@ -1449,6 +1452,9 @@ public:
 	void DeleteSpellEffects(bool removeClient = false);
 	void RemoveSpells(bool unfriendlyOnly = false);
 	void MapInfoStruct();
+	void RegisterProperty(const std::string& name);
+	void SetProperty(const std::string& name, const std::string& value);
+	std::optional<std::string> GetProperty(const std::string& name) const;
 	virtual float GetDodgeChance();
 	virtual void AddMaintainedSpell(LuaSpell* spell);
 	virtual void AddSpellEffect(LuaSpell* spell, int32 override_expire_time = 0);
@@ -2205,6 +2211,8 @@ private:
 	map<string, boost::function<void(sint8)> > set_sint8_funcs;
 	
 	map<string, boost::function<void(std::string)> > set_string_funcs;
+	
+	mutable std::shared_mutex propertiesMutex;
 };
 
 #endif

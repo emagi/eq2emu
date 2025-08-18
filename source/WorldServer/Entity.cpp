@@ -32,6 +32,7 @@
 #include "Skills.h"
 #include "Rules/Rules.h"
 #include "LuaInterface.h"
+#include "WorldDatabase.h"
 
 extern World world;
 extern MasterItemList master_item_list;
@@ -40,6 +41,7 @@ extern MasterSkillList master_skill_list;
 extern RuleManager rule_manager;
 extern Classes classes;
 extern LuaInterface* lua_interface;
+extern WorldDatabase database;
 
 Entity::Entity(){
 	MapInfoStruct();	
@@ -614,6 +616,65 @@ void Entity::MapInfoStruct()
 	set_float_funcs["max_spell_reduction"] = l::bind(&InfoStruct::set_max_spell_reduction, &info_struct, l::_1);
 	set_int8_funcs["max_spell_reduction_override"] = l::bind(&InfoStruct::set_max_spell_reduction_override, &info_struct, l::_1);
 	set_float_funcs["max_chase_distance"] = l::bind(&InfoStruct::set_max_chase_distance, &info_struct, l::_1);
+}
+
+void Entity::RegisterProperty(const std::string& name) {
+	int32 charID = 0;
+	
+	if(IsPlayer())
+		charID = ((Player*)this)->GetCharacterID();
+	
+	{
+		std::shared_lock<std::shared_mutex> rlock(propertiesMutex);
+		if (set_string_funcs.find(name) != set_string_funcs.end() ||
+			get_string_funcs.find(name) != get_string_funcs.end())
+			return;
+	}
+	
+	{
+		std::unique_lock<std::shared_mutex> wlock(propertiesMutex);
+		if (set_string_funcs.find(name) != set_string_funcs.end() ||
+			get_string_funcs.find(name) != get_string_funcs.end()) {
+			return;
+		}
+
+		set_string_funcs.emplace(name, [this, name, database, charID](std::string v) {
+			{
+				std::lock_guard<std::mutex> lk(GetInfoStruct()->classMutex);
+				GetInfoStruct()->props[name] = v;
+			}
+			if(charID)
+				database.insertCharacterProperty(charID, const_cast<char*>(name.c_str()), const_cast<char*>(v.c_str()));
+		});
+
+		get_string_funcs.emplace(name, [this, name]() -> std::string {
+			std::lock_guard<std::mutex> lk(GetInfoStruct()->classMutex);
+			auto it = GetInfoStruct()->props.find(name);
+			return (it == GetInfoStruct()->props.end()) ? std::string{} : it->second;
+		});
+	}
+}
+
+void Entity::SetProperty(const std::string& name, const std::string& value) {
+	auto it = set_string_funcs.find(name);
+	if (it == set_string_funcs.end())
+		return;
+
+	int32 charID = 0;
+	
+	if(IsPlayer())
+		charID = ((Player*)this)->GetCharacterID();
+	
+	if(charID)
+		database.insertCharacterProperty(charID, const_cast<char*>(name.c_str()), const_cast<char*>(value.c_str()));
+	
+	return it->second(value);
+}
+
+std::optional<std::string> Entity::GetProperty(const std::string& name) const {
+	auto it = get_string_funcs.find(name);
+	if (it == get_string_funcs.end()) return std::nullopt;
+	return it->second();
 }
 
 bool Entity::HasMoved(bool include_heading){
@@ -3780,251 +3841,271 @@ void Entity::HaltMovement()
 
 std::string Entity::GetInfoStructString(std::string field)
 {
-		map<string, boost::function<std::string()>>::const_iterator itr = get_string_funcs.find(field);
-		if(itr != get_string_funcs.end())
-		{
-			auto func = (itr->second)();
-			return func;
-		}
+	std::shared_lock<std::shared_mutex> rlock(propertiesMutex);
+	map<string, boost::function<std::string()>>::const_iterator itr = get_string_funcs.find(field);
+	if(itr != get_string_funcs.end())
+	{
+		auto func = (itr->second)();
+		return func;
+	}
 	return std::string("");
 }
 
 int8 Entity::GetInfoStructInt8(std::string field)
 {
-		map<string, boost::function<int8()>>::const_iterator itr = get_int8_funcs.find(field);
-		if(itr != get_int8_funcs.end())
-		{
-			auto func = (itr->second)();
-			return func;
-		}
+	std::shared_lock<std::shared_mutex> rlock(propertiesMutex);
+	map<string, boost::function<int8()>>::const_iterator itr = get_int8_funcs.find(field);
+	if(itr != get_int8_funcs.end())
+	{
+		auto func = (itr->second)();
+		return func;
+	}
 	return 0;
 }
 
 int16 Entity::GetInfoStructInt16(std::string field)
 {
-		map<string, boost::function<int16()>>::const_iterator itr = get_int16_funcs.find(field);
-		if(itr != get_int16_funcs.end())
-		{
-			auto func = (itr->second)();
-			return func;
-		}
+	std::shared_lock<std::shared_mutex> rlock(propertiesMutex);
+	map<string, boost::function<int16()>>::const_iterator itr = get_int16_funcs.find(field);
+	if(itr != get_int16_funcs.end())
+	{
+		auto func = (itr->second)();
+		return func;
+	}
 	return 0;
 }
 
 int32 Entity::GetInfoStructInt32(std::string field)
 {
-		map<string, boost::function<int32()>>::const_iterator itr = get_int32_funcs.find(field);
-		if(itr != get_int32_funcs.end())
-		{
-			auto func = (itr->second)();
-			return func;
-		}
+	std::shared_lock<std::shared_mutex> rlock(propertiesMutex);
+	map<string, boost::function<int32()>>::const_iterator itr = get_int32_funcs.find(field);
+	if(itr != get_int32_funcs.end())
+	{
+		auto func = (itr->second)();
+		return func;
+	}
 	return 0;
 }
 
 int64 Entity::GetInfoStructInt64(std::string field)
 {
-		map<string, boost::function<int64()>>::const_iterator itr = get_int64_funcs.find(field);
-		if(itr != get_int64_funcs.end())
-		{
-			auto func = (itr->second)();
-			return func;
-		}
+	std::shared_lock<std::shared_mutex> rlock(propertiesMutex);
+	map<string, boost::function<int64()>>::const_iterator itr = get_int64_funcs.find(field);
+	if(itr != get_int64_funcs.end())
+	{
+		auto func = (itr->second)();
+		return func;
+	}
 	return 0;
 }
 
 sint8 Entity::GetInfoStructSInt8(std::string field)
 {
-		map<string, boost::function<sint8()>>::const_iterator itr = get_sint8_funcs.find(field);
-		if(itr != get_sint8_funcs.end())
-		{
-			auto func = (itr->second)();
-			return func;
-		}
+	std::shared_lock<std::shared_mutex> rlock(propertiesMutex);
+	map<string, boost::function<sint8()>>::const_iterator itr = get_sint8_funcs.find(field);
+	if(itr != get_sint8_funcs.end())
+	{
+		auto func = (itr->second)();
+		return func;
+	}
 	return 0;
 }
 
 sint16 Entity::GetInfoStructSInt16(std::string field)
 {
-		map<string, boost::function<sint16()>>::const_iterator itr = get_sint16_funcs.find(field);
-		if(itr != get_sint16_funcs.end())
-		{
-			auto func = (itr->second)();
-			return func;
-		}
+	std::shared_lock<std::shared_mutex> rlock(propertiesMutex);
+	map<string, boost::function<sint16()>>::const_iterator itr = get_sint16_funcs.find(field);
+	if(itr != get_sint16_funcs.end())
+	{
+		auto func = (itr->second)();
+		return func;
+	}
 	return 0;
 }
 
 sint32 Entity::GetInfoStructSInt32(std::string field)
 {
-		map<string, boost::function<sint32()>>::const_iterator itr = get_sint32_funcs.find(field);
-		if(itr != get_sint32_funcs.end())
-		{
-			auto func = (itr->second)();
-			return func;
-		}
+	std::shared_lock<std::shared_mutex> rlock(propertiesMutex);
+	map<string, boost::function<sint32()>>::const_iterator itr = get_sint32_funcs.find(field);
+	if(itr != get_sint32_funcs.end())
+	{
+		auto func = (itr->second)();
+		return func;
+	}
 	return 0;
 }
 
 sint64 Entity::GetInfoStructSInt64(std::string field)
 {
-		map<string, boost::function<sint64()>>::const_iterator itr = get_sint64_funcs.find(field);
-		if(itr != get_sint64_funcs.end())
-		{
-			auto func = (itr->second)();
-			return func;
-		}
+	std::shared_lock<std::shared_mutex> rlock(propertiesMutex);
+	map<string, boost::function<sint64()>>::const_iterator itr = get_sint64_funcs.find(field);
+	if(itr != get_sint64_funcs.end())
+	{
+		auto func = (itr->second)();
+		return func;
+	}
 	return 0;
 }
 
 float Entity::GetInfoStructFloat(std::string field)
 {
-		map<string, boost::function<float()>>::const_iterator itr = get_float_funcs.find(field);
-		if(itr != get_float_funcs.end())
-		{
-			auto func = (itr->second)();
-			return func;
-		}
+	std::shared_lock<std::shared_mutex> rlock(propertiesMutex);
+	map<string, boost::function<float()>>::const_iterator itr = get_float_funcs.find(field);
+	if(itr != get_float_funcs.end())
+	{
+		auto func = (itr->second)();
+		return func;
+	}
 	return 0.0f;
 }
 
 int64 Entity::GetInfoStructUInt(std::string field)
 {
-		map<string, boost::function<int8()>>::const_iterator itr = get_int8_funcs.find(field);
-		if(itr != get_int8_funcs.end())
-		{
-			auto func = (itr->second)();
-			return func;
-		}
-		map<string, boost::function<int16()>>::const_iterator itr2 = get_int16_funcs.find(field);
-		if(itr2 != get_int16_funcs.end())
-		{
-			auto func = (itr2->second)();
-			return func;
-		}
-		map<string, boost::function<int32()>>::const_iterator itr3 = get_int32_funcs.find(field);
-		if(itr3 != get_int32_funcs.end())
-		{
-			auto func = (itr3->second)();
-			return func;
-		}
-		map<string, boost::function<int64()>>::const_iterator itr4 = get_int64_funcs.find(field);
-		if(itr4 != get_int64_funcs.end())
-		{
-			auto func = (itr4->second)();
-			return func;
-		}
+	std::shared_lock<std::shared_mutex> rlock(propertiesMutex);
+	map<string, boost::function<int8()>>::const_iterator itr = get_int8_funcs.find(field);
+	if(itr != get_int8_funcs.end())
+	{
+		auto func = (itr->second)();
+		return func;
+	}
+	map<string, boost::function<int16()>>::const_iterator itr2 = get_int16_funcs.find(field);
+	if(itr2 != get_int16_funcs.end())
+	{
+		auto func = (itr2->second)();
+		return func;
+	}
+	map<string, boost::function<int32()>>::const_iterator itr3 = get_int32_funcs.find(field);
+	if(itr3 != get_int32_funcs.end())
+	{
+		auto func = (itr3->second)();
+		return func;
+	}
+	map<string, boost::function<int64()>>::const_iterator itr4 = get_int64_funcs.find(field);
+	if(itr4 != get_int64_funcs.end())
+	{
+		auto func = (itr4->second)();
+		return func;
+	}
 	return 0;
 }
 
 sint64 Entity::GetInfoStructSInt(std::string field)
 {
-		map<string, boost::function<sint8()>>::const_iterator itr = get_sint8_funcs.find(field);
-		if(itr != get_sint8_funcs.end())
-		{
-			auto func = (itr->second)();
-			return func;
-		}
-		map<string, boost::function<sint16()>>::const_iterator itr2 = get_sint16_funcs.find(field);
-		if(itr2 != get_sint16_funcs.end())
-		{
-			auto func = (itr2->second)();
-			return func;
-		}
-		map<string, boost::function<sint32()>>::const_iterator itr3 = get_sint32_funcs.find(field);
-		if(itr3 != get_sint32_funcs.end())
-		{
-			auto func = (itr3->second)();
-			return func;
-		}
-		map<string, boost::function<sint64()>>::const_iterator itr4 = get_sint64_funcs.find(field);
-		if(itr4 != get_sint64_funcs.end())
-		{
-			auto func = (itr4->second)();
-			return func;
-		}
+	std::shared_lock<std::shared_mutex> rlock(propertiesMutex);
+	map<string, boost::function<sint8()>>::const_iterator itr = get_sint8_funcs.find(field);
+	if(itr != get_sint8_funcs.end())
+	{
+		auto func = (itr->second)();
+		return func;
+	}
+	map<string, boost::function<sint16()>>::const_iterator itr2 = get_sint16_funcs.find(field);
+	if(itr2 != get_sint16_funcs.end())
+	{
+		auto func = (itr2->second)();
+		return func;
+	}
+	map<string, boost::function<sint32()>>::const_iterator itr3 = get_sint32_funcs.find(field);
+	if(itr3 != get_sint32_funcs.end())
+	{
+		auto func = (itr3->second)();
+		return func;
+	}
+	map<string, boost::function<sint64()>>::const_iterator itr4 = get_sint64_funcs.find(field);
+	if(itr4 != get_sint64_funcs.end())
+	{
+		auto func = (itr4->second)();
+		return func;
+	}
 	return 0;
 }
 
 
 bool Entity::SetInfoStructString(std::string field, std::string value)
 {
-		map<string, boost::function<void(std::string)>>::const_iterator itr = set_string_funcs.find(field);
-		if(itr != set_string_funcs.end())
-		{
-			(itr->second)(value);
-			return true;
-		}
+	std::shared_lock<std::shared_mutex> rlock(propertiesMutex);
+	map<string, boost::function<void(std::string)>>::const_iterator itr = set_string_funcs.find(field);
+	if(itr != set_string_funcs.end())
+	{
+		(itr->second)(value);
+		return true;
+	}
+	else {
+		RegisterProperty(field);
+		SetProperty(field, value);
+	}
 	return false;
 }
 
 
 bool Entity::SetInfoStructUInt(std::string field, int64 value)
 {
-		map<string, boost::function<void(int8)>>::const_iterator itr = set_int8_funcs.find(field);
-		if(itr != set_int8_funcs.end())
-		{
-			(itr->second)((int8)value);
-			return true;
-		}
-		map<string, boost::function<void(int16)>>::const_iterator itr2 = set_int16_funcs.find(field);
-		if(itr2 != set_int16_funcs.end())
-		{
-			(itr2->second)((int16)value);
-			return true;
-		}
-		map<string, boost::function<void(int32)>>::const_iterator itr3 = set_int32_funcs.find(field);
-		if(itr3 != set_int32_funcs.end())
-		{
-			(itr3->second)((int32)value);
-			return true;
-		}
-		map<string, boost::function<void(int64)>>::const_iterator itr4 = set_int64_funcs.find(field);
-		if(itr4 != set_int64_funcs.end())
-		{
-			(itr4->second)(value);
-			return true;
-		}
+	std::shared_lock<std::shared_mutex> rlock(propertiesMutex);
+	map<string, boost::function<void(int8)>>::const_iterator itr = set_int8_funcs.find(field);
+	if(itr != set_int8_funcs.end())
+	{
+		(itr->second)((int8)value);
+		return true;
+	}
+	map<string, boost::function<void(int16)>>::const_iterator itr2 = set_int16_funcs.find(field);
+	if(itr2 != set_int16_funcs.end())
+	{
+		(itr2->second)((int16)value);
+		return true;
+	}
+	map<string, boost::function<void(int32)>>::const_iterator itr3 = set_int32_funcs.find(field);
+	if(itr3 != set_int32_funcs.end())
+	{
+		(itr3->second)((int32)value);
+		return true;
+	}
+	map<string, boost::function<void(int64)>>::const_iterator itr4 = set_int64_funcs.find(field);
+	if(itr4 != set_int64_funcs.end())
+	{
+		(itr4->second)(value);
+		return true;
+	}
 	return false;
 }
 
 bool Entity::SetInfoStructSInt(std::string field, sint64 value)
 {
-		map<string, boost::function<void(sint8)>>::const_iterator itr = set_sint8_funcs.find(field);
-		if(itr != set_sint8_funcs.end())
-		{
-			(itr->second)((sint8)value);
-			return true;
-		}
-		map<string, boost::function<void(sint16)>>::const_iterator itr2 = set_sint16_funcs.find(field);
-		if(itr2 != set_sint16_funcs.end())
-		{
-			(itr2->second)((sint16)value);
-			return true;
-		}
-		map<string, boost::function<void(sint32)>>::const_iterator itr3 = set_sint32_funcs.find(field);
-		if(itr3 != set_sint32_funcs.end())
-		{
-			(itr3->second)((sint32)value);
-			return true;
-		}
-		map<string, boost::function<void(sint64)>>::const_iterator itr4 = set_sint64_funcs.find(field);
-		if(itr4 != set_sint64_funcs.end())
-		{
-			(itr4->second)(value);
-			return true;
-		}
+	std::shared_lock<std::shared_mutex> rlock(propertiesMutex);
+	map<string, boost::function<void(sint8)>>::const_iterator itr = set_sint8_funcs.find(field);
+	if(itr != set_sint8_funcs.end())
+	{
+		(itr->second)((sint8)value);
+		return true;
+	}
+	map<string, boost::function<void(sint16)>>::const_iterator itr2 = set_sint16_funcs.find(field);
+	if(itr2 != set_sint16_funcs.end())
+	{
+		(itr2->second)((sint16)value);
+		return true;
+	}
+	map<string, boost::function<void(sint32)>>::const_iterator itr3 = set_sint32_funcs.find(field);
+	if(itr3 != set_sint32_funcs.end())
+	{
+		(itr3->second)((sint32)value);
+		return true;
+	}
+	map<string, boost::function<void(sint64)>>::const_iterator itr4 = set_sint64_funcs.find(field);
+	if(itr4 != set_sint64_funcs.end())
+	{
+		(itr4->second)(value);
+		return true;
+	}
 	return false;
 }
 
 bool Entity::SetInfoStructFloat(std::string field, float value)
 {
-		map<string, boost::function<void(float)>>::const_iterator itr = set_float_funcs.find(field);
-		if(itr != set_float_funcs.end())
-		{
-			(itr->second)(value);
-			return true;
-		}
+	std::shared_lock<std::shared_mutex> rlock(propertiesMutex);
+	map<string, boost::function<void(float)>>::const_iterator itr = set_float_funcs.find(field);
+	if(itr != set_float_funcs.end())
+	{
+		(itr->second)(value);
+		return true;
+	}
 	return false;
 }
 
