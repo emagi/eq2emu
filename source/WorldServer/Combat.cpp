@@ -1555,7 +1555,7 @@ void NPC::ProcessCombat() {
 
 void Player::ProcessCombat() {
 	// if not in combat OR casting a spell OR dazed  OR feared return out
-	if (!EngagedInCombat() || IsCasting() || IsDazed() || IsFeared())
+	if (!GetZone() || !EngagedInCombat() || IsCasting() || IsDazed() || IsFeared())
 		return;
 
 	//If no target delete combat_target and return out
