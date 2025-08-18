@@ -4022,18 +4022,19 @@ sint64 Entity::GetInfoStructSInt(std::string field)
 
 bool Entity::SetInfoStructString(std::string field, std::string value)
 {
-	std::shared_lock<std::shared_mutex> rlock(propertiesMutex);
-	map<string, boost::function<void(std::string)>>::const_iterator itr = set_string_funcs.find(field);
-	if(itr != set_string_funcs.end())
 	{
-		(itr->second)(value);
-		return true;
+		std::shared_lock<std::shared_mutex> rlock(propertiesMutex);
+		map<string, boost::function<void(std::string)>>::const_iterator itr = set_string_funcs.find(field);
+		if(itr != set_string_funcs.end())
+		{
+			(itr->second)(value);
+			return true;
+		}
 	}
-	else {
-		RegisterProperty(field);
-		SetProperty(field, value);
-	}
-	return false;
+	
+	RegisterProperty(field);
+	SetProperty(field, value);
+	return true;
 }
 
 
