@@ -1838,6 +1838,7 @@ void LuaInterface::RegisterFunctions(lua_State* state) {
 	lua_register(state,"InSameRaid", EQ2Emu_lua_InSameRaid);
 	lua_register(state,"GetRaid", EQ2Emu_lua_GetRaid);
 	lua_register(state,"AdjustHatePosition", EQ2Emu_lua_AdjustHatePosition);
+	lua_register(state,"RemoveCharacterProperty", EQ2Emu_lua_RemoveCharacterProperty);
 }
 
 void LuaInterface::LogError(const char* error, ...)  {

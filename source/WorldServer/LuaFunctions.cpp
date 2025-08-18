@@ -14893,3 +14893,24 @@ int EQ2Emu_lua_AdjustHatePosition(lua_State* state) {
 	lua_interface->ResetFunctionStack(state);
 	return 0;
 }
+
+
+int EQ2Emu_lua_RemoveCharacterProperty(lua_State* state) {
+	Spawn* player = lua_interface->GetSpawn(state);
+	string propname = lua_interface->GetStringValue(state, 2);
+	lua_interface->ResetFunctionStack(state);
+	
+	if(!player || !player->IsPlayer()) {
+		lua_interface->LogError("%s: LUA RemoveCharacterProperty command error: player is not valid", lua_interface->GetScriptName(state));
+		return 0;
+	}
+	
+	if(((Player*)player)->GetCharacterID() == 0) {
+		lua_interface->LogError("%s: LUA RemoveCharacterProperty player has no character id.", lua_interface->GetScriptName(state));
+		return 0;
+	}
+	
+	Query query;
+	query.AddQueryAsync(((Player*)player)->GetCharacterID(), &database, Q_DELETE, "delete from character_properties where charid = %u and propname='%s'", ((Player*)player)->GetCharacterID(), propname.c_str());
+	return 0;
+}
