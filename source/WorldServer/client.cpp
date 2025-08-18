@@ -5745,6 +5745,21 @@ bool Client::ChangeLevel(int16 old_level, int16 new_level, int32 xp_earned) {
 
 	if (GetPlayer()->GetHP() < GetPlayer()->GetTotalHP() || GetPlayer()->GetPower() < GetPlayer()->GetTotalPower())
 		GetPlayer()->GetZone()->AddDamagedSpawn(GetPlayer());
+		if(playerScript || playerZoneScript) {
+		std::vector<LuaArg> args = {
+			LuaArg(GetPlayer()->GetZone()), 
+			LuaArg(GetPlayer()), 
+			LuaArg(old_level), 
+			LuaArg(new_level), 
+			LuaArg(xp_earned)
+		};
+		if(playerScript && lua_interface->RunPlayerScriptWithReturn(playerScript, "on_level_up_complete", args, &returnValue) && returnValue == -1) {
+			return true;
+		}
+		if(playerZoneScript && lua_interface->RunPlayerScriptWithReturn(playerZoneScript, "on_level_up_complete", args, &returnValue) && returnValue == -1) {
+			return true;
+		}
+	}
 	
 	return true;
 }
