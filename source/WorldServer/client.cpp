@@ -605,7 +605,7 @@ void Client::HandlePlayerRevive(int32 point_id)
 	player->SetResurrecting(true);
 	player->SetHP(player->GetTotalHP());
 	player->SetPower(player->GetTotalPower());
-
+	
 	//revive at zone safe coords
 	if (!revive_point)
 	{
@@ -739,7 +739,7 @@ void Client::SendControlGhost(int32 send_id, int8 unknown2) {
 void Client::BeginPreCharInfo() {
 	if (!IsReadyForSpawns()) {
 		if (GetPlayer()->GetMap()) {
-			if(!GetPlayer()->GetLocation()) { // find the appropriate grid id
+			if(!firstlogin) { // find the appropriate grid id
 				auto loc = glm::vec3(GetPlayer()->GetX(), GetPlayer()->GetZ(), GetPlayer()->GetY());
 				uint32 GridID = 0;
 				float new_z = GetPlayer()->FindBestZ(loc, nullptr, &GridID);
@@ -5745,7 +5745,8 @@ bool Client::ChangeLevel(int16 old_level, int16 new_level, int32 xp_earned) {
 
 	if (GetPlayer()->GetHP() < GetPlayer()->GetTotalHP() || GetPlayer()->GetPower() < GetPlayer()->GetTotalPower())
 		GetPlayer()->GetZone()->AddDamagedSpawn(GetPlayer());
-		if(playerScript || playerZoneScript) {
+	
+	if(playerScript || playerZoneScript) {
 		std::vector<LuaArg> args = {
 			LuaArg(GetPlayer()->GetZone()), 
 			LuaArg(GetPlayer()), 
