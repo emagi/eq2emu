@@ -516,7 +516,7 @@ vector<Item*>* BrokerManager::GetItems(
 		for (auto const& kv : char_pair.second) {
 			auto const& itm = kv.second;
 			
-			LogWrite(PLAYER__ERROR, 5, "Broker",
+			LogWrite(PLAYER__DEBUG, 5, "Broker",
 			  "--GetItems: %u (selling: %u), allowinv: %u",
 			  itm.unique_id, itm.for_sale, allowInv
 			);
@@ -525,7 +525,7 @@ vector<Item*>* BrokerManager::GetItems(
 			Item* def = master_item_list.GetItem(itm.item_id);
 			if (!def) continue;
 			
-			LogWrite(PLAYER__ERROR, 5, "Broker",
+			LogWrite(PLAYER__DEBUG, 5, "Broker",
 			  "--GetItems#1: %u (selling: %u), allowinv: %u",
 			  itm.unique_id, itm.for_sale, allowInv
 			);
@@ -535,7 +535,7 @@ vector<Item*>* BrokerManager::GetItems(
 			if (ltype!=ITEM_BROKER_SLOT_ANY && !master_item_list.ShouldAddItemBrokerSlot(def, ltype)) continue;
 			if (btype!=0xFFFFFFFF && !master_item_list.ShouldAddItemBrokerStat(def, btype)) continue;
 			
-			LogWrite(PLAYER__ERROR, 5, "Broker",
+			LogWrite(PLAYER__DEBUG, 5, "Broker",
 			  "--GetItems#2: %u (cost_copper: %u), seller: %s",
 			  itm.unique_id, itm.cost_copper, seller.c_str()
 			);
@@ -547,7 +547,7 @@ vector<Item*>* BrokerManager::GetItems(
 			if(maxtier > 0 && def->details.tier > maxtier)
 				continue;*/
 			
-			LogWrite(PLAYER__ERROR, 5, "Broker",
+			LogWrite(PLAYER__DEBUG, 5, "Broker",
 			  "--GetItems#3: %u (selling: %u), allowinv: %u",
 			  itm.unique_id, itm.for_sale, allowInv
 			);
@@ -571,7 +571,7 @@ vector<Item*>* BrokerManager::GetItems(
 					continue;
 			}
 			
-			LogWrite(PLAYER__ERROR, 5, "Broker",
+			LogWrite(PLAYER__DEBUG, 5, "Broker",
 			  "--GetItemsPass: %u (selling: %u), allowinv: %u",
 			  itm.unique_id, itm.for_sale, allowInv
 			);
