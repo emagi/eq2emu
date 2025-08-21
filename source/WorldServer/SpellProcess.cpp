@@ -460,38 +460,41 @@ bool SpellProcess::DeleteCasterSpell(LuaSpell* spell, string reason, bool removi
 			return target_valid;
 		}
 		if (!zone_shutting_down && spell->caster) { // spell->caster ptr cannot be trusted during zone shutdown
-			if(spell->caster->GetThreatTransfer() && spell->caster->GetThreatTransfer()->Spell == spell) {
-				spell->caster->SetThreatTransfer(nullptr);
-			}
-			if (spell->spell && spell->spell->GetSpellData()->cast_type == SPELL_CAST_TYPE_TOGGLE){
-				
-				int8 actual_concentration = spell->spell->GetSpellData()->req_concentration;
+			if(spell->caster) {
+				if(spell->caster->GetThreatTransfer() && spell->caster->GetThreatTransfer()->Spell == spell) {
+					spell->caster->SetThreatTransfer(nullptr);
+				}
+				if (spell->spell && spell->spell->GetSpellData()->cast_type == SPELL_CAST_TYPE_TOGGLE){
+					
+					int8 actual_concentration = spell->spell->GetSpellData()->req_concentration;
 
-				if (actual_concentration > 0)
-				{
-					int8 curConcentration = spell->caster->GetInfoStruct()->get_cur_concentration();
-					if(curConcentration >= actual_concentration)
+					if (actual_concentration > 0)
 					{
-						spell->caster->GetInfoStruct()->set_cur_concentration(curConcentration - actual_concentration);
-						if (spell->caster->IsPlayer()&& spell->caster->GetZone())
-							spell->caster->GetZone()->TriggerCharSheetTimer();
+						int8 curConcentration = spell->caster->GetInfoStruct()->get_cur_concentration();
+						if(curConcentration >= actual_concentration)
+						{
+							spell->caster->GetInfoStruct()->set_cur_concentration(curConcentration - actual_concentration);
+							if (spell->caster->IsPlayer()&& spell->caster->GetZone())
+								spell->caster->GetZone()->TriggerCharSheetTimer();
+						}
+					}
+					if(!spell->spell->GetSpellData()->duration_until_cancel)
+					{
+						CheckRecast(spell->spell, spell->caster);
+						if (spell->caster && spell->caster->IsPlayer())
+							SendSpellBookUpdate(((Player*)spell->caster)->GetClient());
 					}
 				}
-				if(!spell->spell->GetSpellData()->duration_until_cancel)
-				{
-					CheckRecast(spell->spell, spell->caster);
-					if (spell->caster && spell->caster->IsPlayer())
-						SendSpellBookUpdate(((Player*)spell->caster)->GetClient());
+				if(spell->spell && IsReady(spell->spell, spell->caster) && spell->caster->IsPlayer()) {
+					((Player*)spell->caster)->UnlockSpell(spell->spell);
+					SendSpellBookUpdate(((Player*)spell->caster)->GetClient());
 				}
-			}
-			if(spell->spell && IsReady(spell->spell, spell->caster) && spell->caster->IsPlayer()) {
-				((Player*)spell->caster)->UnlockSpell(spell->spell);
-				SendSpellBookUpdate(((Player*)spell->caster)->GetClient());
+			
+				spell->caster->RemoveProc(0, spell);
+				spell->caster->RemoveMaintainedSpell(spell);
+				CheckRemoveTargetFromSpell(spell, removing_all_spells, removing_all_spells);
 			}
 			
-			spell->caster->RemoveProc(0, spell);
-			spell->caster->RemoveMaintainedSpell(spell);
-			CheckRemoveTargetFromSpell(spell, removing_all_spells, removing_all_spells);
 			ZoneServer* zone = spell->zone;
 			if(zone) {
 			LogWrite(SPELL__DEBUG, 0, "Spell", "SpellProcess::DeleteCasterSpell RemoveTargets Spell: %s.", 
