@@ -153,7 +153,6 @@ int main(int argc, char** argv) {
 	net.WelcomeHeader();
 
 	LogWrite(INIT__INFO, 0, "Init", "Starting EQ2Emulator WorldServer...");
-	//int32 server_startup = time(NULL);
 
 	//remove this when all database calls are using the new database class
 	if (!database.Init()) {
@@ -276,12 +275,8 @@ int main(int argc, char** argv) {
 		#endif
 #endif
 	}
-
-	// JA temp logger
-	LogWrite(MISC__TODO, 0, "Reformat", "JA: This is as far as I got reformatting the console logs.");
-
+	
 	if (!threadedLoad) {
-		// JA: Load all Item info
 		LogWrite(ITEM__INFO, 0, "Items", "Loading Items...");
 		database.LoadItemList();
 		
@@ -290,22 +285,15 @@ int main(int argc, char** argv) {
 
 		LogWrite(SPELL__INFO, 0, "Spells", "Loading Spell Errors...");
 		database.LoadSpellErrors();
-
-		// Jabantiz: Load traits
+		
 		LogWrite(WORLD__INFO, 0, "Traits", "Loading Traits...");
 		database.LoadTraits();
 		
-		// JA: Load all Quest info
 		LogWrite(QUEST__INFO, 0, "Quests", "Loading Quests...");
 		database.LoadQuests();
 		
 		LogWrite(COLLECTION__INFO, 0, "Collect", "Loading Collections...");
 		database.LoadCollections();
-		
-		LogWrite(MISC__TODO, 1, "TODO", "TODO loading achievements\n\t(%s, function: %s, line #: %i)", __FILE__, __FUNCTION__, __LINE__);
-		//LogWrite(ACHIEVEMENT__INFO, 0, "Achievements", "Loading Achievements...");
-		//database.LoadAchievements();
-		//master_achievement_list.CreateMasterAchievementListPacket();
 		
 		LogWrite(MERCHANT__INFO, 0, "Merchants", "Loading Merchants...");
 		database.LoadMerchantInformation();
@@ -360,7 +348,7 @@ int main(int argc, char** argv) {
 	
 	if (threadedLoad) {
 		LogWrite(WORLD__INFO, 0, "World", "Waiting for load threads to finish.");
-		while (!world.items_loaded || !world.spells_loaded /*|| !world.achievments_loaded*/)
+		while (!world.items_loaded || !world.spells_loaded)
 			Sleep(10);
 		LogWrite(WORLD__INFO, 0, "World", "Load threads finished.");
 	}

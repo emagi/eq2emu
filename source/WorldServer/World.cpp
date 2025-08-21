@@ -1834,7 +1834,6 @@ void World::LoadPlayerScripts() {
 			std::string baseName = entry.path().stem().string();  // Strips extension
 			const std::string filename = entry.path().string();
 			int32 zoneID = database.GetZoneID(baseName.c_str());
-			std::cout << "  - Load File " << filename << " with base name: " << baseName << "\n";
 			if(zoneID) {
 				AddPlayerScript(zoneID, filename.c_str());
 			}
