@@ -2465,8 +2465,7 @@ int EQ2Emu_lua_AddSpellBonus(lua_State* state) {
 						lua_interface->LogError("%s: Error applying spell bonus on non entity.", lua_interface->GetScriptName(state));
 				}
 			}
-			if (!(luaspell->effect_bitmask & EFFECT_FLAG_SPELLBONUS))
-				luaspell->effect_bitmask += EFFECT_FLAG_SPELLBONUS;
+			luaspell->effect_flags.add(EFFECT_IDX_SPELLBONUS);
 		}
 		else if (spawn && spawn->IsEntity()) {
 			((Entity*)spawn)->AddSpellBonus(luaspell, type, value, class_req, race_req, faction_req);
@@ -2540,8 +2539,7 @@ int EQ2Emu_lua_AddSpawnSpellBonus(lua_State* state) {
 
 
 	((Entity*)spawn)->AddSpellBonus(luaspell, type, value, class_req, race_req, faction_req);
-	if (!(luaspell->effect_bitmask & EFFECT_FLAG_SPELLBONUS))
-		luaspell->effect_bitmask += EFFECT_FLAG_SPELLBONUS;
+	luaspell->effect_flags.add(EFFECT_IDX_SPELLBONUS);
 	if (spawn->IsPlayer())
 		((Player*)spawn)->SetCharSheetChanged(true);
 
@@ -2640,13 +2638,11 @@ int EQ2Emu_lua_AddSkillBonus(lua_State* state) {
 							if (packet)
 								client->QueuePacket(packet);
 						}
-						if (!(luaspell->effect_bitmask & EFFECT_FLAG_SKILLBONUS))
-							luaspell->effect_bitmask += EFFECT_FLAG_SKILLBONUS;
+						luaspell->effect_flags.add(EFFECT_IDX_SKILLBONUS);
 					}
 					else if (target->IsNPC()) {
 						((NPC*)target)->AddSkillBonus(spell_id, skill_id, value);
-						if (!(luaspell->effect_bitmask & EFFECT_FLAG_SKILLBONUS))
-							luaspell->effect_bitmask += EFFECT_FLAG_SKILLBONUS;
+						luaspell->effect_flags.add(EFFECT_IDX_SKILLBONUS);
 					}
 					else
 						LogWrite(LUA__ERROR, 0, "LUA", "Error applying bonus buff on '%s'.  Not a NPC or player.", target->GetName());
@@ -2746,77 +2742,65 @@ int EQ2Emu_lua_AddControlEffect(lua_State* state) {
 			if (target && target->IsEntity()) {
 				if (type == CONTROL_EFFECT_TYPE_MEZ) {
 					((Entity*)target)->AddMezSpell(luaspell);
-					if (!(luaspell->effect_bitmask & EFFECT_FLAG_MEZ))
-						luaspell->effect_bitmask += EFFECT_FLAG_MEZ;
+					luaspell->effect_flags.add(EFFECT_IDX_MEZ);
 					if (target->IsNPC())
 						((NPC*)target)->Brain()->AddHate(luaspell->caster, 5);
 				}
 				else if (type == CONTROL_EFFECT_TYPE_STIFLE) {
 					((Entity*)target)->AddStifleSpell(luaspell);
-					if (!(luaspell->effect_bitmask & EFFECT_FLAG_STIFLE))
-						luaspell->effect_bitmask += EFFECT_FLAG_STIFLE;
+					luaspell->effect_flags.add(EFFECT_IDX_STIFLE);
 					if (target->IsNPC())
 						((NPC*)target)->Brain()->AddHate(luaspell->caster, 5);
 				}
 				else if (type == CONTROL_EFFECT_TYPE_DAZE) {
 					((Entity*)target)->AddDazeSpell(luaspell);
-					if (!(luaspell->effect_bitmask & EFFECT_FLAG_DAZE))
-						luaspell->effect_bitmask += EFFECT_FLAG_DAZE;
+					luaspell->effect_flags.add(EFFECT_IDX_DAZE);
 					if (target->IsNPC())
 						((NPC*)target)->Brain()->AddHate(luaspell->caster, 5);
 				}
 				else if (type == CONTROL_EFFECT_TYPE_STUN) {
-					if (!(luaspell->effect_bitmask & EFFECT_FLAG_STUN))
-						luaspell->effect_bitmask += EFFECT_FLAG_STUN;
+					luaspell->effect_flags.add(EFFECT_IDX_STUN);
 					((Entity*)target)->AddStunSpell(luaspell);
 					if (target->IsNPC())
 						((NPC*)target)->Brain()->AddHate(luaspell->caster, 5);
 				}
 				else if (type == CONTROL_EFFECT_TYPE_ROOT) {
-					if (!(luaspell->effect_bitmask & EFFECT_FLAG_ROOT))
-						luaspell->effect_bitmask += EFFECT_FLAG_ROOT;
 					((Entity*)target)->AddRootSpell(luaspell);
+					luaspell->effect_flags.add(EFFECT_IDX_ROOT);
 					if (target->IsNPC())
 						((NPC*)target)->Brain()->AddHate(luaspell->caster, 5);
 				}
 				else if (type == CONTROL_EFFECT_TYPE_FEAR) {
-					if (!(luaspell->effect_bitmask & EFFECT_FLAG_FEAR))
-						luaspell->effect_bitmask += EFFECT_FLAG_FEAR;
 					((Entity*)target)->AddFearSpell(luaspell);
+					luaspell->effect_flags.add(EFFECT_IDX_FEAR);
 					if (target->IsNPC())
 						((NPC*)target)->Brain()->AddHate(luaspell->caster, 5);
 				}
 				else if (type == CONTROL_EFFECT_TYPE_WALKUNDERWATER) {
 					((Entity*)target)->AddWaterwalkSpell(luaspell);
-					if (!(luaspell->effect_bitmask & EFFECT_FLAG_WATERWALK))
-						luaspell->effect_bitmask += EFFECT_FLAG_WATERWALK;
+					luaspell->effect_flags.add(EFFECT_IDX_WATERWALK);
 				}
 				else if (type == CONTROL_EFFECT_TYPE_JUMPUNDERWATER) {
 					((Entity*)target)->AddWaterjumpSpell(luaspell);
-					if (!(luaspell->effect_bitmask & EFFECT_FLAG_WATERJUMP))
-						luaspell->effect_bitmask += EFFECT_FLAG_WATERJUMP;
+					luaspell->effect_flags.add(EFFECT_IDX_WATERJUMP);
 				}
 				else if (type == CONTROL_EFFECT_TYPE_SNARE) {
 					((Entity*)target)->AddSnareSpell(luaspell);
-					if (!(luaspell->effect_bitmask & EFFECT_FLAG_SNARE))
-						luaspell->effect_bitmask += EFFECT_FLAG_SNARE;
+					luaspell->effect_flags.add(EFFECT_IDX_SNARE);
 					if (target->IsNPC())
 						((NPC*)target)->Brain()->AddHate(luaspell->caster, 5);
 				}
 				else if (type == CONTROL_EFFECT_TYPE_FLIGHT) {
 					((Entity*)target)->AddFlightSpell(luaspell);
-					if (!(luaspell->effect_bitmask & EFFECT_FLAG_FLIGHT))
-						luaspell->effect_bitmask += EFFECT_FLAG_FLIGHT;
+					luaspell->effect_flags.add(EFFECT_IDX_FLIGHT);
 				}
 				else if (type == CONTROL_EFFECT_TYPE_GLIDE) {
 					((Entity*)target)->AddGlideSpell(luaspell);
-					if (!(luaspell->effect_bitmask & EFFECT_FLAG_GLIDE))
-						luaspell->effect_bitmask += EFFECT_FLAG_GLIDE;
+					luaspell->effect_flags.add(EFFECT_IDX_GLIDE);
 				}
 				else if (type == CONTROL_EFFECT_TYPE_SAFEFALL) {
 					((Entity*)target)->AddSafefallSpell(luaspell);
-					if (!(luaspell->effect_bitmask & EFFECT_FLAG_SAFEFALL))
-						luaspell->effect_bitmask += EFFECT_FLAG_SAFEFALL;
+					luaspell->effect_flags.add(EFFECT_IDX_SAFEFALL);
 				}
 				else
 					lua_interface->LogError("%s: Unhandled control effect type of %u.", lua_interface->GetScriptName(state), type);
@@ -2828,63 +2812,51 @@ int EQ2Emu_lua_AddControlEffect(lua_State* state) {
 	else if (only_add_spawn && spawn && spawn->IsEntity()) {
 		if (type == CONTROL_EFFECT_TYPE_MEZ) {
 			((Entity*)spawn)->AddMezSpell(luaspell);
-			if (!(luaspell->effect_bitmask & EFFECT_FLAG_MEZ))
-				luaspell->effect_bitmask += EFFECT_FLAG_MEZ;
+			luaspell->effect_flags.add(EFFECT_IDX_MEZ);
 		}
 		else if (type == CONTROL_EFFECT_TYPE_STIFLE) {
 			((Entity*)spawn)->AddStifleSpell(luaspell);
-			if (!(luaspell->effect_bitmask & EFFECT_FLAG_STIFLE))
-				luaspell->effect_bitmask += EFFECT_FLAG_STIFLE;
+			luaspell->effect_flags.add(EFFECT_IDX_STIFLE);
 		}
 		else if (type == CONTROL_EFFECT_TYPE_DAZE) {
 			((Entity*)spawn)->AddDazeSpell(luaspell);
-			if (!(luaspell->effect_bitmask & EFFECT_FLAG_DAZE))
-				luaspell->effect_bitmask += EFFECT_FLAG_DAZE;
+			luaspell->effect_flags.add(EFFECT_IDX_DAZE);
 		}
 		else if (type == CONTROL_EFFECT_TYPE_STUN) {
 			((Entity*)spawn)->AddStunSpell(luaspell);
-			if (!(luaspell->effect_bitmask & EFFECT_FLAG_STUN))
-				luaspell->effect_bitmask += EFFECT_FLAG_STUN;
+			luaspell->effect_flags.add(EFFECT_IDX_STUN);
 		}
 		else if (type == CONTROL_EFFECT_TYPE_ROOT) {
 			((Entity*)spawn)->AddRootSpell(luaspell);
-			if (!(luaspell->effect_bitmask & EFFECT_FLAG_ROOT))
-				luaspell->effect_bitmask += EFFECT_FLAG_ROOT;
+			luaspell->effect_flags.add(EFFECT_IDX_ROOT);
 		}
 		else if (type == CONTROL_EFFECT_TYPE_FEAR) {
 			((Entity*)spawn)->AddFearSpell(luaspell);
-			if (!(luaspell->effect_bitmask & EFFECT_FLAG_FEAR))
-				luaspell->effect_bitmask += EFFECT_FLAG_FEAR;
+			luaspell->effect_flags.add(EFFECT_IDX_FEAR);
 		}
 		else if (type == CONTROL_EFFECT_TYPE_WALKUNDERWATER) {
 			((Entity*)spawn)->AddWaterwalkSpell(luaspell);
-			if (!(luaspell->effect_bitmask & EFFECT_FLAG_WATERWALK))
-				luaspell->effect_bitmask += EFFECT_FLAG_WATERWALK;
+			luaspell->effect_flags.add(EFFECT_IDX_WATERWALK);
 		}
 		else if (type == CONTROL_EFFECT_TYPE_JUMPUNDERWATER) {
 			((Entity*)spawn)->AddWaterjumpSpell(luaspell);
-			if (!(luaspell->effect_bitmask & EFFECT_FLAG_WATERJUMP))
-				luaspell->effect_bitmask += EFFECT_FLAG_WATERJUMP;
+			luaspell->effect_flags.add(EFFECT_IDX_WATERJUMP);
 		}
 		else if (type == CONTROL_EFFECT_TYPE_SNARE) {
 			((Entity*)spawn)->AddSnareSpell(luaspell);
-			if (!(luaspell->effect_bitmask & EFFECT_FLAG_SNARE))
-				luaspell->effect_bitmask += EFFECT_FLAG_SNARE;
+			luaspell->effect_flags.add(EFFECT_IDX_SNARE);
 		}
 		else if (type == CONTROL_EFFECT_TYPE_FLIGHT) {
 			((Entity*)spawn)->AddFlightSpell(luaspell);
-			if (!(luaspell->effect_bitmask & EFFECT_FLAG_FLIGHT))
-				luaspell->effect_bitmask += EFFECT_FLAG_FLIGHT;
+			luaspell->effect_flags.add(EFFECT_IDX_FLIGHT);
 		}
 		else if (type == CONTROL_EFFECT_TYPE_GLIDE) {
 			((Entity*)spawn)->AddGlideSpell(luaspell);
-			if (!(luaspell->effect_bitmask & EFFECT_FLAG_GLIDE))
-				luaspell->effect_bitmask += EFFECT_FLAG_GLIDE;
+			luaspell->effect_flags.add(EFFECT_IDX_GLIDE);
 		}
 		else if (type == CONTROL_EFFECT_TYPE_SAFEFALL) {
 			((Entity*)spawn)->AddSafefallSpell(luaspell);
-			if (!(luaspell->effect_bitmask & EFFECT_FLAG_SAFEFALL))
-				luaspell->effect_bitmask += EFFECT_FLAG_SAFEFALL;
+			luaspell->effect_flags.add(EFFECT_IDX_SAFEFALL);
 		}
 		else
 			lua_interface->LogError("%s: Unhandled control effect type of %u.", lua_interface->GetScriptName(state), type);
@@ -2933,6 +2905,8 @@ int EQ2Emu_lua_RemoveControlEffect(lua_State* state) {
 						((Entity*)target)->RemoveGlideSpell(luaspell);
 					else if (type == CONTROL_EFFECT_TYPE_SAFEFALL)
 						((Entity*)target)->RemoveGlideSpell(luaspell);
+					else if (type == CONTROL_EFFECT_TYPE_ILLUSION)
+						((Entity*)target)->RemoveIllusionSpell(luaspell);
 					else
 						lua_interface->LogError("%s: Unhandled control effect type of %u.", lua_interface->GetScriptName(state), type);
 				}
@@ -2963,6 +2937,8 @@ int EQ2Emu_lua_RemoveControlEffect(lua_State* state) {
 				((Entity*)spawn)->RemoveGlideSpell(luaspell);
 			else if (type == CONTROL_EFFECT_TYPE_SAFEFALL)
 				((Entity*)spawn)->RemoveSafefallSpell(luaspell);
+			else if (type == CONTROL_EFFECT_TYPE_ILLUSION)
+				((Entity*)spawn)->RemoveIllusionSpell(luaspell);
 			else
 				lua_interface->LogError("%s: Unhandled control effect type of %u.", lua_interface->GetScriptName(state), type);
 		}
@@ -6836,13 +6812,11 @@ int EQ2Emu_lua_Stealth(lua_State* state) {
 		if (spawn->IsEntity()) {
 			if (type == 1) {
 				((Entity*)spawn)->AddStealthSpell(spell);
-				if (!(spell->effect_bitmask & EFFECT_FLAG_STEALTH))
-					spell->effect_bitmask += EFFECT_FLAG_STEALTH;
+				spell->effect_flags.add(EFFECT_IDX_STEALTH);
 			}
 			else if (type == 2) {
 				((Entity*)spawn)->AddInvisSpell(spell);
-				if (!(spell->effect_bitmask & EFFECT_FLAG_INVIS))
-					spell->effect_bitmask += EFFECT_FLAG_INVIS;
+				spell->effect_flags.add(EFFECT_IDX_INVIS);
 			}
 			return 0;
 		}
@@ -6859,13 +6833,11 @@ int EQ2Emu_lua_Stealth(lua_State* state) {
 
 			if (type == 1) {
 				((Entity*)spawn)->AddStealthSpell(spell);
-				if (!(spell->effect_bitmask & EFFECT_FLAG_STEALTH))
-					spell->effect_bitmask += EFFECT_FLAG_STEALTH;
+				spell->effect_flags.add(EFFECT_IDX_STEALTH);
 			}
 			else if (type == 2) {
 				((Entity*)spawn)->AddInvisSpell(spell);
-				if (!(spell->effect_bitmask & EFFECT_FLAG_INVIS))
-					spell->effect_bitmask += EFFECT_FLAG_INVIS;
+				spell->effect_flags.add(EFFECT_IDX_INVIS);
 			}
 			else {
 				lua_interface->LogError("%s: LUA Stealth command error: invalid stealth type given", lua_interface->GetScriptName(state));
@@ -9480,11 +9452,21 @@ int EQ2Emu_lua_SetIllusion(lua_State* state) {
 	lua_interface->ResetFunctionStack(state);
 
 	if (spell && spell->spell && spell->GetTargetCount() > 0) {
+		spell->effect_flags.add(EFFECT_IDX_ILLUSION);
 		ZoneServer* zone = spell->zone;
 		for (int32 id : spell->GetTargets()) {
 			Spawn* target = zone->GetSpawnByID(id);
-			if (target)
-				target->SetIllusionModel(model);
+			if (target) {
+				if(!target->IsEntity()) {
+					target->SetIllusionModel(model);
+				}
+				else if(model) {
+					((Entity*)target)->AddIllusionSpell(spell, model);
+				}
+				else {
+					((Entity*)target)->RemoveIllusionSpell(spell);
+				}
+			}
 		}
 	}
 	else {
@@ -9492,8 +9474,15 @@ int EQ2Emu_lua_SetIllusion(lua_State* state) {
 			lua_interface->LogError("%s: LUA SetIllusion command error: spawn is not valid", lua_interface->GetScriptName(state));
 			return 0;
 		}
-
-		spawn->SetIllusionModel(model);
+		if(!spawn->IsEntity()) {
+			spawn->SetIllusionModel(model);
+		}
+		else if(model) {
+			((Entity*)spawn)->AddIllusionSpell(nullptr, model);
+		}
+		else {
+			((Entity*)spawn)->RemoveIllusionSpell(spell);
+		}
 	}
 
 	return 0;
@@ -9511,8 +9500,12 @@ int EQ2Emu_lua_ResetIllusion(lua_State* state) {
 		ZoneServer* zone = spell->zone;
 		for (int32 id : spell->GetTargets()) {
 			Spawn* target = zone->GetSpawnByID(id);
-			if (target)
-				target->SetIllusionModel(0);
+			if (target) {
+				if(target->IsEntity())
+					((Entity*)target)->RemoveIllusionSpell(spell);
+				else
+					target->SetIllusionModel(0);
+			}
 		}
 	}
 	else {
@@ -9520,8 +9513,10 @@ int EQ2Emu_lua_ResetIllusion(lua_State* state) {
 			lua_interface->LogError("%s: LUA ResetIllusion command error: spawn is not valid", lua_interface->GetScriptName(state));
 			return 0;
 		}
-
-		spawn->SetIllusionModel(0);
+		if(spawn->IsEntity())
+			((Entity*)spawn)->RemoveIllusionSpell(spell);
+		else
+			spawn->SetIllusionModel(0);
 	}
 
 	return 0;
@@ -14912,5 +14907,46 @@ int EQ2Emu_lua_RemoveCharacterProperty(lua_State* state) {
 	
 	Query query;
 	query.AddQueryAsync(((Player*)player)->GetCharacterID(), &database, Q_DELETE, "delete from character_properties where charid = %u and propname='%s'", ((Player*)player)->GetCharacterID(), propname.c_str());
+	return 0;
+}
+
+
+int EQ2Emu_lua_RemoveSpell(lua_State* state) {
+	Spawn* spawn = lua_interface->GetSpawn(state);
+	int32 spell_id = lua_interface->GetInt32Value(state, 2);
+	bool maintained_spell = lua_interface->GetBooleanValue(state, 3);
+	string reason = lua_interface->GetStringValue(state, 4);
+	lua_interface->ResetFunctionStack(state);
+	
+	if(!spawn || !spawn->IsEntity()) {
+		lua_interface->LogError("%s: LUA RemoveSpell command error: entity is not valid", lua_interface->GetScriptName(state));
+		return 0;
+	}
+	if(!spawn->GetZone()) {
+		lua_interface->LogError("%s: LUA RemoveSpell command error: no valid zone", lua_interface->GetScriptName(state));
+		return 0;
+	}
+	if(!spell_id) {
+		lua_interface->LogError("%s: LUA RemoveSpell command error: spell id is not valid", lua_interface->GetScriptName(state));
+		return 0;
+	}
+
+	Entity* ent = (Entity*)spawn;
+	
+	if(reason.length() < 1)
+		reason = "canceled";
+	
+	if(maintained_spell) {
+		MaintainedEffects* effect = ent->GetMaintainedSpell(spell_id);
+		if(effect && effect->spell) {
+			ent->GetZone()->GetSpellProcess()->DeleteCasterSpell(effect->spell, reason, false);
+		}
+	}
+	else {
+		SpellEffects* effect = ent->GetSpellEffect(spell_id);
+		if(effect && effect->spell) {
+			ent->GetZone()->GetSpellProcess()->DeleteCasterSpell(effect->spell, reason, false, spawn);
+		}
+	}
 	return 0;
 }

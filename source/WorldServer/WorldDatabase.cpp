@@ -8270,7 +8270,7 @@ void WorldDatabase::LoadCharacterSpellEffects(int32 char_id, Client* client, int
 		int8 custom_spell = result.GetInt32Str("custom_spell");
 
 		int32 damage_remaining = result.GetInt32Str("damage_remaining");
-		int32 effect_bitmask = result.GetInt32Str("effect_bitmask");
+		int64 effect_bitmask = result.GetInt64Str("effect_bitmask");
 		int16 num_triggers = result.GetInt32Str("num_triggers");
 		int8 had_triggers = result.GetInt32Str("had_triggers");
 		int8 cancel_after_triggers = result.GetInt32Str("cancel_after_triggers");
@@ -8394,7 +8394,7 @@ void WorldDatabase::LoadCharacterSpellEffects(int32 char_id, Client* client, int
 		{
 			lua_spell->crit = crit;
 			lua_spell->damage_remaining = damage_remaining;
-			lua_spell->effect_bitmask = effect_bitmask;
+			lua_spell->effect_flags.import_u64(effect_bitmask);
 			lua_spell->had_dmg_remaining = (damage_remaining>0) ? true : false;
 			lua_spell->had_triggers = had_triggers;
 			lua_spell->initial_caster_char_id = caster_char_id; 

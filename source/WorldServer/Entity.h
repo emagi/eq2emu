@@ -25,6 +25,7 @@
 #include "MutexList.h"
 #include "MutexVector.h"
 #include "Trade.h"
+#include "EffectFlags.h"
 #include <set>
 #include <mutex>
 #include <vector>
@@ -1115,6 +1116,7 @@ struct InfoStruct{
 	// when PacketStruct is fixed for C++17 this should become a shared_mutex and handle read/write lock
 	std::mutex		classMutex;
 	std::unordered_map<std::string, std::string> props;
+	EffectFlags spell_flags;
 private:
 	std::string		name_;
 	int8			class1_;
@@ -1412,33 +1414,6 @@ struct ThreatTransfer {
 
 #define DISPELL_TYPE_CURE    0
 #define DISPELL_TYPE_DISPELL 1
-
-#define CONTROL_EFFECT_TYPE_MEZ 1
-#define CONTROL_EFFECT_TYPE_STIFLE 2
-#define CONTROL_EFFECT_TYPE_DAZE 3
-#define CONTROL_EFFECT_TYPE_STUN 4
-#define CONTROL_EFFECT_TYPE_ROOT 5
-#define CONTROL_EFFECT_TYPE_FEAR 6
-#define CONTROL_EFFECT_TYPE_WALKUNDERWATER 7
-#define CONTROL_EFFECT_TYPE_JUMPUNDERWATER 8
-#define CONTROL_EFFECT_TYPE_INVIS 9
-#define CONTROL_EFFECT_TYPE_STEALTH 10
-#define CONTROL_EFFECT_TYPE_SNARE 11
-#define CONTROL_EFFECT_TYPE_FLIGHT 12
-#define CONTROL_EFFECT_TYPE_GLIDE 13
-#define CONTROL_EFFECT_TYPE_SAFEFALL 14
-#define CONTROL_MAX_EFFECTS 15 // always +1 to highest control effect
-
-#define IMMUNITY_TYPE_MEZ 1
-#define IMMUNITY_TYPE_STIFLE 2
-#define IMMUNITY_TYPE_DAZE 3
-#define IMMUNITY_TYPE_STUN 4
-#define IMMUNITY_TYPE_ROOT 5
-#define IMMUNITY_TYPE_FEAR 6
-#define IMMUNITY_TYPE_AOE 7
-#define IMMUNITY_TYPE_TAUNT 8
-#define IMMUNITY_TYPE_RIPOSTE 9
-#define IMMUNITY_TYPE_STRIKETHROUGH 10
 
 //class Spell;
 //class ZoneServer;
@@ -1985,6 +1960,8 @@ public:
 	void RemoveSafefallSpell(LuaSpell* spell);
 	void AddGlideSpell(LuaSpell* spell);
 	void RemoveGlideSpell(LuaSpell* spell);
+	void AddIllusionSpell(LuaSpell* spell, int16 model_id);
+	void RemoveIllusionSpell(LuaSpell* spell);
 
 	GroupMemberInfo* GetGroupMemberInfo() { return group_member_info; }
 	void SetGroupMemberInfo(GroupMemberInfo* info) { group_member_info = info; }
@@ -2110,6 +2087,10 @@ public:
 				return "SafeFall";
 				break;
 			}
+			case CONTROL_EFFECT_TYPE_ILLUSION:{
+				return "Illusion";
+				break;
+			}
 			default: {
 				return "Undefined";
 				break;
@@ -2136,8 +2117,8 @@ protected:
 	bool	m_petDismissing;
 private:
 	MutexList<BonusValues*> bonus_list;
-	map<int8, MutexList<LuaSpell*>*> control_effects;
-	map<int8, MutexList<LuaSpell*>*> immunities;
+	ControlEffects control_effects;
+	Immunities immunities;
 	float	max_speed;
 	int8	deity;
 	sint16	regen_hp_rate;
@@ -2176,6 +2157,7 @@ private:
 	float speed_multiplier;
 
 	map<LuaSpell*, float> snare_values;
+	mutable std::shared_mutex MSnareValues;
 
 	ThreatTransfer* m_threatTransfer;
 

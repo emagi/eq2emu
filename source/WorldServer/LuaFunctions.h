@@ -699,4 +699,5 @@ int EQ2Emu_lua_InSameRaid(lua_State* state);
 int EQ2Emu_lua_GetRaid(lua_State* state);
 int EQ2Emu_lua_AdjustHatePosition(lua_State* state);
 int EQ2Emu_lua_RemoveCharacterProperty(lua_State* state);
+int EQ2Emu_lua_RemoveSpell(lua_State* state);
 #endif

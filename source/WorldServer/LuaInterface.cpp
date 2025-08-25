@@ -1839,6 +1839,7 @@ void LuaInterface::RegisterFunctions(lua_State* state) {
 	lua_register(state,"GetRaid", EQ2Emu_lua_GetRaid);
 	lua_register(state,"AdjustHatePosition", EQ2Emu_lua_AdjustHatePosition);
 	lua_register(state,"RemoveCharacterProperty", EQ2Emu_lua_RemoveCharacterProperty);
+	lua_register(state,"RemoveSpell", EQ2Emu_lua_RemoveSpell);
 }
 
 void LuaInterface::LogError(const char* error, ...)  {
@@ -2320,7 +2321,6 @@ LuaSpell* LuaInterface::LoadSpellScript(const char* name)  {
 		spell->had_dmg_remaining = false;
 		spell->slot_pos = 0;
 		spell->damage_remaining = 0;
-		spell->effect_bitmask = 0;
 		spell->restored = false;
 		spell->has_proc = false;
 		spell->initial_caster_char_id = 0;
@@ -2670,7 +2670,6 @@ LuaSpell* LuaInterface::CreateSpellScript(const char* name, lua_State* existStat
 	new_spell->had_dmg_remaining = false;
 	new_spell->slot_pos = 0;
 	new_spell->damage_remaining = 0;
-	new_spell->effect_bitmask = 0;
 	new_spell->caster = 0;
 	new_spell->initial_target = 0;
 	new_spell->spell = 0;

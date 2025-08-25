@@ -31,6 +31,7 @@
 #include "Quests.h"
 #include "zoneserver.h"
 #include "client.h"
+#include "EffectFlags.h"
 
 #include <lua.hpp>
 
@@ -116,7 +117,7 @@ struct LuaSpell{
 	bool            had_triggers;
 	bool            had_dmg_remaining;
 	Mutex           MScriptMutex;
-	int32           effect_bitmask;
+	EffectFlags 	effect_flags;
 	bool			restored; // restored spell cross zone
 	std::atomic<bool> has_proc;
 	ZoneServer*		zone;
