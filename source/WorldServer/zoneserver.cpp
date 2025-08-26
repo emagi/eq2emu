@@ -4653,35 +4653,14 @@ void ZoneServer::KillSpawnByDistance(Spawn* spawn, float max_distance, bool incl
 	if(!spawn)
 		return;
 	
-	auto loc = glm::vec3(spawn->GetX(), spawn->GetZ(), spawn->GetY());
-	std::vector<int32> grids_by_radius;
-	if(spawn->GetMap()) {
-		grids_by_radius = GetGridsByLocation(spawn, loc, max_distance);
-	}
-	else {
-		grids_by_radius.push_back(spawn->GetLocation());
-	}
 	
-	Spawn* test_spawn = 0;
-    MGridMaps.lock_shared();
-	std::vector<int32>::iterator grid_radius_itr;
-	for(grid_radius_itr = grids_by_radius.begin(); grid_radius_itr != grids_by_radius.end(); grid_radius_itr++) {
-		std::map<int32, GridMap*>::iterator grids = grid_maps.find((*grid_radius_itr));
-		if(grids != grid_maps.end()) {
-			grids->second->MSpawns.lock_shared();
-			typedef map <int32, Spawn*> SpawnMapType;
-			for( SpawnMapType::iterator it = grids->second->spawns.begin(); it != grids->second->spawns.end(); ++it ) {
-				test_spawn = it->second;
-				if(test_spawn && test_spawn->Alive() && test_spawn->GetID() > 0 && test_spawn->GetID() != spawn->GetID() && test_spawn->IsEntity() &&
-				  (!test_spawn->IsPlayer() || include_players)){
-					if(test_spawn->GetDistance(spawn) < max_distance)
-						KillSpawn(false, test_spawn, spawn, send_packet);
-				}
-			}
-			grids->second->MSpawns.unlock_shared();
-		}
+	std::vector<std::pair<int32, float>> spawns = GetSpawnsByDistance(spawn, max_distance, include_players);
+	for (const auto& pair : spawns) {
+		int32 target_id = pair.first;
+		Spawn* test_spawn = GetSpawnByID(target_id);
+		if(test_spawn)
+			KillSpawn(false, test_spawn, spawn, send_packet);
 	}
-    MGridMaps.unlock_shared();
 }
 
 void ZoneServer::SpawnSetByDistance(Spawn* spawn, float max_distance, string field, string value){
@@ -7813,6 +7792,42 @@ std::vector<std::pair<int32, float>> ZoneServer::GetAttackableSpawnsByDistance(S
 				if (spawn && spawn->IsNPC() && spawn->appearance.attackable > 0 && spawn->GetID() > 0 && spawn->GetID() != caster->GetID() &&
 					spawn->Alive() && ((tmp_dist = spawn->GetDistance(caster, true)) <= distance)) {
 					spawns_by_distance.push_back({spawn->GetID(), tmp_dist});
+				}
+			}
+			grids->second->MSpawns.unlock_shared();
+		}
+	}
+    MGridMaps.unlock_shared();
+	std::sort(spawns_by_distance.begin(), spawns_by_distance.end(), compareByValue);
+	
+	return spawns_by_distance;
+}
+
+std::vector<std::pair<int32, float>> ZoneServer::GetSpawnsByDistance(Spawn* spawn, float max_distance, bool include_players) {
+	std::vector<std::pair<int32, float>> spawns_by_distance;
+	auto loc = glm::vec3(spawn->GetX(), spawn->GetZ(), spawn->GetY());
+	std::vector<int32> grids_by_radius;
+	if(spawn->GetMap()) {
+		grids_by_radius = GetGridsByLocation(spawn, loc, max_distance);
+	}
+	else {
+		grids_by_radius.push_back(spawn->GetLocation());
+	}
+	
+	float tmp_dist = 0.0f;
+    MGridMaps.lock_shared();
+	std::vector<int32>::iterator grid_radius_itr;
+	for(grid_radius_itr = grids_by_radius.begin(); grid_radius_itr != grids_by_radius.end(); grid_radius_itr++) {
+		std::map<int32, GridMap*>::iterator grids = grid_maps.find((*grid_radius_itr));
+		if(grids != grid_maps.end()) {
+			grids->second->MSpawns.lock_shared();
+			typedef map <int32, Spawn*> SpawnMapType;
+			for( SpawnMapType::iterator it = grids->second->spawns.begin(); it != grids->second->spawns.end(); ++it ) {
+				Spawn* test_spawn = it->second;
+				if(test_spawn && test_spawn->Alive() && test_spawn->GetID() > 0 && test_spawn->GetID() != spawn->GetID() && test_spawn->IsEntity() &&
+				  (!test_spawn->IsPlayer() || include_players)){
+					if(test_spawn->GetDistance(spawn) < max_distance)
+					spawns_by_distance.push_back({test_spawn->GetID(), tmp_dist});
 				}
 			}
 			grids->second->MSpawns.unlock_shared();

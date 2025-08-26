@@ -448,6 +448,7 @@ public:
 	std::vector<int32> GetGridsByLocation(Spawn* originator, glm::vec3 loc, float distance);
 	/// <summary>Gets spawns for a true AoE spell</summary>
 	std::vector<std::pair<int32, float>> GetAttackableSpawnsByDistance(Spawn* spawn, float distance);
+	std::vector<std::pair<int32, float>> GetSpawnsByDistance(Spawn* spawn, float max_distance, bool include_players);
 
 	// Comparator function to sort by the value (second element of the pair)
 	static bool compareByValue(const std::pair<int32, float>& a, const std::pair<int32, float>& b) {
