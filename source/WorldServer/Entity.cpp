@@ -1110,6 +1110,10 @@ void Entity::InCombat(bool val){
 
 	in_combat = val;
 	
+	RefreshRegen(changeCombatState);
+}
+
+void Entity::RefreshRegen(bool override_) {
 	bool update_regen = false;
 	if(GetInfoStruct()->get_engaged_encounter()) {
 		if(!IsEngagedInEncounter()) {
@@ -1117,8 +1121,7 @@ void Entity::InCombat(bool val){
 			update_regen = true;
 		}
 	}
-
-	if(changeCombatState || update_regen)
+	if(override_ || update_regen)
 		SetRegenValues((GetInfoStruct()->get_effective_level() > 0) ? GetInfoStruct()->get_effective_level() : GetLevel());
 }
 
@@ -3934,7 +3937,7 @@ bool Entity::IsEngagedInEncounter(Spawn** res) {
 	if(IsPlayer()) {
 		for (itr = HatedBy.begin(); itr != HatedBy.end(); itr++) {
 			Spawn* spawn = GetZone()->GetSpawnByID(*itr);
-			if (spawn && spawn->IsNPC() && ((NPC*)spawn)->Brain() && (spawn->GetLockedNoLoot() == ENCOUNTER_STATE_LOCKED || spawn->GetLockedNoLoot() == ENCOUNTER_STATE_OVERMATCHED)) {
+			if (spawn && spawn->IsNPC() && ((NPC*)spawn)->Brain() && spawn->Alive() && (spawn->GetLockedNoLoot() == ENCOUNTER_STATE_LOCKED || spawn->GetLockedNoLoot() == ENCOUNTER_STATE_OVERMATCHED)) {
 				if((ret = ((NPC*)spawn)->Brain()->IsPlayerInEncounter(((Player*)this)->GetCharacterID()))) {
 					if(res)
 						*res = spawn;
@@ -3946,7 +3949,7 @@ bool Entity::IsEngagedInEncounter(Spawn** res) {
 	else {
 		for (itr = HatedBy.begin(); itr != HatedBy.end(); itr++) {
 			Spawn* spawn = GetZone()->GetSpawnByID(*itr);
-			if (spawn && spawn->IsNPC() && ((NPC*)spawn)->Brain() && (spawn->GetLockedNoLoot() == ENCOUNTER_STATE_LOCKED || spawn->GetLockedNoLoot() == ENCOUNTER_STATE_OVERMATCHED)) {
+			if (spawn && spawn->IsNPC() && ((NPC*)spawn)->Brain() && spawn->Alive() && (spawn->GetLockedNoLoot() == ENCOUNTER_STATE_LOCKED || spawn->GetLockedNoLoot() == ENCOUNTER_STATE_OVERMATCHED)) {
 				if((ret = ((NPC*)spawn)->Brain()->IsEntityInEncounter(GetID()))) {
 					if(res)
 						*res = spawn;

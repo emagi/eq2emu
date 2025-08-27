@@ -1069,7 +1069,7 @@ struct InfoStruct{
 	
 	void	set_reload_player_spells(int8 value) { std::lock_guard<std::mutex> lk(classMutex); reload_player_spells_ = value; }
 	
-	void	set_group_loot_method(int8 value) { std::lock_guard<std::mutex> lk(classMutex); group_loot_method_ = value; }
+	void	set_group_loot_method(int8 value) { std::lock_guard<std::mutex> lk(classMutex); if(value <= GroupLootMethod::METHOD_MAX_COUNT) group_loot_method_ = value; }
 	void	set_group_loot_items_rarity(int8 value) { std::lock_guard<std::mutex> lk(classMutex); group_loot_items_rarity_ = value; }
 	void	set_group_auto_split(int8 value) { std::lock_guard<std::mutex> lk(classMutex); group_auto_split_ = value;  }
 	void	set_group_default_yell(int8 value) { std::lock_guard<std::mutex> lk(classMutex); group_default_yell_ = value; }
@@ -1584,7 +1584,8 @@ public:
 
 	bool	EngagedInCombat();
 	virtual void	InCombat(bool val);
-
+	void			RefreshRegen(bool override_ = false);
+	
 	bool	IsCasting();
 	void	IsCasting(bool val);
 	void SetMount(int16 mount_id, int8 red = 0xFF, int8 green = 0xFF, int8 blue = 0xFF, bool setUpdateFlags = true)

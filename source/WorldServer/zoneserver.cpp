@@ -5224,6 +5224,7 @@ void ZoneServer::KillSpawn(bool spawnListLocked, Spawn* dead, Spawn* killer, boo
 				killer_in_encounter = true;
 
 			if (spawn && spawn->IsPlayer()) {
+				((Player*)spawn)->RefreshRegen();
 				// Update players total kill count
 				((Player*)spawn)->UpdatePlayerStatistic(STAT_PLAYER_TOTAL_NPC_KILLS, 1);
 
