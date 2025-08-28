@@ -13592,6 +13592,10 @@ bool Client::SetPetName(const char* petName) {
 }
 
 bool Client::CheckConsumptionAllowed(int16 slot, bool send_message) {
+	if(!GetPlayer()->Alive()) {
+		Message(CHANNEL_NARRATIVE, "You cannot consume while dead!");
+		return false;
+	}
 	switch (slot) {
 	case EQ2_FOOD_SLOT: {
 		if (GetPlayer()->GetSpellEffectBySpellType(SPELL_TYPE_FOOD)) {
