@@ -220,11 +220,9 @@ void SpellProcess::Process(){
 						CastProcessedSpell(cast_timer->spell, false, cast_timer->in_heroic_opp);
 					}
 					else if (cast_timer->entity_command) {
-						if (cast_timer->timer->Check(false)) {
-							cast_timer->delete_timer = true;
-							Spawn* target = cast_timer->zone->GetSpawnByID(cast_timer->target_id);
-							CastProcessedEntityCommand(cast_timer->entity_command, cast_timer->caster, target, cast_timer->in_heroic_opp);
-						}
+						cast_timer->delete_timer = true;
+						Spawn* target = cast_timer->zone->GetSpawnByID(cast_timer->target_id);
+						CastProcessedEntityCommand(cast_timer->entity_command, cast_timer->caster, target, cast_timer->in_heroic_opp);
 					}
 				}
 				if (cast_timer->delete_timer) {
@@ -2019,7 +2017,7 @@ bool SpellProcess::CastProcessedSpell(LuaSpell* spell, bool passive, bool in_her
 		MSoloHO.releasewritelock(__FUNCTION__, __LINE__);
 
 		if (ho_spell && ho_target != 0)
-			client->GetCurrentZone()->ProcessSpell(ho_spell, client->GetPlayer(), spell->caster->GetZone()->GetSpawnByID(ho_target));
+			client->GetCurrentZone()->ProcessSpell(ho_spell, client->GetPlayer(), spell->caster->GetZone()->GetSpawnByID(ho_target), true, false, nullptr, 0, true);
 
 	}
 
