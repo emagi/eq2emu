@@ -1904,6 +1904,7 @@ bool PlayerGroupManager::IdentifyMemberInGroupOrRaid(ZoneChangeDetails* details,
 	deque<GroupMemberInfo*>* members = group->GetMembers();
 	deque<GroupMemberInfo*>::iterator itr;
 	for (itr = members->begin(); itr != members->end(); itr++) {
+		LogWrite(GROUP__INFO, 0, "Group", "%s check group: isclient: %u, zoneid: %u, instance id: %u, expected instance id: %u, get by zone? %u", client->GetPlayer()->GetName(), (*itr)->is_client, (*itr)->zone_id, (*itr)->instance_id, instanceID, ((*itr)->member && (*itr)->member->GetZone()) ? 1 : 0);
 		// If a group member matches a target
 		if ((*itr)->is_client && (*itr)->member && (*itr)->member->GetZone() && (*itr)->zone_id == zoneID && (instanceID == 0 || (*itr)->instance_id == instanceID)) {
 			// toggle the flag and break the loop
