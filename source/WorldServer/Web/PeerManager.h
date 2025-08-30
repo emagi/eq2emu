@@ -179,6 +179,7 @@ public:
 	bool IsClientConnectedPeer(int32 account_id, int32 char_id);
 	std::string GetCharacterPeerId(std::string charName);
 	void SendPeersChannelMessage(int32 group_id, std::string fromName, std::string message, int16 channel, int32 language_id = 0, int8 custom_type = 0);
+	void SendPeersChatChannelMessage(std::string channelName, std::string fromName, std::string message, int32 language_id, std::string toName);
 	void SendPeersGuildChannelMessage(int32 guild_id, std::string fromName, std::string message, int16 channel, int32 language_id = 0, int8 custom_type = 0);
 	void sendZonePeerList(Client* client);
 	std::string getZonePeerId(const std::string& inc_zone_name, int32 inc_zone_id, int32 inc_instance_id, ZoneChangeDetails* opt_details = nullptr, bool only_always_loaded = false, int32 matchDuplicatedId = 0);
@@ -231,6 +232,10 @@ public:
 	void sendPeersRemoveSeller(int32 character_id);
 	void sendPeersAddItemSale(int32 character_id, int32 house_id, int32 itemID, int64 uniqueID, int64 price, sint32 invSlotID, int16 slotID, int16 count, bool inInventory, bool forSale, std::string itemCreator);
 	void sendPeersRemoveItemSale(int32 character_id, int64 uniqueID);
+	
+	void sendPeersAddPlayerHouse(int32 charID, int64 uniqueID, int32 houseID, int32 instanceID, int32 upkeepDue, std::string charName);
+	void sendPeersUpdateHouseDeposit(int32 instanceID, int64 escrowDeposit, int32 escrowStatus);
+	void sendPeersAddChatChannel(std::string channelName, std::string channelPassword);
 
 };
 

@@ -3989,8 +3989,10 @@ void Commands::Process(int32 index, EQ2_16BitString* command_parms, Client* clie
 						ph->escrow_coins += outValCoin;
 						ph->escrow_status += outValStatus;
 						database.UpdateHouseEscrow(ph->house_id, ph->instance_id, ph->escrow_coins, ph->escrow_status);
+						peer_manager.sendPeersUpdateHouseDeposit(ph->instance_id, ph->escrow_coins, ph->escrow_status);
 
 						database.LoadDeposits(ph);
+
 						client->PlaySound("coin_cha_ching");
 						HouseZone* hz = world.GetHouseZone(ph->house_id);
 						ClientPacketFunctions::SendBaseHouseWindow(client, hz, ph, client->GetVersion() <= 561 ? spawn_id : client->GetPlayer()->GetID());
@@ -10237,7 +10239,9 @@ void Commands::Command_TellChannel(Client *client, Seperator *sep) {
 		return;
 	}
 
-	chat.TellChannel(client, sep->arg[0], sep->argplus[1]);
+	chat.TellChannel(client, std::string(client->GetPlayer()->GetName()), client->GetPlayer()->GetCurrentLanguage(), sep->arg[0], sep->argplus[1]);
+	peer_manager.SendPeersChatChannelMessage(std::string(sep->arg[0]), std::string(client->GetPlayer()->GetName()), std::string(sep->argplus[1]), 
+											 client->GetPlayer()->GetCurrentLanguage(), "");
 }
 
 void Commands::Command_Test(Client* client, EQ2_16BitString* command_parms) {

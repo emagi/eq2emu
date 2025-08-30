@@ -936,3 +936,59 @@ void PeerManager::sendPeersRemoveItemSale(int32 character_id, int64 uniqueID) {
 		peer_https_pool.sendPostRequestToPeerAsync(peer->id, peer->webAddr, std::to_string(peer->webPort), "/removeitemsale", jsonPayload);
 	}
 }
+
+
+void PeerManager::sendPeersAddPlayerHouse(int32 charID, int64 uniqueID, int32 houseID, int32 instanceID, int32 upkeepDue, std::string charName) {
+	boost::property_tree::ptree root;
+	root.put("character_id", charID);
+	root.put("unique_id", uniqueID);
+	root.put("instance_id", instanceID);
+	root.put("upkeep_due", upkeepDue);
+	root.put("character_name", charName);
+
+	std::ostringstream jsonStream;
+	boost::property_tree::write_json(jsonStream, root);
+	std::string jsonPayload = jsonStream.str();
+	LogWrite(PEERING__DEBUG, 0, "Peering", "%s: Add Player House, CharID: %u, UniqueID: %u, instanceID: %u", __FUNCTION__, charID, uniqueID, instanceID);
+
+	for (const auto& [id, peer] : peers) {
+		if (peer->healthCheck.status != HealthStatus::OK)
+			continue;
+		peer_https_pool.sendPostRequestToPeerAsync(peer->id, peer->webAddr, std::to_string(peer->webPort), "/addplayerhouse", jsonPayload);
+	}
+}
+
+void PeerManager::sendPeersUpdateHouseDeposit(int32 instanceID, int64 escrowDeposit, int32 escrowStatus) {
+	boost::property_tree::ptree root;
+	root.put("instance_id", instanceID);
+	root.put("escrow_deposit", escrowDeposit);
+	root.put("escrow_status", escrowStatus);
+
+	std::ostringstream jsonStream;
+	boost::property_tree::write_json(jsonStream, root);
+	std::string jsonPayload = jsonStream.str();
+	LogWrite(PEERING__DEBUG, 0, "Peering", "%s: Update House Deposit, instanceID: %u, coin total: %llu, status total: %u", __FUNCTION__, instanceID, escrowDeposit, escrowStatus);
+
+	for (const auto& [id, peer] : peers) {
+		if (peer->healthCheck.status != HealthStatus::OK)
+			continue;
+		peer_https_pool.sendPostRequestToPeerAsync(peer->id, peer->webAddr, std::to_string(peer->webPort), "/updatehousedeposit", jsonPayload);
+	}
+}
+
+void PeerManager::sendPeersAddChatChannel(std::string channelName, std::string channelPassword) {
+	boost::property_tree::ptree root;
+	root.put("channel_name", channelName);
+	root.put("channel_password", channelPassword);
+
+	std::ostringstream jsonStream;
+	boost::property_tree::write_json(jsonStream, root);
+	std::string jsonPayload = jsonStream.str();
+	LogWrite(PEERING__DEBUG, 0, "Peering", "%s: Add Chat Channel, channel name: %s", __FUNCTION__, channelName.c_str());
+
+	for (const auto& [id, peer] : peers) {
+		if (peer->healthCheck.status != HealthStatus::OK)
+			continue;
+		peer_https_pool.sendPostRequestToPeerAsync(peer->id, peer->webAddr, std::to_string(peer->webPort), "/addchatchannel", jsonPayload);
+	}
+}

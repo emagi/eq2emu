@@ -288,6 +288,9 @@ void World::init(std::string web_ipaddr, int16 web_port, std::string cert_file, 
 			world_webserver->register_route("/removeseller", World::Web_worldhandle_removeseller);
 			world_webserver->register_route("/additemsale", World::Web_worldhandle_additemsale);
 			world_webserver->register_route("/removeitemsale", World::Web_worldhandle_removeitemsale);
+			
+			world_webserver->register_route("/addplayerhouse", World::Web_worldhandle_addplayerhouse);
+			world_webserver->register_route("/updatehousedeposit", World::Web_worldhandle_updatehousedeposit);
 			world_webserver->run();
 			LogWrite(INIT__INFO, 0, "Init", "World Web Server is listening on %s:%u..", web_ipaddr.c_str(), web_port);
 			web_success = true;
@@ -1034,6 +1037,24 @@ void PeerManager::SendPeersGuildChannelMessage(int32 guild_id, std::string fromN
 			LogWrite(PEERING__ERROR, 0, "Peering", "%s: Clients Parsing Error %s for %s:%u/%s", __FUNCTION__, e.what() ? e.what() : "??", peer->webAddr.c_str(), peer->webPort);
 		}
     }
+}
+
+void PeerManager::SendPeersChatChannelMessage(std::string channelName, std::string fromName, std::string message, int32 language_id, std::string toName) {
+	boost::property_tree::ptree root;
+	root.put("message", message);
+	root.put("channel", CHANNEL_CHAT_CHANNEL_TEXT);
+	root.put("channel_name", channelName);
+	root.put("from_language", language_id);
+	root.put("from_name", fromName);
+	root.put("to_name", toName);
+	std::ostringstream jsonStream;
+	boost::property_tree::write_json(jsonStream, root);
+	std::string jsonPayload = jsonStream.str();
+	for (auto& [peerId, peer] : peers) {
+		if(peer->healthCheck.status != HealthStatus::OK)
+			continue;
+		peer_https_pool.sendPostRequestToPeerAsync(peer->id, peer->webAddr, std::to_string(peer->webPort), "/sendglobalmessage", jsonPayload);
+	}
 }
 
 void PeerManager::sendZonePeerList(Client* client) {

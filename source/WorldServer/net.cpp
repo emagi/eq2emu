@@ -1061,7 +1061,8 @@ ThreadReturnType StartDiscord(void* tmp)
 			if(chanid.compare(listenchan) != 0 || !chanid.size() || !listenchan.size()) {
 				return;
 			}
-			 chat.TellChannel(NULL, listenchan.c_str(), event.msg.content.c_str(), event.msg.author.username.c_str());
+			 chat.TellChannel(nullptr, "", 0, listenchan.c_str(), event.msg.content.c_str(), event.msg.author.username.c_str());
+			 peer_manager.SendPeersChatChannelMessage(listenchan, "", event.msg.content, 0, event.msg.author.username);
 		}
 	});
 

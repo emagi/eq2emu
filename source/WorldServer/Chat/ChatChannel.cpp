@@ -120,7 +120,7 @@ bool ChatChannel::LeaveChannel(Client *client) {
 	return ret;
 }
 
-bool ChatChannel::TellChannel(Client *client, const char *message, const char* name2) {
+bool ChatChannel::TellChannel(std::string charName, int8 charLanguage, const char *message, const char* name2) {
 	vector<int32>::iterator itr;
 	PacketStruct *packet_struct;
 	Client *to_client;
@@ -135,8 +135,8 @@ bool ChatChannel::TellChannel(Client *client, const char *message, const char* n
 		packet_struct->setDataByName("from_spawn_id", 0xFFFFFFFF);
 		packet_struct->setDataByName("to_spawn_id", 0xFFFFFFFF);
 
-		if (client != NULL){
-			packet_struct->setDataByName("from", client->GetPlayer()->GetName());
+		if (charName.length() > 0){
+			packet_struct->setDataByName("from", charName.c_str());
 		} else {
 			char name3[128];
 			sprintf(name3,"[%s] from discord",name2);
@@ -146,8 +146,8 @@ bool ChatChannel::TellChannel(Client *client, const char *message, const char* n
 		packet_struct->setDataByName("to", to_client->GetPlayer()->GetName());
 		packet_struct->setDataByName("channel", to_client->GetMessageChannelColor(CHANNEL_CUSTOM_CHANNEL));
 
-		if(client != NULL){
-			packet_struct->setDataByName("language", client->GetPlayer()->GetCurrentLanguage());
+		if(charName.length() > 0){
+			packet_struct->setDataByName("language", charLanguage);
 		}else{
 			packet_struct->setDataByName("language", 0);
 		}
@@ -155,8 +155,8 @@ bool ChatChannel::TellChannel(Client *client, const char *message, const char* n
 		packet_struct->setDataByName("channel_name", name);
 		packet_struct->setDataByName("show_bubble", 1);
 
-		if(client != NULL){
-			if (client->GetPlayer()->GetCurrentLanguage() == 0 || to_client->GetPlayer()->HasLanguage(client->GetPlayer()->GetCurrentLanguage())) {
+		if(charName.length() > 0){
+			if (charLanguage == 0 || to_client->GetPlayer()->HasLanguage(charLanguage)) {
 				packet_struct->setDataByName("understood", 1);
 			}
 		} else {

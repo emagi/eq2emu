@@ -2435,6 +2435,8 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
 								GetPlayer()->GetCharacterInstances()->AddInstance(db_id, zone_details.instanceId, 0, 0, zone_details.defaultLockoutTime, zone_details.defaultReenterTime, zoneID, zone_details.instanceType, zone_details.zoneName);
 
 							world.AddPlayerHouse(GetPlayer()->GetCharacterID(), hz->id, unique_id, zone_details.instanceId, upkeep_due, 0, 0, GetPlayer()->GetName());
+							peer_manager.sendPeersAddPlayerHouse(GetPlayer()->GetCharacterID(), unique_id, hz->id, zone_details.instanceId, upkeep_due, GetPlayer()->GetName());
+							
 							//ClientPacketFunctions::SendHousingList(this);
 							PlayerHouse* ph = world.GetPlayerHouseByUniqueID(unique_id);
 							ClientPacketFunctions::SendBaseHouseWindow(this, hz, ph, GetVersion() <= 561 ? house_id : this->GetPlayer()->GetID());

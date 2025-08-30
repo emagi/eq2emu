@@ -744,6 +744,9 @@ public:
 	static void Web_worldhandle_removeseller(const http::request<http::string_body>& req, http::response<http::string_body>& res);
 	static void Web_worldhandle_additemsale(const http::request<http::string_body>& req, http::response<http::string_body>& res);
 	static void Web_worldhandle_removeitemsale(const http::request<http::string_body>& req, http::response<http::string_body>& res);
+	static void Web_worldhandle_addplayerhouse(const http::request<http::string_body>& req, http::response<http::string_body>& res);
+	static void Web_worldhandle_updatehousedeposit(const http::request<http::string_body>& req, http::response<http::string_body>& res);
+	static void Web_worldhandle_addchatchannel(const http::request<http::string_body>& req, http::response<http::string_body>& res);
 	
 	static void Web_populate_status(boost::property_tree::ptree& pt);
 	

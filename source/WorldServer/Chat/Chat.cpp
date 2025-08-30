@@ -35,8 +35,10 @@
 	#endif
 #endif
 
+#include "../Web/PeerManager.h"
 
 extern ConfigReader configReader;
+extern PeerManager peer_manager;
 
 
 
@@ -164,19 +166,23 @@ bool Chat::PasswordMatches(const char *channel_name, const char *password) {
 	return ret;
 }
 
-bool Chat::CreateChannel(const char *channel_name) {
-	return CreateChannel(channel_name, NULL);
+bool Chat::CreateChannel(const char *channel_name, bool fromPeer) {
+	return CreateChannel(channel_name, NULL, fromPeer);
 }
 
-bool Chat::CreateChannel(const char *channel_name, const char *password) {
+bool Chat::CreateChannel(const char *channel_name, const char *password, bool fromPeer) {
 	LogWrite(CHAT__DEBUG, 0, "Chat", "Channel %s being created", channel_name);
 
 	ChatChannel *channel = new ChatChannel();
 	channel->SetName(channel_name);
 	channel->SetType(CHAT_CHANNEL_TYPE_CUSTOM);
-	if (password != NULL)
+	if (password != NULL && strlen(password) > 0)
 		channel->SetPassword(password);
 
+	if(!fromPeer) {
+		peer_manager.sendPeersAddChatChannel(std::string(channel_name), password != nullptr ? std::string(password) : std::string(""));
+	}
+	
 	m_channels.writelock(__FUNCTION__, __LINE__);
 	channels.push_back(channel);
 	m_channels.releasewritelock(__FUNCTION__, __LINE__);
@@ -274,7 +280,7 @@ bool Chat::LeaveAllChannels(Client *client) {
 	return true;
 }
 
-bool Chat::TellChannel(Client *client, const char *channel_name, const char *message, const char* name) {
+bool Chat::TellChannel(Client *client, std::string charName, int8 charLanguage, const char *channel_name, const char *message, const char* name) {
 	vector<ChatChannel *>::iterator itr;
 	bool ret = false;
 	bool enablediscord = rule_manager.GetGlobalRule(R_Discord, DiscordEnabled)->GetBool();
@@ -286,7 +292,7 @@ bool Chat::TellChannel(Client *client, const char *channel_name, const char *mes
 			if (client && name)
 				ret = (*itr)->TellChannelClient(client, message, name);
 			else
-				ret = (*itr)->TellChannel(client, message, name);
+				ret = (*itr)->TellChannel(charName, charLanguage, message, name);
 
 			if(enablediscord == true && client){
 

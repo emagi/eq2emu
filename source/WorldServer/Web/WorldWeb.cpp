@@ -25,6 +25,7 @@
 #include "../LuaInterface.h"
 #include "../Guilds/Guild.h"
 #include "../Broker/BrokerManager.h"
+#include "../Chat/Chat.h"
 
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
@@ -46,6 +47,7 @@ extern MasterFactionList master_faction_list;
 extern ClientList client_list;
 extern GuildList guild_list;
 extern BrokerManager broker;
+extern Chat chat;
 
 PeerManager peer_manager;
 HTTPSClientPool peer_https_pool;
@@ -739,7 +741,7 @@ void World::Web_worldhandle_sendglobalmessage(const http::request<http::string_b
 	int32 success = 0;
 	int8 language = 0;
 	int16 in_channel = 0;
-	std::string toName(""), fromName(""), msg("");
+	std::string toName(""), fromName(""), msg(""), channelName("");
 	int32 group_id = 0;
 	int32 guild_id = 0;
 	int8 custom_type = 0;
@@ -751,6 +753,10 @@ void World::Web_worldhandle_sendglobalmessage(const http::request<http::string_b
 	}
 	if (auto message = json_tree.get_optional<std::string>("message")) {
 		msg = message.get();
+	}
+	
+	if (auto in_channel = json_tree.get_optional<std::string>("channel_name")) {
+		channelName = in_channel.get();
 	}
 	if (auto from_language = json_tree.get_optional<int8>("from_language")) {
 		language = from_language.get();
@@ -769,7 +775,7 @@ void World::Web_worldhandle_sendglobalmessage(const http::request<http::string_b
 	}
 
 	Client* find_client = zone_list.GetClientByCharName(toName.c_str());
-	if (find_client && find_client->GetPlayer()->IsIgnored(fromName.c_str()))
+	if (in_channel == CHANNEL_PRIVATE_TELL && find_client && find_client->GetPlayer()->IsIgnored(fromName.c_str()))
 		success = 0;
 	else {
 		switch (in_channel) {
@@ -852,6 +858,13 @@ void World::Web_worldhandle_sendglobalmessage(const http::request<http::string_b
 					zone_list.HandleGlobalAnnouncement(msg.c_str());
 					break;
 			}
+			break;
+		}
+		case CHANNEL_CHAT_CHANNEL_TEXT: {
+			if(fromName.length() > 0)
+				chat.TellChannel(nullptr, fromName, language, channelName.c_str(), msg.c_str());
+			else
+				chat.TellChannel(nullptr, "", 0, channelName.c_str(), msg.c_str(), toName.c_str()); // toName used as an override for chat channels via discord bot
 			break;
 		}
 		}
@@ -1577,6 +1590,124 @@ void World::Web_worldhandle_removeitemsale(const http::request<http::string_body
 	
 	pt.put("success", success);
 	pt.put("character_id", charID);
+	std::ostringstream oss;
+	boost::property_tree::write_json(oss, pt);
+	std::string json = oss.str();
+	res.body() = json;
+	res.prepare_payload();
+}
+
+void World::Web_worldhandle_addplayerhouse(const http::request<http::string_body>& req, http::response<http::string_body>& res) {
+	res.set(http::field::content_type, "application/json; charset=utf-8");
+	boost::property_tree::ptree pt, json_tree;
+
+	std::istringstream json_stream(req.body());
+	boost::property_tree::read_json(json_stream, json_tree);
+	int32 charID = 0;
+	int64 uniqueID = 0;
+	int32 houseID = 0;
+	int32 instanceID = 0;
+	bool success = false;
+	int32 upkeepDue = 0;
+	std::string charname("");
+	if (auto character_id = json_tree.get_optional<int32>("character_id")) {
+		charID = character_id.get();
+	}
+	if (auto house_id = json_tree.get_optional<int32>("house_id")) {
+		houseID = house_id.get();
+	}
+	if (auto unique_id = json_tree.get_optional<int64>("unique_id")) {
+		uniqueID = unique_id.get();
+	}
+	if (auto instance_id = json_tree.get_optional<int32>("instance_id")) {
+		instanceID = instance_id.get();
+	}
+	if (auto upkeep_due = json_tree.get_optional<int32>("upkeep_due")) {
+		upkeepDue = upkeep_due.get();
+	}
+	if (auto name = json_tree.get_optional<std::string>("character_name")) {
+		charname = name.get();
+	}
+	
+	if(charID && houseID && uniqueID && charname.length() > 0) {
+		world.AddPlayerHouse(charID, houseID, uniqueID, instanceID, upkeepDue, 0, 0, charname);
+		success = true;
+	}
+	
+	pt.put("success", success);
+	pt.put("character_id", charID);
+	std::ostringstream oss;
+	boost::property_tree::write_json(oss, pt);
+	std::string json = oss.str();
+	res.body() = json;
+	res.prepare_payload();
+}
+
+void World::Web_worldhandle_updatehousedeposit(const http::request<http::string_body>& req, http::response<http::string_body>& res) {
+	res.set(http::field::content_type, "application/json; charset=utf-8");
+	boost::property_tree::ptree pt, json_tree;
+
+	std::istringstream json_stream(req.body());
+	boost::property_tree::read_json(json_stream, json_tree);
+	int64 escrowCoin = 0;
+	int64 escrowStatus = 0;
+	int32 instanceID = 0;
+	bool success = false;
+	if (auto escrow_coins = json_tree.get_optional<int64>("escrow_coins")) {
+		escrowCoin = escrow_coins.get();
+	}
+	if (auto escrow_status = json_tree.get_optional<int64>("escrow_status")) {
+		escrowStatus = escrow_status.get();
+	}
+	if (auto instance_id = json_tree.get_optional<int32>("instance_id")) {
+		instanceID = instance_id.get();
+	}
+	
+	if(instanceID) {
+		PlayerHouse* ph = world.GetPlayerHouseByInstanceID(instanceID);
+		if(ph) {
+			ph->escrow_coins = escrowCoin;
+			ph->escrow_status = escrowStatus;
+			
+			database.LoadDeposits(ph);
+			success = true;
+		}
+	}
+	
+	pt.put("success", success);
+	pt.put("instance_id", instanceID);
+	std::ostringstream oss;
+	boost::property_tree::write_json(oss, pt);
+	std::string json = oss.str();
+	res.body() = json;
+	res.prepare_payload();
+}
+
+void World::Web_worldhandle_addchatchannel(const http::request<http::string_body>& req, http::response<http::string_body>& res) {
+	res.set(http::field::content_type, "application/json; charset=utf-8");
+	boost::property_tree::ptree pt, json_tree;
+
+	std::istringstream json_stream(req.body());
+	boost::property_tree::read_json(json_stream, json_tree);
+
+	bool success = false;
+	std::string channelname("");
+	std::string channelpasswd("");
+	if (auto name = json_tree.get_optional<std::string>("channel_name")) {
+		channelname = name.get();
+	}
+	if (auto passwd = json_tree.get_optional<std::string>("channel_password")) {
+		channelpasswd = passwd.get();
+	}
+	
+	if(channelname.length() > 0) {
+		if (chat.ChannelExists(channelname.c_str()) || chat.CreateChannel(channelname.c_str(), channelpasswd.c_str(), true)) {
+			success = true;
+		}
+	}
+	
+	pt.put("success", success);
+	pt.put("channel_name", channelname);
 	std::ostringstream oss;
 	boost::property_tree::write_json(oss, pt);
 	std::string json = oss.str();

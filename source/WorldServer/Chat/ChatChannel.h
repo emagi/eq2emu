@@ -61,8 +61,9 @@ public:
 	bool IsInChannel(int32 character_id);
 	bool JoinChannel(Client *client);
 	bool LeaveChannel(Client *client);
-	bool TellChannel(Client *client, const char *message, const char* name2 = 0);
+	bool TellChannel(std::string charName, int8 charLanguage, const char *message, const char* name2 = 0);
 	bool TellChannelClient(Client* to_client, const char* message, const char* name2 = 0);
+
 	bool SendChannelUserList(Client *client);
 
 
