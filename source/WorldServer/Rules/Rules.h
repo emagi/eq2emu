@@ -98,6 +98,7 @@ enum RuleType {
 	StartHPLevelMod,
 	StartPowerLevelMod,
 	AllowPlayerEquipCombat,
+	ForceCommonerFarJourney,
 	MaxTargetCommandDistance,
 	MinSkillMultiplierValue,
 	HarvestSkillUpMultiplier,

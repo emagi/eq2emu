@@ -247,6 +247,8 @@ void RuleManager::Init()
 												   ** Setting to less than 10 or greater than 50 will disable completely
 												   ** Range supported is 10 - 50%.
 												   **/
+	RULE_INIT(R_Player, ForceCommonerFarJourney, "1");
+	
 	/* PVP */
 	RULE_INIT(R_PVP, AllowPVP, "0");
 	RULE_INIT(R_PVP, LevelRange, "4");
