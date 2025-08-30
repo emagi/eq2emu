@@ -4405,16 +4405,6 @@ Item* PlayerItemList::GetVaultItemFromUniqueID(int64 id, bool lock) {
 	{
 		for (auto& [containerIdx, slotMap] : vaultIt->second) {
 			for (auto& [slotID, itemPtr] : slotMap) {
-				if(itemPtr) {
-				LogWrite(PLAYER__ERROR, 0, "Vault",
-				  "--GetVaultItem: %u (%s - %u) needs to match %u", slotID, itemPtr->name.c_str(), itemPtr->details.unique_id, id
-				);
-				}
-				else {
-					LogWrite(PLAYER__ERROR, 0, "Vault",
-				  "--GetVaultItem: %u (??) needs to match %u", slotID, id
-				);
-				}
 				if (itemPtr && itemPtr->details.unique_id == id) {
 					if (lock) MPlayerItems.releasereadlock(__FUNCTION__, __LINE__);
 					return itemPtr;
@@ -4510,7 +4500,7 @@ void PlayerItemList::PopulateHouseStoragePacket(Client* client, PacketStruct* pa
 	if(broker.IsItemForSale(client->GetPlayer()->GetCharacterID(), item->details.unique_id))
 		storage_flags += HouseStoreItemFlags::HOUSE_STORE_FOR_SALE;
 	
-	LogWrite(PLAYER__ERROR, 5, "Broker",
+	LogWrite(PLAYER__DEBUG, 5, "Broker",
 	  "--Sell broker item: %u (%s - %u), cost=%u",
 	  client->GetPlayer()->GetCharacterID(), item->name.c_str(), item->details.unique_id, cost
 	);
