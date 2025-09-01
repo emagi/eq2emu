@@ -91,7 +91,7 @@ git clone ${EQ2MAPS_GIT} || handle_error "Failed to clone EQ2 maps repository."
 # Copy content and maps to server
 log "Copying content and maps to server..."
 cd ${EQ2EMU_HOME_DIR}/eq2emu-content || handle_error "Failed to navigate to eq2emu-content directory."
-cp -r ItemScripts Quests RegionScripts SpawnScripts Spells ZoneScripts ${EQ2EMU_HOME_DIR}/eq2emu/server/ || handle_error "Failed to copy content scripts."
+cp -r ItemScripts Quests RegionScripts SpawnScripts Spells ZoneScripts PlayerScripts ${EQ2EMU_HOME_DIR}/eq2emu/server/ || handle_error "Failed to copy content scripts."
 
 cd ${EQ2EMU_HOME_DIR}/eq2emu-maps || handle_error "Failed to navigate to eq2emu-maps directory."
 cp -r Maps Regions ${EQ2EMU_HOME_DIR}/eq2emu/server/ || handle_error "Failed to copy maps."
