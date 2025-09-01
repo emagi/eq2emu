@@ -7087,9 +7087,9 @@ void Client::AddStepProgress(int32 quest_id, int32 step, int32 progress) {
 	}
 }
 
-void Client::CheckPlayerQuestsKillUpdate(Spawn* spawn) {
+void Client::CheckPlayerQuestsKillUpdate(Spawn* spawn, bool killer_in_encounter) {
 	bool hadUpdates = false;
-	vector<Quest*>* quest_updates = player->CheckQuestsKillUpdate(spawn);
+	vector<Quest*>* quest_updates = player->CheckQuestsKillUpdate(spawn, true, killer_in_encounter);
 	if (quest_updates) {
 		for (int32 i = 0; i < quest_updates->size(); i++)
 		{

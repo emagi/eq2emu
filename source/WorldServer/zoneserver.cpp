@@ -5241,7 +5241,7 @@ void ZoneServer::KillSpawn(bool spawnListLocked, Spawn* dead, Spawn* killer, boo
 				if (client) {
 					// Check for quest kill updates
 					if(!dead->IsNPC() || loot_state != ENCOUNTER_STATE_BROKEN) {
-						client->CheckPlayerQuestsKillUpdate(dead);
+						client->CheckPlayerQuestsKillUpdate(dead, killer_in_encounter);
 					}
 					// If the dead mob is not a player and if it had a faction with an ID greater or equal to 10 the send faction changes
 					if (!dead->IsPlayer() && dead->GetFactionID() > 10)

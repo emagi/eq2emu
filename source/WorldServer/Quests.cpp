@@ -36,7 +36,7 @@ extern ConfigReader configReader;
 extern MasterFactionList master_faction_list;
 extern MasterRaceTypeList race_types_list;
 
-QuestStep::QuestStep(int32 in_id, int8 in_type, string in_description, vector<int32>* in_ids, int32 in_quantity, const char* in_task_group, vector<Location>* in_locations, float in_max_variation, float in_percentage, int32 in_usableitemid){
+QuestStep::QuestStep(int32 in_id, int8 in_type, string in_description, vector<int32>* in_ids, int32 in_quantity, const char* in_task_group, vector<Location>* in_locations, float in_max_variation, float in_percentage, int32 in_usableitemid, bool in_self_only_flag){
 	type = in_type;
 	description = in_description;
 	ids = 0;
@@ -65,6 +65,7 @@ QuestStep::QuestStep(int32 in_id, int8 in_type, string in_description, vector<in
 	updated = false;
 	percentage = in_percentage;
 	usableitemid = in_usableitemid;
+	self_only_flag = in_self_only_flag;
 }
 
 QuestStep::QuestStep(QuestStep* old_step){
@@ -96,6 +97,7 @@ QuestStep::QuestStep(QuestStep* old_step){
 	updated = false;
 	percentage = old_step->percentage;
 	usableitemid = old_step->usableitemid;
+	self_only_flag = old_step->self_only_flag;
 }
 
 QuestStep::~QuestStep(){
@@ -551,7 +553,7 @@ bool Quest::CheckQuestReferencedSpawns(Spawn* spawn){
 	return ret;
 }
 
-bool Quest::CheckQuestKillUpdate(Spawn* spawn, bool update){
+bool Quest::CheckQuestKillUpdate(Spawn* spawn, bool update, bool killer_in_encounter){
 	QuestStep* step = 0;
 	bool ret = false;
 	int32 id = spawn->GetDatabaseID();
@@ -561,7 +563,9 @@ bool Quest::CheckQuestKillUpdate(Spawn* spawn, bool update){
 		step = quest_steps[i];
 		if(!step)
 			continue;
-
+		if(step->IsSelfOnlyUpdate() && !killer_in_encounter)
+			continue;
+			
 			if((step->GetStepType() == QUEST_STEP_TYPE_KILL && !step->Complete() && step->CheckStepReferencedID(id)) ||
 			 (step->GetStepType() == QUEST_STEP_TYPE_KILL_RACE_REQ && !step->Complete() && step->CheckStepKillRaceReqUpdate(spawn)))
 			{
@@ -1428,8 +1432,8 @@ bool Quest::RemoveQuestStep(int32 step, Client* client) {
 	return ret;
 }
 
-QuestStep* Quest::AddQuestStep(int32 id, int8 in_type, string in_description, vector<int32>* in_ids, int32 in_quantity, const char* in_task_group, vector<Location>* in_locations, float in_max_variation, float in_percentage,int32 in_usableitemid){
-	QuestStep* step = new QuestStep(id, in_type, in_description, in_ids, in_quantity, in_task_group, in_locations, in_max_variation, in_percentage, in_usableitemid);
+QuestStep* Quest::AddQuestStep(int32 id, int8 in_type, string in_description, vector<int32>* in_ids, int32 in_quantity, const char* in_task_group, vector<Location>* in_locations, float in_max_variation, float in_percentage,int32 in_usableitemid, bool in_is_self_only){
+	QuestStep* step = new QuestStep(id, in_type, in_description, in_ids, in_quantity, in_task_group, in_locations, in_max_variation, in_percentage, in_usableitemid, in_is_self_only);
 	if(!AddQuestStep(step)){
 		safe_delete(step);
 		return 0;

@@ -372,7 +372,7 @@ public:
 	bool	LootSpawnByMethod(Spawn* entity);
 	void	OpenChest(Spawn* entity, bool attemptDisarm = true);
 	void	CastGroupOrSelf(Entity* source, uint32 spellID, uint32 spellTier = 1, float restrictiveRadius = 0.0f);
-	void	CheckPlayerQuestsKillUpdate(Spawn* spawn);
+	void	CheckPlayerQuestsKillUpdate(Spawn* spawn, bool killer_in_encounter);
 	void	CheckPlayerQuestsChatUpdate(Spawn* spawn);
 	void	CheckPlayerQuestsItemUpdate(Item* item);
 	void	CheckPlayerQuestsSpellUpdate(Spell* spell);

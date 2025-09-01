@@ -5187,12 +5187,12 @@ vector<Quest*>* Player::CheckQuestsFailures(){
 	return quest_failures;
 }
 
-vector<Quest*>* Player::CheckQuestsKillUpdate(Spawn* spawn, bool update){
+vector<Quest*>* Player::CheckQuestsKillUpdate(Spawn* spawn, bool update, bool killer_in_encounter){
 	vector<Quest*>* quest_updates = 0;
 	map<int32, Quest*>::iterator itr;
 	MPlayerQuests.readlock(__FUNCTION__, __LINE__);
 	for(itr = player_quests.begin(); itr != player_quests.end(); itr++){
-		if(itr->second && itr->second->CheckQuestKillUpdate(spawn, update)){
+		if(itr->second && itr->second->CheckQuestKillUpdate(spawn, update, killer_in_encounter)){
 			if(!quest_updates)
 				quest_updates = new vector<Quest*>();
 			quest_updates->push_back(itr->second);

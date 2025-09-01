@@ -4208,7 +4208,7 @@ int EQ2Emu_lua_AddQuestStep(lua_State* state) {
 	lua_interface->ResetFunctionStack(state);
 	return 0;
 }
-int EQ2Emu_lua_AddQuestStepKillLogic(lua_State* state, int8 type)
+int EQ2Emu_lua_AddQuestStepKillLogic(lua_State* state, int8 type, bool self_only)
 {
 	if (!lua_interface)
 		return 0;
@@ -4233,7 +4233,8 @@ int EQ2Emu_lua_AddQuestStepKillLogic(lua_State* state, int8 type)
 			ids->push_back(id);
 			i++;
 		}
-		QuestStep* quest_step = quest->AddQuestStep(step, type, description, ids, quantity, taskgroup, 0, 0, percentage, 0);
+		QuestStep* quest_step = quest->AddQuestStep(step, type, description, ids, quantity, taskgroup, 0, 0, percentage, 0, self_only);
+
 		if (quest_step && icon > 0 && quantity > 0)
 			quest_step->SetIcon(icon);
 		if (quest->GetPlayer() && ((Player*)quest->GetPlayer())->GetClient()) {
@@ -4247,6 +4248,10 @@ int EQ2Emu_lua_AddQuestStepKillLogic(lua_State* state, int8 type)
 }
 int EQ2Emu_lua_AddQuestStepKill(lua_State* state) {
 	return EQ2Emu_lua_AddQuestStepKillLogic(state, QUEST_STEP_TYPE_KILL);
+}
+
+int EQ2Emu_lua_AddQuestStepKillSelfUpdate(lua_State* state) {
+	return EQ2Emu_lua_AddQuestStepKillLogic(state, QUEST_STEP_TYPE_KILL, true);
 }
 
 int EQ2Emu_lua_AddQuestStepKillByRace(lua_State* state) {

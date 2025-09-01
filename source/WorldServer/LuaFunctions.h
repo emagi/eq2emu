@@ -18,6 +18,8 @@
     along with EQ2Emulator.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "../common/types.h"
+
 #ifndef LUA_FUNCTIONS_H
 #define LUA_FUNCTIONS_H
 
@@ -283,8 +285,9 @@ int EQ2Emu_lua_SetCoinTmpReward(lua_State* state);
 int EQ2Emu_lua_SetQuestRewardComment(lua_State* state);
 int EQ2Emu_lua_SetQuestRewardExp(lua_State* state);
 int EQ2Emu_lua_AddQuestStep(lua_State* state);
-int EQ2Emu_lua_AddQuestStepKillLogic(lua_State* state);
+int EQ2Emu_lua_AddQuestStepKillLogic(lua_State* state, int8 type, bool self_only = false);
 int EQ2Emu_lua_AddQuestStepKill(lua_State* state);
+int EQ2Emu_lua_AddQuestStepKillSelfUpdate(lua_State* state);
 int EQ2Emu_lua_AddQuestStepKillByRace(lua_State* state);
 int EQ2Emu_lua_AddQuestStepChat(lua_State* state);
 int EQ2Emu_lua_AddQuestStepObtainItem(lua_State* state);

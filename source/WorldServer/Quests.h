@@ -66,7 +66,7 @@ struct Location {
 
 class QuestStep{
 public:
-	QuestStep(int32 in_id, int8 in_type, string in_description, vector<int32>* in_ids, int32 in_quantity, const char* in_task_group, vector<Location>* in_locations, float in_max_variation, float in_percentage, int32 in_usableitemid);
+	QuestStep(int32 in_id, int8 in_type, string in_description, vector<int32>* in_ids, int32 in_quantity, const char* in_task_group, vector<Location>* in_locations, float in_max_variation, float in_percentage, int32 in_usableitemid, bool in_self_only_flag = false);
 	QuestStep(QuestStep* old_step);
 	~QuestStep();
 	bool			CheckStepKillRaceReqUpdate(Spawn* spawn);
@@ -99,6 +99,7 @@ public:
 
 	void			SetTaskGroup(string val) { task_group = val; }
 
+	bool			IsSelfOnlyUpdate() { return self_only_flag; }
 private:
 	bool				updated;
 	int32				id;
@@ -115,6 +116,7 @@ private:
 	float				percentage;
 	int32				usableitemid;
 	int32				step_progress;
+	bool				self_only_flag;
 };
 class Player;
 class Spell;
@@ -155,7 +157,7 @@ public:
 	void                SetRewardTSXP(int32 xp) { reward_tsexp = xp; }
 
 	bool				AddQuestStep(QuestStep* step);
-	QuestStep*			AddQuestStep(int32 id, int8 in_type, string in_description, vector<int32>* in_ids, int32 in_quantity, const char* in_task_group = 0, vector<Location>* in_locations = 0, float in_max_variation = 0, float in_percentage = 0,int32 in_usableitemid = 0);
+	QuestStep*			AddQuestStep(int32 id, int8 in_type, string in_description, vector<int32>* in_ids, int32 in_quantity, const char* in_task_group = 0, vector<Location>* in_locations = 0, float in_max_variation = 0, float in_percentage = 0,int32 in_usableitemid = 0, bool in_is_self_only = false);
 	bool				SetStepComplete(int32 step);
 	bool				AddStepProgress(int32 step_id, int32 progress);
 	int16				GetQuestStep();
@@ -163,7 +165,7 @@ public:
 	int16				GetTaskGroupStep();
 	bool				QuestStepIsActive(int16 quest_step_id);
 	bool				CheckQuestReferencedSpawns(Spawn* spawn);
-	bool				CheckQuestKillUpdate(Spawn* spawn, bool update = true);
+	bool				CheckQuestKillUpdate(Spawn* spawn, bool update = true, bool killer_in_encounter = true);
 	bool				CheckQuestChatUpdate(int32 id, bool update = true);
 	bool				CheckQuestItemUpdate(int32 id, int8 quantity = 1);
 	bool				CheckQuestLocationUpdate(float char_x, float char_y, float char_z, int32 zone_id);
