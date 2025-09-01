@@ -139,8 +139,10 @@ void Brain::Think() {
 				m_body->InCombat(false);
 
 				// Do not set a players pet to full health once they stop combat
-				if (!m_body->IsPet() || (m_body->IsPet() && m_body->GetOwner() && !m_body->GetOwner()->IsPlayer()))
+				if (!m_body->IsPet() || (m_body->IsPet() && m_body->GetOwner() && !m_body->GetOwner()->IsPlayer())) {
 					m_body->SetHP(m_body->GetTotalHP());
+					m_body->SetPower(m_body->GetTotalPower());
+				}
 			}
 
 			CheckBuffs();
@@ -178,8 +180,10 @@ void Brain::Think() {
 
 							m_body->SetHeading(m_body->m_runbackHeadingDir1,m_body->m_runbackHeadingDir2,false);
 
-							if(m_body->GetRunbackLocation()->reset_hp_on_runback)
+							if(m_body->GetRunbackLocation()->reset_hp_on_runback) {
 								m_body->SetHP(m_body->GetTotalHP());
+								m_body->SetPower(m_body->GetTotalPower());
+							}
 
 							m_body->ClearRunback();
 							
