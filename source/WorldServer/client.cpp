@@ -616,7 +616,6 @@ void Client::HandlePlayerRevive(int32 point_id)
 		heading = GetCurrentZone()->GetSafeHeading();
 		zone_desc = GetCurrentZone()->GetZoneDescription();
 		location_name = "Zone Safe Point";
-		Zone(GetCurrentZone()->GetZoneName(), false);
 	}
 	else
 	{
@@ -627,12 +626,13 @@ void Client::HandlePlayerRevive(int32 point_id)
 		heading = revive_point->heading;
 		zone_desc = database.GetZoneDescription(revive_point->zone_id);
 		location_name = revive_point->location_name.c_str();
-		Zone(GetCurrentZone()->GetZoneName(), false);
 	}
+	
 	player->SetX(x);
 	player->SetY(y);
 	player->SetZ(z);
 	player->SetHeading(heading);
+	player->SetLocation(0);
 
 	LogWrite(CCLIENT__DEBUG, 0, "Client", "Attempt Revive @ %s, %.2f, %.2f, %.2f, %.2f, HP: %i, Pow: %i, %s",
 		zone_desc.c_str(),
@@ -643,9 +643,8 @@ void Client::HandlePlayerRevive(int32 point_id)
 		player->GetHP(),
 		player->GetPower(),
 		location_name);
-
+	bool shouldZone = true;
 	//player->ClearEverything();
-	Save();
 
 	if (revive_point && revive_point->zone_id != GetCurrentZone()->GetZoneID() && revive_point->zone_id != 0)
 	{
@@ -657,6 +656,11 @@ void Client::HandlePlayerRevive(int32 point_id)
 			y = GetCurrentZone()->GetSafeY();
 			z = GetCurrentZone()->GetSafeZ();
 			heading = GetCurrentZone()->GetSafeHeading();
+			
+			player->SetX(x);
+			player->SetY(y);
+			player->SetZ(z);
+			player->SetHeading(heading);
 			location_name = "Zone Safe Point";
 		}
 		else
@@ -666,10 +670,15 @@ void Client::HandlePlayerRevive(int32 point_id)
 			//player->ClearEverything();
 			Save();
 			Zone(zone_name.c_str(), false);
+			shouldZone = false;
 		}
 	}
-
-	zone_desc = GetCurrentZone()->GetZoneDescription();
+		
+	if(shouldZone) {
+		Save();
+		Zone(GetCurrentZone()->GetZoneName(), false);
+	}
+	
 	Message(CHANNEL_NARRATIVE, "Reviving in %s at %s.", zone_desc.c_str(), location_name);
 	player->SetSpawnType(4);
 	if (version > 373) {
@@ -681,24 +690,26 @@ void Client::HandlePlayerRevive(int32 point_id)
 		}
 	}
 
-	packet = configReader.getStruct("WS_TeleportWithinZone", GetVersion());
-	if (packet)
-	{
-		packet->setDataByName("x", x);
-		packet->setDataByName("y", y);
-		packet->setDataByName("z", z);
-		QueuePacket(packet->serialize());
-		safe_delete(packet);
-	}
+	if(shouldZone) {
+		packet = configReader.getStruct("WS_TeleportWithinZone", GetVersion());
+		if (packet)
+		{
+			packet->setDataByName("x", x);
+			packet->setDataByName("y", y);
+			packet->setDataByName("z", z);
+			QueuePacket(packet->serialize());
+			safe_delete(packet);
+		}
 
-	SendControlGhost();
+		SendControlGhost();
 
-	packet = configReader.getStruct("WS_SetPOVGhostCmd", GetVersion());
-	if (packet)
-	{
-		packet->setDataByName("spawn_id", 0xFFFFFFFF);
-		QueuePacket(packet->serialize());
-		safe_delete(packet);
+		packet = configReader.getStruct("WS_SetPOVGhostCmd", GetVersion());
+		if (packet)
+		{
+			packet->setDataByName("spawn_id", 0xFFFFFFFF);
+			QueuePacket(packet->serialize());
+			safe_delete(packet);
+		}
 	}
 
 	if (rule_manager.GetZoneRule(GetCurrentZoneID(), R_Combat, EnableSpiritShards)->GetBool())
@@ -739,7 +750,7 @@ void Client::SendControlGhost(int32 send_id, int8 unknown2) {
 void Client::BeginPreCharInfo() {
 	if (!IsReadyForSpawns()) {
 		if (GetPlayer()->GetMap()) {
-			if(!firstlogin) { // find the appropriate grid id
+			if(!firstlogin || !GetPlayer()->GetLocation()) { // find the appropriate grid id
 				auto loc = glm::vec3(GetPlayer()->GetX(), GetPlayer()->GetZ(), GetPlayer()->GetY());
 				uint32 GridID = 0;
 				float new_z = GetPlayer()->FindBestZ(loc, nullptr, &GridID);
