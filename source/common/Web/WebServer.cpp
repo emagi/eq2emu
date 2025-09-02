@@ -248,7 +248,7 @@ void WebServer::do_session_ssl(tcp::socket socket) {
 
 template <class Body, class Allocator>
 void WebServer::handle_request(http::request<Body, http::basic_fields<Allocator>>&& req, std::function<void(http::response<http::string_body>&&)> send) {
-    auto it = noauth_routes_.find(req.target().to_string());
+    auto it = noauth_routes_.find(std::string(req.target()));
     if (it != noauth_routes_.end()) {
         http::response<http::string_body> res{http::status::ok, req.version()};
         res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
@@ -266,7 +266,7 @@ void WebServer::handle_request(http::request<Body, http::basic_fields<Allocator>
         return send(std::move(res));
     }
 	
-	auto status_it = route_required_status_.find(req.target().to_string());
+	auto status_it = route_required_status_.find(std::string(req.target()));
     if (status_it != route_required_status_.end()) {
 		if(status_it->second > 0 && status_it->second != 0xFFFFFFFF && status_it->second > user_status) {
 			http::response<http::string_body> res{http::status::unauthorized, req.version()};
@@ -277,7 +277,7 @@ void WebServer::handle_request(http::request<Body, http::basic_fields<Allocator>
 		}
 	}
 
-    it = routes_.find(req.target().to_string());
+    it = routes_.find(std::string(req.target()));
     if (it != routes_.end()) {
         http::response<http::string_body> res{http::status::ok, req.version()};
 		res.set(http::field::set_cookie, "session_id=" + session_id);
@@ -300,7 +300,7 @@ void WebServer::handle_request(http::request<Body, http::basic_fields<Allocator>
 std::string WebServer::authenticate(const http::request<http::string_body>& req, int32* user_status) {
     auto it = req.find(http::field::cookie);
     if (it != req.end()) {
-        std::istringstream cookie_stream(it->value().to_string());
+        std::istringstream cookie_stream(std::string(it->value()));
         std::string session_id;
         std::getline(cookie_stream, session_id, '=');
         if (session_id == "session_id") {
@@ -317,7 +317,7 @@ std::string WebServer::authenticate(const http::request<http::string_body>& req,
 
     it = req.find(http::field::authorization);
     if (it != req.end()) {
-        std::string auth_header = it->value().to_string();
+        std::string auth_header = std::string(it->value());
         if (auth_header.substr(0, 6) == "Basic ") {
             std::string encoded_credentials = auth_header.substr(6);
             std::string decoded_credentials;

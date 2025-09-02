@@ -115,7 +115,7 @@ std::shared_ptr<boost::asio::ssl::context> HTTPSClient::createSSLContext() {
 
 void HTTPSClient::parseAndStoreCookies(const http::response<http::string_body>& res) {
 	if (res.count(http::field::set_cookie)) {
-		std::istringstream stream(res[http::field::set_cookie].to_string());
+		std::istringstream stream(std::string(res.at(boost::beast::http::field::set_cookie)));
 		std::string token;
 
 		// Parse "Set-Cookie" field for name-value pairs
@@ -251,8 +251,7 @@ void HTTPSClient::sendRequest(
 				}
 			  // cookie logic
 			  if (res->base().count(http::field::set_cookie)) {
-				auto hdr = res->base()[http::field::set_cookie]
-							   .to_string();
+				auto hdr = std::string(res->base()[http::field::set_cookie]);
 				std::istringstream ss(hdr);
 				std::string token;
 				while (std::getline(ss, token, ';')) {
@@ -396,8 +395,7 @@ void HTTPSClient::sendPostRequest(
 				}
 			  // cookie logic
 			  if (res->base().count(http::field::set_cookie)) {
-				auto hdr = res->base()[http::field::set_cookie]
-							   .to_string();
+				auto hdr = std::string(res->base()[http::field::set_cookie]);
 				std::istringstream ss(hdr);
 				std::string token;
 				while (std::getline(ss, token, ';')) {
