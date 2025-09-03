@@ -12239,6 +12239,7 @@ bool Client::HandleNewLogin(int32 account_id, int32 access_code)
 						SetAdminStatus(client->GetAdminStatus());
 						SetCurrentZone(GetPlayer()->GetZone());
 						client->SetPlayer(current_player);
+						client->SetCurrentZone(current_player->GetZone());
 						GetPlayer()->ResetSavedSpawns();
 						restore_ld_success = true;
 
