@@ -1702,7 +1702,7 @@ bool ZoneList::GetDuplicateZoneDetails(ZoneChangeDetails* zone_details, const st
 	{
 		tmp = *zone_iter;
 		
-		if(tmp->IsInstanceZone())
+		if(tmp->IsInstanceZone() || tmp->isZoneShuttingDown())
 			continue;
 				
 		if(((inc_zone_id > 0 && tmp->GetZoneID() == inc_zone_id) || (inc_zone_name.length() > 0 && strncasecmp(tmp->GetZoneName(), inc_zone_name.c_str(), inc_zone_name.length())==0))){
