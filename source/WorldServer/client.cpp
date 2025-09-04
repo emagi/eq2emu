@@ -12248,7 +12248,10 @@ bool Client::HandleNewLogin(int32 account_id, int32 access_code)
 						client->GetPlayer()->SetName(tmpldname, false);
 					}
 					ZoneServer* tmpZone = client->GetCurrentZone();
-					tmpZone->RemoveClientImmediately(client);
+					if(tmpZone) {
+						tmpZone->GetSpellProcess()->RemoveClientHO(client);
+						tmpZone->RemoveClientImmediately(client);
+					}
 				}
 				if (!restore_ld_success && !database.loadCharacter(zar->GetCharacterName(), zar->GetAccountID(), this)) {
 					LogWrite(ZONE__ERROR, 0, "Zone", "Error reloading LD character and loading DB character: %s", player->GetName());

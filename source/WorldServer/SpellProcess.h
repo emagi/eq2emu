@@ -386,6 +386,7 @@ public:
 
 	/// <summary>Stops the HO that targets the given spawn</summary>
 	/// <param name='spawn_id'>ID of the spawn targeted by the HO we want to stop</param>
+	void RemoveClientHO(Client* client);
 	void KillHOBySpawnID(int32 spawn_id);
 
 	void AddSpellCancel(LuaSpell* spell);

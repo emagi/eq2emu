@@ -1554,6 +1554,9 @@ void NPC::ProcessCombat() {
 }
 
 void Player::ProcessCombat() {
+	if (GetClient() && (GetClient()->IsZoning() || GetClient()->IsReloadingZone() || !GetClient()->IsReadyForUpdates()))
+		return;
+	
 	// if not in combat OR casting a spell OR dazed  OR feared return out
 	if (!GetZone() || !EngagedInCombat() || IsCasting() || IsDazed() || IsFeared())
 		return;

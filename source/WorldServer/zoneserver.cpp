@@ -3677,6 +3677,8 @@ void ZoneServer::RemoveClient(Client* client)
 				((Entity*)client->GetPlayer())->DismissAllPets();
 		}
 		
+		GetSpellProcess()->RemoveClientHO(client);
+		
 		MClientList.writelock(__FUNCTION__, __LINE__);
 		LogWrite(ZONE__DEBUG, 0, "Zone", "Calling clients.Remove(client)...");
 		

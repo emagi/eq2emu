@@ -2988,6 +2988,20 @@ bool SpellProcess::AddHO(int32 group_id, HeroicOP* ho) {
 	return ret;
 }
 
+void SpellProcess::RemoveClientHO(Client* client) {
+	// Check solo HO's
+	MSoloHO.writelock(__FUNCTION__, __LINE__);
+	map<Client*, HeroicOP*>::iterator itr = m_soloHO.find(client);
+	if (itr != m_soloHO.end()) {
+		HeroicOP* op = itr->second;
+		op->SetComplete(1);
+		ClientPacketFunctions::SendHeroicOPUpdate(client, itr->second);
+		m_soloHO.erase(itr);
+		safe_delete(op);
+	}
+	MSoloHO.releasewritelock(__FUNCTION__, __LINE__);
+}
+
 void SpellProcess::KillHOBySpawnID(int32 spawn_id) {
 	// Check solo HO's
 	MSoloHO.writelock(__FUNCTION__, __LINE__);
