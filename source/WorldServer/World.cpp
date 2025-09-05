@@ -1096,9 +1096,11 @@ void PeerManager::sendZonePeerList(Client* client) {
 			int32 default_reenter_time = zone.second.get<int32>("default_reenter_time");
 			int8 instance_type = zone.second.get<int8>("instance_type");
 			bool duplicated_zone = zone.second.get<std::string>("duplicated_zone") == "true";
+			bool shutdown_timer_enabled = zone.second.get<std::string>("shutdown_timer_enabled") == "true";
+			int32 shutdown_time_remaining = zone.second.get<int32>("shutdown_remaining_time") / 1000;
 			
-			client->Message(CHANNEL_COLOR_YELLOW,"Zone (ID) (InstanceID): %s (%u) (%u), Peer: %s, NumPlayers: %u, Locked: %s, ShuttingDown: %s, DuplicateZone: %s.",zone_name.c_str(),zone_id,
-				instance_id,peer->id.c_str(), num_players, lock_state ? "true" : "false", shutting_down ? "true" : "false", duplicated_zone ? "true" : "false");	
+			client->Message(CHANNEL_COLOR_YELLOW,"Zone (ID) (InstanceID): %s (%u) (%u), Peer: %s, NumPlayers: %u, Locked: %s, ShuttingDown: %s, DuplicateZone: %s, ShutdownTimerEnabled: %s, ShutdownTimeRemaining: %u seconds.",zone_name.c_str(),zone_id,
+				instance_id,peer->id.c_str(), num_players, lock_state ? "true" : "false", shutting_down ? "true" : "false", duplicated_zone ? "true" : "false", shutdown_timer_enabled ? "true" : "false", shutdown_time_remaining);	
 		}
 		} catch (const std::exception& e) {
 			LogWrite(PEERING__ERROR, 0, "Peering", "%s: Zones Parsing Error %s for %s:%u/%s", __FUNCTION__, e.what() ? e.what() : "??", peer->webAddr.c_str(), peer->webPort);
@@ -1267,8 +1269,8 @@ void ZoneList::SendZoneList(Client* client) {
 	int zonesListed = 0;
 	for(zone_iter=zlist.begin(); zone_iter!=zlist.end(); zone_iter++){
 		tmp = *zone_iter;
-		client->Message(CHANNEL_COLOR_YELLOW,"Zone (ID) (InstanceID): %s (%u) (%u), Description: %s, NumPlayers: %u, Locked: %s, ShuttingDown: %s.",tmp->GetZoneName(),tmp->GetZoneID(),
-			tmp->GetInstanceID(),tmp->GetZoneDescription(), tmp->NumPlayers(), tmp->GetZoneLockState() ? "true" : "false", tmp->isZoneShuttingDown() ? "true" : "false");
+		client->Message(CHANNEL_COLOR_YELLOW,"Zone (ID) (InstanceID): %s (%u) (%u), Description: %s, NumPlayers: %u, Locked: %s, ShuttingDown: %s, DuplicateZone: %s, ShutdownTimerEnabled: %s, ShutdownTimeRemaining: %u seconds..",tmp->GetZoneName(),tmp->GetZoneID(),
+			tmp->GetInstanceID(),tmp->GetZoneDescription(), tmp->NumPlayers(), tmp->GetZoneLockState() ? "true" : "false", tmp->isZoneShuttingDown() ? "true" : "false", tmp->DuplicatedZone() ? "true" : "false", tmp->IsShutdownTimerEnabled() ? "true" : "false", tmp->GetShutdownRemainingTime()/1000);
 	}
 	MZoneList.releasereadlock(__FUNCTION__, __LINE__);
 	

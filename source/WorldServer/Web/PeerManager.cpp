@@ -202,7 +202,13 @@ std::string PeerManager::getZonePeerId(const std::string& inc_zone_name, int32 i
 				int8 instance_type = zone.second.get<int8>("instance_type");
 				bool always_loaded = zone.second.get<bool>("always_loaded");
 				int32 duplicate_id = zone.second.get<int32>("duplicated_id");
-
+				
+				bool shutdown_timer_enabled = zone.second.get<std::string>("shutdown_timer_enabled") == "true";
+				int32 shutdown_time_remaining = zone.second.get<int32>("shutdown_time_remaining");
+				
+				if(shutdown_timer_enabled && shutdown_time_remaining < 5000)
+					continue;
+				
 				if (only_always_loaded && !always_loaded)
 					continue;
 
@@ -259,12 +265,20 @@ int32 PeerManager::getZoneHighestDuplicateId(const std::string& inc_zone_name, i
 			for (const auto& zone : peer->zone_tree->get_child("Zones")) {
 				// Access each field within the current zone
 				std::string zone_name = zone.second.get<std::string>("zone_name");
+				bool shutting_down = zone.second.get<std::string>("shutting_down") == "true";
 				bool instance_zone = zone.second.get<std::string>("instance_zone") == "true";
 				std::string zone_file_name = zone.second.get<std::string>("zone_file_name");
 				int32 zone_id = zone.second.get<int32>("zone_id");
 				int32 instance_id = zone.second.get<int32>("instance_id");
 				int32 duplicate_id = zone.second.get<int32>("duplicated_id");
 
+				bool shutdown_timer_enabled = zone.second.get<std::string>("shutdown_timer_enabled") == "true";
+				int32 shutdown_time_remaining = zone.second.get<int32>("shutdown_time_remaining");
+				
+				if(shutting_down || (shutdown_timer_enabled && shutdown_time_remaining < 5000))
+					continue;
+				
+				
 				bool match = false;
 				if (!instance_zone && inc_zone_id > 0 && zone_id == inc_zone_id) {
 					match = true;

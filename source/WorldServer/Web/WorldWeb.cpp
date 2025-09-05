@@ -524,6 +524,8 @@ void ZoneList::PopulateZoneList(boost::property_tree::ptree& pt) {
         zone_pt.put("always_loaded", tmp->AlwaysLoaded());
         zone_pt.put("duplicated_zone", tmp->DuplicatedZone());
         zone_pt.put("duplicated_id", tmp->DuplicatedID());
+        zone_pt.put("shutdown_timer_enabled", tmp->IsShutdownTimerEnabled());
+        zone_pt.put("shutdown_remaining_time", tmp->GetShutdownRemainingTime());
 
         maintree.push_back(std::make_pair("", zone_pt));
     }

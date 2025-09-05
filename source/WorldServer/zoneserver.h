@@ -556,7 +556,9 @@ public:
 	void SetShutdownTimer(int val){ 
 		shutdownTimer.SetTimer(val*1000);
 	}
-
+	bool			IsShutdownTimerEnabled() { return shutdownTimer.Enabled(); }
+	int32			GetShutdownRemainingTime() { return shutdownTimer.GetRemainingTime(); }
+	
 	void AddSpawnLocation(int32 id, SpawnLocation* spawnlocation) {
 		MSpawnLocationList.writelock(__FUNCTION__, __LINE__);
 		if (spawn_location_list.count(id) > 0)
