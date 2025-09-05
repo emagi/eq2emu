@@ -502,7 +502,7 @@ void World::WorldTimeTick(){
 
 ZoneList::ZoneList() {
 	MZoneList.SetName("ZoneList::MZoneList");
-	zone_shutdown_allowed = true;
+	zone_shutdown_allowed = 0;
 }
 
 ZoneList::~ZoneList() {
@@ -712,7 +712,7 @@ void ZoneList::Remove(ZoneServer* zone) {
 }
 
 bool ZoneList::GetZone(ZoneChangeDetails* zone_details, int32 opt_zone_id, std::string opt_zone_name, bool loadZone, bool skip_existing_zones, bool increment_zone, bool check_peers, bool check_instances, bool only_always_loaded, bool skip_self, bool duplicated_zone, int32 minLevel, int32 maxLevel, int32 avgLevel, int32 firstLevel) {
-	zone_shutdown_allowed = false;
+	zone_shutdown_allowed++;
 	list<ZoneServer*>::iterator zone_iter;
 	ZoneServer* tmp = 0;
 	ZoneServer* ret = 0;
@@ -758,7 +758,7 @@ bool ZoneList::GetZone(ZoneChangeDetails* zone_details, int32 opt_zone_id, std::
 				}
 				else {
 					LogWrite(WORLD__INFO, 0, "World", "Peer %s is providing zone %s for zone %s id %u", peerId.c_str(), zone_details->zoneName.c_str(), opt_zone_name.c_str(), opt_zone_id);
-					zone_shutdown_allowed = true;
+					zone_shutdown_allowed--;
 					return true;
 				}
 			}
@@ -800,7 +800,7 @@ bool ZoneList::GetZone(ZoneChangeDetails* zone_details, int32 opt_zone_id, std::
 										 tmp->GetMinimumVersion(), tmp->GetDefaultLockoutTime(), tmp->GetDefaultReenterTime(),
 										 tmp->GetInstanceType(), tmp->NumPlayers(), tmp->IsCityZone());
 				safe_delete(tmp);
-				zone_shutdown_allowed = true;
+				zone_shutdown_allowed--;
 				return true;
 			}
 			else {
@@ -831,13 +831,13 @@ bool ZoneList::GetZone(ZoneChangeDetails* zone_details, int32 opt_zone_id, std::
 			zone_details->zonePtr = (void*)tmp;
 		}
 	}
-	zone_shutdown_allowed = true;
+	zone_shutdown_allowed--;
 	return (tmp != nullptr) ? true : false;
 }
 
 bool ZoneList::GetZoneByInstance(ZoneChangeDetails* zone_details, int32 instance_id, int32 zone_id, bool loadZone, bool skip_existing_zones, bool increment_zone, bool check_peers, 
 								 int32 minLevel, int32 maxLevel, int32 avgLevel, int32 firstLevel) {
-	zone_shutdown_allowed = false;
+	zone_shutdown_allowed++;
 	list<ZoneServer*>::iterator zone_iter;
 	ZoneServer* tmp = 0;
 	ZoneServer* ret = 0;
@@ -860,7 +860,7 @@ bool ZoneList::GetZoneByInstance(ZoneChangeDetails* zone_details, int32 instance
 			std::string peerId = peer_manager.getZonePeerId("", 0, instance_id, zone_details);
 			if(peerId.size() > 0) {
 				LogWrite(WORLD__ERROR, 0, "World", "Peer %s is providing instanced zone %s for zone id %u instance id %u", peerId.c_str(), zone_details->zoneName.c_str(), zone_id, instance_id);
-				zone_shutdown_allowed = true;
+				zone_shutdown_allowed--;
 				return true;
 			}
 		}
@@ -900,7 +900,7 @@ bool ZoneList::GetZoneByInstance(ZoneChangeDetails* zone_details, int32 instance
 										 tmp->GetMinimumVersion(), tmp->GetDefaultLockoutTime(), tmp->GetDefaultReenterTime(),
 										 tmp->GetInstanceType(), tmp->NumPlayers(), tmp->IsCityZone());
 				safe_delete(tmp);
-				zone_shutdown_allowed = true;
+				zone_shutdown_allowed--;
 				return true;
 			}
 			else {
@@ -924,7 +924,7 @@ bool ZoneList::GetZoneByInstance(ZoneChangeDetails* zone_details, int32 instance
 		zone_details->zonePtr = (void*)tmp;
 	}
 	
-	zone_shutdown_allowed = true;
+	zone_shutdown_allowed--;
 	return (tmp != nullptr) ? true : false;
 }
 
@@ -1700,7 +1700,7 @@ int32 ZoneList::GetHighestDuplicateID(const std::string& inc_zone_name, int32 in
 
 bool ZoneList::GetDuplicateZoneDetails(ZoneChangeDetails* zone_details, const std::string& inc_zone_name, int32 inc_zone_id, int32 matchDuplicateId)
 {
-	zone_shutdown_allowed = false;
+	zone_shutdown_allowed++;
 	list<ZoneServer*>::iterator zone_iter;
 	ZoneServer* tmp = 0;
 	std::string peerId = peer_manager.getZonePeerId(inc_zone_name, inc_zone_id, 0, zone_details, false, matchDuplicateId);
@@ -1731,7 +1731,7 @@ bool ZoneList::GetDuplicateZoneDetails(ZoneChangeDetails* zone_details, const st
 
 	MZoneList.releasereadlock(__FUNCTION__, __LINE__);
 	
-	zone_shutdown_allowed = true;
+	zone_shutdown_allowed--;
 	return match;
 }
 

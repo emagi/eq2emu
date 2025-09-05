@@ -563,14 +563,14 @@ class ZoneList {
 	void	PopulateClientList(boost::property_tree::ptree& pt);
 	void	PopulateZoneList(boost::property_tree::ptree& pt);
 	
-	bool	IsZoneShutdownAllowed() { return zone_shutdown_allowed; } 
+	bool	IsZoneShutdownAllowed() { return zone_shutdown_allowed.load() == 0; } 
 private:
 	Mutex				MClientList;
 	Mutex				MZoneList;
 	map<ZoneServer*, int32> removed_zoneservers;
 	map<string,Client*> client_map;
 	list<ZoneServer*> zlist;
-	std::atomic<bool> zone_shutdown_allowed;
+	std::atomic<int64> zone_shutdown_allowed;
 };
 class World {
 public:
