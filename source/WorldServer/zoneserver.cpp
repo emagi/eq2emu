@@ -3746,7 +3746,7 @@ void ZoneServer::ClientProcess(bool ignore_shutdown_timer)
 				shutdownDelayTimer.Start(timerDelay, true);
 			}
 			else if(!incoming_clients || shutdownDelayCheck) {
-				if(!shutdownTimer.Enabled()) {
+				if(!shutdownTimer.Enabled() && zone_list.IsZoneShutdownAllowed()) {
 					LogWrite(ZONE__INFO, 0, "Zone", "Starting zone shutdown timer for %s...", GetZoneName());
 					shutdownTimer.Start();
 				}
