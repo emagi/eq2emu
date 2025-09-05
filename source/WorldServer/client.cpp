@@ -236,7 +236,6 @@ Client::Client(EQStream* ieqs) : underworld_cooldown_timer(5000), zone_enter_tim
 	hasSentTempPlacementSpawn = false;
 	spawn_removal_timer.Start();
 	disable_save = false;
-	SetZoningDestination(nullptr);
 	underworld_cooldown_timer.Disable();
 	player_pos_change_count = 0;
 	pov_ghost_spawn_id = 0;
@@ -874,7 +873,6 @@ void Client::SendCharInfo() {
 	this->client_zoning_details_set = false;
 	this->zoning_id = 0;
 	this->zoning_instance_id = 0;
-	SetZoningDestination(nullptr);
 
 	if (player->GetHP() < player->GetTotalHP() || player->GetPower() < player->GetTotalPower())
 		GetCurrentZone()->AddDamagedSpawn(player);
@@ -1719,9 +1717,6 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
 		}
 		else
 		{
-			if (zoning_destination) {
-				SetCurrentZone(zoning_destination);
-			}
 			LogWrite(OPCODE__DEBUG, 1, "Opcode", "Opcode 0x%X (%i): OP_ReadyToZoneMsg", opcode, opcode);
 
 			if (client_zoning)
@@ -5157,8 +5152,6 @@ void Client::Zone(ZoneChangeDetails* new_zone, ZoneServer* opt_zone, bool set_co
 	GetPlayer()->DeleteSpellEffects();
 
 	LogWrite(CCLIENT__DEBUG, 0, "Client", "%s: Setting zone to '%s'...", __FUNCTION__, new_zone->zoneName.c_str());
-	SetZoningDestination(opt_zone);
-	SetCurrentZone(opt_zone);
 
 	if (player->GetGroupMemberInfo())
 	{

@@ -9254,9 +9254,6 @@ void ZoneServer::RemoveClientsFromZone(ZoneServer* zone) {
 		if(client->GetCurrentZone() == zone) {
 			client->SetCurrentZone(nullptr);
 		}
-		if(client->GetZoningDestination() == zone) {
-			client->SetZoningDestination(nullptr);
-		}
 	}
 	MClientList.releasereadlock(__FUNCTION__, __LINE__);
 }

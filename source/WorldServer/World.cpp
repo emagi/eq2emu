@@ -1356,9 +1356,6 @@ void ZoneList::RemoveClientZoneReference(ZoneServer* zone){
 			if(itr->second->GetCurrentZone() == zone) {
 				itr->second->SetCurrentZone(nullptr);
 			}
-			if(itr->second->GetZoningDestination() == zone) {
-				itr->second->SetZoningDestination(nullptr);
-			}
 		}
 	}
 	MClientList.unlock();

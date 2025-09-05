@@ -325,10 +325,6 @@ public:
 	//void	SetCurrentZoneByInstanceID(instanceid, zoneid);
 	void	SetCurrentZone(int32 id, int32 zone_duplicate_id = 0);
 	void	SetCurrentZone(ZoneServer* zone);
-	void	SetZoningDestination(ZoneServer* zone) {
-		zoning_destination = zone;
-	}
-	ZoneServer* GetZoningDestination() { return zoning_destination; }
 	int32 GetDuplicatingZoneID() { return duplicate_zoning_id; }
 	
 	Player* GetPlayer() { return player; }
@@ -827,7 +823,6 @@ private:
 	ZoneChangeDetails zoning_details;
 	int32	zoning_id;
 	int32	zoning_instance_id;
-	ZoneServer* zoning_destination;
 	int32	duplicate_zoning_id; // when a public zone is instanced for too many players this its number
 	float	zoning_x;
 	float	zoning_y;
