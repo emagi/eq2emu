@@ -282,6 +282,7 @@ ZoneServer::~ZoneServer() {
 
 void ZoneServer::IncrementIncomingClients() { 
 	MIncomingClients.writelock(__FUNCTION__, __LINE__);
+	shutdownTimer.Disable();
 	incoming_clients++;
 	LogWrite(ZONE__INFO, 0, "Zone", "Increment incoming clients of '%s' zoneid %u (instance id: %u).  Current incoming client count: %u", zone_name, zoneID, instanceID, incoming_clients);
 	MIncomingClients.releasewritelock(__FUNCTION__, __LINE__);
@@ -1760,7 +1761,7 @@ bool ZoneServer::Process()
 			return !zoneShuttingDown;
 		}
 		
-		if(shutdownTimer.Enabled() && shutdownTimer.Check() && connected_clients.size(true) == 0) {
+		if(zone_list.IsZoneShutdownAllowed() && shutdownTimer.Enabled() && shutdownTimer.Check() && connected_clients.size(true) == 0) {
 			//if(lifetime_client_count)
 				zoneShuttingDown = true;
 			/*else { // allow up to 120 seconds then timeout
