@@ -77,6 +77,8 @@ make -j$(nproc) || handle_error "Failed to compile LoginServer."
 cp login ${EQ2EMU_HOME_DIR}/eq2emu/server/ || handle_error "Failed to copy LoginServer executable."
 
 cd ${EQ2EMU_HOME_DIR}/eq2emu/source/WorldServer || handle_error "Failed to navigate to WorldServer directory."
+sed -i "/C_Flags/ s|-I/eq2emu/|-I${EQ2EMU_HOME_DIR}/|g" makefile || handle_error "Failed to update makefile C_Flags"
+sed -i "/LD_Flags/ s|-L/eq2emu/|-L${EQ2EMU_HOME_DIR}/|g" makefile || handle_error "Failed to update makefile LD_Flags"
 git pull || handle_error "Failed to pull latest changes for WorldServer."
 make clean || handle_error "Failed to clean WorldServer build."
 make -j$(nproc) || handle_error "Failed to compile WorldServer."
