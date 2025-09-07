@@ -940,7 +940,7 @@ EQ2Packet* PlayerInfo::serialize(int16 version) {
 		int16 maxSize = size + 1000;
 		uchar* tmp = new uchar[maxSize];
 		bool reverse = version > 373;
-		if (!char_changes || char_xor_packet_size != size) {
+		if(!char_changes){
 			if(!char_orig_packet) {
 				char_orig_packet = new uchar[size];
 				memcpy(char_orig_packet, (uchar*)data->c_str(), size);
@@ -949,11 +949,24 @@ EQ2Packet* PlayerInfo::serialize(int16 version) {
 			char_xor_packet_size = size;
 			safe_delete_array(char_changes);
 			char_changes = new uchar[size];
-			size = Pack(tmp, (uchar*)data->c_str(), size, maxSize, version);
+			size = Pack(tmp, (uchar*)data->c_str(), size, maxSize, version, reverse);
 		}
 		else {
+			if(char_xor_packet_size != size) {
+				char_xor_packet_size = size;
+				safe_delete_array(char_changes);
+				char_changes = new uchar[size];
+			}
+			if(char_orig_packet_size != size) {
+				uchar* tmp_char_orig_packet = new uchar[size];
+				memset(tmp_char_orig_packet, 0, size);
+				memcpy(tmp_char_orig_packet, char_orig_packet, char_orig_packet_size);
+				safe_delete_array(char_orig_packet);
+				char_orig_packet = tmp_char_orig_packet;
+				char_orig_packet_size = size;
+			}
 			memcpy(char_changes, (uchar*)data->c_str(), size);
-			Encode(char_changes, char_orig_packet, char_orig_packet_size);
+			Encode(char_changes, char_orig_packet, size);
 			size = Pack(tmp, char_changes, size, maxSize, version, reverse);
 		}
 		
@@ -1043,7 +1056,7 @@ EQ2Packet* PlayerInfo::serializePet(int16 version) {
 		int16 maxSize = size + 1000;
 		uchar* tmp = new uchar[maxSize];
 		// if this is the first time sending this packet create the buffers
-		if(!pet_changes || pet_xor_packet_size != size){
+		if(!pet_changes){
 			if(!pet_orig_packet) {
 				pet_orig_packet = new uchar[size];
 				memcpy(pet_orig_packet, (uchar*)data->c_str(), size);
@@ -1055,8 +1068,21 @@ EQ2Packet* PlayerInfo::serializePet(int16 version) {
 			size = Pack(tmp, (uchar*)data->c_str(), size, maxSize, version);
 		}
 		else {
+			if(pet_xor_packet_size != size) {
+				pet_xor_packet_size = size;
+				safe_delete_array(pet_changes);
+				pet_changes = new uchar[size];
+			}
+			if(pet_orig_packet_size != size) {
+				uchar* tmp_pet_orig_packet = new uchar[size];
+				memset(tmp_pet_orig_packet, 0, size);
+				memcpy(tmp_pet_orig_packet, pet_orig_packet, pet_orig_packet_size);
+				safe_delete_array(pet_orig_packet);
+				pet_orig_packet = tmp_pet_orig_packet;
+				pet_orig_packet_size = size;
+			}
 			memcpy(pet_changes, (uchar*)data->c_str(), size);
-			Encode(pet_changes, pet_orig_packet, pet_orig_packet_size);
+			Encode(pet_changes, pet_orig_packet, size);
 			size = Pack(tmp, pet_changes, size, maxSize, version);
 		}
 		
@@ -2965,7 +2991,7 @@ EQ2Packet* Player::GetRaidUpdatePacket(int16 version) {
 		
 		int16 maxSize = size + 1000;
 		uchar* tmp = new uchar[maxSize];
-		if (!raid_xor_packet || raid_xor_packet_size != size) {
+		if(!raid_xor_packet){
 			if(!raid_orig_packet) {
 				raid_orig_packet = new uchar[size];
 				memcpy(raid_orig_packet, (uchar*)data->c_str(), size);
@@ -2977,8 +3003,21 @@ EQ2Packet* Player::GetRaidUpdatePacket(int16 version) {
 			size = Pack(tmp, (uchar*)data->c_str(), size, maxSize, version);
 		}
 		else {
+			if(raid_xor_packet_size != size) {
+				raid_xor_packet_size = size;
+				safe_delete_array(raid_xor_packet);
+				raid_xor_packet = new uchar[size];
+			}
+			if(raid_orig_packet_size != size) {
+				uchar* tmp_raid_orig_packet = new uchar[size];
+				memset(tmp_raid_orig_packet, 0, size);
+				memcpy(tmp_raid_orig_packet, raid_orig_packet, raid_orig_packet_size);
+				safe_delete_array(raid_orig_packet);
+				raid_orig_packet = tmp_raid_orig_packet;
+				raid_orig_packet_size = size;
+			}
 			memcpy(raid_xor_packet, (uchar*)data->c_str(), size);
-			Encode(raid_xor_packet, raid_orig_packet, raid_orig_packet_size);
+			Encode(raid_xor_packet, raid_orig_packet, size);
 			size = Pack(tmp, raid_xor_packet, size, maxSize, version);
 		}
 		
@@ -3664,12 +3703,28 @@ uchar* Player::GetSpawnPosPacketForXOR(int32 spawn_id){
 		ret = (uchar*)spawn_pos_packet_list[spawn_id].c_str();
 	return ret;
 }
+
+int32 Player::GetSpawnPosPacketForXorLength(int32 spawn_id){
+	int32 size = 0;
+	if(spawn_pos_packet_list.count(spawn_id) == 1)
+		size = spawn_pos_packet_list[spawn_id].length();
+	return size;
+}
+
 uchar* Player::GetSpawnInfoPacketForXOR(int32 spawn_id){
 	uchar* ret = 0;
 	if(spawn_info_packet_list.count(spawn_id) == 1)
 		ret = (uchar*)spawn_info_packet_list[spawn_id].c_str();
 	return ret;
 }
+
+int32 Player::GetSpawnInfoPacketForXorLength(int32 spawn_id){
+	int32 size = 0;
+	if(spawn_info_packet_list.count(spawn_id) == 1)
+		size = spawn_info_packet_list[spawn_id].length();
+	return size;
+}
+
 void Player::AddSpawnVisPacketForXOR(int32 spawn_id, uchar* packet, int16 packet_size){
 	spawn_vis_packet_list[spawn_id] = string((char*)packet, packet_size);
 }
@@ -3679,6 +3734,13 @@ uchar* Player::GetSpawnVisPacketForXOR(int32 spawn_id){
 	if(spawn_vis_packet_list.count(spawn_id) == 1)
 		ret = (uchar*)spawn_vis_packet_list[spawn_id].c_str();
 	return ret;
+}
+
+int32 Player::GetSpawnVisPacketForXorLength(int32 spawn_id){
+	int32 size = 0;
+	if(spawn_vis_packet_list.count(spawn_id) == 1)
+		size = spawn_vis_packet_list[spawn_id].length();
+	return size;
 }
 
 uchar* Player::GetTempInfoPacketForXOR(){

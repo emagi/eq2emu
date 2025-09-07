@@ -785,6 +785,12 @@ uchar* Spawn::spawn_info_changes(Player* player, int16 version, int16* info_pack
 
 	uchar* orig_packet = player->GetSpawnInfoPacketForXOR(id);
 	if(orig_packet){
+		int32 orig_length = player->GetSpawnInfoPacketForXorLength(id);
+		if(orig_length != size) {
+			uchar* resized_packet = ResizePacketWithPadding(orig_packet, orig_length, size);
+			player->AddSpawnInfoPacketForXOR(id, resized_packet, size);
+			orig_packet = player->GetSpawnInfoPacketForXOR(id);
+		}
 		memcpy(xor_info_packet, (uchar*)data->c_str(), size);
  		Encode(xor_info_packet, orig_packet, size);
 	}
@@ -838,7 +844,13 @@ uchar* Spawn::spawn_vis_changes(Player* player, int16 version, int16* vis_packet
 		safe_delete(xor_vis_packet);
 		xor_vis_packet = player->SetTempVisPacketForXOR(size);
 	}
-	if(orig_packet){		
+	if(orig_packet){
+		int32 orig_length = player->GetSpawnVisPacketForXorLength(id);
+		if(orig_length != size) {
+			uchar* resized_packet = ResizePacketWithPadding(orig_packet, orig_length, size);
+			player->AddSpawnVisPacketForXOR(id, resized_packet, size);
+			orig_packet = player->GetSpawnVisPacketForXOR(id);
+		}
 		memcpy(xor_vis_packet, (uchar*)data->c_str(), size);
 		Encode(xor_vis_packet, orig_packet, size);
 	}
@@ -892,6 +904,12 @@ uchar* Spawn::spawn_pos_changes(Player* player, int16 version, int16* pos_packet
 		xor_pos_packet = player->SetTempPosPacketForXOR(size);
 	}
 	if(orig_packet){
+		int32 orig_length = player->GetSpawnPosPacketForXorLength(id);
+		if(orig_length != size) {
+			uchar* resized_packet = ResizePacketWithPadding(orig_packet, orig_length, size);
+			player->AddSpawnPosPacketForXOR(id, resized_packet, size);
+			orig_packet = player->GetSpawnPosPacketForXOR(id);
+		}
 		memcpy(xor_pos_packet, (uchar*)data->c_str(), size);
 		Encode(xor_pos_packet, orig_packet, size);
 	}
@@ -1156,8 +1174,12 @@ uchar* Spawn::spawn_info_changes_ex(Player* player, int16 version, int16* info_p
 	uchar* orig_packet = player->GetSpawnInfoPacketForXOR(id);
 
 	if (orig_packet) {		
-		//if (!IsPlayer() && this->EngagedInCombat())
-			//packet->PrintPacket();
+		int32 orig_length = player->GetSpawnInfoPacketForXorLength(id);
+		if(orig_length != size) {
+			uchar* resized_packet = ResizePacketWithPadding(orig_packet, orig_length, size);
+			player->AddSpawnInfoPacketForXOR(id, resized_packet, size);
+			orig_packet = player->GetSpawnInfoPacketForXOR(id);
+		}
 		memcpy(xor_info_packet, (uchar*)data->c_str(), size);
 		Encode(xor_info_packet, orig_packet, size);
 	}
@@ -1219,8 +1241,12 @@ uchar* Spawn::spawn_vis_changes_ex(Player* player, int16 version, int16* vis_pac
 	}
 
 	if (orig_packet) {		
-		//if (!IsPlayer() && this->EngagedInCombat())
-		//	vis_struct->PrintPacket();
+		int32 orig_length = player->GetSpawnVisPacketForXorLength(id);
+		if(orig_length != size) {
+			uchar* resized_packet = ResizePacketWithPadding(orig_packet, orig_length, size);
+			player->AddSpawnVisPacketForXOR(id, resized_packet, size);
+			orig_packet = player->GetSpawnVisPacketForXOR(id);
+		}
 		memcpy(xor_vis_packet, (uchar*)data->c_str(), size);
 		Encode(xor_vis_packet, orig_packet, size);
 	}
@@ -1284,8 +1310,12 @@ uchar* Spawn::spawn_pos_changes_ex(Player* player, int16 version, int16* pos_pac
 	}
 
 	if (orig_packet) {
-		//if (!IsPlayer() && this->EngagedInCombat())
-		//	packet->PrintPacket();
+		int32 orig_length = player->GetSpawnPosPacketForXorLength(id);
+		if(orig_length != size) {
+			uchar* resized_packet = ResizePacketWithPadding(orig_packet, orig_length, size);
+			player->AddSpawnPosPacketForXOR(id, resized_packet, size);
+			orig_packet = player->GetSpawnPosPacketForXOR(id);
+		}
 		memcpy(xor_pos_packet, (uchar*)data->c_str(), size);
 		Encode(xor_pos_packet, orig_packet, size);
 	}

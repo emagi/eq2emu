@@ -634,10 +634,13 @@ public:
 	}
 	void	AddSpawnInfoPacketForXOR(int32 spawn_id, uchar* packet, int16 packet_size);
 	uchar*	GetSpawnInfoPacketForXOR(int32 spawn_id);
+	int32	GetSpawnInfoPacketForXorLength(int32 spawn_id);
 	void	AddSpawnVisPacketForXOR(int32 spawn_id, uchar* packet, int16 packet_size);
 	uchar*	GetSpawnVisPacketForXOR(int32 spawn_id);
+	int32	GetSpawnVisPacketForXorLength(int32 spawn_id);
 	void	AddSpawnPosPacketForXOR(int32 spawn_id, uchar* packet, int16 packet_size);
 	uchar*	GetSpawnPosPacketForXOR(int32 spawn_id);
+	int32	GetSpawnPosPacketForXorLength(int32 spawn_id);
 	uchar*	GetTempInfoPacketForXOR();
 	uchar*	GetTempVisPacketForXOR();
 	uchar*	GetTempPosPacketForXOR();

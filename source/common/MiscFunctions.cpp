@@ -971,3 +971,17 @@ std::tuple<int64, int64, int64, int64> convertTimestampDuration(int64 total_mill
     // Return the result as a tuple
     return std::make_tuple(days.count(), hours.count(), minutes.count(), seconds.count());
 }
+uchar* ResizePacketWithPadding(uchar* orig_packet, int32 orig_size, int32 new_size) {
+	// allocate new buffer
+	uchar* resized = new uchar[new_size];
+
+	// copy original data
+	memcpy(resized, orig_packet, std::min(orig_size, new_size));
+
+	// if expanded, pad with 0x00
+	if (new_size > orig_size) {
+		memset(resized + orig_size, 0x00, new_size - orig_size);
+	}
+
+	return resized; // caller must delete[] this later
+}
