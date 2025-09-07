@@ -10312,10 +10312,7 @@ void Commands::Command_Test(Client* client, EQ2_16BitString* command_parms) {
 			}
 		}
 		else if (atoi(sep->arg[0]) == 5) {
-			int16 offset = atoi(sep->arg[1]);
-			int32 value1 = atol(sep->arg[2]);
-			EQ2Packet* outapp = client->GetPlayer()->GetPlayerInfo()->serialize(client->GetVersion(), offset, value1);
-			client->QueuePacket(outapp);
+
 		}
 		else if (atoi(sep->arg[0]) == 6) {
 			Spawn* spawn = client->GetPlayer()->GetTarget();
@@ -10729,14 +10726,7 @@ void Commands::Command_Test(Client* client, EQ2_16BitString* command_parms) {
 			client->SimpleMessage(atoi(sep->arg[1]), blah);
 		}
 		else if (atoi(sep->arg[0]) == 17 && sep->IsNumber(2)) {
-			if (sep->IsSet(2)) {
-				int16 offset = atoi(sep->arg[1]);
-				if (sep->IsNumber(2)) {
-					int32 value1 = atol(sep->arg[2]);
-					client->QueuePacket(client->GetPlayer()->GetPlayerInfo()->serialize(client->GetVersion(), offset, value1));
-					cout << "Sent" << endl;
-				}
-			}
+
 		}
 		else if (atoi(sep->arg[0]) == 18) {
 			PacketStruct* packet2 = configReader.getStruct("WS_QuestRewardPackMsg", client->GetVersion());

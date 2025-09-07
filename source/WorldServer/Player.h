@@ -361,9 +361,7 @@ public:
 	~PlayerInfo();
 	PlayerInfo(Player* in_player);
 
-	EQ2Packet* serialize(int16 version, int16 modifyPos = 0, int32 modifyValue = 0);
-	PacketStruct* serialize2(int16 version);
-	EQ2Packet* serialize3(PacketStruct* packet, int16 version);
+	EQ2Packet* serialize(int16 version);
 	EQ2Packet* serializePet(int16 version);
 	void CalculateXPPercentages();
 	void CalculateTSXPPercentages();
@@ -397,10 +395,12 @@ private:
 	float			bind_y;
 	float			bind_z;
 	float			bind_heading;
-	uchar*			changes;
-	uchar*			orig_packet;
+	uchar*			char_changes;
+	uchar*			char_orig_packet;
+	int32			char_orig_packet_size;
 	uchar*			pet_changes;
 	uchar*			pet_orig_packet;
+	int32			pet_orig_packet_size;
 	InfoStruct*		info_struct;
 	Player*			player;
 	float           boat_x_offset;
@@ -1157,6 +1157,7 @@ private:
 	int16				spell_count;
 	
 	uchar*				raid_orig_packet;
+	int16				raid_orig_packet_size;
 	uchar*				raid_xor_packet;
 	//float				speed;
 	int16				target_id;
