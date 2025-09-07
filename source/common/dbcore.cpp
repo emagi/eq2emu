@@ -202,6 +202,7 @@ bool DBcore::RunQuery(const char* query, int32 querylen, char* errbuf, MYSQL_RES
 			pStatus = Error;
 		if (mysql_errno(&mysql) == CR_SERVER_LOST || mysql_errno(&mysql) == CR_SERVER_GONE_ERROR) {
 			if (retry) {
+				pStatus = Error;
 				LogWrite(DATABASE__ERROR, 0, "DBCore", "Lost connection, attempting to recover...");
 				ret = RunQuery(query, querylen, errbuf, result, affected_rows, last_insert_id, errnum, false);
 			}
