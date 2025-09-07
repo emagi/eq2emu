@@ -960,7 +960,7 @@ EQ2Packet* PlayerInfo::serialize(int16 version) {
 			if(char_orig_packet_size != size) {
 				uchar* tmp_char_orig_packet = new uchar[size];
 				memset(tmp_char_orig_packet, 0, size);
-				memcpy(tmp_char_orig_packet, char_orig_packet, char_orig_packet_size);
+				memcpy(tmp_char_orig_packet, char_orig_packet, size > char_orig_packet_size ? char_orig_packet_size : size);
 				safe_delete_array(char_orig_packet);
 				char_orig_packet = tmp_char_orig_packet;
 				char_orig_packet_size = size;
@@ -1076,7 +1076,7 @@ EQ2Packet* PlayerInfo::serializePet(int16 version) {
 			if(pet_orig_packet_size != size) {
 				uchar* tmp_pet_orig_packet = new uchar[size];
 				memset(tmp_pet_orig_packet, 0, size);
-				memcpy(tmp_pet_orig_packet, pet_orig_packet, pet_orig_packet_size);
+				memcpy(tmp_pet_orig_packet, pet_orig_packet, size > pet_orig_packet_size ? pet_orig_packet_size : size);
 				safe_delete_array(pet_orig_packet);
 				pet_orig_packet = tmp_pet_orig_packet;
 				pet_orig_packet_size = size;
@@ -3011,7 +3011,7 @@ EQ2Packet* Player::GetRaidUpdatePacket(int16 version) {
 			if(raid_orig_packet_size != size) {
 				uchar* tmp_raid_orig_packet = new uchar[size];
 				memset(tmp_raid_orig_packet, 0, size);
-				memcpy(tmp_raid_orig_packet, raid_orig_packet, raid_orig_packet_size);
+				memcpy(tmp_raid_orig_packet, raid_orig_packet, size > raid_orig_packet_size ? raid_orig_packet_size : size);
 				safe_delete_array(raid_orig_packet);
 				raid_orig_packet = tmp_raid_orig_packet;
 				raid_orig_packet_size = size;
