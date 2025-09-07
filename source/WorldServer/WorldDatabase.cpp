@@ -3081,7 +3081,7 @@ void WorldDatabase::LoadZoneInfo(ZoneServer* zone, int32 minLevel, int32 maxLeve
 	MYSQL_RES* result = nullptr;
 	
 	if(zoneInfo == nullptr)
-		result = query.RunQuery2(Q_SELECT, "SELECT id, file, description, underworld, safe_x, safe_y, safe_z, min_status, min_level, max_level, instance_type+0, shutdown_timer, zone_motd, default_reenter_time, default_reset_time, default_lockout_time, force_group_to_zone, safe_heading, xp_modifier, ruleset_id, expansion_id, weather_allowed, sky_file, can_bind, can_gate, city_zone, can_evac FROM zones where name='%s'",escaped);
+		result = query.RunQuery2(Q_SELECT, "SELECT id, file, description, underworld, safe_x, safe_y, safe_z, min_status, min_level, max_level, instance_type+0, shutdown_timer, zone_motd, default_reenter_time, default_reset_time, default_lockout_time, force_group_to_zone, safe_heading, xp_modifier, ruleset_id, expansion_id, weather_allowed, sky_file, can_bind, can_gate, city_zone, can_evac, lua_script FROM zones where name='%s'",escaped);
 	if((zoneInfo || (result && mysql_num_rows(result) > 0))) {
 		if(result && zoneInfo == nullptr) 
 		{	
