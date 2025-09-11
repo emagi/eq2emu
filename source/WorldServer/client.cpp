@@ -1662,7 +1662,8 @@ bool Client::HandlePacket(EQApplicationPacket* app) {
 		Spawn* spawn = GetCurrentZone()->GetSpawnByID(loot_id);
 		if (spawn) {
 			spawn->SetSpawnLootWindowCompleted(GetPlayer()->GetID());
-			spawn->SetLooterSpawnID(0);
+			if(spawn->GetLooterSpawnID() == GetPlayer()->GetID())
+				spawn->SetLooterSpawnID(0);
 		}
 		break;
 	}
@@ -12311,7 +12312,7 @@ bool Client::HandleNewLogin(int32 account_id, int32 access_code)
 
 
 void Client::SendSpawnChanges(set<Spawn*>& spawns) {
-	if (!IsReadyForUpdates())
+	if (!IsReadyForUpdates() || !IsConnectedToZone())
 		return;
 
 	map<int32, SpawnData> info_changes;

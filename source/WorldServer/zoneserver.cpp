@@ -2132,7 +2132,7 @@ void ZoneServer::SendSpawnChangesByDBID(int32 db_id, Client* client, bool overri
 }
 
 void ZoneServer::SendSpawnChanges(Spawn* spawn, Client* client, bool override_changes, bool override_vis_changes){
-	if(client && client->IsConnected() && client->IsReadyForUpdates() && client->GetPlayer()->WasSentSpawn(spawn->GetID()) && (spawn->IsTransportSpawn() || client->GetPlayer()->GetDistance(spawn) < SEND_SPAWN_DISTANCE)){
+	if(client && client->IsConnected() && client->IsConnectedToZone() && client->IsReadyForUpdates() && client->GetPlayer()->WasSentSpawn(spawn->GetID()) && (spawn->IsTransportSpawn() || client->GetPlayer()->GetDistance(spawn) < SEND_SPAWN_DISTANCE)){
 		EQ2Packet* outapp = spawn->spawn_update_packet(client->GetPlayer(), client->GetVersion(), override_changes, override_vis_changes);
 		if(outapp)
 			client->QueuePacket(outapp);

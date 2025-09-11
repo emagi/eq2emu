@@ -558,7 +558,7 @@ public:
 	void SendSpawnChanges(set<Spawn*>& spawns);
 	void MakeSpawnChangePacket(map<int32, SpawnData> info_changes, map<int32, SpawnData> pos_changes, map<int32, SpawnData> vis_changes, int32 info_size, int32 pos_size, int32 vis_size);
 
-	bool IsZonedIn() { return connected_to_zone; }
+	bool IsConnectedToZone() { return connected_to_zone; }
 
 	void SendHailCommand(Spawn* target);
 	void SendDefaultCommand(Spawn* spawn, const char* command, float distance);
@@ -817,7 +817,7 @@ private:
 	float	dead_h;
 
 	bool	seencharsel;
-	bool	connected_to_zone;
+	std::atomic<bool> connected_to_zone;
 	std::atomic<bool> client_zoning;
 	std::atomic<bool> client_zoning_details_set;
 	ZoneChangeDetails zoning_details;
