@@ -5095,6 +5095,10 @@ void WorldDatabase::LoadSpells()
 									"WHERE s.id = st.spell_id AND s.is_active = 1 "
 									"ORDER BY s.`id`, `tier`") )
 	{
+		if(database_new.GetError()) // reduce spam in logs, only post error if actual error back from DB server 0 means no results
+			LogWrite(SPELL__ERROR, 0, "Spells", "Error in LoadSpells() '%s': %i", database_new.GetErrorMsg(), database_new.GetError());
+		else
+			LogWrite(SPELL__ERROR, 0, "Spells", "Error in LoadSpells() UNKNOWN");
 		// error
 	}
 	else
