@@ -235,8 +235,8 @@ bool DatabaseNew::Select(DatabaseResult *result, const char *query, ...) {
 		if (res != NULL)
 		{
 			// Grab number of rows and number of fields from the query
-			uint8 num_rows = mysql_affected_rows(&mysql);
-			uint8 num_fields = mysql_field_count(&mysql);
+			uint32 num_rows = mysql_num_rows(res);
+			uint32 num_fields = mysql_num_fields(res);
 
 			ret = result->StoreResult(res, num_fields, num_rows);
 		}

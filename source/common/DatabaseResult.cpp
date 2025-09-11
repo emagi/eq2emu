@@ -42,7 +42,7 @@ DatabaseResult::~DatabaseResult() {
 	}
 }
 
-bool DatabaseResult::StoreResult(MYSQL_RES* res, uint8 field_count, uint8 row_count) {
+bool DatabaseResult::StoreResult(MYSQL_RES* res, unsigned int field_count, unsigned int row_count) {
 
 	//clear any previously stored result
 	if (result != NULL)
@@ -67,7 +67,7 @@ bool DatabaseResult::StoreResult(MYSQL_RES* res, uint8 field_count, uint8 row_co
 	
 	const MYSQL_FIELD* fields = mysql_fetch_fields(result);
 
-	for (uint8 i = 0; i < num_fields; ++i) {
+	for (uint32 i = 0; i < num_fields; ++i) {
 		field_map.emplace(std::make_pair(std::string_view(fields[i].name), i));
 	}
 	

@@ -13,7 +13,7 @@ public:
 	DatabaseResult();
 	virtual ~DatabaseResult();
 
-	bool StoreResult(MYSQL_RES* result, uint8 field_count, uint8 row_count);
+	bool StoreResult(MYSQL_RES* result, unsigned int field_count, unsigned int row_count);
 	bool Next();
 
 	bool IsNull(unsigned int index);
