@@ -5539,6 +5539,9 @@ void Client::SendPopupMessage(int8 unknown, const char* text, const char* type, 
 }
 
 bool Client::ChangeLevel(int16 old_level, int16 new_level, int32 xp_earned) {
+	if(!IsReadyForUpdates() || !GetPlayer()->GetZone())
+		return false;
+	
 	if (new_level < 1) {
 		SimpleMessage(CHANNEL_COLOR_RED, "You cannot be lower than level 1!");
 		return false;
